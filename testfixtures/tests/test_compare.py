@@ -5,7 +5,7 @@ from re import compile
 from testfixtures import identity,compare,Comparison as C,generator
 from unittest import TestCase,TestSuite,makeSuite
 
-hexaddr = compile('0x[0-9A-F]+')
+hexaddr = compile('0x[0-9A-Fa-f]+')
 
 class TestCompare(TestCase):
 
