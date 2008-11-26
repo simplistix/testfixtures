@@ -111,7 +111,7 @@ See license.txt for details.
 Changes
 =======
 
-x.y.z 
+1.0.0 
 -----
 
 - Initial Release
