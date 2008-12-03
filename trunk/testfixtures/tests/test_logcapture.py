@@ -12,13 +12,29 @@ one = getLogger('one')
 two = getLogger('two')
 child = getLogger('one.child')
 
+class DemoLogCapture:
+
+    def test_simple(self):
+        """
+        >>> root.info('some logging')
+        >>> print log_capture
+        root INFO
+          some logging
+        >>> log_capture.clear()
+        >>> print log_capture
+        <BLANKLINE>
+        >>> root.info('some more logging')
+        >>> print log_capture
+        root INFO
+          some more logging
+        """
+
 class TestLogCapture:
 
     def test_simple(self):
         """
-        >>> l = LogCapture()
         >>> root.info('before')
-        >>> l.install()
+        >>> l = LogCapture()
         >>> root.info('during')
         >>> l.uninstall()
         >>> root.info('after')
@@ -30,7 +46,6 @@ class TestLogCapture:
     def test_specific_logger(self):
         """
         >>> l = LogCapture('one')
-        >>> l.install()
         >>> root.info('1')
         >>> one.info('2')
         >>> two.info('3')
@@ -45,8 +60,7 @@ class TestLogCapture:
 
     def test_multiple_loggers(self):
         """
-        >>> l = LogCapture('one.child','two')
-        >>> l.install()
+        >>> l = LogCapture(('one.child','two'))
         >>> root.info('1')
         >>> one.info('2')
         >>> two.info('3')
@@ -59,7 +73,30 @@ class TestLogCapture:
           4
         """
 
+    def test_simple_manual_install(self):
+        """
+        >>> l = LogCapture(install=False)
+        >>> root.info('before')
+        >>> l.install()
+        >>> root.info('during')
+        >>> l.uninstall()
+        >>> root.info('after')
+        >>> print l
+        root INFO
+          during
+        """
+
+# using a set up and teardown function
+# gets rid of the need for the imports in
+# doc tests
+
+def setUp(test):
+    test.globs['log_capture']=LogCapture()
+
+def tearDown(test):
+    test.globs['log_capture'].uninstall()
+    
 def test_suite():
     return TestSuite((
-        DocTestSuite(),
+        DocTestSuite(setUp=setUp,tearDown=tearDown),
         ))
