@@ -112,7 +112,14 @@ See license.txt for details.
 Changes
 =======
 
-1.0.0 
------
+1.1.0 (3 Dec 2008)
+------------------
+
+- add support to Comparisons for only comparing some attributes
+
+- move to use zope.dottedname
+
+1.0.0 (26 Nov 2008)
+-------------------
 
 - Initial Release
