@@ -17,7 +17,7 @@ setup(
     long_description=open(os.path.join(package_dir,'readme.txt')).read(),
     url='http://www.simplistix.co.uk/software/python/testfixtures',
     classifiers=[
-    'Development Status :: 4 - Beta',
+    'Development Status :: 5 - Production/Stable',
     'Intended Audience :: Developers',
     'License :: OSI Approved :: MIT License',
     ],    
@@ -25,7 +25,7 @@ setup(
     zip_safe=False,
     include_package_data=True,
     install_requires=(
-    'resolve',
+    'zope.dottedname',
     )
     )
 

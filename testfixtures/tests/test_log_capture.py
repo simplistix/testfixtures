@@ -45,6 +45,47 @@ class TestLog_Capture(TestCase):
             C('logging.LogRecord'),
             ])
 
+    def test_uninstall_properly(self):
+        root = getLogger()
+        child = getLogger('child')
+        before_root = root.handlers[:]
+        before_child = child.handlers[:]
+        try:
+            old_root_level=root.level
+            root.setLevel(49)
+            old_child_level=child.level
+            child.setLevel(69)
+            
+            @log_capture('child')
+            @log_capture()
+            def test_method(l1,l2):
+                root = getLogger()
+                root.info('1')
+                self.assertEqual(root.level,1)
+                child = getLogger('child')
+                self.assertEqual(child.level,1)
+                child.info('2')
+                l1.check(
+                    ('root', 'INFO', '1'),
+                    ('child', 'INFO', '2'),
+                    )
+                l2.check(
+                    ('child', 'INFO', '2'),
+                    )
+
+            test_method()
+            
+            self.assertEqual(root.level,49)
+            self.assertEqual(child.level,69)
+
+            self.assertEqual(root.handlers,before_root)
+            self.assertEqual(child.handlers,before_child)
+            
+        finally:
+            root.setLevel(old_root_level)
+            child.setLevel(old_child_level)
+            
+    
 def test_suite():
     return TestSuite((
         makeSuite(TestLog_Capture),
