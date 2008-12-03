@@ -112,6 +112,16 @@ See license.txt for details.
 Changes
 =======
 
+1.2.0 (3 Dec 2008)
+------------------
+
+- LogCaptures now auto-install on creation unless configured otherwise
+
+- LogCaptures now have a clear method
+
+- LogCaptures now have a class method uninstall_all that uninstalls
+  all instances of LogCapture. Handy for a tearDown method in doctests.
+
 1.1.0 (3 Dec 2008)
 ------------------
 
