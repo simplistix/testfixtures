@@ -41,8 +41,9 @@ functional examples, see the contents of the tests folder.
   This class lets you instantiate placeholders that can be used to
   compared expected results with actual results where objects in the
   actual results do not support useful comparison.
-  The comparision can be based just on the type of the object, which
-  is particularly handy when comparing sequences returned from tested
+  The comparision can be based just on the type of the object or on a
+  partial set of the object's attributes, both of which are
+  particularly handy when comparing sequences returned from tested
   code.
 
 **compare**
@@ -111,7 +112,14 @@ See license.txt for details.
 Changes
 =======
 
-1.0.0 
------
+1.1.0 (3 Dec 2008)
+------------------
+
+- add support to Comparisons for only comparing some attributes
+
+- move to use zope.dottedname
+
+1.0.0 (26 Nov 2008)
+-------------------
 
 - Initial Release

@@ -8,7 +8,7 @@ from difflib import unified_diff
 from functools import partial
 from inspect import getargspec
 from new import classobj
-from resolve import resolve
+from zope.dottedname.resolve import resolve
 from time import mktime
 from types import ClassType,GeneratorType,MethodType
 
@@ -130,7 +130,12 @@ def generator(*args):
         yield i
 
 class Comparison:
-    def __init__(self,t,v=None):
+    def __init__(self,t,v=None,strict=True,**kw):
+        if kw:
+            if v is None:
+                v = kw
+            else:
+                v.update(kw)
         if isinstance(t,basestring):
             c = resolve(t)
         elif isinstance(t,ClassType):
@@ -147,6 +152,7 @@ class Comparison:
                 v=vars(t)
         self.c = c
         self.v = v
+        self.strict = strict
         
     def __cmp__(self,other):
         if self.c is not other.__class__:
@@ -157,7 +163,13 @@ class Comparison:
             v = other.args
         else:
             v = vars(other)
-        return cmp(self.v,v)
+        if self.strict:
+            return cmp(self.v,v)
+        else:
+            for n,a in self.v.items():
+                if n not in v or a!=v[n]:
+                    return -1
+            return 0
     
     def __repr__(self):
         if self.v is None:
