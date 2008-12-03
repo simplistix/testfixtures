@@ -205,14 +205,19 @@ class should_raise:
         
 class LogCapture(logging.Handler):
 
-    def __init__(self, *names):
+    def __init__(self, names=None, install=True):
         logging.Handler.__init__(self)
-        if not names:
-            names = (None,)
+        if not isinstance(names,tuple):
+            names = (names,)
         self.names = names
-        self.records = []
         self.oldlevels = {}
+        self.clear()
+        if install:
+            self.install()
 
+    def clear(self):
+        self.records = []
+        
     def emit(self, record):
         self.records.append(record)
 
@@ -249,7 +254,7 @@ class LogCaptureForDecorator(LogCapture):
         return self
     
 def log_capture(*names):
-    l = LogCaptureForDecorator(*names)
+    l = LogCaptureForDecorator(names or None)
     return wrap(l.install,l.uninstall)
 
 @classmethod
