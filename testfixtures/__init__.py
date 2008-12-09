@@ -1,16 +1,18 @@
 # Copyright (c) 2008 Simplistix Ltd
 # See license.txt for license details.
 
-import logging
+import logging,os
 
 from datetime import datetime,timedelta,date
 from difflib import unified_diff
 from functools import partial
 from inspect import getargspec
 from new import classobj
-from zope.dottedname.resolve import resolve
+from shutil import rmtree
+from tempfile import mkdtemp
 from time import mktime
 from types import ClassType,GeneratorType,MethodType
+from zope.dottedname.resolve import resolve
 
 class Wrappings:
     def __init__(self):
@@ -315,3 +317,43 @@ def test_time(*args):
     return test_factory(
         'ttime',ttimec,'seconds',1,(2001,1,1,0,0,0),args,time=instantiate
         )
+
+class TempDirectory:
+
+    instances = set()
+    
+    def __init__(self,ignore=(),create=True):
+        self.ignore = ignore
+        if create:
+            self.create()
+
+    def create(self):
+        self.path = mkdtemp()
+        self.instances.add(self)
+        return self
+
+    def cleanup(self):
+        if self in self.instances:
+            rmtree(self.path)
+            self.instances.remove(self)
+
+    @classmethod
+    def cleanup_all(cls):
+        for i in tuple(cls.instances):
+            i.cleanup()
+        
+    def actual(self):
+        return sorted([n for n in os.listdir(self.path)
+                       if n not in self.ignore])
+    def listdir(self):
+        for n in self.actual():
+            print n
+
+    def check(self,*expected):
+        compare(expected,tuple(self.actual()))
+
+def tempdir(*args,**kw):
+    kw['create']=False
+    l = TempDirectory(*args,**kw)
+    return wrap(l.create,l.cleanup)
+

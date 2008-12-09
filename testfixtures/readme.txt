@@ -83,6 +83,14 @@ functional examples, see the contents of the tests folder.
   exception raised is not only of the correct type but also has the
   correct parameters.
 
+**TempDirectory**
+  This helper will create a temporary directory for you using mkdtemp
+  and provides a handy class method for cleaning all of these up.
+
+**tempdir**
+  This decorator will create a temporary directory for the duration of
+  the unit test and clear it up no matter the outcome of the test.
+
 **test_date**
   This is a handy class factory that returns datetime.date
   replacements that have a `today` method that gives repeatable,
@@ -111,6 +119,13 @@ See license.txt for details.
 
 Changes
 =======
+
+1.3.0 (9 Dec 2008)
+------------------
+
+- added TempDirectory helper
+
+- added tempdir decorator
 
 1.2.0 (3 Dec 2008)
 ------------------
