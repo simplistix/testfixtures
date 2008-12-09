@@ -1,16 +1,18 @@
 # Copyright (c) 2008 Simplistix Ltd
 # See license.txt for license details.
 
-import logging
+import logging,os
 
 from datetime import datetime,timedelta,date
 from difflib import unified_diff
 from functools import partial
 from inspect import getargspec
 from new import classobj
-from resolve import resolve
+from shutil import rmtree
+from tempfile import mkdtemp
 from time import mktime
 from types import ClassType,GeneratorType,MethodType
+from zope.dottedname.resolve import resolve
 
 class Wrappings:
     def __init__(self):
@@ -130,7 +132,12 @@ def generator(*args):
         yield i
 
 class Comparison:
-    def __init__(self,t,v=None):
+    def __init__(self,t,v=None,strict=True,**kw):
+        if kw:
+            if v is None:
+                v = kw
+            else:
+                v.update(kw)
         if isinstance(t,basestring):
             c = resolve(t)
         elif isinstance(t,ClassType):
@@ -147,6 +154,7 @@ class Comparison:
                 v=vars(t)
         self.c = c
         self.v = v
+        self.strict = strict
         
     def __cmp__(self,other):
         if self.c is not other.__class__:
@@ -157,7 +165,13 @@ class Comparison:
             v = other.args
         else:
             v = vars(other)
-        return cmp(self.v,v)
+        if self.strict:
+            return cmp(self.v,v)
+        else:
+            for n,a in self.v.items():
+                if n not in v or a!=v[n]:
+                    return -1
+            return 0
     
     def __repr__(self):
         if self.v is None:
@@ -193,14 +207,21 @@ class should_raise:
         
 class LogCapture(logging.Handler):
 
-    def __init__(self, *names):
+    instances = set()
+    
+    def __init__(self, names=None, install=True):
         logging.Handler.__init__(self)
-        if not names:
-            names = (None,)
+        if not isinstance(names,tuple):
+            names = (names,)
         self.names = names
-        self.records = []
         self.oldlevels = {}
+        self.clear()
+        if install:
+            self.install()
 
+    def clear(self):
+        self.records = []
+        
     def emit(self, record):
         self.records.append(record)
 
@@ -210,13 +231,21 @@ class LogCapture(logging.Handler):
             self.oldlevels[name] = logger.level
             logger.setLevel(1)
             logger.addHandler(self)
+        self.instances.add(self)
 
     def uninstall(self):
-        for name in self.names:
-            logger = logging.getLogger(name)
-            logger.setLevel(self.oldlevels[name])
-            logger.removeHandler(self)
+        if self in self.instances:
+            for name in self.names:
+                logger = logging.getLogger(name)
+                logger.setLevel(self.oldlevels[name])
+                logger.removeHandler(self)
+            self.instances.remove(self)
 
+    @classmethod
+    def uninstall_all(cls):
+        for i in tuple(cls.instances):
+            i.uninstall()
+        
     def actual(self):
         for r in self.records:
             yield (r.name,r.levelname,r.getMessage())
@@ -237,7 +266,7 @@ class LogCaptureForDecorator(LogCapture):
         return self
     
 def log_capture(*names):
-    l = LogCaptureForDecorator(*names)
+    l = LogCaptureForDecorator(names or None,install=False)
     return wrap(l.install,l.uninstall)
 
 @classmethod
@@ -288,3 +317,43 @@ def test_time(*args):
     return test_factory(
         'ttime',ttimec,'seconds',1,(2001,1,1,0,0,0),args,time=instantiate
         )
+
+class TempDirectory:
+
+    instances = set()
+    
+    def __init__(self,ignore=(),create=True):
+        self.ignore = ignore
+        if create:
+            self.create()
+
+    def create(self):
+        self.path = mkdtemp()
+        self.instances.add(self)
+        return self
+
+    def cleanup(self):
+        if self in self.instances:
+            rmtree(self.path)
+            self.instances.remove(self)
+
+    @classmethod
+    def cleanup_all(cls):
+        for i in tuple(cls.instances):
+            i.cleanup()
+        
+    def actual(self):
+        return sorted([n for n in os.listdir(self.path)
+                       if n not in self.ignore])
+    def listdir(self):
+        for n in self.actual():
+            print n
+
+    def check(self,*expected):
+        compare(expected,tuple(self.actual()))
+
+def tempdir(*args,**kw):
+    kw['create']=False
+    l = TempDirectory(*args,**kw)
+    return wrap(l.create,l.cleanup)
+

@@ -41,8 +41,9 @@ functional examples, see the contents of the tests folder.
   This class lets you instantiate placeholders that can be used to
   compared expected results with actual results where objects in the
   actual results do not support useful comparison.
-  The comparision can be based just on the type of the object, which
-  is particularly handy when comparing sequences returned from tested
+  The comparision can be based just on the type of the object or on a
+  partial set of the object's attributes, both of which are
+  particularly handy when comparing sequences returned from tested
   code.
 
 **compare**
@@ -82,6 +83,14 @@ functional examples, see the contents of the tests folder.
   exception raised is not only of the correct type but also has the
   correct parameters.
 
+**TempDirectory**
+  This helper will create a temporary directory for you using mkdtemp
+  and provides a handy class method for cleaning all of these up.
+
+**tempdir**
+  This decorator will create a temporary directory for the duration of
+  the unit test and clear it up no matter the outcome of the test.
+
 **test_date**
   This is a handy class factory that returns datetime.date
   replacements that have a `today` method that gives repeatable,
@@ -111,7 +120,31 @@ See license.txt for details.
 Changes
 =======
 
-1.0.0 
------
+1.3.0 (9 Dec 2008)
+------------------
+
+- added TempDirectory helper
+
+- added tempdir decorator
+
+1.2.0 (3 Dec 2008)
+------------------
+
+- LogCaptures now auto-install on creation unless configured otherwise
+
+- LogCaptures now have a clear method
+
+- LogCaptures now have a class method uninstall_all that uninstalls
+  all instances of LogCapture. Handy for a tearDown method in doctests.
+
+1.1.0 (3 Dec 2008)
+------------------
+
+- add support to Comparisons for only comparing some attributes
+
+- move to use zope.dottedname
+
+1.0.0 (26 Nov 2008)
+-------------------
 
 - Initial Release
