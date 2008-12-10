@@ -333,7 +333,7 @@ class TempDirectory:
         return self
 
     def cleanup(self):
-        if self in self.instances:
+        if self in self.instances and os.path.exists(self.path):
             rmtree(self.path)
             self.instances.remove(self)
 
