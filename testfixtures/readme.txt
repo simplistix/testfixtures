@@ -120,6 +120,12 @@ See license.txt for details.
 Changes
 =======
 
+1.3.1 (10 Dec 2008)
+------------------
+
+- fixed bug that occurs when directory was deleted by a test that
+  use tempdir or TempDirectory
+
 1.3.0 (9 Dec 2008)
 ------------------
 

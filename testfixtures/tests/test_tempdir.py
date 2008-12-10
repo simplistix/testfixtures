@@ -86,6 +86,9 @@ class TestTempDir(TestCase):
             if os.path.exists(d):
                 rmtree(d)
             
+    @tempdir()
+    def test_cleanup_test_deletes_dir(self,d):
+        rmtree(d.path)
     
 def test_suite():
     return TestSuite((
