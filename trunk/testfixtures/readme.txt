@@ -120,6 +120,13 @@ See license.txt for details.
 Changes
 =======
 
+1.4.0 (12 Dec 2008)
+------------------
+
+- improved representation of failed Comparison
+
+- improved representation of failed compare with sequences
+
 1.3.1 (10 Dec 2008)
 ------------------
 
