@@ -120,6 +120,15 @@ See license.txt for details.
 Changes
 =======
 
+1.5.0 (12 Dec 2008)
+-------------------
+
+- added handy `read` and `write` methods to TempDirectory for
+  creating and reading files in the temporary directory.
+
+- added support for rich comparison of objects that don't support
+  vars()
+
 1.4.0 (12 Dec 2008)
 -------------------
 
