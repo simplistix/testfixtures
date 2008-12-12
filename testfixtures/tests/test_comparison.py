@@ -1,7 +1,7 @@
 # Copyright (c) 2008 Simplistix Ltd
 # See license.txt for license details.
 
-from testfixtures import Comparison as C, compare
+from testfixtures import Comparison as C, compare, tempdir
 from testfixtures.tests.sample1 import TestClassA,a_function
 from unittest import TestCase,TestSuite,makeSuite
 
@@ -22,6 +22,11 @@ class WeirdException(Exception):
         self.x = x
         self.y = y
         
+class X(object):
+    __slots__ = ['x']
+    def __repr__(self):
+        return '<X>'
+    
 class TestC(TestCase):
     
     def test_example(self):
@@ -384,6 +389,20 @@ class TestC(TestCase):
             self.fail('No exception raised!')
 
 
+    @tempdir()
+    def test_repr_file_different(self,d):
+        path = d.write('file','stuff',path=True)
+        f = open(path)
+        f.close()
+        c = C(file,name=path,mode='r',closed=False,strict=False)
+        self.assertNotEqual(f,c)
+        compare(repr(c),
+                "\n"
+                "  <C(failed):__builtin__.file>\n"
+                "  closed:False != True\n"
+                "  </C>",
+                )
+
     def test_first(self):
         self.assertEqual(
             C('testfixtures.tests.sample1.TestClassA'),
@@ -490,6 +509,56 @@ class TestC(TestCase):
             C(WeirdException(1,2))
             )
         
+    @tempdir()
+    def test_file_same(self,d):
+        path = d.write('file','stuff',path=True)
+        f = open(path)
+        f.close()
+        self.assertEqual(
+            f,
+            C(file,name=path,mode='r',closed=True,strict=False)
+            )
+
+    def test_no___dict___strict(self):
+        x = X()
+        try:
+            self.assertEqual(
+                C(X,x=1),
+                x
+                )
+        except TypeError,e:
+            self.assertEqual(e.args,(
+                '<X> does not support vars() so cannot do strict comparison',
+                ))
+        else:
+            self.fail('No Exception raised!')
+
+    def test_no___dict___not_strict_same(self):
+        x = X()
+        x.x=1
+        self.assertEqual(C(X,x=1,strict=False),x)
+
+    def test_no___dict___not_strict_different(self):
+        x = X()
+        x.x=2
+        try:
+            self.assertEqual(
+                C(X,x=1,y=2,strict=False),
+                x
+                )
+        except AssertionError,e:
+            compare(
+                e.args[0],
+                (
+                "\n"
+                "  <C(failed):testfixtures.tests.test_comparison.X>\n"
+                "  x:1 != 2\n"
+                "  y:2 not in other\n"
+                "  </C> != <X>",
+                )[0])
+        else:
+            self.fail('No Exception raised!')
+
 def test_suite():
     return TestSuite((
         makeSuite(TestC),
