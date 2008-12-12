@@ -3,7 +3,7 @@
 
 import os
 
-from doctest import DocTestSuite
+from doctest import DocTestSuite,ELLIPSIS
 from testfixtures import TempDirectory
 from unittest import TestSuite
 
@@ -44,6 +44,15 @@ class DemoTempDirectory:
         'stuff'
         """
         
+    def test_simple(self):
+        """
+        If you want the path created when you use `write`, you
+        can do:
+        
+        >>> temp_dir.write('filename','data',path=True)
+        '...filename'
+        """
+
     def test_ignore(self):
         """
         TempDirectories can also be set up to ignore certain files:
@@ -108,5 +117,6 @@ def tearDown(test):
     
 def test_suite():
     return TestSuite((
-        DocTestSuite(setUp=setUp,tearDown=tearDown),
+        DocTestSuite(setUp=setUp,tearDown=tearDown,
+                     optionflags=ELLIPSIS),
         ))
