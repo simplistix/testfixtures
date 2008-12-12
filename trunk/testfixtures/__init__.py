@@ -385,6 +385,17 @@ class TempDirectory:
     def check(self,*expected):
         compare(expected,tuple(self.actual()))
 
+    def write(self,filename,data):
+        f = open(os.path.join(self.path,filename),'wb')
+        f.write(data)
+        f.close()
+
+    def read(self,filename):
+        f = open(os.path.join(self.path,filename),'rb')
+        data = f.read()
+        f.close()
+        return data
+
 def tempdir(*args,**kw):
     kw['create']=False
     l = TempDirectory(*args,**kw)
