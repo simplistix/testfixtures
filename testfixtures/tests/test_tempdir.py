@@ -32,7 +32,7 @@ class TestTempDir(TestCase):
         f.close()
         
         check = should_raise(d.check,AssertionError(
-            "Sequence not as expected:\n  same:()\n first:('.svn', 'something')\nsecond:('something',)"
+            "Sequence not as expected:\n\nsame:\n()\n\nfirst:\n('.svn', 'something')\n\nsecond:\n('something',)"
             ))
 
         check(
@@ -86,6 +86,9 @@ class TestTempDir(TestCase):
             if os.path.exists(d):
                 rmtree(d)
             
+    @tempdir()
+    def test_cleanup_test_deletes_dir(self,d):
+        rmtree(d.path)
     
 def test_suite():
     return TestSuite((

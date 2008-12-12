@@ -8,6 +8,7 @@ from difflib import unified_diff
 from functools import partial
 from inspect import getargspec
 from new import classobj
+from pprint import pformat
 from shutil import rmtree
 from tempfile import mkdtemp
 from time import mktime
@@ -114,13 +115,13 @@ def compare(x,y):
                     break
                 i+=1
             message = (
-                'Sequence not as expected:\n'
-                '  same:%r\n'
-                ' first:%r\n'
-                'second:%r')%(
-                x[:i],
-                x[i:],
-                y[i:],
+                'Sequence not as expected:\n\n'
+                'same:\n%s\n\n'
+                'first:\n%s\n\n'
+                'second:\n%s')%(
+                pformat(x[:i]),
+                pformat(x[i:]),
+                pformat(y[i:]),
                 )
         if message is None:
             message = '%r != %r'%(x,y)
@@ -132,6 +133,7 @@ def generator(*args):
         yield i
 
 class Comparison:
+    failed = None
     def __init__(self,t,v=None,strict=True,**kw):
         if kw:
             if v is None:
@@ -147,7 +149,7 @@ class Comparison:
         elif isinstance(t,BaseException):
             c = t.__class__
             if v is None:
-                v = t.args
+                v = vars(t) or {'args':t.args}
         else:
             c = t.__class__
             if v is None:
@@ -156,35 +158,66 @@ class Comparison:
         self.v = v
         self.strict = strict
         
-    def __cmp__(self,other):
+    def __cmp__(self,other,indent=2):
         if self.c is not other.__class__:
+            self.failed = True
             return -1
         if self.v is None:
             return 0
+        self.failed = {}
         if isinstance(other,BaseException):
-            v = other.args
+            v = {'args':other.args}
         else:
             v = vars(other)
+        e = set(self.v.keys())
+        a = set(v.keys())
+        for k in e.difference(a):
+            self.failed[k]='%s not in other' % repr(self.v[k])
         if self.strict:
-            return cmp(self.v,v)
-        else:
-            for n,a in self.v.items():
-                if n not in v or a!=v[n]:
-                    return -1
-            return 0
+            for k in a.difference(e):
+                self.failed[k]='%s not in Comparison' % repr(v[k])
+        for k in e.intersection(a):
+            ev = self.v[k]
+            av = v[k]
+            if ev!=av:
+                self.failed[k]='%r != %r' % (ev,av)
+        if self.failed:
+            return -1
+        return 0
     
-    def __repr__(self):
-        if self.v is None:
+    def __repr__(self,indent=2):
+        full = False
+        if self.failed is True:
+            v = 'wrong type</C>'
+        elif self.v is None:
             v = ''
         else:
-            v = ' with vars %s'%repr(self.v)
+            full = True
+            v = '\n'
+            if self.failed:
+                vd = self.failed
+                r = str
+            else:
+                vd = self.v
+                r = repr
+            for vk,vv in sorted(vd.items()):
+                if isinstance(vv,Comparison):
+                    vvr = vv.__repr__(indent+2)
+                else:
+                    vvr = r(vv)
+                v+=(' '*indent+'%s:%s\n'%(vk,vvr))
+            v+=(' '*indent)+'</C>'
         name = getattr(self.c,'__module__','')
         if name:
             name+='.'
         name += getattr(self.c,'__name__','')
         if not name:
             name = repr(self.c)
-        return '<C:%s%s>'%(name,v)
+        r = '<C%s:%s>%s'%(self.failed and '(failed)' or '',name,v)
+        if full:
+            return '\n'+(' '*indent)+r
+        else:
+            return r
 
 class should_raise:
 
@@ -333,7 +366,7 @@ class TempDirectory:
         return self
 
     def cleanup(self):
-        if self in self.instances:
+        if self in self.instances and os.path.exists(self.path):
             rmtree(self.path)
             self.instances.remove(self)
 

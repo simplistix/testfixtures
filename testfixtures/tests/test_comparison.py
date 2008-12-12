@@ -1,7 +1,7 @@
 # Copyright (c) 2008 Simplistix Ltd
 # See license.txt for license details.
 
-from testfixtures import Comparison as C
+from testfixtures import Comparison as C, compare
 from testfixtures.tests.sample1 import TestClassA,a_function
 from unittest import TestCase,TestSuite,makeSuite
 
@@ -13,7 +13,14 @@ class AClass:
             self.y = y
 
     def __repr__(self):
-        return '<AClass>'
+        return '<'+self.__class__.__name__+'>'
+        
+class BClass(AClass): pass
+
+class WeirdException(Exception):
+    def __init__(self,x,y):
+        self.x = x
+        self.y = y
         
 class TestC(TestCase):
     
@@ -79,6 +86,24 @@ class TestC(TestCase):
             AClass(1,2),
             )
                         
+    def test_example_dont_use_c_wrappers_on_both_sides(self):
+        # NB: don't use C wrappers on both sides!
+        e = ValueError('some message')
+        try:
+            self.assertEqual(C(e),C(e))
+        except Exception,e:
+            self.failUnless(isinstance(e,AssertionError))
+            self.assertEqual(
+                e.args,
+                (
+                "<C(failed):exceptions.ValueError>wrong type</C> != \n"
+                "  <C:exceptions.ValueError>\n"
+                "  args:('some message',)\n"
+                "  </C>",
+                ))
+        else:
+            self.fail('No exception raised!')
+    
     def test_repr_module(self):
         self.assertEqual(repr(C('datetime')),'<C:datetime>')
 
@@ -97,20 +122,267 @@ class TestC(TestCase):
     def test_repr_instance(self):
         self.assertEqual(
             repr(C(TestClassA('something'))),
-            "<C:testfixtures.tests.sample1.TestClassA with vars {'args': ('something',)}>"
+            "\n"
+            "  <C:testfixtures.tests.sample1.TestClassA>\n"
+            "  args:('something',)\n"
+            "  </C>"
             )
 
     def test_repr_exception(self):
         self.assertEqual(
             repr(C(ValueError('something'))),
-            "<C:exceptions.ValueError with vars ('something',)>"
+            "\n"
+            "  <C:exceptions.ValueError>\n"
+            "  args:('something',)\n"
+            "  </C>"
             )
 
+    def test_repr_exception_not_args(self):
+        self.assertEqual(
+            repr(C(WeirdException(1,2))),
+            "\n"
+            "  <C:testfixtures.tests.test_comparison.WeirdException>\n"
+            "  x:1\n"
+            "  y:2\n"
+            "  </C>"
+            )
+    
     def test_repr_class_and_vars(self):
         self.assertEqual(
             repr(C(TestClassA,{'args':(1,)})),
-            "<C:testfixtures.tests.sample1.TestClassA with vars {'args': (1,)}>"
+            "\n"
+            "  <C:testfixtures.tests.sample1.TestClassA>\n"
+            "  args:(1,)\n"
+            "  </C>"
             )
+
+    def test_repr_nested(self):
+        self.assertEqual(
+            repr(C(TestClassA,y=C(AClass),z=C(BClass(1,2)))),
+            "\n"
+            "  <C:testfixtures.tests.sample1.TestClassA>\n"
+            "  y:<C:testfixtures.tests.test_comparison.AClass>\n"
+            "  z:\n"
+            "    <C:testfixtures.tests.test_comparison.BClass>\n"
+            "    x:1\n"
+            "    y:2\n"
+            "    </C>\n"
+            "  </C>"
+            )
+
+    def test_repr_failed_wrong_class(self):
+        try:
+            self.assertEqual(
+                C('testfixtures.tests.test_comparison.AClass',
+                  x=1,y=2),
+                BClass(1,2)
+                )
+        except Exception,e:
+            self.failUnless(isinstance(e,AssertionError))
+            self.assertEqual(
+                e.args,
+                (
+                "<C(failed):testfixtures.tests.test_comparison.AClass>wrong type</C> != <BClass>",
+                ))
+        else:
+            self.fail('No exception raised!')
+
+    def test_repr_failed_all_reasons_in_one(self):
+        try:
+            self.assertEqual(
+                C('testfixtures.tests.test_comparison.AClass',
+                  y=5,z='missing'),
+                AClass(1,2)
+                )
+        except Exception,e:
+            self.failUnless(isinstance(e,AssertionError))
+            self.assertEqual(
+                e.args,
+                (
+                "\n"
+                "  <C(failed):testfixtures.tests.test_comparison.AClass>\n"
+                "  x:1 not in Comparison\n"
+                "  y:5 != 2\n"
+                "  z:'missing' not in other\n"
+                "  </C> != <AClass>",
+                ))
+        else:
+            self.fail('No exception raised!')
+
+    def test_repr_failed_not_in_other(self):
+        # use single element tuple to check %
+        try:
+            self.assertEqual(
+                C('testfixtures.tests.test_comparison.AClass',
+                  x=1,y=2,z=(3,)),
+                AClass(1,2)
+                )
+        except Exception,e:
+            self.failUnless(isinstance(e,AssertionError))
+            self.assertEqual(
+                e.args,
+                (
+                "\n"
+                "  <C(failed):testfixtures.tests.test_comparison.AClass>\n"
+                "  z:(3,) not in other\n"
+                "  </C> != <AClass>",
+                ))
+        else:
+            self.fail('No exception raised!')
+
+    def test_repr_failed_not_in_self_strict(self):
+        # use single element tuple to check %
+        try:
+            self.assertEqual(
+                C('testfixtures.tests.test_comparison.AClass',y=2),
+                AClass((1,),2)
+                )
+        except Exception,e:
+            self.failUnless(isinstance(e,AssertionError))
+            self.assertEqual(
+                e.args,
+                (
+                "\n"
+                "  <C(failed):testfixtures.tests.test_comparison.AClass>\n"
+                "  x:(1,) not in Comparison\n"
+                "  </C> != <AClass>",
+                ))
+        else:
+            self.fail('No exception raised!')
+
+    def test_repr_failed_not_in_self_not_strict(self):
+        try:
+            self.assertEqual(
+                C('testfixtures.tests.test_comparison.AClass',
+                  x=1,y=2,z=(3,)),
+                AClass(1,2)
+                )
+        except Exception,e:
+            self.failUnless(isinstance(e,AssertionError))
+            self.assertEqual(
+                e.args,
+                (
+                "\n"
+                "  <C(failed):testfixtures.tests.test_comparison.AClass>\n"
+                "  z:(3,) not in other\n"
+                "  </C> != <AClass>",
+                ))
+        else:
+            self.fail('No exception raised!')
+
+    def test_repr_failed_one_attribute_not_equal(self):
+        # use single element tuple to check %
+        try:
+            self.assertEqual(
+                C('testfixtures.tests.test_comparison.AClass',x=1,y=(2,)),
+                AClass(1,(3,))
+                )
+        except Exception,e:
+            self.failUnless(isinstance(e,AssertionError))
+            self.assertEqual(
+                e.args,
+                (
+                "\n"
+                "  <C(failed):testfixtures.tests.test_comparison.AClass>\n"
+                "  y:(2,) != (3,)\n"
+                "  </C> != <AClass>",
+                ))
+        else:
+            self.fail('No exception raised!')
+
+    def test_repr_failed_nested(self):
+        try:
+            self.assertEqual(
+                [C(AClass,x=1,y=2),
+                 C(BClass,x=C(AClass,x=1),y=C(AClass))],
+                [AClass(1,3),
+                 AClass(1,3)]
+                )
+        except Exception,e:
+            self.failUnless(isinstance(e,AssertionError))
+            self.assertEqual(
+                e.args,
+                (
+                "[\n"
+                "  <C(failed):testfixtures.tests.test_comparison.AClass>\n"
+                "  y:2 != 3\n"
+                "  </C>, \n"
+                "  <C:testfixtures.tests.test_comparison.BClass>\n"
+                "  x:\n"
+                "    <C:testfixtures.tests.test_comparison.AClass>\n"
+                "    x:1\n"
+                "    </C>\n"
+                "  y:<C:testfixtures.tests.test_comparison.AClass>\n"
+                "  </C>] != [<AClass>, <AClass>]",
+                ))
+        else:
+            self.fail('No exception raised!')
+
+    def test_repr_failed_nested_failed(self):
+        try:
+            self.assertEqual(
+                [C(AClass,x=1,y=2),
+                 C(BClass,x=C(AClass,x=1,strict=False),y=C(AClass,z=2))],
+                [AClass(1,2),
+                 BClass(AClass(1,2),AClass(1,2))]
+                )
+        except Exception,e:
+            self.failUnless(isinstance(e,AssertionError))
+            compare(
+                e.args[0],
+                (
+                "[\n"
+                "  <C:testfixtures.tests.test_comparison.AClass>\n"
+                "  x:1\n"
+                "  y:2\n"
+                "  </C>, \n"
+                "  <C(failed):testfixtures.tests.test_comparison.BClass>\n"
+                "  y:\n"
+                "  <C(failed):testfixtures.tests.test_comparison.AClass>\n"
+                "  x:1 not in Comparison\n"
+                "  y:2 not in Comparison\n"
+                "  z:2 not in other\n"
+                "  </C> != <AClass>\n"
+                "  </C>] != [<AClass>, <BClass>]",
+                )[0])
+        else:
+            self.fail('No exception raised!')
+
+    def test_repr_failed_passed_failed(self):
+        c = C('testfixtures.tests.test_comparison.AClass',x=1,y=2)
+
+        try:
+            self.assertEqual(c,AClass(1,3))
+        except Exception,e:
+            self.failUnless(isinstance(e,AssertionError))
+            self.assertEqual(
+                e.args,
+                (
+                "\n"
+                "  <C(failed):testfixtures.tests.test_comparison.AClass>\n"
+                "  y:2 != 3\n"
+                "  </C> != <AClass>",
+                ))
+        else:
+            self.fail('No exception raised!')
+
+        self.assertEqual(c,AClass(1,2))
+        
+        try:
+            self.assertEqual(c,AClass(3,2))
+        except Exception,e:
+            self.failUnless(isinstance(e,AssertionError))
+            self.assertEqual(
+                e.args,
+                (
+                "\n"
+                "  <C(failed):testfixtures.tests.test_comparison.AClass>\n"
+                "  x:1 != 3\n"
+                "  </C> != <AClass>",
+                ))
+        else:
+            self.fail('No exception raised!')
+
 
     def test_first(self):
         self.assertEqual(
@@ -182,39 +454,6 @@ class TestC(TestCase):
             AClass(1,2),
             )
 
-    def test_example_with_missing_vars(self):
-        try:
-            self.assertEqual(
-                C('testfixtures.tests.test_comparison.AClass',
-                  x=1,y=2,z=3),
-                AClass(1,2)
-                )
-        except Exception,e:
-            self.failUnless(isinstance(e,AssertionError))
-            self.assertEqual(
-                e.args,
-                ("<C:testfixtures.tests.test_comparison.AClass with vars {'y': 2, 'x': 1, 'z': 3}> != <AClass>",)
-                )
-        else:
-            self.fail('No exception raised!')
-
-    def test_not_strict_missing_from_actual(self):
-        try:
-            self.assertEqual(
-                C('testfixtures.tests.test_comparison.AClass',
-                  z=3,
-                  strict=False),
-                AClass(1,2)
-                )
-        except Exception,e:
-            self.failUnless(isinstance(e,AssertionError))
-            self.assertEqual(
-                e.args,
-                ("<C:testfixtures.tests.test_comparison.AClass with vars {'z': 3}> != <AClass>",)
-                )
-        else:
-            self.fail('No exception raised!')
-        
     def test_exception(self):
         self.assertEqual(
             ValueError('foo'),
@@ -224,13 +463,13 @@ class TestC(TestCase):
     def test_exception_class_and_args(self):
         self.assertEqual(
             ValueError('foo'),
-            C(ValueError,('foo',))
+            C(ValueError,args=('foo',))
             )
 
     def test_exception_instance_and_args(self):
         self.assertEqual(
             ValueError('foo'),
-            C(ValueError('bar'),('foo',))
+            C(ValueError('bar'),args=('foo',))
             )
 
     def test_exception_not_same(self):
@@ -239,6 +478,18 @@ class TestC(TestCase):
             C(ValueError('bar'))
             )
 
+    def test_exception_no_args_different(self):
+        self.assertNotEqual(
+            WeirdException(1,2),
+            C(WeirdException(1,3))
+            )
+
+    def test_exception_no_args_same(self):
+        self.assertNotEqual(
+            WeirdException(1,2),
+            C(WeirdException(1,2))
+            )
+        
 def test_suite():
     return TestSuite((
         makeSuite(TestC),
