@@ -32,7 +32,7 @@ class TestTempDir(TestCase):
         f.close()
         
         check = should_raise(d.check,AssertionError(
-            "Sequence not as expected:\n  same:()\n first:('.svn', 'something')\nsecond:('something',)"
+            "Sequence not as expected:\n\nsame:\n()\n\nfirst:\n('.svn', 'something')\n\nsecond:\n('something',)"
             ))
 
         check(

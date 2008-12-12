@@ -16,6 +16,8 @@ class TestCompare(TestCase):
             if not isinstance(e,AssertionError):
                 self.fail('Expected AssertionError, got %r'%e)
             actual = hexaddr.sub('...',e.args[0])
+            # handy for debugging, but can't be relied on for tests!
+            # compare(actual,message)
             self.assertEqual(actual,message)
         else:
             self.fail('No exception raised!')
@@ -96,59 +98,85 @@ class TestCompare(TestCase):
         e1 = ValueError('some message')
         e2 = ValueError('some other message')
         self.checkRaises(
-            C(e1),e2,
-            "<C:exceptions.ValueError with vars ('some message',)>"
+            C(e1),e2,"\n"
+            "  <C(failed):exceptions.ValueError>\n"
+            "  args:('some message',) != ('some other message',)\n"
+            "  </C>"
             " != "
             "ValueError('some other message',)"
             )
 
-    def test_exception_same_c_wrappers(self):
-        # NB: don't use C wrappers on both sides!
-        e = ValueError('some message')
+    def test_sequence_long(self):
         self.checkRaises(
-            C(e),C(e),
-            "<C:exceptions.ValueError with vars ('some message',)>"
-            " != "
-            "<C:exceptions.ValueError with vars ('some message',)>"
+            ['quite a long string 1','quite a long string 2',
+             'quite a long string 3','quite a long string 4',
+             'quite a long string 5','quite a long string 6',
+             'quite a long string 7','quite a long string 8'],
+            ['quite a long string 1','quite a long string 2',
+             'quite a long string 3','quite a long string 4',
+             'quite a long string 9','quite a long string 10',
+             'quite a long string 11','quite a long string 12'],
+            "Sequence not as expected:\n\n"
+            "same:\n"
+            "['quite a long string 1',\n"
+            " 'quite a long string 2',\n"
+            " 'quite a long string 3',\n"
+            " 'quite a long string 4']\n\n"
+            "first:\n"
+            "['quite a long string 5',\n"
+            " 'quite a long string 6',\n"
+            " 'quite a long string 7',\n"
+            " 'quite a long string 8']\n\n"
+            "second:\n"
+            "['quite a long string 9',\n"
+            " 'quite a long string 10',\n"
+            " 'quite a long string 11',\n"
+            " 'quite a long string 12']"
             )
-    
+
     def test_list_same(self):
         self.failUnless(compare([1,2,3],[1,2,3]) is identity)
 
     def test_list_different(self):
         self.checkRaises(
             [1,2,3],[1,2,4],
-            "Sequence not as expected:\n"
-            "  same:[1, 2]\n"
-            " first:[3]\n"
-            "second:[4]"
+            "Sequence not as expected:\n\n"
+            "same:\n"
+            "[1, 2]\n\n"
+            "first:\n"
+            "[3]\n\n"
+            "second:\n"
+            "[4]"
             )
 
     def test_list_totally_different(self):
         self.checkRaises(
             [1],[2],
-            "Sequence not as expected:\n"
-            "  same:[]\n"
-            " first:[1]\n"
-            "second:[2]"
+            "Sequence not as expected:\n\n"
+            "same:\n"
+            "[]\n\n"
+            "first:\n"
+            "[1]\n\n"
+            "second:\n"
+            "[2]"
             )
 
     def test_list_first_shorter(self):
         self.checkRaises(
             [1,2],[1,2,3],
-            "Sequence not as expected:\n"
-            "  same:[1, 2]\n"
-            " first:[]\n"
-            "second:[3]"
+            "Sequence not as expected:\n\n"
+            "same:\n[1, 2]\n\n"
+            "first:\n[]\n\n"
+            "second:\n[3]"
             )
 
     def test_list_second_shorted(self):
         self.checkRaises(
             [1,2,3],[1,2],
-            "Sequence not as expected:\n"
-            "  same:[1, 2]\n"
-            " first:[3]\n"
-            "second:[]"
+            "Sequence not as expected:\n\n"
+            "same:\n[1, 2]\n\n"
+            "first:\n[3]\n\n"
+            "second:\n[]"
             )
 
     def test_tuple_same(self):
@@ -157,37 +185,37 @@ class TestCompare(TestCase):
     def test_tuple_different(self):
         self.checkRaises(
             (1,2,3),(1,2,4),
-            "Sequence not as expected:\n"
-            "  same:(1, 2)\n"
-            " first:(3,)\n"
-            "second:(4,)"
+            "Sequence not as expected:\n\n"
+            "same:\n(1, 2)\n\n"
+            "first:\n(3,)\n\n"
+            "second:\n(4,)"
             )
 
     def test_tuple_totally_different(self):
         self.checkRaises(
             (1,),(2,),
-            "Sequence not as expected:\n"
-            "  same:()\n"
-            " first:(1,)\n"
-            "second:(2,)"
+            "Sequence not as expected:\n\n"
+            "same:\n()\n\n"
+            "first:\n(1,)\n\n"
+            "second:\n(2,)"
             )
 
     def test_tuple_first_shorter(self):
         self.checkRaises(
             (1,2),(1,2,3),
-            "Sequence not as expected:\n"
-            "  same:(1, 2)\n"
-            " first:()\n"
-            "second:(3,)"
+            "Sequence not as expected:\n\n"
+            "same:\n(1, 2)\n\n"
+            "first:\n()\n\n"
+            "second:\n(3,)"
             )
 
     def test_tuple_second_shorted(self):
         self.checkRaises(
             (1,2,3),(1,2),
-            "Sequence not as expected:\n"
-            "  same:(1, 2)\n"
-            " first:(3,)\n"
-            "second:()"
+            "Sequence not as expected:\n\n"
+            "same:\n(1, 2)\n\n"
+            "first:\n(3,)\n\n"
+            "second:\n()"
             )
 
     def test_generator_same(self):
@@ -196,37 +224,37 @@ class TestCompare(TestCase):
     def test_generator_different(self):
         self.checkRaises(
             generator(1,2,3),generator(1,2,4),
-            "Sequence not as expected:\n"
-            "  same:(1, 2)\n"
-            " first:(3,)\n"
-            "second:(4,)"
+            "Sequence not as expected:\n\n"
+            "same:\n(1, 2)\n\n"
+            "first:\n(3,)\n\n"
+            "second:\n(4,)"
             )
 
     def test_generator_totally_different(self):
         self.checkRaises(
             generator(1,),generator(2,),
-            "Sequence not as expected:\n"
-            "  same:()\n"
-            " first:(1,)\n"
-            "second:(2,)"
+            "Sequence not as expected:\n\n"
+            "same:\n()\n\n"
+            "first:\n(1,)\n\n"
+            "second:\n(2,)"
             )
 
     def test_generator_first_shorter(self):
         self.checkRaises(
             generator(1,2),generator(1,2,3),
-            "Sequence not as expected:\n"
-            "  same:(1, 2)\n"
-            " first:()\n"
-            "second:(3,)"
+            "Sequence not as expected:\n\n"
+            "same:\n(1, 2)\n\n"
+            "first:\n()\n\n"
+            "second:\n(3,)"
             )
 
     def test_generator_second_shorted(self):
         self.checkRaises(
             generator(1,2,3),generator(1,2),
-            "Sequence not as expected:\n"
-            "  same:(1, 2)\n"
-            " first:(3,)\n"
-            "second:()"
+            "Sequence not as expected:\n\n"
+            "same:\n(1, 2)\n\n"
+            "first:\n(3,)\n\n"
+            "second:\n()"
             )
 
     def test_generator_and_sequence(self):
