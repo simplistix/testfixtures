@@ -6,7 +6,7 @@ import os
 from mock import Mock
 from shutil import rmtree
 from tempfile import mkdtemp
-from testfixtures import compare,tempdir,should_raise,Replacer
+from testfixtures import compare,tempdir,should_raise,Replacer,TempDirectory
 from unittest import TestCase,TestSuite,makeSuite
 
 class TestTempDir(TestCase):
@@ -14,12 +14,8 @@ class TestTempDir(TestCase):
     
     @tempdir()
     def test_simple(self,d):
-        f = open(os.path.join(d.path,'something'),'wb')
-        f.write('stuff')
-        f.close()
-        f = open(os.path.join(d.path,'.svn'),'wb')
-        f.write('stuff')
-        f.close()
+        d.write('something','stuff')
+        d.write('.svn','stuff')
         d.check(
             '.svn',
             'something',
@@ -27,9 +23,7 @@ class TestTempDir(TestCase):
 
     @tempdir()
     def test_not_same(self,d):
-        f = open(os.path.join(d.path,'something'),'wb')
-        f.write('stuff')
-        f.close()
+        d.write('something','stuff')
         
         check = should_raise(d.check,AssertionError(
             "Sequence not as expected:\n\nsame:\n()\n\nfirst:\n('.svn', 'something')\n\nsecond:\n('something',)"
@@ -42,12 +36,8 @@ class TestTempDir(TestCase):
         
     @tempdir(ignore=('.svn',))
     def test_ignore(self,d):
-        f = open(os.path.join(d.path,'something'),'wb')
-        f.write('stuff')
-        f.close()
-        f = open(os.path.join(d.path,'.svn'),'wb')
-        f.write('stuff')
-        f.close()
+        d.write('something','stuff')
+        d.write('.svn','stuff')
         d.check(
             'something',
             )
@@ -66,9 +56,7 @@ class TestTempDir(TestCase):
             
             @tempdir()
             def test_method(d):
-                f = open(os.path.join(d.path,'something'),'wb')
-                f.write('stuff')
-                f.close()
+                d.write('something','stuff')
                 d.check(
                     'something',
                     )
@@ -90,6 +78,12 @@ class TestTempDir(TestCase):
     def test_cleanup_test_deletes_dir(self,d):
         rmtree(d.path)
     
+    @tempdir()
+    def test_cleanup_test_deletes_dir(self,d):
+        # check for what we get, so we only have to write
+        # tests in test_tempdirectory.py
+        self.failUnless(isinstance(d,TempDirectory))
+
 def test_suite():
     return TestSuite((
         makeSuite(TestTempDir),

@@ -15,15 +15,33 @@ class DemoTempDirectory:
         """
         >>> os.path.exists(temp_dir.path)
         True
+
+        You can manually create files in the directory:
+        
         >>> f = open(os.path.join(temp_dir.path,'something'),'wb')
         >>> f.write('stuff')
         >>> f.close()
-        >>> f = open(os.path.join(temp_dir.path,'.svn'),'wb')
-        >>> f.write('stuff')
-        >>> f.close()
+
+        TempDirectory also provides a handy method for doing so:
+        
+        >>> temp_dir.write('.svn','stuff')
+        
+        There's a handy method for listing the contents of the
+        directory:
+        
         >>> temp_dir.listdir()
         .svn
         something
+
+        Likewise, you can read from files in the directory:
+        
+        >>> open(os.path.join(temp_dir.path,'something'),'rb').read()
+        'stuff'
+
+        Or, you can use the handy method:
+
+        >>> temp_dir.read('.svn')
+        'stuff'
         """
         
     def test_ignore(self):
@@ -31,9 +49,7 @@ class DemoTempDirectory:
         TempDirectories can also be set up to ignore certain files:
         
         >>> d = TempDirectory(ignore=('.svn',))
-        >>> f = open(os.path.join(d.path,'.svn'),'wb')
-        >>> f.write('stuff')
-        >>> f.close()
+        >>> d.write('.svn','stuff')
         >>> temp_dir.listdir()
         """
         
@@ -45,9 +61,7 @@ class TestTempDirectory:
         >>> p = d.path
         >>> os.path.exists(p)
         True
-        >>> f = open(os.path.join(d.path,'something'),'wb')
-        >>> f.write('stuff')
-        >>> f.close()
+        >>> d.write('something','stuff')
         >>> d.cleanup()
         >>> os.path.exists(p)
         False
