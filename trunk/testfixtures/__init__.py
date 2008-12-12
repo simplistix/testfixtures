@@ -396,10 +396,13 @@ class TempDirectory:
     def check(self,*expected):
         compare(expected,tuple(self.actual()))
 
-    def write(self,filename,data):
-        f = open(os.path.join(self.path,filename),'wb')
+    def write(self,filename,data,path=False):
+        thepath = os.path.join(self.path,filename)
+        f = open(thepath,'wb')
         f.write(data)
         f.close()
+        if path:
+            return thepath
 
     def read(self,filename):
         f = open(os.path.join(self.path,filename),'rb')

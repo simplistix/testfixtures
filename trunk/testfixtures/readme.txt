@@ -120,11 +120,17 @@ See license.txt for details.
 Changes
 =======
 
+1.5.1 (12 Dec 2008)
+-------------------
+
+- added `path` parameter to `write` method of TempDirectory so
+  that the full path of the file written can be easilly obtained
+
 1.5.0 (12 Dec 2008)
 -------------------
 
 - added handy `read` and `write` methods to TempDirectory for
-  creating and reading files in the temporary directory.
+  creating and reading files in the temporary directory
 
 - added support for rich comparison of objects that don't support
   vars()

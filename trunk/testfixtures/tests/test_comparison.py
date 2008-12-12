@@ -1,8 +1,6 @@
 # Copyright (c) 2008 Simplistix Ltd
 # See license.txt for license details.
 
-import os
-
 from testfixtures import Comparison as C, compare, tempdir
 from testfixtures.tests.sample1 import TestClassA,a_function
 from unittest import TestCase,TestSuite,makeSuite
@@ -393,8 +391,7 @@ class TestC(TestCase):
 
     @tempdir()
     def test_repr_file_different(self,d):
-        d.write('file','stuff')
-        path = os.path.join(d.path,'file')
+        path = d.write('file','stuff',path=True)
         f = open(path)
         f.close()
         c = C(file,name=path,mode='r',closed=False,strict=False)
@@ -514,8 +511,7 @@ class TestC(TestCase):
         
     @tempdir()
     def test_file_same(self,d):
-        d.write('file','stuff')
-        path = os.path.join(d.path,'file')
+        path = d.write('file','stuff',path=True)
         f = open(path)
         f.close()
         self.assertEqual(
