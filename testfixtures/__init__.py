@@ -142,9 +142,7 @@ class Comparison:
                 v.update(kw)
         if isinstance(t,basestring):
             c = resolve(t)
-        elif isinstance(t,ClassType):
-            c = t
-        elif isinstance(t,type) and issubclass(t,BaseException):
+        elif isinstance(t,(ClassType,type)):
             c = t
         elif isinstance(t,BaseException):
             c = t.__class__
@@ -168,7 +166,20 @@ class Comparison:
         if isinstance(other,BaseException):
             v = {'args':other.args}
         else:
-            v = vars(other)
+            try:
+                v = vars(other)
+            except TypeError:
+                if self.strict:
+                    raise TypeError(
+                        '%r does not support vars() so cannot '
+                        'do strict comparison' % other
+                        )
+                v = {}
+                for k in self.v.keys():
+                    try:
+                        v[k]=getattr(other,k)
+                    except AttributeError:
+                        pass
         e = set(self.v.keys())
         a = set(v.keys())
         for k in e.difference(a):
@@ -384,6 +395,17 @@ class TempDirectory:
 
     def check(self,*expected):
         compare(expected,tuple(self.actual()))
+
+    def write(self,filename,data):
+        f = open(os.path.join(self.path,filename),'wb')
+        f.write(data)
+        f.close()
+
+    def read(self,filename):
+        f = open(os.path.join(self.path,filename),'rb')
+        data = f.read()
+        f.close()
+        return data
 
 def tempdir(*args,**kw):
     kw['create']=False
