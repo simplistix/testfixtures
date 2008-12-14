@@ -120,6 +120,12 @@ See license.txt for details.
 Changes
 =======
 
+1.5.2 (14 Dec 2008)
+-------------------
+
+- added `makedir` and `check_dir` methods to TempDirectory and added
+  support for sub directories to `read` and `write`
+
 1.5.1 (12 Dec 2008)
 -------------------
 
