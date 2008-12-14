@@ -35,16 +35,64 @@ class DemoTempDirectory:
 
         Likewise, you can read from files in the directory:
         
-        >>> open(os.path.join(temp_dir.path,'something'),'rb').read()
+        >>> open(os.path.join(temp_dir.path,'.svn'),'rb').read()
         'stuff'
 
         Or, you can use the handy method:
 
-        >>> temp_dir.read('.svn')
+        >>> temp_dir.read('something')
         'stuff'
         """
         
-    def test_simple(self):
+    def test_subpaths(self):
+        """
+        You can work with files and directories below the root temp
+        dir with following methods:
+
+        >>> temp_dir.makedir('test')
+        >>> temp_dir.listdir()
+        test
+        >>> os.path.isdir(os.path.join(temp_dir.path,'test'))
+        True
+
+        You can also make directory structures easily:
+        
+        >>> temp_dir.makedir(('another','test'))
+        >>> temp_dir.listdir()
+        another
+        test
+
+        `listdir` can also be asked to list subdirectories:
+        
+        >>> temp_dir.listdir('another')
+        test
+        >>> temp_dir.listdir(('another','test'))
+
+        `makedir` will also return the created path if requested:
+        
+        >>> temp_dir.makedir('foo',path=True)
+        '...foo'
+        
+        `write` handles subpaths:
+
+        >>> temp_dir.write(('another','file.txt'),'data')
+        >>> open(os.path.join(temp_dir.path,'another','file.txt'),'rb').read()
+        'data'
+
+        You can also write directly into a subdirectory that doesn't
+        exist:
+
+        >>> temp_dir.write(('new','file'),'bar')
+        >>> temp_dir.read(('new','file'))
+        'bar'
+
+        `read` handles subpaths:
+
+        >>> temp_dir.read(('another','file.txt'))
+        'data'
+        """
+
+    def test_return_path(self):
         """
         If you want the path created when you use `write`, you
         can do:
