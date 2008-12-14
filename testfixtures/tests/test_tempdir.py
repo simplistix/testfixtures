@@ -22,6 +22,16 @@ class TestTempDir(TestCase):
             )
 
     @tempdir()
+    def test_subdirs(self,d):
+        subdir = ['some','thing']
+        d.write(subdir+['something'],'stuff')
+        d.write(subdir+['.svn'],'stuff')
+        d.check_dir(subdir,
+            '.svn',
+            'something',
+            )
+
+    @tempdir()
     def test_not_same(self,d):
         d.write('something','stuff')
         

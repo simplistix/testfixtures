@@ -386,26 +386,49 @@ class TempDirectory:
         for i in tuple(cls.instances):
             i.cleanup()
         
-    def actual(self):
-        return sorted([n for n in os.listdir(self.path)
+    def actual(self,path=None):
+        if path:
+            path = self._join(path)
+        else:
+            path = self.path
+        return sorted([n for n in os.listdir(path)
                        if n not in self.ignore])
-    def listdir(self):
-        for n in self.actual():
+    
+    def listdir(self,path=None):
+        for n in self.actual(path):
             print n
 
     def check(self,*expected):
         compare(expected,tuple(self.actual()))
 
-    def write(self,filename,data,path=False):
-        thepath = os.path.join(self.path,filename)
+    def check_dir(self,dir,*expected):
+        compare(expected,tuple(self.actual(dir)))
+
+    def _join(self,name):
+        if isinstance(name,basestring):
+            name=(name,)
+        return os.path.join(self.path,*name)
+        
+    def makedir(self,dirpath,path=False):
+        thepath = self._join(dirpath)
+        os.makedirs(thepath)
+        if path:
+            return thepath
+    
+    def write(self,filepath,data,path=False):
+        if not isinstance(filepath,basestring) and len(filepath)>1:
+            dirpath = self._join(filepath[:-1])
+            if not os.path.exists(dirpath):
+                self.makedir(dirpath)
+        thepath = self._join(filepath)
         f = open(thepath,'wb')
         f.write(data)
         f.close()
         if path:
             return thepath
 
-    def read(self,filename):
-        f = open(os.path.join(self.path,filename),'rb')
+    def read(self,filepath):
+        f = open(self._join(filepath),'rb')
         data = f.read()
         f.close()
         return data
