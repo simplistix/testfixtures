@@ -107,6 +107,31 @@ class TestShouldRaise(TestCase):
         self.assertEqual(x.args,(1,))
         self.assertEqual(x.kw,{'y':2})
 
+    def test_index(self):
+        x = []
+        should_raise(x,IndexError)[1]
+        
+    def test_getitem(self):
+        x = {}
+        should_raise(x,KeyError)['x']
+        
+    def test_other_method(self):
+        class Test:
+            def bar(self,*args):
+                self.got = args
+        g = Test()
+        s = should_raise(g)
+        r = s.bar('x','foo')
+        self.failUnless(s.raised is None)
+        self.assertEqual(g.got,('x','foo'))
+        
+    def test_return(self):
+        x = {}
+        s = should_raise(x)
+        r = s.get('x','foo')
+        self.failUnless(s.raised is None)
+        self.assertEqual(r,'foo')
+        
     def test_raised(self):
         def to_test():
             raise ValueError('wrong value supplied')
