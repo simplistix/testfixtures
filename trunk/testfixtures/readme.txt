@@ -120,6 +120,11 @@ See license.txt for details.
 Changes
 =======
 
+1.5.3 (17 Dec 2008)
+-------------------
+
+- should_raise now supports methods other than __call__
+
 1.5.2 (14 Dec 2008)
 -------------------
 
