@@ -230,6 +230,23 @@ class Comparison:
         else:
             return r
 
+class ShouldRaiseWrapper:
+
+    def __init__(self,sr,wrapped):
+        self.sr = sr
+        self.wrapped = wrapped
+
+    def __call__(self,*args,**kw):
+        try:
+            return self.wrapped(*args,**kw)
+        except Exception,actual:
+            self.sr.raised = actual
+        if self.sr.expected:
+            if cmp(Comparison(self.sr.expected),self.sr.raised):
+                raise AssertionError(
+                    '%r raised, %r expected' % (self.sr.raised,self.sr.expected)
+                    )
+            
 class should_raise:
 
     raised = None
@@ -238,16 +255,8 @@ class should_raise:
         self.callable = callable
         self.expected = exception
 
-    def __call__(self,*args,**kw):
-        try:
-            self.callable(*args,**kw)
-        except Exception,actual:
-            self.raised = actual
-        if self.expected:
-            if cmp(Comparison(self.expected),self.raised):
-                raise AssertionError(
-                    '%r raised, %r expected' % (self.raised,self.expected)
-                    )
+    def __getattr__(self,name):
+        return ShouldRaiseWrapper(self,getattr(self.callable,name))
         
 class LogCapture(logging.Handler):
 
