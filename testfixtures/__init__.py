@@ -257,7 +257,11 @@ class should_raise:
 
     def __getattr__(self,name):
         return ShouldRaiseWrapper(self,getattr(self.callable,name))
-        
+
+    # __call__ is special :-S
+    def __call__(self,*args,**kw):
+        return ShouldRaiseWrapper(self,partial(self.callable))(*args,**kw)
+    
 class LogCapture(logging.Handler):
 
     instances = set()

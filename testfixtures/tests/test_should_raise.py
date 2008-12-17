@@ -125,6 +125,21 @@ class TestShouldRaise(TestCase):
         self.failUnless(s.raised is None)
         self.assertEqual(g.got,('x','foo'))
         
+    def test_class_class(self):
+        class Test:
+            def __init__(self,x):pass
+        r = should_raise(Test,TypeError)()
+        self.assertEqual(r,None)
+        
+    def test_class_return(self):
+        class Test:
+            def __init__(self,x):
+                self.x = x
+        s = should_raise(Test)
+        r = s('x')
+        self.failIf(s.raised)
+        self.assertEqual(r,C(Test,x='x'))
+        
     def test_return(self):
         x = {}
         s = should_raise(x)
