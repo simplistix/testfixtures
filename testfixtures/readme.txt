@@ -119,6 +119,15 @@ See license.txt for details.
 
 Changes
 =======
+1.5.4 (11 Feb 2009)
+-------------------
+
+- fix bug where should_raise didn't complain when no exception 
+  was raised but one was expected.
+
+- clarified that the return of a should_raise call will be None
+  in the event that an exception is raised by no expected 
+  exception is specified.
 
 1.5.3 (17 Dec 2008)
 -------------------
