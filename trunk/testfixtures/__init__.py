@@ -237,8 +237,9 @@ class ShouldRaiseWrapper:
         self.wrapped = wrapped
 
     def __call__(self,*args,**kw):
+        r = None
         try:
-            return self.wrapped(*args,**kw)
+            r = self.wrapped(*args,**kw)
         except Exception,actual:
             self.sr.raised = actual
         if self.sr.expected:
@@ -246,6 +247,7 @@ class ShouldRaiseWrapper:
                 raise AssertionError(
                     '%r raised, %r expected' % (self.sr.raised,self.sr.expected)
                     )
+        return r
             
 class should_raise:
 

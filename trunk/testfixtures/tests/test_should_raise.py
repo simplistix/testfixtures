@@ -21,6 +21,8 @@ class TestShouldRaise(TestCase):
                 e,
                 C(AssertionError('None raised, ValueError() expected'))
                 )
+        else:
+            self.fail('No exception raised!')
     
     def test_wrong_exception(self):
         def to_test():
@@ -32,6 +34,8 @@ class TestShouldRaise(TestCase):
                 e,
                 C(AssertionError("ValueError('bar',) raised, ValueError('foo',) expected"))
                 )
+        else:
+            self.fail('No exception raised!')
     
     def test_only_exception_class(self):
         def to_test():
@@ -44,7 +48,6 @@ class TestShouldRaise(TestCase):
         s = should_raise(to_test)
         s()
         self.failUnless(s.raised is None)
-        
     
     def test_args(self):
         def to_test(*args):
@@ -147,6 +150,12 @@ class TestShouldRaise(TestCase):
         self.failUnless(s.raised is None)
         self.assertEqual(r,'foo')
         
+    def test_exception_return(self):
+        def to_test(*args):
+            raise ValueError('%s'%repr(args))
+        r = should_raise(to_test,ValueError('(1,)'))(1)
+        self.assertEqual(r,None)
+    
     def test_raised(self):
         def to_test():
             raise ValueError('wrong value supplied')
