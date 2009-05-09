@@ -1,3 +1,4 @@
+from __future__ import with_statement
 # Copyright (c) 2008 Simplistix Ltd
 # See license.txt for license details.
 
@@ -229,6 +230,17 @@ class TestLogCapture:
         >>> log_capture.uninstall_all()
         """
         
+    def test_with_statement(self):
+        """
+        >>> root.info('before')
+        >>> with LogCapture() as l:
+        ...   root.info('during')
+        >>> root.info('after')
+        >>> print l
+        root INFO
+          during
+        """
+
 # using a set up and teardown function
 # gets rid of the need for the imports in
 # doc tests

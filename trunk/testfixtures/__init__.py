@@ -77,6 +77,12 @@ class Replacer:
         self.original_function = original_function
         return self.new_function
 
+    def __enter__(self):
+        return self
+    
+    def __exit__(self,type,value,traceback):
+        self.restore()
+
 def replace(target,replacement):
     r  = Replacer(replace_returns=True)
     return wrap(partial(r.replace,target,replacement),r.restore)
@@ -318,6 +324,12 @@ class LogCapture(logging.Handler):
             tuple(self.actual())
             )
 
+    def __enter__(self):
+        return self
+    
+    def __exit__(self,type,value,traceback):
+        self.uninstall()
+
 class LogCaptureForDecorator(LogCapture):
 
     def install(self):
@@ -447,6 +459,12 @@ class TempDirectory:
         data = f.read()
         f.close()
         return data
+
+    def __enter__(self):
+        return self
+    
+    def __exit__(self,type,value,traceback):
+        self.cleanup()
 
 def tempdir(*args,**kw):
     kw['create']=False
