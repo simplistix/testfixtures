@@ -1,3 +1,4 @@
+from __future__ import with_statement
 # Copyright (c) 2008 Simplistix Ltd
 # See license.txt for license details.
 
@@ -150,6 +151,17 @@ class TestTempDirectory:
         >>> os.path.exists(d1.path)
         False
         >>> os.path.exists(d2.path)
+        False
+        """
+
+    def test_with_statement(self):
+        """
+        >>> with TempDirectory() as d:
+        ...    p = d.path
+        ...    print os.path.exists(p)
+        ...    d.write('something','stuff')
+        True
+        >>> os.path.exists(p)
         False
         """
 

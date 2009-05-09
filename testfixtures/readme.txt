@@ -119,6 +119,15 @@ See license.txt for details.
 
 Changes
 =======
+
+1.6.0 (09 May 2009)
+-------------------
+
+- added support for using TempDirectory, Replacer and LogCapture as
+  context managers for with statements
+
+- fixed test failure in Python 2.6
+
 1.5.4 (11 Feb 2009)
 -------------------
 

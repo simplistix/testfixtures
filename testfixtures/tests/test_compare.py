@@ -9,16 +9,20 @@ hexaddr = compile('0x[0-9A-Fa-f]+')
 
 class TestCompare(TestCase):
 
-    def checkRaises(self,x,y,message):
+    def checkRaises(self,x,y,message=None,regex=None):
         try:
             compare(x,y)
         except Exception,e:
             if not isinstance(e,AssertionError):
                 self.fail('Expected AssertionError, got %r'%e)
             actual = hexaddr.sub('...',e.args[0])
-            # handy for debugging, but can't be relied on for tests!
-            # compare(actual,message)
-            self.assertEqual(actual,message)
+            if message is not None:
+                # handy for debugging, but can't be relied on for tests!
+                # compare(actual,message)
+                self.assertEqual(actual,message)
+            else:
+                if not regex.match(actual):
+                    self.fail('%r did not match %r'%(actual,regex.pattern))
         else:
             self.fail('No exception raised!')
             
@@ -258,10 +262,10 @@ class TestCompare(TestCase):
             )
 
     def test_generator_and_sequence(self):
-        expected = "(1, 2, 3) != <generator object at ...>"
+        expected = compile("\(1, 2, 3\) != <generator object (generator )?at ...>")
         self.checkRaises(
             (1,2,3),generator(1,2,3),
-            expected,
+            regex=expected,
             )
 
     def test_tuple_and_list(self):
