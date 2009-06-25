@@ -85,7 +85,7 @@ class TestTempDir(TestCase):
                 rmtree(d)
             
     @tempdir()
-    def test_cleanup_test_deletes_dir(self,d):
+    def test_cleanup_test_okay_with_deleted_dir(self,d):
         rmtree(d.path)
     
     @tempdir()
