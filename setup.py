@@ -32,7 +32,7 @@ setup(
 # to build and upload the eggs, do:
 # python setup.py sdist register upload
 # ...or...
-#  bin/buildout setup setup.py sdist bdist_egg register upload
+#  bin/buildout setup setup.py sdist register upload
 # ...on a unix box!
 
 # To check how things will show on pypi, install docutils and then:
