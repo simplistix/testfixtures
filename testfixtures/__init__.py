@@ -246,7 +246,7 @@ class ShouldRaiseWrapper:
         r = None
         try:
             r = self.wrapped(*args,**kw)
-        except Exception,actual:
+        except BaseException,actual:
             self.sr.raised = actual
         if self.sr.expected:
             if cmp(Comparison(self.sr.expected),self.sr.raised):
