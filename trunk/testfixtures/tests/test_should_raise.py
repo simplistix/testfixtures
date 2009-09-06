@@ -163,6 +163,15 @@ class TestShouldRaise(TestCase):
         s()
         self.assertEqual(s.raised,C(ValueError('wrong value supplied')))
         
+    def test_catch_baseexception_1(self):
+        def to_test():
+            raise SystemExit()
+        should_raise(to_test,SystemExit)()
+    
+    def test_catch_baseexception_2(self):
+        def to_test():
+            raise KeyboardInterrupt()
+        should_raise(to_test,KeyboardInterrupt)()
 
 def test_suite():
     return TestSuite((
