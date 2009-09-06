@@ -120,6 +120,15 @@ See license.txt for details.
 Changes
 =======
 
+1.6.1 (06 September 2009)
+-------------------
+
+- @replace and Replacer.replace can now replace attributes that may
+  not be present, provided the `strict` parameter is passed as False.
+
+- should_raise now catches BaseException rather than Exception so
+  raising of SystemExit and KeyboardInterrupt can be tested.
+
 1.6.0 (09 May 2009)
 -------------------
 
