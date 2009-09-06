@@ -49,16 +49,20 @@ def wrap(before,after=None):
         return f
     return wrapper
 
+not_there =object()
+
 class Replacer:
 
     def __init__(self,replace_returns=False):
         self.originals = {}
         self.replace_returns=replace_returns
 
-    def replace(self,target,replacement):
+    def replace(self,target,replacement,strict=True):
         container,attribute = target.rsplit('.',1)
         container = resolve(container)
-        t_obj = getattr(container,attribute)
+        t_obj = getattr(container,attribute,not_there)
+        if t_obj is not_there and strict:
+            raise AttributeError('Original %r not found'%attribute)
         if (isinstance(t_obj,MethodType)
             and t_obj.im_self is container
             and not isinstance(replacement,MethodType)):
@@ -70,7 +74,12 @@ class Replacer:
 
     def restore(self):
         for target,original in tuple(self.originals.items()):
-            self.replace(target,original)
+            if original is not_there:
+                container,attribute = target.rsplit('.',1)
+                container = resolve(container)
+                delattr(container,attribute)
+            else:
+                self.replace(target,original)
             del self.originals[target]
             
     def __call__(self,original_function):
@@ -83,9 +92,9 @@ class Replacer:
     def __exit__(self,type,value,traceback):
         self.restore()
 
-def replace(target,replacement):
+def replace(target,replacement,strict=True):
     r  = Replacer(replace_returns=True)
-    return wrap(partial(r.replace,target,replacement),r.restore)
+    return wrap(partial(r.replace,target,replacement,strict),r.restore)
 
 def diff(x,y):
     return '\n'.join(

@@ -179,6 +179,30 @@ class TestReplace(TestCase):
 
         test_something()
 
+    def test_not_there(self):
+
+        o = object()
+
+        @replace('testfixtures.tests.sample1.bad',o)
+        def test_something(r):
+            pass
+        
+        should_raise(
+            test_something,
+            AttributeError("Original 'bad' not found")
+            )()
+
+    def test_not_there_ok(self):
+
+        o = object()
+
+        @replace('testfixtures.tests.sample1.bad',o,strict=False)
+        def test_something(r):
+            self.failUnless(r is o)
+            self.failUnless(sample1.bad is o)
+
+        test_something()
+
 def test_suite():
     return TestSuite((
         makeSuite(TestReplace),

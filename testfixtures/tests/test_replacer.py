@@ -202,6 +202,40 @@ class TestReplacer:
         'original z'
         """
 
+    def test_not_there(self):
+        """
+        >>> def test_bad():
+        ...   return 'moo'
+        
+        >>> with Replacer() as r:
+        ...   r.replace('testfixtures.tests.sample1.bad',test_bad)
+        Traceback (most recent call last):
+        ...
+        AttributeError: Original 'bad' not found
+        """
+        
+    def test_not_there_ok(self):
+        """
+        >>> import sample1
+        >>> sample1.bad()
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'module' object has no attribute 'bad'
+        
+        >>> def test_bad():
+        ...   return 'moo'
+        
+        >>> with Replacer() as r:
+        ...   r.replace('testfixtures.tests.sample1.bad',test_bad,strict=False)
+        ...   sample1.bad()
+        'moo'
+        
+        >>> sample1.bad()
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'module' object has no attribute 'bad'
+        """
+        
 def test_suite():
     return TestSuite((
         DocTestSuite(optionflags=REPORT_NDIFF|ELLIPSIS),
