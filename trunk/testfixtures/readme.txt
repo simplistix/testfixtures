@@ -121,7 +121,7 @@ Changes
 =======
 
 1.6.1 (06 September 2009)
--------------------
+-------------------------
 
 - @replace and Replacer.replace can now replace attributes that may
   not be present, provided the `strict` parameter is passed as False.
