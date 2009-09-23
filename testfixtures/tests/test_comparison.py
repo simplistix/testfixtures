@@ -1,4 +1,4 @@
-# Copyright (c) 2008 Simplistix Ltd
+# Copyright (c) 2008-2009 Simplistix Ltd
 # See license.txt for license details.
 
 from testfixtures import Comparison as C, compare, tempdir
@@ -559,6 +559,38 @@ class TestC(TestCase):
         else:
             self.fail('No Exception raised!')
 
+    def test_compared_object_defines_eq(self):
+        # If an object defines eq, such as Django instances,
+        # things become tricky
+        
+        class Annoying:
+            def __init__(self):
+                self.eq_called = 0            
+            def __eq__(self,other):
+                self.eq_called += 1
+                if isinstance(other,Annoying):
+                    return True
+                return False
+
+        self.assertEqual(Annoying(),Annoying())
+
+        # Suddenly, order matters.
+
+        # This order is wrong, as it uses the class's __eq__:
+        self.assertNotEqual(Annoying(),C(Annoying))
+
+        # This is the right ordering:
+        self.assertEqual(C(Annoying),Annoying())
+
+        # When the ordering is right, you still get the useful
+        # comparison representation afterwards
+        c = C(Annoying,eq_called=1)        
+        c==Annoying()
+        self.assertEqual(repr(c),
+                         '\n  <C(failed):testfixtures.tests.test_comparison.Annoying>\n'
+                         '  eq_called:1 != 0\n'
+                         '  </C>')
+        
 def test_suite():
     return TestSuite((
         makeSuite(TestC),
