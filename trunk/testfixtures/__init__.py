@@ -1,4 +1,4 @@
-# Copyright (c) 2008 Simplistix Ltd
+# Copyright (c) 2008-2009 Simplistix Ltd
 # See license.txt for license details.
 
 import logging,os
@@ -111,37 +111,37 @@ def compare(x,y):
     if isinstance(x,GeneratorType) and isinstance(x,GeneratorType):
         x = tuple(x)
         y = tuple(y)
-    if x!=y:
-        message = None
-        if isinstance(x,basestring) and isinstance(y,basestring):
-            if len(x)>10 or len(y)>10:
-                if '\n' in x or '\n' in y:
-                    message = '\n'+diff(x,y)
-                else:
-                    message = '\n%r\n!=\n%r'%(x,y)
-        elif ((isinstance(x,tuple) and isinstance(y,tuple))
-              or
-              (isinstance(x,list) and isinstance(y,list))):
-            l_x = len(x)
-            l_y = len(y)
-            i = 0
-            while i<l_x and i<l_y:
-                if cmp(x[i],y[i]):
-                    break
-                i+=1
-            message = (
-                'Sequence not as expected:\n\n'
-                'same:\n%s\n\n'
-                'first:\n%s\n\n'
-                'second:\n%s')%(
-                pformat(x[:i]),
-                pformat(x[i:]),
-                pformat(y[i:]),
-                )
-        if message is None:
-            message = '%r != %r'%(x,y)
-        raise AssertionError(message)
-    return identity
+    if x==y:
+        return identity
+    message = None
+    if isinstance(x,basestring) and isinstance(y,basestring):
+        if len(x)>10 or len(y)>10:
+            if '\n' in x or '\n' in y:
+                message = '\n'+diff(x,y)
+            else:
+                message = '\n%r\n!=\n%r'%(x,y)
+    elif ((isinstance(x,tuple) and isinstance(y,tuple))
+          or
+          (isinstance(x,list) and isinstance(y,list))):
+        l_x = len(x)
+        l_y = len(y)
+        i = 0
+        while i<l_x and i<l_y:
+            if x[i]!=y[i]:
+                break
+            i+=1
+        message = (
+            'Sequence not as expected:\n\n'
+            'same:\n%s\n\n'
+            'first:\n%s\n\n'
+            'second:\n%s')%(
+            pformat(x[:i]),
+            pformat(x[i:]),
+            pformat(y[i:]),
+            )
+    if message is None:
+        message = '%r != %r'%(x,y)
+    raise AssertionError(message)
     
 def generator(*args):
     for i in args:
@@ -171,12 +171,12 @@ class Comparison:
         self.v = v
         self.strict = strict
         
-    def __cmp__(self,other,indent=2):
+    def __eq__(self,other):
         if self.c is not other.__class__:
             self.failed = True
-            return -1
+            return False
         if self.v is None:
-            return 0
+            return True
         self.failed = {}
         if isinstance(other,BaseException):
             v = {'args':other.args}
@@ -208,8 +208,11 @@ class Comparison:
             if ev!=av:
                 self.failed[k]='%r != %r' % (ev,av)
         if self.failed:
-            return -1
-        return 0
+            return False
+        return True
+
+    def __ne__(self,other):
+        return not(self==other)
     
     def __repr__(self,indent=2):
         full = False
@@ -258,7 +261,7 @@ class ShouldRaiseWrapper:
         except BaseException,actual:
             self.sr.raised = actual
         if self.sr.expected:
-            if cmp(Comparison(self.sr.expected),self.sr.raised):
+            if Comparison(self.sr.expected) != self.sr.raised:
                 raise AssertionError(
                     '%r raised, %r expected' % (self.sr.raised,self.sr.expected)
                     )

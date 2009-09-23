@@ -113,12 +113,22 @@ functional examples, see the contents of the tests folder.
 Licensing
 =========
 
-Copyright (c) 2008 Simplistix Ltd
+Copyright (c) 2008-2009 Simplistix Ltd
 
 See license.txt for details.
 
 Changes
 =======
+
+1.6.2 (23 September 2009)
+-------------------------
+
+- changed Comparison to use __eq__ and __ne__ instead of the
+  deprecated __cmp__
+
+- documented that order matters when using Comparisons with objects
+  that implement __eq__ themselves, such as instances of Django
+  models.
 
 1.6.1 (06 September 2009)
 -------------------------
