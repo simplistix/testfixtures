@@ -1,0 +1,8 @@
+Mocking out objects and methods
+===============================
+
+     - replace
+     - Replacer
+     - test_date
+     - test_datetime
+     - test_time

@@ -1,0 +1,4 @@
+Testing exception raising
+=========================
+
+     - should_raise

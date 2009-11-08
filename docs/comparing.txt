@@ -1,0 +1,6 @@
+Comparing objects and sequences
+===============================
+
+     - Comparison
+     - compare
+     - diff
