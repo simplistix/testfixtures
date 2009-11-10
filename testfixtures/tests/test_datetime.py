@@ -70,9 +70,10 @@ class TestDateTime(TestCase):
         # out the datetime, since we're testing stubbing out
         # the datetime ;-)
         j,dt1,j,dt2,j = s.raised.args[0].split("'")
-        dt1,ms = dt1.split('.')
-        # check ms is just an int
-        int(ms)
+        if '.' in dt1:
+            dt1,ms = dt1.split('.')
+            # check ms is just an int
+            int(ms)
         # check we can parse the date
         dt1 = strptime(dt1,'%Y-%m-%d %H:%M:%S')
         # check the dt2 bit was as it should be
@@ -100,9 +101,10 @@ class TestDateTime(TestCase):
         # out the datetime, since we're testing stubbing out
         # the datetime ;-)
         j,dt1,j,dt2,j = s.raised.args[0].split("'")
-        dt1,ms = dt1.split('.')
-        # check ms is just an int
-        int(ms)
+        if '.' in dt1:
+            dt1,ms = dt1.split('.')
+            # check ms is just an int
+            int(ms)
         # check we can parse the date
         dt1 = strptime(dt1,'%Y-%m-%d %H:%M:%S')
         # check the dt2 bit was as it should be
