@@ -149,26 +149,32 @@ def generator(*args):
 
 class Comparison:
     failed = None
-    def __init__(self,t,v=None,strict=True,**kw):
-        if kw:
-            if v is None:
-                v = kw
+    def __init__(self,
+                 object_or_type,
+                 attribute_dict=None,
+                 strict=True,
+                 **attributes):
+        if attributes:
+            if attribute_dict is None:
+                attribute_dict = attributes
             else:
-                v.update(kw)
-        if isinstance(t,basestring):
-            c = resolve(t)
-        elif isinstance(t,(ClassType,type)):
-            c = t
-        elif isinstance(t,BaseException):
-            c = t.__class__
-            if v is None:
-                v = vars(t) or {'args':t.args}
+                attribute_dict.update(attributes)
+        if isinstance(object_or_type,basestring):
+            c = resolve(object_or_type)
+        elif isinstance(object_or_type,(ClassType,type)):
+            c = object_or_type
+        elif isinstance(object_or_type,BaseException):
+            c = object_or_type.__class__
+            if attribute_dict is None:
+                attribute_dict = (
+                    vars(object_or_type) or {'args':object_or_type.args}
+                    )
         else:
-            c = t.__class__
-            if v is None:
-                v=vars(t)
+            c = object_or_type.__class__
+            if attribute_dict is None:
+                attribute_dict=vars(object_or_type)
         self.c = c
-        self.v = v
+        self.v = attribute_dict
         self.strict = strict
         
     def __eq__(self,other):
