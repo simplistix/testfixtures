@@ -2,19 +2,16 @@
 #
 # See license.txt for more details.
 
-import unittest
-
 from glob import glob
+from manuel import doctest,codeblock
+from manuel.testing import TestSuite
 from os.path import dirname,join,pardir
-from doctest import DocFileSuite,REPORT_NDIFF,ELLIPSIS
-
-options = REPORT_NDIFF|ELLIPSIS
+from doctest import REPORT_NDIFF,ELLIPSIS
 
 def test_suite():
-    return unittest.TestSuite((
-        DocFileSuite(
-                *glob(join(dirname(__file__),pardir,'docs','*.txt')),
-                module_relative=False,
-                optionflags=options
-                ),
-        ))
+    m =  doctest.Manuel(optionflags=REPORT_NDIFF|ELLIPSIS)
+    m += codeblock.Manuel()
+    return TestSuite(
+        m,
+        *glob(join(dirname(__file__),pardir,pardir,'docs','*.txt'))
+        )
