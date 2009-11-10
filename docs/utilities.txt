@@ -1,5 +1,12 @@
 Utilities
 =========
 
+.. _generator:
+
+The ``generator`` helper
+------------------------
      - generator
+
+The ``wrap`` helper
+-------------------
      - wrap
