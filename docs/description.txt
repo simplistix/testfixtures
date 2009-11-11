@@ -26,9 +26,6 @@ Easy to use ways of stubbing out objects, classes or individual
 methods for both doc tests and unit tests. Special helpers are
 provided for testing with dates and times.
 
-If you need general mock objects, the excellent Mock package is
-recommended: http://pypi.python.org/pypi/mock/
-
 **Testing logging**
 
 Helpers for capturing logging output in both doc tests and
@@ -39,9 +36,7 @@ unit tests.
 Support for creating and checking files and directories in sandboxes
 for both doc tests and unit tests.
 
-**Testing exception raising**
+**Testing exceptions**
 
-A helper for checking the types and parameters of exceptions that
-are expected to be raised.
-
-
+Easy to use ways of checking that a certain exception is raised, even
+down the to the parameters the exception is raised with.
