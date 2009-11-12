@@ -5,8 +5,19 @@ Utilities
 
 The ``generator`` helper
 ------------------------
-     - generator
+
+- generator
 
 The ``wrap`` helper
 -------------------
-     - wrap
+
+- wrap
+
+  - before
+  - after
+  - return value
+  - arguments (2.5 warning)
+  - stacked wrappers  
+    - return values
+    - less return values than wrappers
+  

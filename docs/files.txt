@@ -1,5 +1,27 @@
 Testing with files and directories
 ==================================
 
-     - TempDirectory
-     - tempdir
+- with statement
+- doctest (maybe do cleanup here?)
+- decorator
+
+- writing files
+
+  - path=True
+
+- writing into directories
+- creating directories
+
+  - path=True
+
+- read
+- check method
+- listdir
+
+- ignore
+  
+for tempdirectory only:
+
+  - cleanup all
+
+  - cleanup individual

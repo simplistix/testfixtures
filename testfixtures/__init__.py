@@ -334,6 +334,8 @@ class LogCapture(logging.Handler):
             yield (r.name,r.levelname,r.getMessage())
     
     def __str__(self):
+        if not self.records:
+            return 'No logging captured'
         return '\n'.join(["%s %s\n  %s" % r for r in self.actual()])
 
     def check(self,*expected):
