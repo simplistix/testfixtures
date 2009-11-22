@@ -10,9 +10,9 @@ interacting components into testing of each individual component,
 checking that is does the right things with the other components
 around it.
 
-There are many implementations of mock objects in the python work. An
+There are many implementations of mock objects in the python world. An
 excellent example and the one recommended for use with TestFixtures is
-the excellent Mock package: http://pypi.python.org/pypi/mock/
+the Mock package: http://pypi.python.org/pypi/mock/
 
 Methods of replacement
 ----------------------
@@ -95,7 +95,7 @@ decorator will see this and pass the replacement in it's place:
       print X().y()
       compare(m.call_args_list,[((), {})])
 
-The above still resulting in the same output:
+The above still results in the same output:
 
 >>> test_function()
 mock y
@@ -184,7 +184,8 @@ not.
       :lines: 11-19
 
 To test the behaviour of the code that uses ``hpy`` in both of
-these cases, we need to be able to mock out both ``hpy`` and the
+these cases, regardless of whether or not the ``guppy`` package is
+actually install, we need to be able to mock out both ``hpy`` and the
 ``guppy`` global. This is done by doing non-strict replacement, as
 shown in the following :class:`~unittest.TestCase`:
 
@@ -226,7 +227,7 @@ shown in the following :class:`~unittest.TestCase`:
    <unittest._TextTestResult run=2 errors=0 failures=0>
 
 
-The :meth:`testfixtures.Replacer.replace` method also supports
+The :meth:`~testfixtures.Replacer.replace` method also supports
 non-strict replacement using the same keyword parameter.
 
 Gotchas
@@ -283,10 +284,10 @@ with this.
 Dates
 ~~~~~
 
- TextFixtures provides the :func:`~testfixtures.test_date` function
- that returns a subclass of :class:`datetime.date` with a
- :meth:`~datetime.date.today` method that will return a
- consistent sequence of dates each time it is called.
+TextFixtures provides the :func:`~testfixtures.test_date` function
+that returns a subclass of :class:`datetime.date` with a
+:meth:`~datetime.date.today` method that will return a
+consistent sequence of dates each time it is called.
 
 This enables you to write tests for code such as the following, from
 the ``testfixtures.tests.sample1`` package:

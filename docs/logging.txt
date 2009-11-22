@@ -47,8 +47,8 @@ first:
 second:
 (('root', 'ERROR', 'an error'),)
 
-It also has a str represtentation that allows you to see what has been
-logged, which is useful for doc tests:
+It also has a string represtentation that allows you to see what has
+been logged, which is useful for doc tests:
 
 >>> print l
 root INFO
@@ -190,7 +190,7 @@ Printing
 ~~~~~~~~
 
 The :obj:`~testfixtures.LogCapture` has a string representation that
-shows what messages it has captures. This can be useful in doc tests:
+shows what messages it has captured. This can be useful in doc tests:
 
 >>> print l
 root INFO
