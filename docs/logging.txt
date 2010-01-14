@@ -117,7 +117,7 @@ root INFO
 
 Then, in the ``tearDown`` function
 of the :class:`~unittest.TestCase` or passed to the
-:class:`~doctest.DocTestSuite` constructor, the should make sure you
+:class:`~doctest.DocTestSuite` constructor, you should make sure you
 stop the capturing:
 
 >>> l.uninstall()
