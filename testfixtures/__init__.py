@@ -413,12 +413,15 @@ class TempDirectory:
 
     instances = set()
     
-    def __init__(self,ignore=(),create=True):
+    def __init__(self,ignore=(),create=True,path=None):
         self.ignore = ignore
+        self.path = path
         if create:
             self.create()
 
     def create(self):
+        if self.path:
+            return self
         self.path = mkdtemp()
         self.instances.add(self)
         return self
@@ -432,17 +435,37 @@ class TempDirectory:
     def cleanup_all(cls):
         for i in tuple(cls.instances):
             i.cleanup()
-        
-    def actual(self,path=None):
+
+    def actual(self,path=None,recursive=False):
         if path:
             path = self._join(path)
         else:
             path = self.path
-        return sorted([n for n in os.listdir(path)
-                       if n not in self.ignore])
+        result = []
+        if recursive:
+            for dirpath,dirnames,filenames in os.walk(path):
+                dirpath = '/'.join(dirpath[len(path)+1:].split(os.sep))
+                if dirpath:
+                    dirpath += '/'
+                    result.append(dirpath)
+                for ignore in self.ignore:
+                    if ignore in dirnames:
+                        dirnames.remove(ignore)
+                for name in sorted(filenames):
+                    if name not in self.ignore:
+                        result.append(dirpath+name)
+        else:
+            for n in os.listdir(path):
+                if n not in self.ignore:
+                    result.append(n)
+        result.sort()
+        return result
     
-    def listdir(self,path=None):
-        for n in self.actual(path):
+    def listdir(self,path=None,recursive=False):
+        actual = self.actual(path,recursive)
+        if not actual:
+            print 'No files or directories found.'
+        for n in actual:
             print n
 
     def check(self,*expected):
@@ -451,9 +474,16 @@ class TempDirectory:
     def check_dir(self,dir,*expected):
         compare(expected,tuple(self.actual(dir)))
 
+    def check_all(self,dir,*expected):
+        compare(expected,tuple(self.actual(dir,recursive=True)))
+
     def _join(self,name):
         if isinstance(name,basestring):
-            name=(name,)
+            name = name.split('/')
+        if not name[0]:
+            raise ValueError(
+                'Attempt to read or write outside the temporary Directory'
+                )
         return os.path.join(self.path,*name)
         
     def makedir(self,dirpath,path=False):
@@ -463,10 +493,12 @@ class TempDirectory:
             return thepath
     
     def write(self,filepath,data,path=False):
-        if not isinstance(filepath,basestring) and len(filepath)>1:
+        if isinstance(filepath,basestring):
+            filepath = filepath.split('/')
+        if len(filepath)>1:
             dirpath = self._join(filepath[:-1])
             if not os.path.exists(dirpath):
-                self.makedir(dirpath)
+                os.makedirs(dirpath)
         thepath = self._join(filepath)
         f = open(thepath,'wb')
         f.write(data)
