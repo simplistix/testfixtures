@@ -144,7 +144,7 @@ class TestDate(TestCase):
         self.failUnless(isinstance(date.today(),date))
 
     @replace('datetime.date',test_date(None))
-    def test_non_incremented_returns_right_type(self):
+    def test_incremented_returns_right_type(self):
         from datetime import date
         date.add(2010,1,19)
         d1 = date.today()

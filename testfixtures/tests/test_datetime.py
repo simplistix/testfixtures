@@ -145,7 +145,7 @@ class TestDateTime(TestCase):
         self.failUnless(isinstance(datetime.now(),datetime))
 
     @replace('datetime.datetime',test_datetime(None))
-    def test_non_incremented_returns_right_type(self):
+    def test_incremented_returns_right_type(self):
         from datetime import datetime
         datetime.add(2010,1,19,12)
         d1 = datetime.now()
@@ -153,7 +153,7 @@ class TestDateTime(TestCase):
         self.assertEqual(d1,datetime(2010,1,19,12))
         d2 = datetime.now()
         self.failUnless(isinstance(d2,datetime))
-        self.assertEqual(d2,date(2010,1,20,12,0,10))
+        self.assertEqual(d2,datetime(2010,1,19,12,0,10))
 
     @replace('datetime.datetime',test_datetime())
     def test_add_timedelta(self):

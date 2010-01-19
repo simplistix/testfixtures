@@ -361,15 +361,19 @@ def instantiate(cls):
     r = cls._q.pop(0)
     if not cls._q:
         cls._gap += cls._gap_d
-        cls._q.append(r+timedelta(**{cls._gap_t:cls._gap}))
+        n = r+timedelta(**{cls._gap_t:cls._gap})
+        if cls._ct:
+            n = cls._ct(n)
+        cls._q.append(n)
     return r
 
-def test_factory(n,type,gap_t,gap_d,default,args,**to_patch):    
+def test_factory(n,type,gap_t,gap_d,default,args,ct,**to_patch):    
     q = []
     to_patch['_q']=q
     to_patch['_gap']=0
     to_patch['_gap_d']=gap_d
     to_patch['_gap_t']=gap_t
+    to_patch['_ct']=ct
     to_patch['add']=add
     class_ = classobj(n,(type,),to_patch)
     if args==(None,):
@@ -381,14 +385,37 @@ def test_factory(n,type,gap_t,gap_d,default,args,**to_patch):
     return class_
     
     
+@classmethod
+def correct_datetime(cls,dt):
+    return cls(
+        dt.year,
+        dt.month,
+        dt.day,
+        dt.hour,
+        dt.minute,
+        dt.second,
+        dt.microsecond,
+        dt.tzinfo,
+        )
+
 def test_datetime(*args):
     return test_factory(
-        'tdatetime',datetime,'seconds',10,(2001,1,1,0,0,0),args,now=instantiate
+        'tdatetime',datetime,'seconds',10,(2001,1,1,0,0,0),args,
+        correct_datetime,now=instantiate,
         )
     
+@classmethod
+def correct_date(cls,d):
+    return cls(
+        d.year,
+        d.month,
+        d.day,
+        )
+
 def test_date(*args):
     return test_factory(
-        'tdate',date,'days',1,(2001,1,1),args,today=instantiate
+        'tdate',date,'days',1,(2001,1,1),args,
+        correct_date,today=instantiate
         )
 
 class ttimec(datetime):
@@ -401,7 +428,8 @@ class ttimec(datetime):
 
 def test_time(*args):
     return test_factory(
-        'ttime',ttimec,'seconds',1,(2001,1,1,0,0,0),args,time=instantiate
+        'ttime',ttimec,'seconds',1,(2001,1,1,0,0,0),args,
+        None,time=instantiate
         )
 
 class TempDirectory:
