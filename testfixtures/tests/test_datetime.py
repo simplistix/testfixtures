@@ -2,7 +2,7 @@
 # See license.txt for license details.
 
 import sample1,sample2
-from datetime import datetime as d
+from datetime import datetime as d, timedelta
 from time import strptime
 from testfixtures import test_datetime,replace,compare,should_raise
 from unittest import TestCase,TestSuite,makeSuite
@@ -139,6 +139,28 @@ class TestDateTime(TestCase):
         from datetime import datetime
         compare(repr(datetime),"<class 'testfixtures.tdatetime'>")
 
+    @replace('datetime.datetime',test_datetime())
+    def test_non_added_returns_right_type(self):
+        from datetime import datetime
+        self.failUnless(isinstance(datetime.now(),datetime))
+
+    @replace('datetime.datetime',test_datetime(None))
+    def test_non_incremented_returns_right_type(self):
+        from datetime import datetime
+        datetime.add(2010,1,19,12)
+        d1 = datetime.now()
+        self.failUnless(isinstance(d1,datetime))
+        self.assertEqual(d1,datetime(2010,1,19,12))
+        d2 = datetime.now()
+        self.failUnless(isinstance(d2,datetime))
+        self.assertEqual(d2,date(2010,1,20,12,0,10))
+
+    @replace('datetime.datetime',test_datetime())
+    def test_add_timedelta(self):
+        from datetime import datetime
+        d = datetime.now()+timedelta(days=1)
+        self.failUnless(isinstance(d,datetime))
+        self.assertEqual(d,date(2001,1,2))
 
 def test_suite():
     return TestSuite((
