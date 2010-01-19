@@ -356,6 +356,12 @@ def log_capture(*names):
 def add(cls,*args):
     cls._q.append(cls(*args))
 
+def __add__(self,other):
+    r = super(self.__class__,self).__add__(other)
+    if self._ct:
+        r = self._ct(r)
+    return r
+
 @classmethod
 def instantiate(cls):
     r = cls._q.pop(0)
@@ -375,6 +381,7 @@ def test_factory(n,type,gap_t,gap_d,default,args,ct,**to_patch):
     to_patch['_gap_t']=gap_t
     to_patch['_ct']=ct
     to_patch['add']=add
+    to_patch['__add__']=__add__
     class_ = classobj(n,(type,),to_patch)
     if args==(None,):
         pass

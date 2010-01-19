@@ -160,7 +160,7 @@ class TestDateTime(TestCase):
         from datetime import datetime
         d = datetime.now()+timedelta(days=1)
         self.failUnless(isinstance(d,datetime))
-        self.assertEqual(d,date(2001,1,2))
+        self.assertEqual(d,datetime(2001,1,2))
 
 def test_suite():
     return TestSuite((
