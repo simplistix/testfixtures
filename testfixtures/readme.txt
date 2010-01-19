@@ -120,6 +120,13 @@ See license.txt for details.
 Changes
 =======
 
+1.6.3 (19 January 2010)
+-------------------------
+
+- fixed several bugs in the instantiation of test_datetime and
+  test_date instances which bit when type comparisons were made
+  between instances and the class from which they were instantiated.
+
 1.6.2 (23 September 2009)
 -------------------------
 
