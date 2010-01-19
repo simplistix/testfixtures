@@ -1,4 +1,5 @@
-# Copyright (c) 2009 Simplistix Ltd
+from __future__ import with_statement
+# Copyright (c) 2009-2010 Simplistix Ltd
 #
 # See license.txt for more details.
 
