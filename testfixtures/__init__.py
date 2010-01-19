@@ -365,18 +365,21 @@ def instantiate(cls):
     return r
 
 def test_factory(n,type,gap_t,gap_d,default,args,**to_patch):    
-    if args == (None,):
-        q = []
-    elif args:
-        q = [type(*args)]
-    else:
-        q = [type(*default)]
+    q = []
     to_patch['_q']=q
     to_patch['_gap']=0
     to_patch['_gap_d']=gap_d
     to_patch['_gap_t']=gap_t
     to_patch['add']=add
-    return classobj(n,(type,),to_patch)
+    class_ = classobj(n,(type,),to_patch)
+    if args==(None,):
+        pass
+    elif args:
+        q.append(class_(*args))
+    else:
+        q.append(class_(*default))
+    return class_
+    
     
 def test_datetime(*args):
     return test_factory(
