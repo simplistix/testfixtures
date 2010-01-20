@@ -358,6 +358,12 @@ def log_capture(*names):
 def add(cls,*args):
     cls._q.append(cls(*args))
 
+@classmethod
+def set_(cls,*args):
+    if cls._q:
+        cls._q.pop()
+    cls.add(*args)
+
 def __add__(self,other):
     r = super(self.__class__,self).__add__(other)
     if self._ct:
@@ -375,14 +381,11 @@ def instantiate(cls):
         cls._q.append(n)
     return r
 
-def test_factory(n,type,gap_t,gap_d,default,args,ct,**to_patch):    
+def test_factory(n,type,default,args,**to_patch):    
     q = []
     to_patch['_q']=q
-    to_patch['_gap']=0
-    to_patch['_gap_d']=gap_d
-    to_patch['_gap_t']=gap_t
-    to_patch['_ct']=ct
     to_patch['add']=add
+    to_patch['set']=set_
     to_patch['__add__']=__add__
     class_ = classobj(n,(type,),to_patch)
     if args==(None,):
@@ -407,10 +410,21 @@ def correct_datetime(cls,dt):
         dt.tzinfo,
         )
 
-def test_datetime(*args):
+def test_datetime(*args,**kw):
+    if 'delta' in kw:
+        gap = kw['delta']
+        gap_delta = 0
+    else:
+        gap = 0
+        gap_delta = 10
+    delta_type = kw.get('delta_type','seconds')
     return test_factory(
-        'tdatetime',datetime,'seconds',10,(2001,1,1,0,0,0),args,
-        correct_datetime,now=instantiate,
+        'tdatetime',datetime,(2001,1,1,0,0,0),args,
+        _ct=correct_datetime,
+        now=instantiate,
+        _gap = gap,
+        _gap_d = gap_delta,
+        _gap_t = delta_type,
         )
     
 @classmethod
@@ -421,10 +435,21 @@ def correct_date(cls,d):
         d.day,
         )
 
-def test_date(*args):
+def test_date(*args,**kw):
+    if 'delta' in kw:
+        gap = kw['delta']
+        gap_delta = 0
+    else:
+        gap = 0
+        gap_delta = 1
+    delta_type = kw.get('delta_type','days')
     return test_factory(
-        'tdate',date,'days',1,(2001,1,1),args,
-        correct_date,today=instantiate
+        'tdate',date,(2001,1,1),args,
+        _ct=correct_date,
+        today=instantiate,
+        _gap = gap,
+        _gap_d = gap_delta,
+        _gap_t = delta_type,
         )
 
 class ttimec(datetime):
@@ -435,10 +460,21 @@ class ttimec(datetime):
         else:
             return mktime(cls.time().timetuple())
 
-def test_time(*args):
+def test_time(*args,**kw):
+    if 'delta' in kw:
+        gap = kw['delta']
+        gap_delta = 0
+    else:
+        gap = 0
+        gap_delta = 1
+    delta_type = kw.get('delta_type','seconds')
     return test_factory(
-        'ttime',ttimec,'seconds',1,(2001,1,1,0,0,0),args,
-        None,time=instantiate
+        'ttime',ttimec,(2001,1,1,0,0,0),args,
+        _ct=None,
+        time=instantiate,
+        _gap = gap,
+        _gap_d = gap_delta,
+        _gap_t = delta_type,
         )
 
 class TempDirectory:

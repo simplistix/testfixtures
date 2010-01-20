@@ -5,6 +5,7 @@ import sample1,sample2
 from time import strptime
 from testfixtures import test_time,replace,compare,should_raise
 from unittest import TestCase,TestSuite,makeSuite
+from test_datetime import atzinfo
 
 class TestTime(TestCase):
 
@@ -80,6 +81,39 @@ class TestTime(TestCase):
         from time import time
         compare(repr(time),"<class 'testfixtures.ttime'>")
 
+    @replace('time.time',test_time(delta=10))
+    def test_delta(self):
+        from time import time
+        compare(time(),978307200.0)
+        compare(time(),978307210.0)
+        compare(time(),978307220.0)
+        
+    @replace('time.time',test_time(delta_type='minutes'))
+    def test_delta_type(self):
+        from time import time
+        compare(time(),978307200.0)
+        compare(time(),978307260.0)
+        compare(time(),978307380.0)
+        
+    @replace('time.time',test_time(None))
+    def test_set(self):
+        from time import time
+        time.set(2001,1,1,1,0,1)
+        compare(time(),978310801.0)
+        time.set(2002,1,1,1,0,0)
+        compare(time(),1009846800.0)
+        compare(time(),1009846802.0)
+        
+    @replace('time.time',test_time(2001,1,2,3,4,5,6,atzinfo()))
+    def test_max_number_args(self):
+        from time import time
+        compare(time(),978404645.0)
+        
+    @replace('time.time',test_time(2001,1,2))
+    def test_min_number_args(self):
+        from time import time
+        compare(time(),978393600.0)
+        
 def test_suite():
     return TestSuite((
         makeSuite(TestTime),
