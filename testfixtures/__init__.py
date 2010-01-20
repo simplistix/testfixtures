@@ -66,9 +66,11 @@ class Replacer:
         if (isinstance(t_obj,MethodType)
             and t_obj.im_self is container
             and not isinstance(replacement,MethodType)):
-            replacement = classmethod(replacement)
+            replacement_to_use = classmethod(replacement)
+        else:
+            replacement_to_use = replacement
         self.originals[target] = t_obj
-        setattr(container,attribute,replacement)
+        setattr(container,attribute,replacement_to_use)
         if self.replace_returns:
             return replacement
 
