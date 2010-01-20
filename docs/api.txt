@@ -1,8 +1,0 @@
-API Reference
-=============
-
-.. automodule:: testfixtures
-   :members:
-   :undoc-members:
-   :inherited-members:
-   :show-inheritance:

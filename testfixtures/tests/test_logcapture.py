@@ -23,7 +23,7 @@ class DemoLogCapture:
           some logging
         >>> log_capture.clear()
         >>> print log_capture
-        No logging captured
+        <BLANKLINE>
         >>> root.info('some more logging')
         >>> print log_capture
         root INFO

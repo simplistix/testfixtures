@@ -1,5 +1,4 @@
-from __future__ import with_statement
-# Copyright (c) 2008-2010 Simplistix Ltd
+# Copyright (c) 2008 Simplistix Ltd
 # See license.txt for license details.
 
 import os
@@ -21,7 +20,6 @@ class TestTempDir(TestCase):
             '.svn',
             'something',
             )
-                
 
     @tempdir()
     def test_subdirs(self,d):
@@ -91,24 +89,10 @@ class TestTempDir(TestCase):
         rmtree(d.path)
     
     @tempdir()
-    def test_decorator_returns_tempdirectory(self,d):
+    def test_cleanup_test_deletes_dir(self,d):
         # check for what we get, so we only have to write
         # tests in test_tempdirectory.py
         self.failUnless(isinstance(d,TempDirectory))
-
-    def test_dont_create_or_cleanup_with_path(self):
-        with Replacer() as r:
-            m = Mock()
-            r.replace('testfixtures.mkdtemp',m)
-            r.replace('testfixtures.rmtree',m)
-
-            @tempdir(path='foo')
-            def test_method(d):
-                compare(d.path,'foo')
-
-            test_method()
-            
-            self.assertFalse(m.called)
 
 def test_suite():
     return TestSuite((

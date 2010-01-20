@@ -1,4 +1,4 @@
-# Copyright (c) 2008-2010 Simplistix Ltd
+# Copyright (c) 2008-2009 Simplistix Ltd
 # See license.txt for license details.
 
 import logging,os
@@ -149,32 +149,26 @@ def generator(*args):
 
 class Comparison:
     failed = None
-    def __init__(self,
-                 object_or_type,
-                 attribute_dict=None,
-                 strict=True,
-                 **attributes):
-        if attributes:
-            if attribute_dict is None:
-                attribute_dict = attributes
+    def __init__(self,t,v=None,strict=True,**kw):
+        if kw:
+            if v is None:
+                v = kw
             else:
-                attribute_dict.update(attributes)
-        if isinstance(object_or_type,basestring):
-            c = resolve(object_or_type)
-        elif isinstance(object_or_type,(ClassType,type)):
-            c = object_or_type
-        elif isinstance(object_or_type,BaseException):
-            c = object_or_type.__class__
-            if attribute_dict is None:
-                attribute_dict = (
-                    vars(object_or_type) or {'args':object_or_type.args}
-                    )
+                v.update(kw)
+        if isinstance(t,basestring):
+            c = resolve(t)
+        elif isinstance(t,(ClassType,type)):
+            c = t
+        elif isinstance(t,BaseException):
+            c = t.__class__
+            if v is None:
+                v = vars(t) or {'args':t.args}
         else:
-            c = object_or_type.__class__
-            if attribute_dict is None:
-                attribute_dict=vars(object_or_type)
+            c = t.__class__
+            if v is None:
+                v=vars(t)
         self.c = c
-        self.v = attribute_dict
+        self.v = v
         self.strict = strict
         
     def __eq__(self,other):
@@ -334,8 +328,6 @@ class LogCapture(logging.Handler):
             yield (r.name,r.levelname,r.getMessage())
     
     def __str__(self):
-        if not self.records:
-            return 'No logging captured'
         return '\n'.join(["%s %s\n  %s" % r for r in self.actual()])
 
     def check(self,*expected):
@@ -364,36 +356,73 @@ def log_capture(*names):
 def add(cls,*args):
     cls._q.append(cls(*args))
 
+def __add__(self,other):
+    r = super(self.__class__,self).__add__(other)
+    if self._ct:
+        r = self._ct(r)
+    return r
+
 @classmethod
 def instantiate(cls):
     r = cls._q.pop(0)
     if not cls._q:
         cls._gap += cls._gap_d
-        cls._q.append(r+timedelta(**{cls._gap_t:cls._gap}))
+        n = r+timedelta(**{cls._gap_t:cls._gap})
+        if cls._ct:
+            n = cls._ct(n)
+        cls._q.append(n)
     return r
 
-def test_factory(n,type,gap_t,gap_d,default,args,**to_patch):    
-    if args == (None,):
-        q = []
-    elif args:
-        q = [type(*args)]
-    else:
-        q = [type(*default)]
+def test_factory(n,type,gap_t,gap_d,default,args,ct,**to_patch):    
+    q = []
     to_patch['_q']=q
     to_patch['_gap']=0
     to_patch['_gap_d']=gap_d
     to_patch['_gap_t']=gap_t
+    to_patch['_ct']=ct
     to_patch['add']=add
-    return classobj(n,(type,),to_patch)
+    to_patch['__add__']=__add__
+    class_ = classobj(n,(type,),to_patch)
+    if args==(None,):
+        pass
+    elif args:
+        q.append(class_(*args))
+    else:
+        q.append(class_(*default))
+    return class_
     
+    
+@classmethod
+def correct_datetime(cls,dt):
+    return cls(
+        dt.year,
+        dt.month,
+        dt.day,
+        dt.hour,
+        dt.minute,
+        dt.second,
+        dt.microsecond,
+        dt.tzinfo,
+        )
+
 def test_datetime(*args):
     return test_factory(
-        'tdatetime',datetime,'seconds',10,(2001,1,1,0,0,0),args,now=instantiate
+        'tdatetime',datetime,'seconds',10,(2001,1,1,0,0,0),args,
+        correct_datetime,now=instantiate,
         )
     
+@classmethod
+def correct_date(cls,d):
+    return cls(
+        d.year,
+        d.month,
+        d.day,
+        )
+
 def test_date(*args):
     return test_factory(
-        'tdate',date,'days',1,(2001,1,1),args,today=instantiate
+        'tdate',date,'days',1,(2001,1,1),args,
+        correct_date,today=instantiate
         )
 
 class ttimec(datetime):
@@ -406,22 +435,20 @@ class ttimec(datetime):
 
 def test_time(*args):
     return test_factory(
-        'ttime',ttimec,'seconds',1,(2001,1,1,0,0,0),args,time=instantiate
+        'ttime',ttimec,'seconds',1,(2001,1,1,0,0,0),args,
+        None,time=instantiate
         )
 
 class TempDirectory:
 
     instances = set()
     
-    def __init__(self,ignore=(),create=True,path=None):
+    def __init__(self,ignore=(),create=True):
         self.ignore = ignore
-        self.path = path
         if create:
             self.create()
 
     def create(self):
-        if self.path:
-            return self
         self.path = mkdtemp()
         self.instances.add(self)
         return self
@@ -435,37 +462,17 @@ class TempDirectory:
     def cleanup_all(cls):
         for i in tuple(cls.instances):
             i.cleanup()
-
-    def actual(self,path=None,recursive=False):
+        
+    def actual(self,path=None):
         if path:
             path = self._join(path)
         else:
             path = self.path
-        result = []
-        if recursive:
-            for dirpath,dirnames,filenames in os.walk(path):
-                dirpath = '/'.join(dirpath[len(path)+1:].split(os.sep))
-                if dirpath:
-                    dirpath += '/'
-                    result.append(dirpath)
-                for ignore in self.ignore:
-                    if ignore in dirnames:
-                        dirnames.remove(ignore)
-                for name in sorted(filenames):
-                    if name not in self.ignore:
-                        result.append(dirpath+name)
-        else:
-            for n in os.listdir(path):
-                if n not in self.ignore:
-                    result.append(n)
-        result.sort()
-        return result
+        return sorted([n for n in os.listdir(path)
+                       if n not in self.ignore])
     
-    def listdir(self,path=None,recursive=False):
-        actual = self.actual(path,recursive)
-        if not actual:
-            print 'No files or directories found.'
-        for n in actual:
+    def listdir(self,path=None):
+        for n in self.actual(path):
             print n
 
     def check(self,*expected):
@@ -474,16 +481,9 @@ class TempDirectory:
     def check_dir(self,dir,*expected):
         compare(expected,tuple(self.actual(dir)))
 
-    def check_all(self,dir,*expected):
-        compare(expected,tuple(self.actual(dir,recursive=True)))
-
     def _join(self,name):
         if isinstance(name,basestring):
-            name = name.split('/')
-        if not name[0]:
-            raise ValueError(
-                'Attempt to read or write outside the temporary Directory'
-                )
+            name=(name,)
         return os.path.join(self.path,*name)
         
     def makedir(self,dirpath,path=False):
@@ -493,12 +493,10 @@ class TempDirectory:
             return thepath
     
     def write(self,filepath,data,path=False):
-        if isinstance(filepath,basestring):
-            filepath = filepath.split('/')
-        if len(filepath)>1:
+        if not isinstance(filepath,basestring) and len(filepath)>1:
             dirpath = self._join(filepath[:-1])
             if not os.path.exists(dirpath):
-                os.makedirs(dirpath)
+                self.makedir(dirpath)
         thepath = self._join(filepath)
         f = open(thepath,'wb')
         f.write(data)
