@@ -120,6 +120,19 @@ See license.txt for details.
 Changes
 =======
 
+1.7.0 (20 January 2010)
+-------------------------
+
+- fixed a bug where the @replace decorator passed a classmethod
+  rather than the replacment to the decorated callable when replacing
+  a classmethod
+
+- added set method to test_date,test_datetime and test_time to allow
+  setting the parameters for the next instance to be returned.
+
+- added delta and delta_type parameters to test_date,test_datetime and
+  test_time to control the intervals between returned instances.
+
 1.6.3 (19 January 2010)
 -------------------------
 
