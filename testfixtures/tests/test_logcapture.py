@@ -1,10 +1,10 @@
 from __future__ import with_statement
-# Copyright (c) 2008 Simplistix Ltd
+# Copyright (c) 2008-2010 Simplistix Ltd
 # See license.txt for license details.
 
 from doctest import DocTestSuite
-from testfixtures import LogCapture
-from unittest import TestSuite
+from testfixtures import LogCapture, compare
+from unittest import TestSuite, TestCase, makeSuite
 
 from logging import getLogger
 
@@ -169,28 +169,66 @@ class TestLogCapture:
         LogCapture.uninstall_all() as a tearDown function
         to remove them all:
 
-        >>> before_handlers = root.handlers[:]
+        >>> before_handlers_root = root.handlers[:]
+        >>> before_handlers_child = child.handlers[:]
+        
         >>> l1 = LogCapture()
-        >>> after_1_handlers = root.handlers[:]
-        >>> l2 = LogCapture()
-        >>> after_2_handlers = root.handlers[:]
+        >>> l2 = LogCapture('one.child')
 
-        Some sanity checks:
-
-        >>> len(after_1_handlers)-len(before_handlers)
+        We can see that the LogCaptures have changed the
+        handlers, removing existing ones and installing
+        their own:
+        
+        >>> len(root.handlers)
         1
-        >>> len(after_2_handlers)-len(before_handlers)
-        2
-
+        >>> root.handlers==before_handlers_root
+        False
+        >>> len(child.handlers)
+        1
+        >>> child.handlers==before_handlers_child
+        False
+        
         Now we show the function in action:
 
         >>> LogCapture.uninstall_all()
 
-        >>> before_handlers == root.handlers
+        ...and we can see the handlers are back as
+        they were beefore:
+        
+        >>> before_handlers_root == root.handlers
+        True
+        >>> before_handlers_child == child.handlers
         True
         """
 
-    def test_uninstall_more_than_onces(self):
+    def test_two_logcaptures_on_same_logger(self):
+        """
+        If you create more than one LogCaptures on a single
+        logger, the 2nd one installed will stop the first
+        one working!
+        
+        >>> l1 = LogCapture()
+        >>> root.info('1st message')
+        >>> print l1
+        root INFO
+          1st message
+        >>> l2 = LogCapture()
+        >>> root.info('2nd message')
+
+        So, l1 missed this message:
+        
+        >>> print l1
+        root INFO
+          1st message
+
+        ...because l2 kicked it out and recorded the message:
+
+        >>> print l2
+        root INFO
+          2nd message
+        """
+
+    def test_uninstall_more_than_once(self):
         """
         For this test, it's better if we don't have any
         LogCaptures around when we start:
@@ -241,6 +279,22 @@ class TestLogCapture:
           during
         """
 
+class LogCaptureTests(TestCase):
+
+    def test_remove_existing_handlers(self):
+        logger = getLogger()
+        # get original handlers
+        original_handlers = logger.handlers
+        # put in a stub which will blow up if used
+        logger.handlers = start = [object()]
+
+        with LogCapture() as l:
+            logger.info('during')
+
+        l.check(('root', 'INFO', 'during'))
+
+        compare(logger.handlers,start)
+
 # using a set up and teardown function
 # gets rid of the need for the imports in
 # doc tests
@@ -254,4 +308,5 @@ def tearDown(test):
 def test_suite():
     return TestSuite((
         DocTestSuite(setUp=setUp,tearDown=tearDown),
+        makeSuite(LogCaptureTests),        
         ))

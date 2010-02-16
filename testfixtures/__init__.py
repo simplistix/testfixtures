@@ -1,4 +1,4 @@
-# Copyright (c) 2008-2009 Simplistix Ltd
+# Copyright (c) 2008-2010 Simplistix Ltd
 # See license.txt for license details.
 
 import logging,os
@@ -294,6 +294,7 @@ class LogCapture(logging.Handler):
             names = (names,)
         self.names = names
         self.oldlevels = {}
+        self.oldhandlers = {}
         self.clear()
         if install:
             self.install()
@@ -308,8 +309,9 @@ class LogCapture(logging.Handler):
         for name in self.names:
             logger = logging.getLogger(name)
             self.oldlevels[name] = logger.level
+            self.oldhandlers[name] = logger.handlers
             logger.setLevel(1)
-            logger.addHandler(self)
+            logger.handlers = [self]
         self.instances.add(self)
 
     def uninstall(self):
@@ -317,7 +319,7 @@ class LogCapture(logging.Handler):
             for name in self.names:
                 logger = logging.getLogger(name)
                 logger.setLevel(self.oldlevels[name])
-                logger.removeHandler(self)
+                logger.handlers = self.oldhandlers[name]
             self.instances.remove(self)
 
     @classmethod
