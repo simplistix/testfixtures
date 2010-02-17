@@ -257,17 +257,12 @@ class ShouldRaiseWrapper:
         self.wrapped = wrapped
 
     def __call__(self,*args,**kw):
-        r = None
         try:
-            r = self.wrapped(*args,**kw)
+            self.wrapped(*args,**kw)
         except BaseException,actual:
-            self.sr.raised = actual
-        if self.sr.expected:
-            if Comparison(self.sr.expected) != self.sr.raised:
-                raise AssertionError(
-                    '%r raised, %r expected' % (self.sr.raised,self.sr.expected)
-                    )
-        return r
+            self.sr.handle(actual)
+        else:
+            self.sr.handle(None)
             
 class should_raise:
 
@@ -277,13 +272,36 @@ class should_raise:
         self.callable = callable
         self.expected = exception
 
+    def handle(self,actual):
+        self.raised = actual
+        if self.expected:
+                if Comparison(self.expected) != actual:
+                    raise AssertionError(
+                        '%r raised, %r expected' % (actual,self.expected)
+                        )
+        elif not actual:
+            raise AssertionError('No exception raised!')
+            
     def __getattr__(self,name):
         return ShouldRaiseWrapper(self,getattr(self.callable,name))
 
     # __call__ is special :-S
     def __call__(self,*args,**kw):
         return ShouldRaiseWrapper(self,partial(self.callable))(*args,**kw)
+
+class ShouldRaise:
+
+    def __init__(self,exception=None):
+        self.exception = exception
+
+    def __enter__(self):
+        self.sr = should_raise(None,self.exception)
+        return self.sr
     
+    def __exit__(self,type,value,traceback):
+        self.sr.handle(value)
+        return True
+        
 class LogCapture(logging.Handler):
 
     instances = set()
