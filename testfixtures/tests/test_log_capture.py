@@ -1,7 +1,7 @@
-# Copyright (c) 2008 Simplistix Ltd
+# Copyright (c) 2008-2010 Simplistix Ltd
 # See license.txt for license details.
 
-from testfixtures import log_capture,compare,Comparison as C
+from testfixtures import log_capture,compare,Comparison as C, LogCapture
 from unittest import TestCase,TestSuite,makeSuite
 
 from logging import getLogger
@@ -85,6 +85,29 @@ class TestLog_Capture(TestCase):
             root.setLevel(old_root_level)
             child.setLevel(old_child_level)
             
+    @log_capture()
+    def test_decorator_returns_logcapture(self,l):
+        # check for what we get, so we only have to write
+        # tests in test_logcapture.py
+        self.failUnless(isinstance(l,LogCapture))
+
+
+    def test_remove_existing_handlers(self):
+        logger = getLogger()
+        # get original handlers
+        original_handlers = logger.handlers
+        # put in a stub which will blow up if used
+        logger.handlers = start = [object()]
+
+        @log_capture()
+        def test_method(l):
+            logger.info('during')
+            l.check(('root', 'INFO', 'during'))
+
+        test_method()
+
+        compare(logger.handlers,start)
+
     
 def test_suite():
     return TestSuite((

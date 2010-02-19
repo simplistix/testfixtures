@@ -1,7 +1,8 @@
-# Copyright (c) 2008 Simplistix Ltd
+from __future__ import with_statement
+# Copyright (c) 2008-2010 Simplistix Ltd
 # See license.txt for license details.
 
-from testfixtures import should_raise,Comparison as C
+from testfixtures import should_raise,ShouldRaise,Comparison as C
 from unittest import TestCase,TestSuite,makeSuite
 
 class TestShouldRaise(TestCase):
@@ -43,11 +44,20 @@ class TestShouldRaise(TestCase):
         should_raise(to_test,ValueError)()
     
     def test_no_supplied_or_raised(self):
+        # effectvely we're saying "something should be raised!"
+        # but we want to inspect s.raised rather than making
+        # an up-front assertion
         def to_test():
             pass
-        s = should_raise(to_test)
-        s()
-        self.failUnless(s.raised is None)
+        try:
+            should_raise(to_test)()
+        except AssertionError,e:
+            self.assertEqual(
+                e,
+                C(AssertionError("No exception raised!"))
+                )
+        else:
+            self.fail('No exception raised!')
     
     def test_args(self):
         def to_test(*args):
@@ -118,37 +128,20 @@ class TestShouldRaise(TestCase):
         x = {}
         should_raise(x,KeyError)['x']
         
-    def test_other_method(self):
-        class Test:
-            def bar(self,*args):
-                self.got = args
-        g = Test()
-        s = should_raise(g)
-        r = s.bar('x','foo')
-        self.failUnless(s.raised is None)
-        self.assertEqual(g.got,('x','foo'))
-        
     def test_class_class(self):
         class Test:
             def __init__(self,x):pass
         r = should_raise(Test,TypeError)()
         self.assertEqual(r,None)
         
-    def test_class_return(self):
-        class Test:
-            def __init__(self,x):
-                self.x = x
-        s = should_raise(Test)
-        r = s('x')
-        self.failIf(s.raised)
-        self.assertEqual(r,C(Test,x='x'))
-        
     def test_return(self):
-        x = {}
-        s = should_raise(x)
-        r = s.get('x','foo')
-        self.failUnless(s.raised is None)
-        self.assertEqual(r,'foo')
+        # return of a should_raise is always None!
+        def to_test():
+            raise ValueError('wrong value supplied')
+        s = should_raise(to_test)
+        r = s()
+        self.assertEqual(s.raised,C(ValueError('wrong value supplied')))
+        self.failUnless(r is None)
         
     def test_exception_return(self):
         def to_test(*args):
@@ -173,6 +166,59 @@ class TestShouldRaise(TestCase):
             raise KeyboardInterrupt()
         should_raise(to_test,KeyboardInterrupt)()
 
+    def test_with_exception_class_supplied(self):
+        with ShouldRaise(ValueError):
+            raise ValueError('foo bar')
+
+    def test_with_exception_supplied(self):
+        with ShouldRaise(ValueError('foo bar')):
+            raise ValueError('foo bar')
+
+    def test_with_exception_supplied_wrong_args(self):
+        try:
+            with ShouldRaise(ValueError('foo')):
+                raise ValueError('bar')
+        except AssertionError,e:
+            self.assertEqual(
+                e,
+                C(AssertionError("ValueError('bar',) raised, ValueError('foo',) expected"))
+                )
+        else:
+            self.fail('No exception raised!')
+
+    def test_neither_supplied(self):
+        with ShouldRaise():
+            raise ValueError('foo bar')
+    
+    def test_with_no_exception_when_expected(self):
+        try:
+            with ShouldRaise(ValueError('foo')):
+                pass
+        except AssertionError,e:
+            self.assertEqual(
+                e,
+                C(AssertionError("None raised, ValueError('foo',) expected"))
+                )
+        else:
+            self.fail('No exception raised!')
+
+    def test_with_no_exception_when_neither_expected(self):
+        try:
+            with ShouldRaise():
+                pass
+        except AssertionError,e:
+            self.assertEqual(
+                e,
+                C(AssertionError("No exception raised!"))
+                )
+        else:
+            self.fail('No exception raised!')
+
+    def test_with_getting_raised_exception(self):
+        with ShouldRaise() as s:
+            raise ValueError('foo bar')
+        self.assertEqual(C(ValueError('foo bar')),s.raised)
+    
 def test_suite():
     return TestSuite((
         makeSuite(TestShouldRaise),

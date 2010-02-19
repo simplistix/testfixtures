@@ -73,7 +73,8 @@ class TestReplace(TestCase):
         compare(sample1.X().aMethod(),sample1.X)
 
         @replace('testfixtures.tests.sample1.X.aMethod',rMethod)
-        def test_something():
+        def test_something(r):
+            compare(r,rMethod)
             compare(sample1.X().aMethod(),(sample1.X,1))
 
         compare(sample1.X().aMethod(),sample1.X)

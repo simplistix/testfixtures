@@ -1,12 +1,16 @@
-# Copyright (c) 2008 Simplistix Ltd
+# Copyright (c) 2008-2010 Simplistix Ltd
 # See license.txt for license details.
 
 import sample1,sample2
-from datetime import datetime as d
+from datetime import datetime as d, tzinfo
 from time import strptime
 from testfixtures import test_datetime,replace,compare,should_raise
 from unittest import TestCase,TestSuite,makeSuite
 
+class atzinfo(tzinfo):
+    def utcoffset(self,dt): return
+    def dst(self,dt): return
+    
 class TestDateTime(TestCase):
 
     # NB: Only the now method is currently stubbed out,
@@ -142,6 +146,39 @@ class TestDateTime(TestCase):
         compare(repr(datetime),"<class 'testfixtures.tdatetime'>")
 
 
+    @replace('datetime.datetime',test_datetime(delta=1))
+    def test_delta(self):
+        from datetime import datetime
+        compare(datetime.now(),d(2001,1,1,0,0,0))
+        compare(datetime.now(),d(2001,1,1,0,0,1))
+        compare(datetime.now(),d(2001,1,1,0,0,2))
+        
+    @replace('datetime.datetime',test_datetime(delta_type='minutes'))
+    def test_delta_type(self):
+        from datetime import datetime
+        compare(datetime.now(),d(2001,1,1,0,0,0))
+        compare(datetime.now(),d(2001,1,1,0,10,0))
+        compare(datetime.now(),d(2001,1,1,0,30,0))
+        
+    @replace('datetime.datetime',test_datetime(None))
+    def test_set(self):
+        from datetime import datetime
+        datetime.set(2001,1,1,1,0,1)
+        compare(datetime.now(),d(2001,1,1,1,0,1))
+        datetime.set(2002,1,1,1,0,0)
+        compare(datetime.now(),d(2002,1,1,1,0,0))
+        compare(datetime.now(),d(2002,1,1,1,0,20))
+        
+    @replace('datetime.datetime',test_datetime(2001,1,2,3,4,5,6,atzinfo()))
+    def test_max_number_args(self):
+        from datetime import datetime
+        compare(datetime.now(),d(2001,1,2,3,4,5,6,atzinfo()))
+        
+    @replace('datetime.datetime',test_datetime(2001,1,2))
+    def test_min_number_args(self):
+        from datetime import datetime
+        compare(datetime.now(),d(2001,1,2))
+        
 def test_suite():
     return TestSuite((
         makeSuite(TestDateTime),

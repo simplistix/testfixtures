@@ -133,6 +133,29 @@ class TestDate(TestCase):
         from datetime import date
         compare(repr(date),"<class 'testfixtures.tdate'>")
 
+    @replace('datetime.date',test_date(delta=2))
+    def test_delta(self):
+        from datetime import date
+        compare(date.today(),d(2001,1,1))
+        compare(date.today(),d(2001,1,3))
+        compare(date.today(),d(2001,1,5))
+        
+    @replace('datetime.date',test_date(delta_type='weeks'))
+    def test_delta_type(self):
+        from datetime import date
+        compare(date.today(),d(2001,1,1))
+        compare(date.today(),d(2001,1,8))
+        compare(date.today(),d(2001,1,22))
+        
+    @replace('datetime.date',test_date(None))
+    def test_set(self):
+        from datetime import date
+        date.set(2001,1,2)
+        compare(date.today(),d(2001,1,2))
+        date.set(2002,1,1)
+        compare(date.today(),d(2002,1,1))
+        compare(date.today(),d(2002,1,3))
+        
 def test_suite():
     return TestSuite((
         makeSuite(TestDate),

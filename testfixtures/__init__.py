@@ -1,7 +1,7 @@
-# Copyright (c) 2008-2009 Simplistix Ltd
+# Copyright (c) 2008-2010 Simplistix Ltd
 # See license.txt for license details.
 
-import logging,os
+import logging,os, time
 
 from datetime import datetime,timedelta,date
 from difflib import unified_diff
@@ -66,9 +66,11 @@ class Replacer:
         if (isinstance(t_obj,MethodType)
             and t_obj.im_self is container
             and not isinstance(replacement,MethodType)):
-            replacement = classmethod(replacement)
+            replacement_to_use = classmethod(replacement)
+        else:
+            replacement_to_use = replacement
         self.originals[target] = t_obj
-        setattr(container,attribute,replacement)
+        setattr(container,attribute,replacement_to_use)
         if self.replace_returns:
             return replacement
 
@@ -261,17 +263,12 @@ class ShouldRaiseWrapper:
         self.wrapped = wrapped
 
     def __call__(self,*args,**kw):
-        r = None
         try:
-            r = self.wrapped(*args,**kw)
+            self.wrapped(*args,**kw)
         except BaseException,actual:
-            self.sr.raised = actual
-        if self.sr.expected:
-            if Comparison(self.sr.expected) != self.sr.raised:
-                raise AssertionError(
-                    '%r raised, %r expected' % (self.sr.raised,self.sr.expected)
-                    )
-        return r
+            self.sr.handle(actual)
+        else:
+            self.sr.handle(None)
             
 class should_raise:
 
@@ -281,13 +278,36 @@ class should_raise:
         self.callable = callable
         self.expected = exception
 
+    def handle(self,actual):
+        self.raised = actual
+        if self.expected:
+                if Comparison(self.expected) != actual:
+                    raise AssertionError(
+                        '%r raised, %r expected' % (actual,self.expected)
+                        )
+        elif not actual:
+            raise AssertionError('No exception raised!')
+            
     def __getattr__(self,name):
         return ShouldRaiseWrapper(self,getattr(self.callable,name))
 
     # __call__ is special :-S
     def __call__(self,*args,**kw):
         return ShouldRaiseWrapper(self,partial(self.callable))(*args,**kw)
+
+class ShouldRaise:
+
+    def __init__(self,exception=None):
+        self.exception = exception
+
+    def __enter__(self):
+        self.sr = should_raise(None,self.exception)
+        return self.sr
     
+    def __exit__(self,type,value,traceback):
+        self.sr.handle(value)
+        return True
+        
 class LogCapture(logging.Handler):
 
     instances = set()
@@ -298,6 +318,7 @@ class LogCapture(logging.Handler):
             names = (names,)
         self.names = names
         self.oldlevels = {}
+        self.oldhandlers = {}
         self.clear()
         if install:
             self.install()
@@ -312,8 +333,9 @@ class LogCapture(logging.Handler):
         for name in self.names:
             logger = logging.getLogger(name)
             self.oldlevels[name] = logger.level
+            self.oldhandlers[name] = logger.handlers
             logger.setLevel(1)
-            logger.addHandler(self)
+            logger.handlers = [self]
         self.instances.add(self)
 
     def uninstall(self):
@@ -321,7 +343,7 @@ class LogCapture(logging.Handler):
             for name in self.names:
                 logger = logging.getLogger(name)
                 logger.setLevel(self.oldlevels[name])
-                logger.removeHandler(self)
+                logger.handlers = self.oldhandlers[name]
             self.instances.remove(self)
 
     @classmethod
@@ -365,35 +387,96 @@ def add(cls,*args):
     cls._q.append(cls(*args))
 
 @classmethod
+def set_(cls,*args):
+    if cls._q:
+        cls._q.pop()
+    cls.add(*args)
+
+def __add__(self,other):
+    r = super(self.__class__,self).__add__(other)
+    if self._ct:
+        r = self._ct(r)
+    return r
+
+@classmethod
 def instantiate(cls):
     r = cls._q.pop(0)
     if not cls._q:
         cls._gap += cls._gap_d
-        cls._q.append(r+timedelta(**{cls._gap_t:cls._gap}))
+        n = r+timedelta(**{cls._gap_t:cls._gap})
+        if cls._ct:
+            n = cls._ct(n)
+        cls._q.append(n)
     return r
 
-def test_factory(n,type,gap_t,gap_d,default,args,**to_patch):    
-    if args == (None,):
-        q = []
-    elif args:
-        q = [type(*args)]
-    else:
-        q = [type(*default)]
+def test_factory(n,type,default,args,**to_patch):    
+    q = []
     to_patch['_q']=q
-    to_patch['_gap']=0
-    to_patch['_gap_d']=gap_d
-    to_patch['_gap_t']=gap_t
     to_patch['add']=add
-    return classobj(n,(type,),to_patch)
+    to_patch['set']=set_
+    to_patch['__add__']=__add__
+    class_ = classobj(n,(type,),to_patch)
+    if args==(None,):
+        pass
+    elif args:
+        q.append(class_(*args))
+    else:
+        q.append(class_(*default))
+    return class_
     
-def test_datetime(*args):
+@classmethod
+def correct_datetime(cls,dt):
+    return cls(
+        dt.year,
+        dt.month,
+        dt.day,
+        dt.hour,
+        dt.minute,
+        dt.second,
+        dt.microsecond,
+        dt.tzinfo,
+        )
+
+def test_datetime(*args,**kw):
+    if 'delta' in kw:
+        gap = kw['delta']
+        gap_delta = 0
+    else:
+        gap = 0
+        gap_delta = 10
+    delta_type = kw.get('delta_type','seconds')
     return test_factory(
-        'tdatetime',datetime,'seconds',10,(2001,1,1,0,0,0),args,now=instantiate
+        'tdatetime',datetime,(2001,1,1,0,0,0),args,
+        _ct=correct_datetime,
+        now=instantiate,
+        _gap = gap,
+        _gap_d = gap_delta,
+        _gap_t = delta_type,
         )
     
-def test_date(*args):
+@classmethod
+def correct_date(cls,d):
+    return cls(
+        d.year,
+        d.month,
+        d.day,
+        )
+
+def test_date(*args,**kw):
+    if 'delta' in kw:
+        gap = kw['delta']
+        gap_delta = 0
+    else:
+        gap = 0
+        gap_delta = 1
+    delta_type = kw.get('delta_type','days')
     return test_factory(
-        'tdate',date,'days',1,(2001,1,1),args,today=instantiate
+        'tdate',date,(2001,1,1),args,
+        _ct=correct_date,
+        today=instantiate,
+        _gap = gap,
+        _gap_d = gap_delta,
+        _gap_t = delta_type,
         )
 
 class ttimec(datetime):
@@ -402,11 +485,23 @@ class ttimec(datetime):
         if args:
             return super(ttimec, cls).__new__(cls,*args)
         else:
-            return mktime(cls.time().timetuple())
+            return mktime(cls.instantiate().timetuple())-time.timezone
 
-def test_time(*args):
+def test_time(*args,**kw):
+    if 'delta' in kw:
+        gap = kw['delta']
+        gap_delta = 0
+    else:
+        gap = 0
+        gap_delta = 1
+    delta_type = kw.get('delta_type','seconds')
     return test_factory(
-        'ttime',ttimec,'seconds',1,(2001,1,1,0,0,0),args,time=instantiate
+        'ttime',ttimec,(2001,1,1,0,0,0),args,
+        _ct=None,
+        instantiate=instantiate,
+        _gap = gap,
+        _gap_d = gap_delta,
+        _gap_t = delta_type,
         )
 
 class TempDirectory:
