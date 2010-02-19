@@ -7,8 +7,8 @@ to check that the mocked out functionality is being used as expected.
 
 In this way, you can break down testing of a complicated set of
 interacting components into testing of each individual component,
-checking that is does the right things with the other components
-around it.
+checking that behaves correctly, irrespective of the behaviour of the
+components around it.
 
 There are many implementations of mock objects in the python world. An
 excellent example and the one recommended for use with TestFixtures is
@@ -451,3 +451,12 @@ this can be done as follows:
 ...    str_time()
 '266598001.0'
 '1258026080.0'
+
+Gotchas with dates and times
+----------------------------
+
+- sqlalchemy example
+
+- adding where type is important
+
+

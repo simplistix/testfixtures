@@ -22,7 +22,7 @@ Traceback (most recent call last):
 AssertionError: 1 != 2
 
 The real strengths of this function come when comparing more complex
-data types.:
+data types.
 
 Multi-line strings give unified diffs when their
 comparison fails:

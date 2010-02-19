@@ -6,3 +6,5 @@ API Reference
    :undoc-members:
    :inherited-members:
    :show-inheritance:
+
+NB: make sure to document attributes of classes, eg: path attribute of TempDirectory
