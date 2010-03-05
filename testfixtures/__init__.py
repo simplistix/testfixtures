@@ -206,7 +206,13 @@ class Comparison:
         e = set(self.v.keys())
         a = set(v.keys())
         for k in e.difference(a):
-            self.failed[k]='%s not in other' % repr(self.v[k])
+            try:
+                # class attribute?
+                v[k]=getattr(other,k)
+            except AttributeError:
+                self.failed[k]='%s not in other' % repr(self.v[k])
+            else:
+                a.add(k)
         if self.strict:
             for k in a.difference(e):
                 self.failed[k]='%s not in Comparison' % repr(v[k])
