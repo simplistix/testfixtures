@@ -491,7 +491,7 @@ class ttimec(datetime):
         if args:
             return super(ttimec, cls).__new__(cls,*args)
         else:
-            return float(timegm(cls.instantiate().timetuple()))
+            return float(timegm(cls.instantiate().utctimetuple()))
 
 def test_time(*args,**kw):
     if 'delta' in kw:
