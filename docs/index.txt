@@ -8,6 +8,7 @@ TestFixtures documentation
 
    comparing.txt
    mocking.txt
+   datetime.txt
    logging.txt
    files.txt
    exceptions.txt

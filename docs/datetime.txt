@@ -1,0 +1,201 @@
+Mocking out dates and times
+===========================
+
+Testing code that involves dates and times or which has behaviour
+dependent on the date or time it is executed at has historically been
+tricky. 
+
+Mocking lets you perform tests on this type of code and TestFixtures
+provides three specialised mock objects to help with this.
+
+Dates
+~~~~~
+
+TextFixtures provides the :func:`~testfixtures.test_date` function
+that returns a subclass of :class:`datetime.date` with a
+:meth:`~datetime.date.today` method that will return a
+consistent sequence of dates each time it is called.
+
+This enables you to write tests for code such as the following, from
+the ``testfixtures.tests.sample1`` package:
+
+.. literalinclude:: ../testfixtures/tests/sample1.py
+   :lines: 8,18,19
+
+A :class:`~testfixtures.Replacer` can be used to apply the mock as shown in the as follows, which could
+appear in either a unit test or a doc test:
+
+>>> from testfixtures import Replacer,test_date
+>>> from testfixtures.tests.sample1 import str_today_1
+>>> with Replacer() as r:
+...    r.replace('testfixtures.tests.sample1.date',test_date())
+...    str_today_1()
+...    str_today_1()
+'2001-01-01'
+'2001-01-02'
+
+If you need a specific date to be returned, you can specify it:
+
+>>> with Replacer() as r:
+...    r.replace('testfixtures.tests.sample1.date',test_date(1978,6,13))
+...    str_today_1()
+'1978-06-13'
+
+If you need to test with a whole sequence of specific dates, this
+can be done as follows:
+
+>>> with Replacer() as r:
+...    d = test_date(None)
+...    d.add(1978,6,13)
+...    d.add(2009,11,12)
+...    r.replace('testfixtures.tests.sample1.date',d)
+...    str_today_1()
+...    str_today_1()
+'1978-06-13'
+'2009-11-12'
+
+XXX - set 
+XXX - delta
+XXX - delta_type
+  
+There are situations where people may have obtained a local
+reference to the :meth:`~datetime.date.today` method, such as
+the following code from the ``testfixtures.tests.sample1`` package:
+
+.. literalinclude:: ../testfixtures/tests/sample1.py
+   :lines: 8,21-24
+
+In this case, you need to be careful with the replacement:
+
+>>> from testfixtures import Replacer,test_date
+>>> from testfixtures.tests.sample1 import str_today_2
+>>> with Replacer() as r:
+...    r.replace('testfixtures.tests.sample1.today',test_date().today)
+...    str_today_2()
+'2001-01-01'
+
+Datetimes
+~~~~~~~~~
+
+TextFixtures provides the :func:`~testfixtures.test_datetime`
+function that returns a subclass of :class:`datetime.datetime` with
+a :meth:`~datetime.datetime.now` method that will return a
+consistent sequence of :obj:`~datetime.datetime` objects each time
+it is called. 
+
+This enables you to write tests for code such as the following, from
+the ``testfixtures.tests.sample1`` package:
+
+.. literalinclude:: ../testfixtures/tests/sample1.py
+   :lines: 8,10,11
+
+We use the a :class:`~testfixtures.Replacer` as follows, which could
+appear in either a unit test or a doc test:
+
+>>> from testfixtures import Replacer,test_datetime
+>>> from testfixtures.tests.sample1 import str_now_1
+>>> with Replacer() as r:
+...    r.replace('testfixtures.tests.sample1.datetime',test_datetime())
+...    str_now_1()
+...    str_now_1()
+'2001-01-01 00:00:00'
+'2001-01-01 00:00:10'
+
+If you need a specific datetime to be returned, you can specify it:
+
+>>> with Replacer() as r:
+...    r.replace('testfixtures.tests.sample1.datetime',test_datetime(1978,6,13,1,2,3))
+...    str_now_1()
+'1978-06-13 01:02:03'
+
+If you need to test with a whole sequence of specific datetimes,
+this can be done as follows:
+
+>>> with Replacer() as r:
+...    d = test_datetime(None)
+...    d.add(1978,6,13,16,0,1)
+...    d.add(2009,11,12,11,41,20)
+...    r.replace('testfixtures.tests.sample1.datetime',d)
+...    str_now_1()
+...    str_now_1()
+'1978-06-13 16:00:01'
+'2009-11-12 11:41:20'
+  
+XXX - set 
+XXX - delta
+XXX - delta_type
+  
+There are situations where people may have obtained a local
+reference to the :meth:`~datetime.datetime.now` method, such
+as the following code from the ``testfixtures.tests.sample1`` package:
+
+.. literalinclude:: ../testfixtures/tests/sample1.py
+   :lines: 8,13-16
+
+In this case, you need to be careful with the replacement:
+
+>>> from testfixtures import Replacer,test_datetime
+>>> from testfixtures.tests.sample1 import str_now_2
+>>> with Replacer() as r:
+...    r.replace('testfixtures.tests.sample1.now',test_datetime().now)
+...    str_now_2()
+'2001-01-01 00:00:00'
+
+Times
+~~~~~
+
+TextFixtures provides the :func:`~testfixtures.test_time`
+function that, when called, returns a replacement for the
+:func:`time.time` function.
+
+This enables you to write tests for code such as the following, from
+the ``testfixtures.tests.sample1`` package:
+
+.. literalinclude:: ../testfixtures/tests/sample1.py
+   :lines: 26-28
+
+We use the a :class:`~testfixtures.Replacer` as follows, which could
+appear in either a unit test or a doc test:
+
+>>> from testfixtures import Replacer,test_time
+>>> from testfixtures.tests.sample1 import str_time
+>>> with Replacer() as r:
+...    r.replace('testfixtures.tests.sample1.time',test_time())
+...    str_time()
+...    str_time()
+'978307200.0'
+'978307201.0'
+
+If you need an integer representing a specific time to be returned,
+you can specify it:
+
+>>> with Replacer() as r:
+...    r.replace('testfixtures.tests.sample1.time',test_time(1978,6,13,1,2,3))
+...    str_time()
+'266547723.0'
+
+If you need to test with a whole sequence of specific timestamps,
+this can be done as follows:
+
+>>> with Replacer() as r:
+...    t = test_time(None)
+...    t.add(1978,6,13,16,0,1)
+...    t.add(2009,11,12,11,41,20)
+...    r.replace('testfixtures.tests.sample1.time',t)
+...    str_time()
+...    str_time()
+'266601601.0'
+'1258026080.0'
+
+XXX - set 
+XXX - delta
+XXX - delta_type
+  
+Gotchas with dates and times
+----------------------------
+
+- sqlalchemy example
+
+- adding where type is important
+
+

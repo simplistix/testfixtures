@@ -1,8 +1,9 @@
 # Copyright (c) 2008-2010 Simplistix Ltd
 # See license.txt for license details.
 
-import logging,os, time
+import logging,os
 
+from calendar import timegm
 from datetime import datetime,timedelta,date
 from difflib import unified_diff
 from functools import partial
@@ -11,7 +12,6 @@ from new import classobj
 from pprint import pformat
 from shutil import rmtree
 from tempfile import mkdtemp
-from time import mktime
 from types import ClassType,GeneratorType,MethodType
 from zope.dottedname.resolve import resolve
 
@@ -491,7 +491,7 @@ class ttimec(datetime):
         if args:
             return super(ttimec, cls).__new__(cls,*args)
         else:
-            return mktime(cls.instantiate().timetuple())-time.timezone
+            return float(timegm(cls.instantiate().timetuple()))
 
 def test_time(*args,**kw):
     if 'delta' in kw:
