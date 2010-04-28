@@ -20,7 +20,7 @@ If you're using a version of Python where the ``with`` keyword is
 available, the context manager provided by TestFixtures can be used:
 
 >>> import logging
->>> from testfixtures import LogCapture,compare
+>>> from testfixtures import LogCapture
 >>> with LogCapture() as l:
 ...     logger = logging.getLogger()
 ...     logger.info('a message')
@@ -47,7 +47,7 @@ first:
 second:
 (('root', 'ERROR', 'an error'),)
 
-It also has a string represtentation that allows you to see what has
+It also has a string representation that allows you to see what has
 been logged, which is useful for doc tests:
 
 >>> print l

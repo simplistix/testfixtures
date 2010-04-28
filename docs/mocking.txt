@@ -6,9 +6,9 @@ that aren't the subject of the test with mock objects that allow you
 to check that the mocked out functionality is being used as expected. 
 
 In this way, you can break down testing of a complicated set of
-interacting components into testing of each individual component,
-checking that behaves correctly, irrespective of the behaviour of the
-components around it.
+interacting components into testing of each individual component.
+The behaviour of components can then be tested individually, 
+irrespective of the behaviour of the components around it.
 
 There are many implementations of mock objects in the python world. An
 excellent example and the one recommended for use with TestFixtures is
@@ -18,7 +18,7 @@ Methods of replacement
 ----------------------
 
 TestFixtures provides three different methods of mocking out
-functionality that can be used to replace objects functions, classes
+functionality that can be used to replace functions, classes
 or even individual methods on a class. Consider the following module:
 
 .. topic:: testfixtures.tests.sample1
@@ -185,7 +185,7 @@ not.
 
 To test the behaviour of the code that uses ``hpy`` in both of
 these cases, regardless of whether or not the ``guppy`` package is
-actually install, we need to be able to mock out both ``hpy`` and the
+actually installed, we need to be able to mock out both ``hpy`` and the
 ``guppy`` global. This is done by doing non-strict replacement, as
 shown in the following :class:`~unittest.TestCase`:
 

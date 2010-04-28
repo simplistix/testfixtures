@@ -200,13 +200,13 @@ around, comparison can be done with it:
 True
 
 If you only care about certain attributes, this can also easily be
-achieved: 
+achieved with the `strict` parameter: 
 
 >>> C(SomeClass,x=1,strict=False)==SomeClass(1,2)
 True
 
 The above can be problematic if you want to compare an object with
-attibutes that share names with parameters to the comparison
+attibutes that share names with parameters to the :class:`~testfixtures.Comparison`
 constructor. For this reason, you can pass the attributes in a
 dictionary:
 
