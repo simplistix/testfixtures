@@ -3,10 +3,9 @@ Mocking out dates and times
 
 Testing code that involves dates and times or which has behaviour
 dependent on the date or time it is executed at has historically been
-tricky. 
-
-Mocking lets you perform tests on this type of code and TestFixtures
-provides three specialised mock objects to help with this.
+tricky. Mocking lets you perform tests on this type of code and
+TestFixtures provides three specialised mock objects to help with
+this. 
 
 Dates
 ~~~~~
@@ -22,8 +21,9 @@ the ``testfixtures.tests.sample1`` package:
 .. literalinclude:: ../testfixtures/tests/sample1.py
    :lines: 8,18,19
 
-A :class:`~testfixtures.Replacer` can be used to apply the mock as shown in the as follows, which could
-appear in either a unit test or a doc test:
+A :class:`~testfixtures.Replacer` can be used to apply the mock as
+shown in the following example, which could appear in either a unit
+test or a doc test: 
 
 >>> from testfixtures import Replacer,test_date
 >>> from testfixtures.tests.sample1 import str_today_1
@@ -54,25 +54,53 @@ can be done as follows:
 '1978-06-13'
 '2009-11-12'
 
-XXX - set 
-XXX - delta
-XXX - delta_type
-  
-There are situations where people may have obtained a local
-reference to the :meth:`~datetime.date.today` method, such as
-the following code from the ``testfixtures.tests.sample1`` package:
+Another way to test with a specific sequence of dates is to use the
+``delta_type`` and ``delta`` parameters to
+:func:`~testfixtures.test_date`. These parameters control the type and
+size, respectively, of the difference between each date returned.
 
-.. literalinclude:: ../testfixtures/tests/sample1.py
-   :lines: 8,21-24
+For example, where 2 days elapse between each returned value:
 
-In this case, you need to be careful with the replacement:
-
->>> from testfixtures import Replacer,test_date
->>> from testfixtures.tests.sample1 import str_today_2
 >>> with Replacer() as r:
-...    r.replace('testfixtures.tests.sample1.today',test_date().today)
-...    str_today_2()
+...    d = test_date(1978,6,13,delta=2,delta_type='days')
+...    r.replace('testfixtures.tests.sample1.date',d)
+...    str_today_1()
+...    str_today_1()
+...    str_today_1()
+'1978-06-13'
+'1978-06-15'
+'1978-06-17'
+
+The ``delta_type`` can be any keyword parameter accepted by the
+:class:`~datetime.timedelta` constructor. Specifying a ``delta`` of
+zero can be an effective way of ensuring that all calls to the
+:meth:`~testfixtures.test_date.today` method return the same value:
+
+>>> with Replacer() as r:
+...    d = test_date(1978,6,13,delta=0)
+...    r.replace('testfixtures.tests.sample1.date',d)
+...    str_today_1()
+...    str_today_1()
+...    str_today_1()
+'1978-06-13'
+'1978-06-13'
+'1978-06-13'
+
+When using :func:`~testfixtures.test_date`, you can, at any time, set
+the next date to be returned using the
+:meth:`~testfixtures.test_date.set` method. The date returned after
+this will be the set date plus the ``delta`` in effect:
+
+>>> with Replacer() as r:
+...    d = test_date(delta=2)
+...    r.replace('testfixtures.tests.sample1.date',d)
+...    str_today_1()
+...    d.set(1978,8,1)
+...    str_today_1()
+...    str_today_1()
 '2001-01-01'
+'1978-08-01'
+'1978-08-03'
 
 Datetimes
 ~~~~~~~~~
@@ -121,25 +149,53 @@ this can be done as follows:
 '1978-06-13 16:00:01'
 '2009-11-12 11:41:20'
   
-XXX - set 
-XXX - delta
-XXX - delta_type
-  
-There are situations where people may have obtained a local
-reference to the :meth:`~datetime.datetime.now` method, such
-as the following code from the ``testfixtures.tests.sample1`` package:
+Another way to test with a specific sequence of datetimes is to use the
+``delta_type`` and ``delta`` parameters to
+:func:`~testfixtures.test_datetime`. These parameters control the type and
+size, respectively, of the difference between each datetime returned.
 
-.. literalinclude:: ../testfixtures/tests/sample1.py
-   :lines: 8,13-16
+For example, where 2 hours elapse between each returned value:
 
-In this case, you need to be careful with the replacement:
-
->>> from testfixtures import Replacer,test_datetime
->>> from testfixtures.tests.sample1 import str_now_2
 >>> with Replacer() as r:
-...    r.replace('testfixtures.tests.sample1.now',test_datetime().now)
-...    str_now_2()
+...    d = test_datetime(1978,6,13,16,0,1,delta=2,delta_type='hours')
+...    r.replace('testfixtures.tests.sample1.datetime',d)
+...    str_now_1()
+...    str_now_1()
+...    str_now_1()
+'1978-06-13 16:00:01'
+'1978-06-13 18:00:01'
+'1978-06-13 20:00:01'
+
+The ``delta_type`` can be any keyword parameter accepted by the
+:class:`~datetime.timedelta` constructor. Specifying a ``delta`` of
+zero can be an effective way of ensuring that all calls to the
+:meth:`~testfixtures.test_datetime.now` method return the same value:
+
+>>> with Replacer() as r:
+...    d = test_datetime(1978,6,13,16,0,1,delta=0)
+...    r.replace('testfixtures.tests.sample1.datetime',d)
+...    str_now_1()
+...    str_now_1()
+...    str_now_1()
+'1978-06-13 16:00:01'
+'1978-06-13 16:00:01'
+'1978-06-13 16:00:01'
+
+When using :func:`~testfixtures.test_datetime`, you can, at any time, set
+the next datetime to be returned using the
+:meth:`~testfixtures.test_datetime.set` method. The value returned after
+this will be the set value plus the ``delta`` in effect:
+
+>>> with Replacer() as r:
+...    d = test_datetime(delta=2)
+...    r.replace('testfixtures.tests.sample1.datetime',d)
+...    str_now_1()
+...    d.set(1978,8,1)
+...    str_now_1()
+...    str_now_1()
 '2001-01-01 00:00:00'
+'1978-08-01 00:00:00'
+'1978-08-01 00:00:02'
 
 Times
 ~~~~~
@@ -187,15 +243,90 @@ this can be done as follows:
 '266601601.0'
 '1258026080.0'
 
-XXX - set 
-XXX - delta
-XXX - delta_type
-  
-Gotchas with dates and times
-----------------------------
+Another way to test with a specific sequence of timestamps is to use the
+``delta_type`` and ``delta`` parameters to
+:func:`~testfixtures.test_time`. These parameters control the type and
+size, respectively, of the difference between each timestamp returned.
 
-- sqlalchemy example
+For example, where 2 hours elapse between each returned value:
+
+>>> with Replacer() as r:
+...    d = test_time(1978,6,13,16,0,1,delta=2,delta_type='hours')
+...    r.replace('testfixtures.tests.sample1.time',d)
+...    str_time()
+...    str_time()
+...    str_time()
+'266601601.0'
+'266608801.0'
+'266616001.0'
+
+The ``delta_type`` can be any keyword parameter accepted by the
+:class:`~datetime.timedelta` constructor. Specifying a ``delta`` of
+zero can be an effective way of ensuring that all calls to the
+:meth:`~time.time` function return the same value:
+
+>>> with Replacer() as r:
+...    d = test_time(1978,6,13,16,0,1,delta=0)
+...    r.replace('testfixtures.tests.sample1.time',d)
+...    str_time()
+...    str_time()
+...    str_time()
+'266601601.0'
+'266601601.0'
+'266601601.0'
+
+When using :func:`~testfixtures.test_time`, you can, at any time, set
+the next timestamp to be returned using the
+:meth:`~testfixtures.test_time.set` method. The value returned after
+this will be the set value plus the ``delta`` in effect:
+
+>>> with Replacer() as r:
+...    d = test_time(delta=2)
+...    r.replace('testfixtures.tests.sample1.time',d)
+...    str_time()
+...    d.set(1978,8,1)
+...    str_time()
+...    str_time()
+'978307200.0'
+'270777600.0'
+'270777602.0'
+
+Gotchas with dates and times
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Using these specialised mock objects can have some intricacies as
+described below:
+
+Local references to functions
+-----------------------------
+
+There are situations where people may have obtained a local
+reference to the :meth:`~datetime.date.today` or
+:meth:`~datetime.datetime.now` methods, such 
+as the following code from the ``testfixtures.tests.sample1`` package:
+
+.. literalinclude:: ../testfixtures/tests/sample1.py
+   :lines: 8,12-16,20-24
+
+In these cases, you need to be careful with the replacement:
+
+>>> from testfixtures import Replacer,test_datetime
+>>> from testfixtures.tests.sample1 import str_now_2, str_today_2
+>>> with Replacer() as r:
+...    r.replace('testfixtures.tests.sample1.today',test_date().today)
+...    r.replace('testfixtures.tests.sample1.now',test_datetime().now)
+...    str_today_2()
+...    str_now_2()
+'2001-01-01'
+'2001-01-01 00:00:00'
+
+Use with code that checks class types
+-------------------------------------
 
 - adding where type is important
 
 
+Use with SQLAlchemy
+-------------------
+
+- sqlalchemy example
