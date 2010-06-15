@@ -1,0 +1,54 @@
+Development
+===========
+
+.. highlight:: bash
+
+Once you've obtained a source checkout, you can follow these
+instructions to perform various development tasks:
+
+Setting up the buildout
+-----------------------
+
+All development requires that you run the buildout::
+
+  $ python bootstrap.py
+  $ bin/buildout
+
+Running the tests
+-----------------
+
+Once you have a buildout, the tests can be run as follows::
+
+  $ bin/test
+
+Building the documentation
+--------------------------
+
+The Sphinx documentation is built by doing the following from the
+directory containg setup.py::
+
+  $ cd docs
+  $ make html
+
+Making a release
+----------------
+
+The first thing to do when making a release is to check that the ReST
+to be uploaded to PyPI is valid::
+
+  $ bin/docpy setup.py --long-description | bin/rst2 html \
+    --link-stylesheet \
+    --stylesheet=http://www.python.org/styles/styles.css > build/desc.html
+
+Once you're certain everything is as it should be, the following will
+build the distribution, upload it to PyPI, register the metadata with
+PyPI and upload the Sphinx documentation to PyPI::
+
+  $ bin/buildout -o
+  $ bin/docpy setup.py sdist upload register upload_sphinx --upload-dir=docs/_build/html
+
+The ``bin/buildout`` will make sure the correct package information is
+used.
+
+This should all be done on a unix box so that a `.tgz` source
+distribution is produced.

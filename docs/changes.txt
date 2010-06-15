@@ -1,0 +1,7 @@
+Changes
+=======
+
+1.0.0 (x xxx 2010)
+------------------
+
+- Initial Release

@@ -1,0 +1,6 @@
+===============
+Zope 2 Instance
+===============
+
+This is a buildout recipe for creating plain Zope 2 instances.
+

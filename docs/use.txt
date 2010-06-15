@@ -1,0 +1,6 @@
+=====================
+Using Zope 2 Instance
+=====================
+
+.. module:: zope2instance
+
