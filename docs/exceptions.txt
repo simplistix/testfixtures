@@ -1,6 +1,8 @@
 Testing exceptions
 ==================
 
+- ShouldRaise context manager
+
  - should_raise
 
   basically gives an object that that can be uised in place of the original object, except where an action is expected to raise an exception.

@@ -13,7 +13,7 @@ def test_suite():
     m =  doctest.Manuel(optionflags=REPORT_NDIFF|ELLIPSIS)
     m += codeblock.Manuel()
     m += capture.Manuel()
-   # m += Files()
+    # m += Files('td')
     return TestSuite(
         m,
         *glob(join(dirname(__file__),pardir,pardir,'docs','*.txt'))

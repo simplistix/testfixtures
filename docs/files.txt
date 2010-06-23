@@ -464,11 +464,20 @@ doctest are that it is possible to plug in different types of parser,
 not just the "python console session" one, and so it is possible to
 test different types of examples.
 
-TestFixtures provides a couple of these plugins to aid working with
-temporary directories
+TestFixtures provides one these plugins to aid working with
+:class:`~testfixtures.TempDirectory` objects. The following sections
+describe how to use this plugin to help with writing temporary files
+and checking their contents.
 
 Writing files
 -------------
+
+.. code-block:: python
+
+ if __name__=='__main__':
+    raise 'Foo'
+
+.. -> text
 
 Here's an example where I want to write a file:
 
@@ -538,6 +547,4 @@ XXX
 - split on '/', no matter OS
 - output when checking for file and it doesn't match
 - check for root paths on read and write
-- test a non-matching section class with a capture
 
-XXX Manuel capture example and tempdir.check_all
