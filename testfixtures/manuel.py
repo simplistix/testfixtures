@@ -36,7 +36,12 @@ class Files(Manuel):
             class_ = CLASS.match(lines[1])
             if not class_:
                 continue
-            source = textwrap.dedent('\n'.join(lines[2:])).lstrip()
+            index = 3
+            if lines[index].strip()=='::':
+                index += 1
+            source = textwrap.dedent('\n'.join(lines[index:])).lstrip()
+            if source[-1]!='\n':
+                source += '\n'
             region.parsed = FileBlock(
                 region.start_match.group(1),
                 source,

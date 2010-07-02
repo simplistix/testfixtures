@@ -56,6 +56,27 @@ class TestManuel(TestCase):
                 ],[r.parsed for r in d])
         
 
+    def test_ignore_literal_blocking(self):
+        d = Document("""
+.. topic:: file.txt
+ :class: write-file
+
+  ::
+
+    line 1
+
+    line 2
+    line 3
+""")
+        d.parse_with(Files('td'))
+        compare([
+                None,
+                C(FileBlock,
+                  path='file.txt',
+                  content="line 1\n\nline 2\nline 3\n",
+                  action='write'),
+                ],[r.parsed for r in d])
+
     def test_file_followed_by_text(self):
         d = Document("""
 
