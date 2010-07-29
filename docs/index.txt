@@ -1,5 +1,5 @@
-ErrorHandler documentation
-==========================
+Zope 2 Instance documentation
+=============================
 
 .. toctree::
    :maxdepth: 2

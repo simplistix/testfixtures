@@ -7,7 +7,7 @@
 from setuptools import setup
 
 package_name = 'zope2instance'
-package_dir = os.path.join(os.path.dirname(__file__),package_name)
+base_dir = os.path.join(os.path.dirname(__file__))
 
 setup(
     name=package_name,
@@ -16,18 +16,20 @@ setup(
     author_email='chris@simplistix.co.uk',
     license='MIT',
     description="zc.buildout recipe for Zope 2.12+ instances.",
-    # long_description=open(os.path.join(package_dir,'docs','description.txt')).read(),
+    long_description=open(os.path.join(base_dir,'docs','description.txt')).read(),
     # url='http://',
     classifiers=[
     'Development Status :: 5 - Production/Stable',
-    # 'Development Status :: 6 - Mature',
     'License :: OSI Approved :: MIT License',
     ],
-    packages=['zope2instance'],
+    packages=[package_name],
     zip_safe=False,
     include_package_data=True,
     install_requires=[
-    'Zope2 >= 2.12.0',
+        'zc.buildout',
+        'ZConfig',
+        'Zope2',
+        'zc.recipe.egg',
     ],
     entry_points = { 
         'zc.buildout': [
@@ -36,17 +38,10 @@ setup(
         },
     extras_require=dict(
            test=[
-            'mock',
+            'manuel',
+            'mailinglogger',
             'testfixtures',
+            'gocept.recipe.deploymentsandbox',
             ],
            )
     )
-
-# to build and upload the eggs, do:
-# python setup.py sdist bdist_egg bdist_wininst register upload
-# ...or...
-#  bin/buildout setup setup.py sdist bdist_egg bdist_wininst register upload
-# ...on a unix box!
-
-# To check how things will show on pypi, install docutils and then:
-# bin/buildout -q setup setup.py --long-description | rst2html.py --link-stylesheet --stylesheet=http://www.python.org/styles/styles.css > dist/desc.html

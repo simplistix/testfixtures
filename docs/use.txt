@@ -4,3 +4,43 @@ Using Zope 2 Instance
 
 .. module:: zope2instance
 
+Simple example:
+
+.. topic:: buildout.cfg
+ :class: write-file
+
+ ::
+
+  [buildout]
+  parts = instance
+  # extends = http://download.zope.org/Zope2/index/2.12.7/versions.cfg
+
+  [instance]
+  recipe = zope2instance:server
+  eggs = 
+    mailinglogger
+  zope.conf =
+    <foo>
+    </foo>
+  deployment = demo
+
+  [demo]
+  recipe = gocept.recipe.deploymentsandbox
+
+>>> print system(buildout)
+Installing demo.
+Installing instance.
+Generated script '/sample-buildout/parts/demo/etc/init.d/demo-instance-runzope'.
+Generated script '/sample-buildout/parts/demo/etc/init.d/demo-instance-zopectl'.
+<BLANKLINE>
+
+>>> print td.read('parts/demo/etc/demo/demo-instance-zope.conf')
+
+>>> print td.read('parts/demo/etc/init.d/demo-instance-runzope')
+
+>>> print td.read('parts/demo/etc/init.d/demo-instance-zopectl')
+
+- specify additional scripts (huh?)
+- specifying interpreter
+- deployment name
+
