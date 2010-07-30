@@ -6,18 +6,17 @@
 
 from setuptools import setup
 
-package_name = 'zope2instance'
+package_name = 'buildout_versions'
 base_dir = os.path.join(os.path.dirname(__file__))
-
 setup(
     name=package_name,
     version='1.0',
     author='Chris Withers',
     author_email='chris@simplistix.co.uk',
     license='MIT',
-    description="zc.buildout recipe for Zope 2.12+ instances.",
+    description="zc.buildout extension to display and record versions of packages used.",
     long_description=open(os.path.join(base_dir,'docs','description.txt')).read(),
-    # url='http://',
+    url='http://packages.python.org/buildout_versions',
     classifiers=[
     'Development Status :: 5 - Production/Stable',
     'License :: OSI Approved :: MIT License',
@@ -27,21 +26,20 @@ setup(
     include_package_data=True,
     install_requires=[
         'zc.buildout',
-        'ZConfig',
-        'Zope2',
-        'zc.recipe.egg',
     ],
     entry_points = { 
-        'zc.buildout': [
-             'server = %s:Instance' % package_name,
-             ]
+        'zc.buildout.extension': [
+             'default = %s:start' % package_name,
+             ],
+        'zc.buildout.unloadextension': [
+             'default = %s:finish' % package_name,
+             ],
         },
     extras_require=dict(
            test=[
             'manuel',
-            'mailinglogger',
             'testfixtures',
-            'gocept.recipe.deploymentsandbox',
+            'zc.recipe.egg',
             ],
            )
     )

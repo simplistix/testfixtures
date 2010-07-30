@@ -1,9 +1,9 @@
-===============
-Zope 2 Instance
-===============
+=================
+Buildout Versions
+=================
 
 For full documentation please see:
-http://www.simplistix.co.uk/software/python/zope2instance
+http://packages.python.org/buildout_versions
 
 If working offline, please consult the documentation source in the
 `docs` directory.
