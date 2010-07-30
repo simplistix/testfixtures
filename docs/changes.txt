@@ -1,7 +1,12 @@
 Changes
 =======
 
-1.0.0 (x xxx 2010)
+1.1 (30 Jul 2010)
+------------------
+
+- Change of package name from 'buildout_versions' to 'buildout-versions' to appease :mod:`setuptools`.
+
+1.0 (30 Jul 2010)
 ------------------
 
 - Initial Release

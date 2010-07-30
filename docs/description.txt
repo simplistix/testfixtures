@@ -1,6 +1,13 @@
-===============
-Zope 2 Instance
-===============
+=================
+Buildout Versions
+=================
 
-This is a buildout recipe for creating plain Zope 2 instances.
+This is a buildout extension that provides two functions:
 
+- Output to the console of any versions not pinned in the buildout configuration
+
+- The optional appending of any versions not pinned in the buildout configuration to a specified file.
+
+For full documentation, please see http://packages.python.org/buildout_versions.
+
+This package takes a lot of inspiration from `buildout.dumppickedversions`.

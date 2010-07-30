@@ -5,7 +5,7 @@ Using Buildout Versions
 A minimal example would be to have a :file:`buildout.cfg` as follows::
 
   [buildout]
-  extensions = buildout_versions
+  extensions = buildout-versions
   parts =
 
 .. -> buildout_cfg
@@ -30,7 +30,7 @@ picked::
 That output can be used to update the :file:`buildout.cfg`::
 
   [buildout]
-  extensions = buildout_versions
+  extensions = buildout-versions
   versions = versions
   parts =
 
@@ -55,7 +55,7 @@ considered as unpinned. Take the following :file:`buildout.cfg`:: as
 an example::
 
   [buildout]
-  extensions = buildout_versions
+  extensions = buildout-versions
   develop = sample_package
   parts =
 
@@ -82,7 +82,7 @@ Now, a :file:`buildout.cfg` may specify a :mod:`package-a` and pin
 it's version, as in the following example::
 
   [buildout]
-  extensions = buildout_versions
+  extensions = buildout-versions
   find-links = <our index>
   parts = sample
   versions = versions
@@ -128,7 +128,7 @@ which version information will be written to be specified in the
 `buildout_versions_file` option of the `[buildout]` section::
 
   [buildout]
-  extensions = buildout_versions
+  extensions = buildout-versions
   buildout_versions_file = versions.cfg
   find-links = <our index>
   parts = sample
@@ -183,7 +183,7 @@ The resulting :file:`versions.cfg` can then be used in the buildout as
 follows::
 
   [buildout]
-  extensions = buildout_versions
+  extensions = buildout-versions
   buildout_versions_file = versions.cfg
   extends = versions.cfg
   versions = versions

@@ -14,6 +14,14 @@ All development requires that you run the buildout::
   $ python bootstrap.py
   $ bin/buildout
 
+Because this package is a buildout extension, you may need to run the
+buildout again before you can use the develop version of the package.
+
+This is particularly important if you specify this package as a
+develop line in another buildout. If you do this, you will have to run
+that buildout once *before* you will be able to actually use the
+extension this package provides.
+
 Running the tests
 -----------------
 

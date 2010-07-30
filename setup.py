@@ -6,11 +6,12 @@
 
 from setuptools import setup
 
-package_name = 'buildout_versions'
+import os
+
 base_dir = os.path.join(os.path.dirname(__file__))
 setup(
-    name=package_name,
-    version='1.0',
+    name='buildout-versions',
+    version='1.1',
     author='Chris Withers',
     author_email='chris@simplistix.co.uk',
     license='MIT',
@@ -21,7 +22,7 @@ setup(
     'Development Status :: 5 - Production/Stable',
     'License :: OSI Approved :: MIT License',
     ],
-    packages=[package_name],
+    packages=['buildout_versions'],
     zip_safe=False,
     include_package_data=True,
     install_requires=[
@@ -29,10 +30,10 @@ setup(
     ],
     entry_points = { 
         'zc.buildout.extension': [
-             'default = %s:start' % package_name,
+             'default = %s:start' % 'buildout_versions',
              ],
         'zc.buildout.unloadextension': [
-             'default = %s:finish' % package_name,
+             'default = %s:finish' % 'buildout_versions',
              ],
         },
     extras_require=dict(

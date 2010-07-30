@@ -1,5 +1,5 @@
-Zope 2 Instance documentation
-=============================
+Buildout Versions documentation
+===============================
 
 .. toctree::
    :maxdepth: 2
