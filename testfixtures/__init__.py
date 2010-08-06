@@ -1,9 +1,10 @@
 # Copyright (c) 2008-2010 Simplistix Ltd
 # See license.txt for license details.
 
-import logging,os
+import logging,os,sys
 
 from calendar import timegm
+from cStringIO import StringIO
 from datetime import datetime,timedelta,date
 from difflib import unified_diff
 from functools import partial
@@ -623,4 +624,19 @@ def tempdir(*args,**kw):
     kw['create']=False
     l = TempDirectory(*args,**kw)
     return wrap(l.create,l.cleanup)
+
+class OutputCapture:
+
+    def __enter__(self):
+        self.original_stdout = sys.stdout
+        self.original_stderr = sys.stderr
+        self.output = sys.stdout = sys.stderr = StringIO()
+        return self
+
+    def __exit__(self,*args):
+        sys.stdout = self.original_stdout
+        sys.stderr = self.original_stderr
+
+    def compare(self,expected):
+        compare(expected.strip(),self.output.getvalue().strip())
 
