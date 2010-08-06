@@ -11,6 +11,7 @@ from functools import partial
 from inspect import getargspec
 from new import classobj
 from pprint import pformat
+from re import compile
 from shutil import rmtree
 from tempfile import mkdtemp
 from types import ClassType,GeneratorType,MethodType
@@ -263,6 +264,21 @@ class Comparison:
         else:
             return r
 
+class StringComparison:
+
+    def __init__(self,re_source):
+        self.re = compile(re_source)
+
+    def __eq__(self,other):
+        if not isinstance(other,basestring):
+            return
+        if self.re.match(other):
+            return True
+        return False
+
+    def __ne__(self,other):
+        return not self==other
+        
 class ShouldRaiseWrapper:
 
     def __init__(self,sr,wrapped):
