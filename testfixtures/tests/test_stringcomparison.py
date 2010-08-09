@@ -1,4 +1,4 @@
-from testfixtures import StringComparison as S
+from testfixtures import StringComparison as S, compare
 from unittest import TestCase
 
 class Tests(TestCase):
@@ -25,3 +25,12 @@ class Tests(TestCase):
     def test_not_string(self):
         self.failIf(40220==S('on \d+'))
     
+    def test_repr(self):
+        compare('<S:on \\d+>',
+                repr(S('on \d+')))
+
+    def test_str(self):
+        compare('<S:on \\d+>',
+                str(S('on \d+')))
+        
+

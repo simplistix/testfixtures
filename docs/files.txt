@@ -548,3 +548,4 @@ XXX
 - output when checking for file and it doesn't match
 - check for root paths on read and write
 
+- XXX need substitution on write and read!!!
