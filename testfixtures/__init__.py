@@ -281,6 +281,15 @@ class StringComparison:
 
     def __repr__(self):
         return '<S:%s>' % self.re.pattern
+
+    def __lt__(self,other):
+        return self.re.pattern<other
+        
+    def __gt__(self,other):
+        return self.re.pattern>other
+        
+    def __cmp__(self,other):
+        return cmp(self.re.pattern,other)
         
 class ShouldRaiseWrapper:
 

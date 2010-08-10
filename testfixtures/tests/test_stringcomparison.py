@@ -1,4 +1,5 @@
 from testfixtures import StringComparison as S, compare
+from testfixtures import Comparison as C
 from unittest import TestCase
 
 class Tests(TestCase):
@@ -32,5 +33,11 @@ class Tests(TestCase):
     def test_str(self):
         compare('<S:on \\d+>',
                 str(S('on \d+')))
-        
+
+    def test_sort(self):
+        a = S('a')
+        b = S('b')
+        c = S('c')
+        compare(sorted(('d',c,'e',a,'a1',b,)),
+                [a,'a1',b,c,'d','e',])
 
