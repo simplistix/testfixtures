@@ -8,6 +8,6 @@ This is a buildout extension that provides two functions:
 
 - The optional appending of any versions not pinned in the buildout configuration to a specified file.
 
-For full documentation, please see http://packages.python.org/buildout-versions.
+For full documentation, please see http://packages.python.org/buildout-versions/use.html.
 
 This package takes a lot of inspiration from `buildout.dumppickedversions`.
