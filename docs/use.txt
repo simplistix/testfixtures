@@ -112,6 +112,7 @@ explanation of what package depends on it::
   Versions had to be automatically picked.
   The following part definition lists the versions picked:
   [versions]
+
   # Required by:
   # package-a==1.0
   package-b = 2.0
@@ -148,12 +149,13 @@ console::
   The following part definition lists the versions picked:
   [versions]
   package-a = 1.0
-  # Required by:
-  # package-a==1.0
-  package-b = 2.0
   setuptools = 0.6c11
   zc.buildout = 1.5.0b2
   zc.recipe.egg = 1.2.3b2
+
+  # Required by:
+  # package-a==1.0
+  package-b = 2.0
   This information has been written to 'versions.cfg'
 
 .. -> expected
@@ -163,12 +165,13 @@ written to :file:`versions.cfg`, which will contain::
 
   [versions]
   package-a = 1.0
-  # Required by:
-  # package-a==1.0
-  package-b = 2.0
   setuptools = 0.6c11
   zc.buildout = 1.5.0b2
   zc.recipe.egg = 1.2.3b2
+
+  # Required by:
+  # package-a==1.0
+  package-b = 2.0
 
 .. -> expected_versions_cfg
 
@@ -228,6 +231,7 @@ there will be output::
   Versions had to be automatically picked.
   The following part definition lists the versions picked:
   [versions]
+
   # Required by:
   # package-a==1.0
   package-b = 2.0
@@ -245,6 +249,7 @@ Buildout Versions will also append the missing version to
   package-a = 1.0
 
   # Added by Buildout Versions at 2010-07-30 15:44:45.023559
+
   # Required by:
   # package-a==1.0
   package-b = 2.0

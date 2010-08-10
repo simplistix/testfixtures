@@ -42,13 +42,20 @@ def start(buildout):
 def finish(buildout):
     if picked_versions:
         output = ['[versions]']
+        required_output = []
         for dist_, version in sorted(picked_versions.items()):
             if dist_ in required_by:
-                output.append('# Required by:')
+                required_output.append('')
+                required_output.append('# Required by:')
                 for req_ in sorted(required_by[dist_]):
-                    output.append('# '+req_)
-            output.append("%s = %s" % (dist_, version))
+                    required_output.append('# '+req_)
+                target = required_output
+            else:
+                target = output
+            target.append("%s = %s" % (dist_, version))
 
+        output.extend(required_output)
+        
         print "Versions had to be automatically picked."
         print "The following part definition lists the versions picked:"
         print '\n'.join(output)
