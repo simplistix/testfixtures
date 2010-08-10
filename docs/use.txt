@@ -270,3 +270,8 @@ Buildout Versions will also append the missing version to
 
   from testfixtures import compare
   compare(expected_versions_cfg,fix_buildout(buildout_dir.read('versions.cfg')))
+
+.. warning::
+
+  Unfortunately, because of a bootstrapping problem, the one package
+  that Buildout Versions cannot warn about being unpinned is itself!
