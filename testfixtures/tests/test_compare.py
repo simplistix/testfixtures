@@ -305,13 +305,13 @@ class TestCompare(TestCase):
             compare(1,'',trailing_whitespace=False)
 
     def test_ignore_trailing_whitespace_but_respect_leading_whitespace(self):
-        class X:pass
-        class Y:pass
+        # NB: careful: this strips off the last newline too
+        #     DON'T use if you care about that!
         self.checkRaises(
-            X,Y,
-            "<class testfixtures.tests.test_compare.X at ...>"
-            " != "
-            "<class testfixtures.tests.test_compare.Y at ...>"
+            'a\n b\n  c\n',
+            'a\nb\nc\n',
+            "'a\\n b\\n  c' != 'a\\nb\\nc'",
+            trailing_whitespace=False
             )
 
     def test_include_blank_lines(self):

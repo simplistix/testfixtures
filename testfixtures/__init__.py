@@ -111,7 +111,8 @@ def diff(x,y):
 
 identity = object()
 
-trailing_whitespace_re = compile('\s+',MULTILINE)
+trailing_whitespace_re = compile('\s+$',MULTILINE)
+
 def strip_blank_lines(text):
     result = []
     for line in text.split('\n'):
