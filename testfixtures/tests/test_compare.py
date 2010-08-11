@@ -2,16 +2,16 @@
 # See license.txt for license details.
 
 from re import compile
-from testfixtures import identity,compare,Comparison as C,generator
+from testfixtures import identity,compare,Comparison as C,generator, ShouldRaise
 from unittest import TestCase,TestSuite,makeSuite
 
 hexaddr = compile('0x[0-9A-Fa-f]+')
 
 class TestCompare(TestCase):
 
-    def checkRaises(self,x,y,message=None,regex=None):
+    def checkRaises(self,x,y,message=None,regex=None,**kw):
         try:
-            compare(x,y)
+            compare(x,y,**kw)
         except Exception,e:
             if not isinstance(e,AssertionError):
                 self.fail('Expected AssertionError, got %r'%e)
@@ -287,6 +287,55 @@ class TestCompare(TestCase):
             " != "
             "<class testfixtures.tests.test_compare.Y at ...>"
             )
+
+    def test_include_trailing_whitespace(self):
+        self.checkRaises(
+            ' x \n',' x  \n',
+            "' x \\n' != ' x  \\n'"
+            )
+
+    def test_ignore_trailing_whitespace(self):
+        compare(' x \t\n',' x\t  \n',trailing_whitespace=False)
+        
+    def test_ignore_trailing_whitespace_non_string(self):
+        with ShouldRaise(TypeError(
+            "if blanklines or trailing_whitespace are not True, only string "
+            "arguments should be passed, got 1 and ''"
+            )):
+            compare(1,'',trailing_whitespace=False)
+
+    def test_ignore_trailing_whitespace_but_respect_leading_whitespace(self):
+        class X:pass
+        class Y:pass
+        self.checkRaises(
+            X,Y,
+            "<class testfixtures.tests.test_compare.X at ...>"
+            " != "
+            "<class testfixtures.tests.test_compare.Y at ...>"
+            )
+
+    def test_include_blank_lines(self):
+        self.checkRaises(
+            '\n \n','\n  ',
+            "'\\n \\n' != '\\n  '"
+            )
+        
+    def test_ignore_blank_lines(self):
+        compare("""
+    a
+
+\t
+b
+  """,
+                '    a\nb',blanklines=False)
+        
+        
+    def test_ignore_blank_lines_non_string(self):
+        with ShouldRaise(TypeError(
+            "if blanklines or trailing_whitespace are not True, only string "
+            "arguments should be passed, got 1 and ''"
+            )):
+            compare(1,'',blanklines=False)
 
 def test_suite():
     return TestSuite((

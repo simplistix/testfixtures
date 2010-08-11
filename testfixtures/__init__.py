@@ -11,7 +11,7 @@ from functools import partial
 from inspect import getargspec
 from new import classobj
 from pprint import pformat
-from re import compile
+from re import compile, MULTILINE
 from shutil import rmtree
 from tempfile import mkdtemp
 from types import ClassType,GeneratorType,MethodType
@@ -111,19 +111,45 @@ def diff(x,y):
 
 identity = object()
 
-def compare(x,y):
+trailing_whitespace_re = compile('\s+',MULTILINE)
+def strip_blank_lines(text):
+    result = []
+    for line in text.split('\n'):
+        if line and not line.isspace():
+            result.append(line)
+    return '\n'.join(result)
+
+def compare(x,y,blanklines=True,trailing_whitespace=True):
+    # pre-processing
     if isinstance(x,GeneratorType) and isinstance(x,GeneratorType):
         x = tuple(x)
         y = tuple(y)
+    if isinstance(x,basestring) and isinstance(y,basestring):
+        if not trailing_whitespace:
+            x = trailing_whitespace_re.sub('',x)
+            y = trailing_whitespace_re.sub('',y)
+        if not blanklines:
+            x = strip_blank_lines(x)
+            y = strip_blank_lines(y)
+
+    # the check
     if x==y:
         return identity
+
+    # error reporting
     message = None
     if isinstance(x,basestring) and isinstance(y,basestring):
+            
         if len(x)>10 or len(y)>10:
             if '\n' in x or '\n' in y:
                 message = '\n'+diff(x,y)
             else:
                 message = '\n%r\n!=\n%r'%(x,y)
+    elif not (blanklines and trailing_whitespace):
+        raise TypeError(
+            "if blanklines or trailing_whitespace are not True, only string "
+            "arguments should be passed, got %r and %r" % (x,y)
+            )
     elif ((isinstance(x,tuple) and isinstance(y,tuple))
           or
           (isinstance(x,list) and isinstance(y,list))):
