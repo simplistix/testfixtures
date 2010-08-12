@@ -180,7 +180,8 @@ written to :file:`versions.cfg`, which will contain::
   run_buildout(buildout_cfg,expected)
 
   from testfixtures import compare
-  compare(expected_versions_cfg,fix_buildout(buildout_dir.read('versions.cfg')))
+  compare(fix_buildout(expected_versions_cfg),
+          fix_buildout(buildout_dir.read('versions.cfg')))
 
 The resulting :file:`versions.cfg` can then be used in the buildout as
 follows::

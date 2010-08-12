@@ -81,10 +81,8 @@ setup(name='package_b',version='2.0')
         match = spec_re.match(line)
         if match:
             package = match.group(1)
-            line = '%s = %s' % (
-                package,
-                require(package)[0].version,
-                )
+            version = require(package)[0].version
+            line = '%s = %s' % (package,version)
         return line
 
     def our_index(line):
