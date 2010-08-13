@@ -65,6 +65,23 @@ setup(name='package_b',version='2.0')
 ''')
     system(buildout+' setup package_b bdist_egg')
 
+    buildout_dir.write('PackageC/setup.py','''
+from setuptools import setup
+setup(name='PackageC',version='3.0',install_requires='packaged')
+''')
+    system(buildout+' setup PackageC bdist_egg')
+
+    buildout_dir.write('PackageD/setup.py','''
+from setuptools import setup
+setup(name='PackageD',version='4.0')
+''')
+    system(buildout+' setup PackageD bdist_egg')
+    buildout_dir.write('PackageD/setup.py','''
+from setuptools import setup
+setup(name='PackageD',version='5.0')
+''')
+    system(buildout+' setup PackageD bdist_egg')
+
     def buildout_line(line):
         # ignore the $ bin/buildout line
         if not line.startswith('$ bin/buildout'):
@@ -75,21 +92,26 @@ setup(name='package_b',version='2.0')
         if not line.startswith("Couldn't find index page"):
             return line
 
-    spec_re = re.compile('([a-z\.]+) = \d')
+    spec_re = re.compile('([a-z\.\-]+) = \d')
     def normalise_versions(line):
         # normalise versions to those currently installed
         match = spec_re.match(line)
         if match:
             package = match.group(1)
-            version = require(package)[0].version
-            line = '%s = %s' % (package,version)
+            # don't try and fix versions for our test packages
+            if not package.lower().startswith('package'):
+                version = require(package)[0].version
+                line = '%s = %s' % (package,version)
         return line
 
     def our_index(line):
         if '<our index>' in line:
             line = []
             line.append('find-links =')
-            for name in ('package_a','package_b'):
+            for name in (
+                'package_a','package_b',
+                'PackageC','PackageD',
+                ):
                 line.append(
                     '  '+join(buildout_dir.path,name,'dist')
                     )
@@ -144,7 +166,7 @@ def test_suite():
     m += codeblock.Manuel()
     return TestSuite(
         m,
-        join(dirname(__file__),pardir,'docs','use.txt'),
+        join(dirname(__file__),pardir,pardir,'docs','use.txt'),
         setUp=setUp,
         tearDown=zc.buildout.testing.buildoutTearDown,
         )

@@ -286,3 +286,85 @@ Buildout Versions will also append the missing version to
 
   from testfixtures import compare
   compare(expected_versions_cfg,fix_buildout(buildout_dir.read('versions.cfg')))
+
+Distribution capitalisation
+---------------------------
+
+Setuptools, which Buildout uses for its package management, is
+agnostic to the capitalisation of distributions. Buildout, however, is
+case sensitive when it pins versions. Buildout Versions fixes this
+problem.
+
+For example, if :mod:`PackageC` depends on :mod:`PackageD`, but
+expresses this dependency as :mod:`packaged`, Buildout would normally
+ignore any version pins specified for PackageD, even though a version
+fo PackageD would be successfully installed.
+
+So, with a :file:`buildout.cfg` as follows::
+
+  [buildout]
+  find-links = <our index>
+  parts = sample
+  versions = versions
+  
+  [versions]
+  PackageC = 3.0
+  PackageD = 4.0
+
+  [sample]
+  recipe = zc.recipe.egg
+  eggs = PackageC
+
+.. -> buildout_cfg
+
+Buildout will pick the wrong version of PackageD::
+
+  $ bin/buildout
+  Installing sample.
+  Getting distribution for 'PackageC==3.0'.
+  Got PackageC 3.0.
+  Getting distribution for 'packaged'.
+  Got PackageD 5.0.
+
+.. -> expected
+
+.. invisible-code-block: python
+
+  run_buildout(buildout_cfg,expected)
+
+The :file:`buildout.cfg` should be changed to use Buildout Versions as
+follows::
+
+  [buildout]
+  extensions = buildout_versions
+  find-links = <our index>
+  parts = sample
+  versions = versions
+  
+  [versions]
+  buildout-versions = 1.2
+  setuptools = 0.6c11
+  zc.buildout = 1.5.0
+  zc.recipe.egg = 1.2.0
+
+  PackageC = 3.0
+  PackageD = 4.0
+
+  [sample]
+  recipe = zc.recipe.egg
+  eggs = PackageC
+
+.. -> buildout_cfg
+
+Now, the correct version  of PackageD will be used::
+
+  $ bin/buildout
+  Installing sample.
+  Getting distribution for 'packaged==4.0'.
+  Got PackageD 4.0.
+
+.. -> expected
+
+.. invisible-code-block: python
+
+  run_buildout(buildout_cfg,expected)
