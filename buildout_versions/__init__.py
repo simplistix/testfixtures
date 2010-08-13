@@ -40,6 +40,14 @@ def start(buildout):
         file_name = buildout['buildout']['buildout_versions_file']
     
 def finish(buildout):
+    # now check that buildout-versions is constrained!
+    version_section = buildout['buildout'].get('versions')
+    if not (version_section and
+            'buildout-versions' in buildout[version_section]):
+        picked_versions['buildout-versions']=pkg_resources.require(
+            'buildout-versions'
+            )[0].version
+
     if picked_versions:
         output = ['[versions]']
         required_output = []
@@ -70,4 +78,3 @@ def finish(buildout):
             f.write('\n'.join(output))
             f.close()
             print "This information has been written to %r" % file_name
-

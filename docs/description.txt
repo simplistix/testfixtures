@@ -10,4 +10,6 @@ This is a buildout extension that provides two functions:
 
 For full documentation, please see http://packages.python.org/buildout-versions/use.html.
 
-This package takes a lot of inspiration from `buildout.dumppickedversions`.
+This package takes a lot of inspiration from `buildout.dumppickedversions`__.
+
+__ http://pypi.python.org/pypi/buildout.dumppickedversions

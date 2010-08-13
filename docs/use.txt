@@ -18,6 +18,7 @@ picked::
   Versions had to be automatically picked.
   The following part definition lists the versions picked:
   [versions]
+  buildout-versions = 1.2
   setuptools = 0.6c11
   zc.buildout = 1.5.0
 
@@ -35,6 +36,7 @@ That output can be used to update the :file:`buildout.cfg`::
   parts =
 
   [versions]
+  buildout-versions = 1.2
   setuptools = 0.6c11
   zc.buildout = 1.5.0
 
@@ -50,9 +52,11 @@ Now, when the buildout is run, there will be no output::
 
   run_buildout(buildout_cfg,expected)
 
-It's worth noting that packages being developed will never be
-considered as unpinned. Take the following :file:`buildout.cfg`:: as
-an example::
+Development packages
+--------------------
+
+Packages being developed will never be considered as unpinned. 
+Take the following :file:`buildout.cfg`:: as an example::
 
   [buildout]
   extensions = buildout-versions
@@ -69,6 +73,7 @@ reported::
   Versions had to be automatically picked.
   The following part definition lists the versions picked:
   [versions]
+  buildout-versions = 1.2
   setuptools = 0.6c11
   zc.buildout = 1.5.0
 
@@ -78,7 +83,10 @@ reported::
 
   run_buildout(buildout_cfg,expected)
 
-Now, a :file:`buildout.cfg` may specify a :mod:`package-a` and pin
+Dependent packages
+------------------
+
+A :file:`buildout.cfg` may specify a :mod:`package-a` and pin
 it's version, as in the following example::
 
   [buildout]
@@ -88,6 +96,7 @@ it's version, as in the following example::
   versions = versions
   
   [versions]
+  buildout-versions = 1.2
   package-a = 1.0
   setuptools = 0.6c11
   zc.buildout = 1.5.0
@@ -123,6 +132,9 @@ explanation of what package depends on it::
 
   run_buildout(buildout_cfg,expected)
 
+Version specification files
+---------------------------
+
 It can be convenient to separate out the pinned versions into their
 own file. Buildout Versions supports this by allowing a file to
 which version information will be written to be specified in the
@@ -148,6 +160,7 @@ console::
   Versions had to be automatically picked.
   The following part definition lists the versions picked:
   [versions]
+  buildout-versions = 1.2
   package-a = 1.0
   setuptools = 0.6c11
   zc.buildout = 1.5.0b2
@@ -164,6 +177,7 @@ However, the details of packages that weren't pinned will also be
 written to :file:`versions.cfg`, which will contain:: 
 
   [versions]
+  buildout-versions = 1.2
   package-a = 1.0
   setuptools = 0.6c11
   zc.buildout = 1.5.0b2
@@ -261,6 +275,7 @@ Buildout Versions will also append the missing version to
 
   buildout_dir.write('base_versions.cfg',fix_buildout('''
   [versions]
+  buildout-versions = 1.2
   setuptools = 0.6c11
   zc.buildout = 1.5.0b2
   zc.recipe.egg = 1.2.3b2
@@ -271,8 +286,3 @@ Buildout Versions will also append the missing version to
 
   from testfixtures import compare
   compare(expected_versions_cfg,fix_buildout(buildout_dir.read('versions.cfg')))
-
-.. warning::
-
-  Unfortunately, because of a bootstrapping problem, the one package
-  that Buildout Versions cannot warn about being unpinned is itself!
