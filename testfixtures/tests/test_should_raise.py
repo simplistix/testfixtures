@@ -219,6 +219,10 @@ class TestShouldRaise(TestCase):
             raise ValueError('foo bar')
         self.assertEqual(C(ValueError('foo bar')),s.raised)
     
+    def test_import_errors(self):
+        with ShouldRaise(ImportError('No module named textfixtures.foo.bar')) as s:
+            import textfixtures.foo.bar
+    
 def test_suite():
     return TestSuite((
         makeSuite(TestShouldRaise),

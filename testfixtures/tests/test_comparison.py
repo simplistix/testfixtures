@@ -621,6 +621,11 @@ class TestC(TestCase):
                          '  y:2 != 1\n'
                          '  </C>')
 
+    def test_importerror(self):
+        self.failIf(
+            C(ImportError('x'))!=ImportError('x')
+            )
+        
         
 def test_suite():
     return TestSuite((
