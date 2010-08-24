@@ -367,9 +367,9 @@ class ShouldRaise:
         return self.sr
     
     def __exit__(self,type,value,traceback):
-        # bug in python?
-        if type is ImportError:
-            value = ImportError(value)
+        # bug in python :-(
+        if isinstance(value,str):
+            value = type(value)
         self.sr.handle(value)
         return True
         

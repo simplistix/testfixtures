@@ -223,6 +223,10 @@ class TestShouldRaise(TestCase):
         with ShouldRaise(ImportError('No module named textfixtures.foo.bar')) as s:
             import textfixtures.foo.bar
     
+    def test_import_errors(self):
+        with ShouldRaise(ImportError('X')) as s:
+            raise ImportError('X')
+    
 def test_suite():
     return TestSuite((
         makeSuite(TestShouldRaise),
