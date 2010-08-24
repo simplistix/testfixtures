@@ -666,6 +666,9 @@ class TempDirectory:
         if path:
             return thepath
 
+    def getpath(self,path):
+        return self._join(path)
+    
     def read(self,filepath):
         f = open(self._join(filepath),'rb')
         data = f.read()

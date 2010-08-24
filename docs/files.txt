@@ -549,3 +549,5 @@ XXX
 - check for root paths on read and write
 
 - XXX need substitution on write and read!!!
+
+- XXX docs for getpath!

@@ -305,6 +305,20 @@ class TempDirectoryTests(TestCase):
                 'a/b/c',
                 'a/d/',
                 )
+
+    def test_path(self):
+        with TempDirectory() as d:
+            expected1 = d.makedir('foo',path=True)
+            expected2 = d.write('baz/bob','',path=True)
+            expected3 = d.getpath('a/b/c')
+
+            actual1 = d.getpath('foo')
+            actual2 = d.getpath('baz/bob')
+            actual3 = d.getpath(('a','b','c'))
+
+        self.assertEqual(expected1,actual1)
+        self.assertEqual(expected2,actual2)
+        self.assertEqual(expected3,actual3)
         
 # using a set up and teardown function
 # gets rid of the need for the imports in
