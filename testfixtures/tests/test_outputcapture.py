@@ -6,7 +6,7 @@ from doctest import DocTestSuite
 from testfixtures import OutputCapture
 from unittest import TestSuite
 
-class DemoTempDirectory:
+class TestOutputCapture:
 
     def test_simple(self):
         """
