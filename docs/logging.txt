@@ -227,7 +227,7 @@ appropriate:
 
   from testfixtures import compare, Comparison as C
 
-  compare(l.records[-1].exc_info[1],C(RuntimeError('No code to run!')))
+  compare(C(RuntimeError('No code to run!')) ,l.records[-1].exc_info[1])
 
 Only capturing specific logging
 -------------------------------
