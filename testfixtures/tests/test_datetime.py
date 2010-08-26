@@ -2,9 +2,11 @@
 # See license.txt for license details.
 
 import sample1,sample2
+from datetime import date
 from datetime import datetime as d, tzinfo
 from time import strptime
-from testfixtures import test_datetime,replace,compare,should_raise
+from testfixtures import test_datetime,test_date
+from testfixtures import replace,Replacer,compare,should_raise
 from unittest import TestCase,TestSuite,makeSuite
 
 class atzinfo(tzinfo):
@@ -56,6 +58,28 @@ class TestDateTime(TestCase):
         dt = datetime(2001,1,1,1,0,0)
         self.failIf(dt.__class__ is d)
         compare(dt,d(2001,1,1,1,0,0))
+    
+    def test_date_return_type(self):
+        with Replacer() as r:
+            r.replace('datetime.datetime',test_datetime())
+            from datetime import datetime
+            dt = datetime(2001,1,1,1,0,0)
+            d = dt.date()
+            compare(d,date(2001,1,1))
+            self.failUnless(d.__class__ is date)
+    
+    def test_date_return_type_picky(self):
+        # type checking is a bitch :-/
+        date_type = test_date()
+        with Replacer() as r:
+            r.replace('datetime.datetime',test_datetime(
+                    date_type=date_type
+                    ))
+            from datetime import datetime
+            dt = datetime(2010,8,26,14,33,13)
+            d = dt.date()
+            compare(d,date_type(2010,8,26))
+            self.failUnless(d.__class__ is date_type)
     
     def test_gotcha_import(self):
         # standard `replace` caveat, make sure you

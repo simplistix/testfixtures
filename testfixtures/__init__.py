@@ -489,6 +489,13 @@ def test_factory(n,type,default,args,**to_patch):
         q.append(class_(*default))
     return class_
     
+def correct_date_method(self):
+    return self._date_type(
+        self.year,
+        self.month,
+        self.day
+        )
+
 @classmethod
 def correct_datetime(cls,dt):
     return cls(
@@ -510,6 +517,7 @@ def test_datetime(*args,**kw):
         gap = 0
         gap_delta = 10
     delta_type = kw.get('delta_type','seconds')
+    date_type = kw.get('date_type',date)
     return test_factory(
         'tdatetime',datetime,(2001,1,1,0,0,0),args,
         _ct=correct_datetime,
@@ -517,6 +525,8 @@ def test_datetime(*args,**kw):
         _gap = gap,
         _gap_d = gap_delta,
         _gap_t = delta_type,
+        date = correct_date_method,
+        _date_type = date_type,
         )
     
 @classmethod

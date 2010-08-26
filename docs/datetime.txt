@@ -325,6 +325,7 @@ Use with code that checks class types
 
 - adding where type is important
 
+- datetime's date method, when testing
 
 Use with SQLAlchemy
 -------------------
