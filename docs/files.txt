@@ -343,7 +343,9 @@ In some circumstances, you may want to ignore certain files or
 sub-directories when checking contents. To make this easy, the
 :class:`~testfixtures.TempDirectory` constructor takes an optional
 `ignore` parameter which, if provided, should contain a sequence of
-names that will be ignored by the methods covered in this section.
+regular expressions. If any of the regular expressions return a match
+when used to search through the results of any of the the methods
+covered in this section, that result will be ignored.
 
 For example, suppose we are testing some revision control code, but
 don't really care about the revison control system's metadata

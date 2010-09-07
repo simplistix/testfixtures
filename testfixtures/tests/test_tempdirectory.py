@@ -115,6 +115,19 @@ class DemoTempDirectory:
         No files or directories found.
         """
         
+    def test_ignore_regex(self):
+        """
+        TempDirectories can also be set up to ignore certain files:
+        
+        >>> d = TempDirectory(ignore=('^\.svn$','.pyc$'))
+        >>> d.write('.svn','stuff')
+        >>> d.write('foo.svn','')
+        >>> d.write('foo.pyc','')
+        >>> d.write('bar.pyc','')
+        >>> d.listdir()
+        foo.svn
+        """
+        
 class TestTempDirectory:
 
     def test_cleanup(self):

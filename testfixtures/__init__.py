@@ -584,7 +584,9 @@ class TempDirectory:
     instances = set()
     
     def __init__(self,ignore=(),create=True,path=None):
-        self.ignore = ignore
+        self.ignore = []
+        for regex in ignore:
+            self.ignore.append(compile(regex))
         self.path = path
         if create:
             self.create()
@@ -618,18 +620,22 @@ class TempDirectory:
                 if dirpath:
                     dirpath += '/'
                     result.append(dirpath)
-                for ignore in self.ignore:
-                    if ignore in dirnames:
-                        dirnames.remove(ignore)
                 for name in sorted(filenames):
-                    if name not in self.ignore:
-                        result.append(dirpath+name)
+                    result.append(dirpath+name)
         else:
             for n in os.listdir(path):
-                if n not in self.ignore:
-                    result.append(n)
-        result.sort()
-        return result
+                result.append(n)
+        filtered = []
+        for path in sorted(result):
+            ignore = False
+            for regex in self.ignore:
+                if regex.search(path):
+                    ignore = True
+                    break
+            if ignore:
+                continue
+            filtered.append(path)
+        return filtered
     
     def listdir(self,path=None,recursive=False):
         actual = self.actual(path,recursive)
