@@ -9,8 +9,10 @@ from setuptools import setup
 import os
 
 base_dir = os.path.join(os.path.dirname(__file__))
+
+package_name = 
 setup(
-    name='buildout_versions',
+    name='buildout-versions',
     version='1.3',
     author='Chris Withers',
     author_email='chris@simplistix.co.uk',
