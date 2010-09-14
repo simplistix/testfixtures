@@ -10,8 +10,8 @@ import os
 
 base_dir = os.path.join(os.path.dirname(__file__))
 setup(
-    name='buildout-versions',
-    version='1.3dev',
+    name='buildout_versions',
+    version='1.3',
     author='Chris Withers',
     author_email='chris@simplistix.co.uk',
     license='MIT',

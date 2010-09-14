@@ -2,11 +2,13 @@
 Buildout Versions
 =================
 
-This is a buildout extension that provides two functions:
+This is a buildout extension that provides three functions:
 
 - Output to the console of any versions not pinned in the buildout configuration
 
 - The optional appending of any versions not pinned in the buildout configuration to a specified file.
+
+- Make buildout agnostic of the casing used in distribution names.
 
 For full documentation, please see http://packages.python.org/buildout-versions/use.html.
 
