@@ -10,7 +10,6 @@ import os
 
 base_dir = os.path.join(os.path.dirname(__file__))
 
-package_name = 
 setup(
     name='buildout-versions',
     version='1.3',
