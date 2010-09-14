@@ -10,7 +10,7 @@ from os.path import dirname,join,pardir
 from pkg_resources import require
 from testfixtures import compare, TempDirectory
 
-import buildout_versions
+import sx_buildout_versions as buildout_versions
 import os
 import re
 import zc.buildout.testing

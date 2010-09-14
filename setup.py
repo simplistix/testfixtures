@@ -10,9 +10,11 @@ import os
 
 base_dir = os.path.join(os.path.dirname(__file__))
 
+package_name = 'sx_buildout_versions'
+
 setup(
     name='buildout-versions',
-    version='1.3',
+    version='1.4dev',
     author='Chris Withers',
     author_email='chris@simplistix.co.uk',
     license='MIT',
@@ -23,7 +25,7 @@ setup(
     'Development Status :: 5 - Production/Stable',
     'License :: OSI Approved :: MIT License',
     ],
-    packages=['buildout_versions'],
+    packages=[package_name],
     zip_safe=False,
     include_package_data=True,
     install_requires=[
@@ -31,10 +33,10 @@ setup(
     ],
     entry_points = { 
         'zc.buildout.extension': [
-             'default = %s:start' % 'buildout_versions',
+             'default = %s:start' % package_name,
              ],
         'zc.buildout.unloadextension': [
-             'default = %s:finish' % 'buildout_versions',
+             'default = %s:finish' % package_name,
              ],
         },
     extras_require=dict(
