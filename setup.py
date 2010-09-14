@@ -14,7 +14,7 @@ package_name = 'sx_buildout_versions'
 
 setup(
     name='buildout-versions',
-    version='1.4dev',
+    version='1.4',
     author='Chris Withers',
     author_email='chris@simplistix.co.uk',
     license='MIT',

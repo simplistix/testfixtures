@@ -1,6 +1,11 @@
 Changes
 =======
 
+1.4 (15 Sep 2010)
+-----------------
+
+- Work around http://bugs.python.org/issue6884
+
 1.3 (13 Aug 2010)
 -----------------
 
