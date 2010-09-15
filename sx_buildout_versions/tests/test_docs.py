@@ -95,6 +95,7 @@ setup(name='PackageD',version='5.0')
     spec_re = re.compile('([a-z\.\-]+) = \d')
     def normalise_versions(line):
         # normalise versions to those currently installed
+        line = line.replace('\r','')
         match = spec_re.match(line)
         if match:
             package = match.group(1)
@@ -118,7 +119,10 @@ setup(name='PackageD',version='5.0')
         return line
 
     def splat_buildout_dir(line):
-        return line.replace('...',buildout_dir.path)
+        return line.replace(
+            "'.../sample_package'",
+            repr(os.path.join(buildout_dir.path,'sample_package'))
+            )
 
     time_re = re.compile('\d{4}-\d{2}-\d{2} [\d:.]+')
     def fix_time(line):
@@ -151,7 +155,7 @@ setup(name='PackageD',version='5.0')
 develop = %s
 parts =
 ''' % join(dirname(buildout_versions.__file__),pardir))
-        system(buildout)
+        system(buildout+' -o')
         # run the buildout we were given
         write('buildout.cfg',fix_buildout(buildout_cfg))
         actual = system(buildout)
