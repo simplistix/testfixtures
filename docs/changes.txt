@@ -1,10 +1,12 @@
 Changes
 =======
 
-1.5 (XX YYY ZZZZ)
+1.5 (15 Sep 2010)
 -----------------
 
 - Work around http://bugs.python.org/issue6884
+
+- Made sure tests pass on Windows
 
 1.4 (15 Sep 2010)
 -----------------
