@@ -114,7 +114,9 @@ setup(name='PackageD',version='5.0')
                 'PackageC','PackageD',
                 ):
                 line.append(
-                    '  '+join(buildout_dir.path,name,'dist')
+                    '  '+test.globs['start_server'](
+                        join(buildout_dir.path,name,'dist')
+                             )
                     )
         return line
 
@@ -155,7 +157,7 @@ setup(name='PackageD',version='5.0')
 develop = %s
 parts =
 ''' % join(dirname(buildout_versions.__file__),pardir))
-        system(buildout+' -o')
+        system(buildout)
         # run the buildout we were given
         write('buildout.cfg',fix_buildout(buildout_cfg))
         actual = system(buildout)
