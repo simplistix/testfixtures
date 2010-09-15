@@ -2,7 +2,7 @@
 # See license.txt for license details.
 from __future__ import with_statement
 
-from sx_buildout_versions import _constrain
+from buildout_versions import _constrain
 from pkg_resources import parse_requirements, Requirement
 from testfixtures import LogCapture,ShouldRaise,compare
 from unittest import TestSuite,makeSuite,TestCase

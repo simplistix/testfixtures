@@ -10,7 +10,7 @@ from os.path import dirname,join,pardir
 from pkg_resources import require
 from testfixtures import compare, TempDirectory
 
-import sx_buildout_versions as buildout_versions
+import buildout_versions
 import os
 import re
 import zc.buildout.testing
@@ -156,7 +156,7 @@ setup(name='PackageD',version='5.0')
 [buildout]
 develop = %s
 parts =
-''' % join(dirname(buildout_versions.__file__),pardir))
+''' % join(dirname(buildout_versions.__file__),pardir,pardir))
         system(buildout)
         # run the buildout we were given
         write('buildout.cfg',fix_buildout(buildout_cfg))
@@ -172,7 +172,7 @@ def test_suite():
     m += codeblock.Manuel()
     return TestSuite(
         m,
-        join(dirname(__file__),pardir,pardir,'docs','use.txt'),
+        join(dirname(__file__),pardir,pardir,pardir,'docs','use.txt'),
         setUp=setUp,
         tearDown=zc.buildout.testing.buildoutTearDown,
         )

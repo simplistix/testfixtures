@@ -4,17 +4,15 @@
 # http://www.opensource.org/licenses/mit-license.html
 # See license.txt for more details.
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 import os
 
 base_dir = os.path.join(os.path.dirname(__file__))
 
-package_name = 'sx_buildout_versions'
-
 setup(
     name='buildout-versions',
-    version='1.4',
+    version='1.5dev',
     author='Chris Withers',
     author_email='chris@simplistix.co.uk',
     license='MIT',
@@ -25,7 +23,8 @@ setup(
     'Development Status :: 5 - Production/Stable',
     'License :: OSI Approved :: MIT License',
     ],
-    packages=[package_name],
+    packages = find_packages('src'),
+    package_dir = {'':'src'},
     zip_safe=False,
     include_package_data=True,
     install_requires=[
@@ -33,10 +32,10 @@ setup(
     ],
     entry_points = { 
         'zc.buildout.extension': [
-             'default = %s:start' % package_name,
+             'default = buildout_versions:start',
              ],
         'zc.buildout.unloadextension': [
-             'default = %s:finish' % package_name,
+             'default = buildout_versions:finish',
              ],
         },
     extras_require=dict(
