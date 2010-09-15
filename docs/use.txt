@@ -356,7 +356,7 @@ follows::
 
 .. -> buildout_cfg
 
-Now, the correct version  of PackageD will be used::
+Now, the correct version of PackageD will be used::
 
   $ bin/buildout
   Installing sample.
