@@ -1,8 +1,9 @@
-# Copyright (c) 2008 Simplistix Ltd
+# Copyright (c) 2008-2010 Simplistix Ltd
 # See license.txt for license details.
 
 import sample1,sample2
-from time import strptime
+from os import environ
+from time import strptime, tzset
 from testfixtures import test_time,replace,compare,should_raise
 from unittest import TestCase,TestSuite,makeSuite
 from test_datetime import atzinfo
@@ -113,6 +114,26 @@ class TestTime(TestCase):
     def test_min_number_args(self):
         from time import time
         compare(time(),978393600.0)
+        
+    def test_non_gmt_timezone(self):
+        try:
+            # setup
+            original=environ.get('TZ')
+            environ['TZ']='US/Eastern'
+            tzset()
+
+            # test
+            time = test_time(2001,1,2)
+            compare(time(),978393600.0)
+            
+
+        finally:
+            # restore
+            if original is None:
+                del environ['TZ']
+            else:
+                environ['TZ']=original
+            tzset()
         
 def test_suite():
     return TestSuite((

@@ -1,17 +1,19 @@
 # Copyright (c) 2008-2010 Simplistix Ltd
 # See license.txt for license details.
 
-import logging,os
+import logging,os,sys
 
+from calendar import timegm
+from cStringIO import StringIO
 from datetime import datetime,timedelta,date
 from difflib import unified_diff
 from functools import partial
 from inspect import getargspec
 from new import classobj
 from pprint import pformat
+from re import compile, MULTILINE
 from shutil import rmtree
 from tempfile import mkdtemp
-from time import mktime
 from types import ClassType,GeneratorType,MethodType
 from zope.dottedname.resolve import resolve
 
@@ -109,19 +111,46 @@ def diff(x,y):
 
 identity = object()
 
-def compare(x,y):
+trailing_whitespace_re = compile('\s+$',MULTILINE)
+
+def strip_blank_lines(text):
+    result = []
+    for line in text.split('\n'):
+        if line and not line.isspace():
+            result.append(line)
+    return '\n'.join(result)
+
+def compare(x,y,blanklines=True,trailing_whitespace=True):
+    # pre-processing
     if isinstance(x,GeneratorType) and isinstance(x,GeneratorType):
         x = tuple(x)
         y = tuple(y)
+    if isinstance(x,basestring) and isinstance(y,basestring):
+        if not trailing_whitespace:
+            x = trailing_whitespace_re.sub('',x)
+            y = trailing_whitespace_re.sub('',y)
+        if not blanklines:
+            x = strip_blank_lines(x)
+            y = strip_blank_lines(y)
+
+    # the check
     if x==y:
         return identity
+
+    # error reporting
     message = None
     if isinstance(x,basestring) and isinstance(y,basestring):
+            
         if len(x)>10 or len(y)>10:
             if '\n' in x or '\n' in y:
                 message = '\n'+diff(x,y)
             else:
                 message = '\n%r\n!=\n%r'%(x,y)
+    elif not (blanklines and trailing_whitespace):
+        raise TypeError(
+            "if blanklines or trailing_whitespace are not True, only string "
+            "arguments should be passed, got %r and %r" % (x,y)
+            )
     elif ((isinstance(x,tuple) and isinstance(y,tuple))
           or
           (isinstance(x,list) and isinstance(y,list))):
@@ -151,26 +180,32 @@ def generator(*args):
 
 class Comparison:
     failed = None
-    def __init__(self,t,v=None,strict=True,**kw):
-        if kw:
-            if v is None:
-                v = kw
+    def __init__(self,
+                 object_or_type,
+                 attribute_dict=None,
+                 strict=True,
+                 **attributes):
+        if attributes:
+            if attribute_dict is None:
+                attribute_dict = attributes
             else:
-                v.update(kw)
-        if isinstance(t,basestring):
-            c = resolve(t)
-        elif isinstance(t,(ClassType,type)):
-            c = t
-        elif isinstance(t,BaseException):
-            c = t.__class__
-            if v is None:
-                v = vars(t) or {'args':t.args}
+                attribute_dict.update(attributes)
+        if isinstance(object_or_type,basestring):
+            c = resolve(object_or_type)
+        elif isinstance(object_or_type,(ClassType,type)):
+            c = object_or_type
+        elif isinstance(object_or_type,BaseException):
+            c = object_or_type.__class__
+            if attribute_dict is None:
+                attribute_dict = (
+                    vars(object_or_type) or {'args':object_or_type.args}
+                    )
         else:
-            c = t.__class__
-            if v is None:
-                v=vars(t)
+            c = object_or_type.__class__
+            if attribute_dict is None:
+                attribute_dict=vars(object_or_type)
         self.c = c
-        self.v = v
+        self.v = attribute_dict
         self.strict = strict
         
     def __eq__(self,other):
@@ -200,7 +235,13 @@ class Comparison:
         e = set(self.v.keys())
         a = set(v.keys())
         for k in e.difference(a):
-            self.failed[k]='%s not in other' % repr(self.v[k])
+            try:
+                # class attribute?
+                v[k]=getattr(other,k)
+            except AttributeError:
+                self.failed[k]='%s not in other' % repr(self.v[k])
+            else:
+                a.add(k)
         if self.strict:
             for k in a.difference(e):
                 self.failed[k]='%s not in Comparison' % repr(v[k])
@@ -250,6 +291,33 @@ class Comparison:
         else:
             return r
 
+class StringComparison:
+
+    def __init__(self,re_source):
+        self.re = compile(re_source)
+
+    def __eq__(self,other):
+        if not isinstance(other,basestring):
+            return
+        if self.re.match(other):
+            return True
+        return False
+
+    def __ne__(self,other):
+        return not self==other
+
+    def __repr__(self):
+        return '<S:%s>' % self.re.pattern
+
+    def __lt__(self,other):
+        return self.re.pattern<other
+        
+    def __gt__(self,other):
+        return self.re.pattern>other
+        
+    def __cmp__(self,other):
+        return cmp(self.re.pattern,other)
+        
 class ShouldRaiseWrapper:
 
     def __init__(self,sr,wrapped):
@@ -299,6 +367,9 @@ class ShouldRaise:
         return self.sr
     
     def __exit__(self,type,value,traceback):
+        # bug in python :-(
+        if isinstance(value,str):
+            value = type(value)
         self.sr.handle(value)
         return True
         
@@ -350,6 +421,8 @@ class LogCapture(logging.Handler):
             yield (r.name,r.levelname,r.getMessage())
     
     def __str__(self):
+        if not self.records:
+            return 'No logging captured'
         return '\n'.join(["%s %s\n  %s" % r for r in self.actual()])
 
     def check(self,*expected):
@@ -416,7 +489,13 @@ def test_factory(n,type,default,args,**to_patch):
         q.append(class_(*default))
     return class_
     
-    
+def correct_date_method(self):
+    return self._date_type(
+        self.year,
+        self.month,
+        self.day
+        )
+
 @classmethod
 def correct_datetime(cls,dt):
     return cls(
@@ -438,6 +517,7 @@ def test_datetime(*args,**kw):
         gap = 0
         gap_delta = 10
     delta_type = kw.get('delta_type','seconds')
+    date_type = kw.get('date_type',date)
     return test_factory(
         'tdatetime',datetime,(2001,1,1,0,0,0),args,
         _ct=correct_datetime,
@@ -445,6 +525,8 @@ def test_datetime(*args,**kw):
         _gap = gap,
         _gap_d = gap_delta,
         _gap_t = delta_type,
+        date = correct_date_method,
+        _date_type = date_type,
         )
     
 @classmethod
@@ -478,7 +560,7 @@ class ttimec(datetime):
         if args:
             return super(ttimec, cls).__new__(cls,*args)
         else:
-            return mktime(cls.time().timetuple())
+            return float(timegm(cls.instantiate().utctimetuple()))
 
 def test_time(*args,**kw):
     if 'delta' in kw:
@@ -491,7 +573,7 @@ def test_time(*args,**kw):
     return test_factory(
         'ttime',ttimec,(2001,1,1,0,0,0),args,
         _ct=None,
-        time=instantiate,
+        instantiate=instantiate,
         _gap = gap,
         _gap_d = gap_delta,
         _gap_t = delta_type,
@@ -501,12 +583,17 @@ class TempDirectory:
 
     instances = set()
     
-    def __init__(self,ignore=(),create=True):
-        self.ignore = ignore
+    def __init__(self,ignore=(),create=True,path=None):
+        self.ignore = []
+        for regex in ignore:
+            self.ignore.append(compile(regex))
+        self.path = path
         if create:
             self.create()
 
     def create(self):
+        if self.path:
+            return self
         self.path = mkdtemp()
         self.instances.add(self)
         return self
@@ -520,17 +607,41 @@ class TempDirectory:
     def cleanup_all(cls):
         for i in tuple(cls.instances):
             i.cleanup()
-        
-    def actual(self,path=None):
+
+    def actual(self,path=None,recursive=False):
         if path:
             path = self._join(path)
         else:
             path = self.path
-        return sorted([n for n in os.listdir(path)
-                       if n not in self.ignore])
+        result = []
+        if recursive:
+            for dirpath,dirnames,filenames in os.walk(path):
+                dirpath = '/'.join(dirpath[len(path)+1:].split(os.sep))
+                if dirpath:
+                    dirpath += '/'
+                    result.append(dirpath)
+                for name in sorted(filenames):
+                    result.append(dirpath+name)
+        else:
+            for n in os.listdir(path):
+                result.append(n)
+        filtered = []
+        for path in sorted(result):
+            ignore = False
+            for regex in self.ignore:
+                if regex.search(path):
+                    ignore = True
+                    break
+            if ignore:
+                continue
+            filtered.append(path)
+        return filtered
     
-    def listdir(self,path=None):
-        for n in self.actual(path):
+    def listdir(self,path=None,recursive=False):
+        actual = self.actual(path,recursive)
+        if not actual:
+            print 'No files or directories found.'
+        for n in actual:
             print n
 
     def check(self,*expected):
@@ -539,9 +650,16 @@ class TempDirectory:
     def check_dir(self,dir,*expected):
         compare(expected,tuple(self.actual(dir)))
 
+    def check_all(self,dir,*expected):
+        compare(expected,tuple(self.actual(dir,recursive=True)))
+
     def _join(self,name):
         if isinstance(name,basestring):
-            name=(name,)
+            name = name.split('/')
+        if not name[0]:
+            raise ValueError(
+                'Attempt to read or write outside the temporary Directory'
+                )
         return os.path.join(self.path,*name)
         
     def makedir(self,dirpath,path=False):
@@ -551,10 +669,12 @@ class TempDirectory:
             return thepath
     
     def write(self,filepath,data,path=False):
-        if not isinstance(filepath,basestring) and len(filepath)>1:
+        if isinstance(filepath,basestring):
+            filepath = filepath.split('/')
+        if len(filepath)>1:
             dirpath = self._join(filepath[:-1])
             if not os.path.exists(dirpath):
-                self.makedir(dirpath)
+                os.makedirs(dirpath)
         thepath = self._join(filepath)
         f = open(thepath,'wb')
         f.write(data)
@@ -562,6 +682,9 @@ class TempDirectory:
         if path:
             return thepath
 
+    def getpath(self,path):
+        return self._join(path)
+    
     def read(self,filepath):
         f = open(self._join(filepath),'rb')
         data = f.read()
@@ -578,4 +701,19 @@ def tempdir(*args,**kw):
     kw['create']=False
     l = TempDirectory(*args,**kw)
     return wrap(l.create,l.cleanup)
+
+class OutputCapture:
+
+    def __enter__(self):
+        self.original_stdout = sys.stdout
+        self.original_stderr = sys.stderr
+        self.output = sys.stdout = sys.stderr = StringIO()
+        return self
+
+    def __exit__(self,*args):
+        sys.stdout = self.original_stdout
+        sys.stderr = self.original_stderr
+
+    def compare(self,expected):
+        compare(expected.strip(),self.output.getvalue().strip())
 

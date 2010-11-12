@@ -1,0 +1,324 @@
+Testing logging
+===============
+
+Python includes an excellent :mod:`logging` package, however many
+people assume that logging calls do not need to be tested. They also
+may want to test logging calls but find the prospect too daunting.
+
+Methods of capture
+------------------
+
+To help with this, TestFixtures allows you to easily capture the
+output of calls to Python's logging framework and make sure they were
+as expected. There are three different techniques, depending on the
+type of test you are writing.
+
+The context manager
+~~~~~~~~~~~~~~~~~~~
+
+If you're using a version of Python where the ``with`` keyword is
+available, the context manager provided by TestFixtures can be used:
+
+>>> import logging
+>>> from testfixtures import LogCapture
+>>> with LogCapture() as l:
+...     logger = logging.getLogger()
+...     logger.info('a message')
+...     logger.error('an error')
+
+For the duration of the ``with`` block, log messages are captured. The
+context manager provides a check method that raises an exception if
+the logging wasn't as you expected:
+
+>>> l.check(
+...     ('root', 'INFO', 'a message'),
+...     ('root', 'ERROR', 'another error'),
+...     )
+Traceback (most recent call last):
+ ...
+AssertionError: Sequence not as expected:
+<BLANKLINE>
+same:
+(('root', 'INFO', 'a message'),)
+<BLANKLINE>
+first:
+(('root', 'ERROR', 'another error'),)
+<BLANKLINE>
+second:
+(('root', 'ERROR', 'an error'),)
+
+It also has a string representation that allows you to see what has
+been logged, which is useful for doc tests:
+
+>>> print l
+root INFO
+  a message
+root ERROR
+  an error
+
+The decorator
+~~~~~~~~~~~~~
+
+If you are working in a traditional :mod:`unittest` environment and
+only want to capture logging for a particular test function, you may
+find the decorator suits your needs better:
+
+.. code-block:: python
+
+  from testfixtures import log_capture
+  
+  @log_capture()
+  def test_function(l):
+      logger = logging.getLogger()
+      logger.info('a message')
+      logger.error('an error')
+
+      l.check(
+          ('root', 'INFO', 'a message'),
+          ('root', 'ERROR', 'an error'),
+          )
+
+.. check the above raises no assertion error:
+
+  >>> test_function()
+
+Manual usage
+~~~~~~~~~~~~
+
+If you want to capture logging for the duration of a doctest or
+in every test in a :class:`~unittest.TestCase`, then you can use the
+:class:`~testfixtures.LogCapture` manually.
+
+The instantiation and replacement are done in the ``setUp`` function
+of the :class:`~unittest.TestCase` or passed to the
+:class:`~doctest.DocTestSuite` constructor:
+
+>>> from testfixtures import LogCapture
+>>> l = LogCapture()
+
+You can then execute whatever will log the messages you want to test
+for:
+
+>>> from logging import getLogger
+>>> getLogger().info('a message')
+
+At any point, you can check what has been logged using the
+check method:
+
+>>> l.check(('root', 'INFO', 'a message'))
+<...>
+
+Alternatively, you can use the string representation of the
+:class:`~testfixtures.LogCapture`: 
+
+>>> print l
+root INFO
+  a message
+
+Then, in the ``tearDown`` function
+of the :class:`~unittest.TestCase` or passed to the
+:class:`~doctest.DocTestSuite` constructor, you should make sure you
+stop the capturing:
+
+>>> l.uninstall()
+
+If you have multiple :class:`~testfixtures.LogCapture` objects in use,
+you can easily uninstall them all:
+
+>>> LogCapture.uninstall_all()
+
+Checking captured log messages
+------------------------------
+
+Regardless of how you use the :class:`~testfixtures.LogCapture` to
+capture messages, there are three ways of checking that the messages
+captured were as expected.
+
+The following example is useful for showing these:
+
+.. code-block:: python
+
+  from testfixtures import LogCapture
+  from logging import getLogger
+  logger = getLogger()
+
+  with LogCapture() as l:
+      logger.info('start of block')
+      try:
+          raise RuntimeError('No code to run!')
+      except:
+          logger.error('error occurred',exc_info=True)
+
+The check method
+~~~~~~~~~~~~~~~~
+
+The :obj:`~testfixtures.LogCapture` has a
+:meth:`~testfixtures.LogCapture.check` method that will compare the
+log messages captured with those you expect.
+
+If things are as you expected, the method will not raise any exceptions:
+
+>>> result = l.check(
+...     ('root', 'INFO', 'start of block'),
+...     ('root', 'ERROR', 'error occurred'),
+...     )
+
+It will return the :obj:`~testfixtures.identity` object:
+
+>>> from testfixtures import identity
+>>> result is identity
+True
+
+However, if the actual messages logged were different, you'll get an
+:class:`~exceptions.AssertionError` explaining what happened:
+
+>>> l.check(('root', 'INFO', 'start of block'))
+Traceback (most recent call last):
+ ...
+AssertionError: Sequence not as expected:
+<BLANKLINE>
+same:
+(('root', 'INFO', 'start of block'),)
+<BLANKLINE>
+first:
+()
+<BLANKLINE>
+second:
+(('root', 'ERROR', 'error occurred'),)
+
+Printing
+~~~~~~~~
+
+The :obj:`~testfixtures.LogCapture` has a string representation that
+shows what messages it has captured. This can be useful in doc tests:
+
+>>> print l
+root INFO
+  start of block
+root ERROR
+  error occurred
+
+This representation can also be used to check that no logging has
+occurred: 
+
+>>> empty = LogCapture()
+>>> print empty
+No logging captured
+
+Inspecting
+~~~~~~~~~~
+
+The :obj:`~testfixtures.LogCapture` also keeps a list of the
+:class:`~logging.LogRecord` instances it captures. This is useful when
+you want to check specifics of the captured logging that aren't
+available from either the string representation or the
+:meth:`~testfixtures.LogCapture.check` method.
+
+A common case of this is where you want to check that exception
+information was logged for certain messages:
+
+>>> print l.records[-1].exc_info
+(<type 'exceptions.RuntimeError'>, RuntimeError('No code to run!',), <traceback object at ...>)
+
+If you're working in a unit test, the following code may be more
+appropriate: 
+
+.. code-block:: python
+
+  from testfixtures import compare, Comparison as C
+
+  compare(C(RuntimeError('No code to run!')) ,l.records[-1].exc_info[1])
+
+Only capturing specific logging
+-------------------------------
+
+Some actions that you want to test may generate a lot of logging, only
+some of which you actually need to care about. 
+
+In some cases this problem can be alleviated by only capturing a
+specific logger.
+
+If using the context manager, you would do this:
+
+>>> with LogCapture('specific') as l:
+...     getLogger('something').info('junk')
+...     getLogger('specific').info('what we care about')
+...     getLogger().info('more junk')
+>>> print l
+specific INFO
+  what we care about
+
+If using the decorator, you would do this:
+
+.. code-block:: python
+
+  @log_capture('specific')
+  def test_function(l):
+      getLogger('something').info('junk')
+      getLogger('specific').info('what we care about')
+      getLogger().info('more junk')
+
+      l.check(('specific', 'INFO', 'what we care about'))
+
+.. check it behaves!
+ 
+  >>> test_function()
+
+However, it may be that while you don't want to capture all logging,
+you do want to capture logging from multiple specific loggers.
+
+You would do this with the context manager as follows:
+
+>>> with LogCapture(('one','two')) as l:
+...     getLogger('three').info('3')
+...     getLogger('two').info('2')
+...     getLogger('one').info('1')
+>>> print l
+two INFO
+  2
+one INFO
+  1
+
+Likewise, the same thing can be done with the decorator:
+
+.. code-block:: python
+
+  @log_capture('one','two')
+  def test_function(l):
+      getLogger('three').info('3')
+      getLogger('two').info('2')
+      getLogger('one').info('1')
+
+      l.check(
+          ('two', 'INFO', '2'),
+          ('one', 'INFO', '1')
+          )
+
+.. check it behaves!
+ 
+  >>> test_function()
+
+It may also be that the simplest thing to do is only capture logging
+for part of your test. This is particularly common with long doc
+tests. To make this easier, :obj:`~testfixtures.LogCapture` supports
+manual installation and uninstallation as shown in the following
+example:
+
+>>> l = LogCapture(install=False)
+>>> getLogger().info('junk')
+>>> l.install()
+>>> getLogger().info('something we care about')
+>>> l.uninstall()
+>>> getLogger().info('more junk')
+>>> l.install()
+>>> getLogger().info('something else we care about')
+>>> print l
+root INFO
+  something we care about
+root INFO
+  something else we care about
+
+.. uninstall:
+
+  >>> LogCapture.uninstall_all()
+

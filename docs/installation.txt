@@ -1,0 +1,38 @@
+Installation Instructions
+=========================
+
+If you want to experiment with TestFixtures, the easiest way to
+install it is::
+
+  easy_install testfixtures
+
+Or, if you're using `zc.buildout`, just specify ``testfixtures`` as a
+required egg.
+
+If your package uses setuptools and you decide to use TestFixtures,
+then you should do one of the following:
+
+- Specify ``testfixtures`` in the ``tests_require`` parameter of your
+  package's call to ``setup`` in :file:`setup.py`.
+
+- If using zope.testing, add an ``extra_requires`` parameter in your call
+  to ``setup`` as follows:
+
+  .. code-block:: python
+
+    setup(
+        # other stuff here
+        extras_require=dict(
+            test=['testfixtures'],
+            )
+        )
+
+  Now, in your :file:`buildout.cfg`, specify your package's ``test``
+  extra as the egg required for the test runner:
+
+  .. code-block:: ini
+
+    [test]
+    recipe = zc.recipe.testrunner
+    eggs = yourpackage[test]
+

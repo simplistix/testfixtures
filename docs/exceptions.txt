@@ -1,0 +1,26 @@
+Testing exceptions
+==================
+
+- ShouldRaise context manager
+
+ - should_raise
+
+  basically gives an object that that can be uised in place of the original object, except where an action is expected to raise an exception.
+
+  give examples:
+   - called function
+   - dict key
+
+  
+   - no exception
+
+   - exception class
+   - exception instance
+
+   - s.raised
+
+   - can catch SystemExit and KeyboardInterrupt
+
+ - comparisons and exceptions
+
+ - compare and exceptions

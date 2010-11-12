@@ -591,6 +591,42 @@ class TestC(TestCase):
                          '  eq_called:1 != 0\n'
                          '  </C>')
         
+    def test_compared_object_class_attributes(self):
+
+        class Classy(object):
+            x = 1
+            y = 2
+
+        self.assertEqual(C(Classy,x=1,y=2),Classy())
+
+        c = C(Classy,x=1,y=1)
+        self.assertNotEqual(c,Classy())
+        self.assertEqual(repr(c),
+                         '\n  <C(failed):testfixtures.tests.test_comparison.Classy>\n'
+                         '  y:1 != 2\n'
+                         '  </C>')
+
+        
+        ce = C(Classy,x=1,y=1)
+        ca = Classy()
+        ca.y=1
+        self.assertEqual(ce,ca)
+
+        ce = C(Classy,x=1,y=2)
+        ca = Classy()
+        ca.y=1
+        self.assertNotEqual(ce,ca)
+        self.assertEqual(repr(ce),
+                         '\n  <C(failed):testfixtures.tests.test_comparison.Classy>\n'
+                         '  y:2 != 1\n'
+                         '  </C>')
+
+    def test_importerror(self):
+        self.failIf(
+            C(ImportError('x'))!=ImportError('x')
+            )
+        
+        
 def test_suite():
     return TestSuite((
         makeSuite(TestC),
