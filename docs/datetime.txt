@@ -1,6 +1,8 @@
 Mocking out dates and times
 ===========================
 
+.. currentmodule:: testfixtures
+
 Testing code that involves dates and times or which has behaviour
 dependent on the date or time it is executed at has historically been
 tricky. Mocking lets you perform tests on this type of code and
@@ -323,11 +325,44 @@ In these cases, you need to be careful with the replacement:
 Use with code that checks class types
 -------------------------------------
 
-- adding where type is important
+When using the above specialist mocks, you may find code that checks
+the type of parameters passed may get confused. This is because you
+will have replaced the *class* of the date or time type you are mocking
+out where you are instantiating your test instances, but may not have
+replaced occurrences of the class where type checking is done.
 
-- datetime's date method, when testing
+This can be particularly tricky with, for example, SQLAlchemy column
+definitions that contain a default that is a date or time type, and
+you want to test what happens when these defaults are used.
 
-Use with SQLAlchemy
--------------------
+Code deep within SQLAlchemy will check that you have passed the right
+type of data, but it will have references to the *original* date or
+time class and so these checks will fail since, while the mock is a
+subclass of the original class, the original class is not a subclass
+of the mock.
 
-- sqlalchemy example
+The trick is to replace all occurrences of the class. Future versions
+of :mod:`testfixtures` may include helpers to do this and provide less
+cryptic error messages when you haven't quite got it right.
+
+Also, be aware that the :meth:`~test_datetime.date` method of
+:class:`test_datetime` instances will still return a normal
+:class:`date` instance. If type checking related to this is causing
+problems, the type the :meth:`~test_datetime.date` method returns can
+be controlled as shown in the following example:
+
+.. code-block:: python
+
+  from testfixtures import test_date, test_time
+
+  date_type = test_date()
+  datetime_type = test_datetime(date_type=date_type)
+
+With things set up like this, the :meth:`~test_datetime.date` method
+will return an instance of the :class:`date_type` class:
+
+>>> somewhen = datetime_type.now()
+>>> somewhen.date()
+tdate(2001, 1, 1)
+>>> _.__class__ is date_type
+True
