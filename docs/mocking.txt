@@ -157,7 +157,7 @@ For the decorator, it's less obvious but still pretty easy:
 
   @replace('testfixtures.tests.sample1.X.y',Mock())
   @replace('testfixtures.tests.sample1.X.aMethod',Mock())
-  def test_function(mock_y,mock_aMethod):
+  def test_function(mock_aMethod, mock_y):
       x = X()
       print x.y(),x.aMethod()
 
@@ -261,6 +261,11 @@ Gotchas
   .. cleanup  
  
     >>> r.restore()
+
+  A corollary of this is that you need to replace *all* occurrences of
+  an original to safely be able to test. This can be tricky when an
+  original is imported into many modules that may be used by a
+  particular test.
   
 - You can't replace whole top level modules, and nor should you want
   to! The reason being that everything up to the last dot in the
