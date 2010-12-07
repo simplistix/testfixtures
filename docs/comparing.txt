@@ -1,10 +1,12 @@
 Comparing objects and sequences
 ===============================
 
+.. currentmodule:: testfixtures
+
 Python's :mod:`unittest` package often fails to give very useful
 feedback when comparing long sequences or chunks of text. It also has
 trouble dealing with objects that don't natively support
-comparison. The functions and class described here alleviate these
+comparison. The functions and classes described here alleviate these
 problems.
 
 The compare function
@@ -104,6 +106,32 @@ return the ``identity`` singleton:
 >>> result = compare(1 and 1,True)
 >>> result is identity
 True
+
+Comparing multi-line strings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Comparison of multi-line strings can be painful, especially when small
+differences occur that you don't actually care about but which cause
+tests to fail. To help with this, :func:`compare` has two options that
+can be set to ignore certain types of whitespace.
+
+If you wish to compare two strings that contain blank lines or lines
+containing only whitespace characters, but where you only care about
+the content, you can use the following:
+
+.. code-block:: python
+
+  compare('line1\nline2','line1\n \nline2\n\n',
+          blanklines=False)
+
+If you wish to compare two strings made up of lines that may have
+trailing whitespace that you don't care about, you can do so with the
+following: 
+
+.. code-block:: python
+
+  compare('line1\nline2','line1 \t\nline2   \n',
+          trailing_whitespace=False)
 
 Comparison objects
 ------------------
@@ -291,6 +319,26 @@ There are a few things to be careful of when using comparisons:
 
   >>> C(SomeClass)==C(SomeClass)
   False
+
+String Comparison objects
+-------------------------
+
+When comparing sequences of strings, particularly those comping from
+things like the python logging package, you often end up wanting to
+express a requirement that one string should be almost like another,
+or maybe fit a particular regular expression.
+
+For these situations, you can use :class:`StringComparison` objects
+wherever you would use normal strings, and they will compare equal to
+any string that matches the regular expression they are created with.
+
+Here's an example:
+
+.. code-block:: python
+
+  from testfixtures import compare, StringComparison as S
+
+  compare(S('Starting thread \d+'),'Starting thread 132356')
 
 Differentiating chunks of text
 ------------------------------
