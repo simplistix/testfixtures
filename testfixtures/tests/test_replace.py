@@ -96,7 +96,9 @@ class TestReplace(TestCase):
 
         @replace('testfixtures.tests.sample1.z',test_z)
         @replace('testfixtures.tests.sample1.X.y',test_y)
-        def test_something():
+        def test_something(passed_test_y,passed_test_z):
+            compare(test_z,passed_test_z)
+            compare(test_y,passed_test_y)
             compare(sample1.z(),'test z')
             compare(sample1.X().y(),'test y')
 
