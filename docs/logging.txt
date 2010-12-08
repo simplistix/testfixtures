@@ -2,8 +2,8 @@ Testing logging
 ===============
 
 Python includes an excellent :mod:`logging` package, however many
-people assume that logging calls do not need to be tested. They also
-may want to test logging calls but find the prospect too daunting.
+people assume that logging calls do not need to be tested. They may 
+also want to test logging calls but find the prospect too daunting.
 
 Methods of capture
 ------------------
