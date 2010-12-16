@@ -5,11 +5,11 @@ TestFixtures documentation
    :maxdepth: 1
 
    installation.txt
-
    comparing.txt
    mocking.txt
    datetime.txt
    logging.txt
+   streams.txt
    files.txt
    exceptions.txt
    utilities.txt
