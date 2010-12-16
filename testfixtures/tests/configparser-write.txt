@@ -1,0 +1,34 @@
+.. invisible-code-block: python
+   
+  # change to the temp directory
+  import os
+  os.chdir(tempdir.path)
+
+To construct a configuration file using the :mod:`ConfigParser`
+module, you would do the following: 
+
+.. code-block:: python
+
+   from ConfigParser import ConfigParser
+   config = ConfigParser()
+   config.add_section('A Section')
+   config.set('A Section', 'dir', 'frob')
+   config.set('A Section', 'long', 'this value continues\non the next line')
+   f = open('example.cfg','w')
+   config.write(f)
+   f.close()
+
+The generated configuration file will be as follows:
+
+.. topic:: example.cfg
+ :class: read-file
+
+ ::
+
+   [A Section]
+   long = this value continues
+   	on the next line
+   dir = frob
+
+   
+.. config parser writes whitespace at the end, be careful when testing!

@@ -1,0 +1,33 @@
+Here's an example configuration file:
+
+.. topic:: example.cfg
+ :class: write-file
+
+ ::
+
+   [A Section]
+   dir=frob
+   long: this value continues
+     on the next line
+
+.. invisible-code-block: python
+   
+  # change to the temp directory
+  import os
+  os.chdir(tempdir.path)
+
+To parse this file using the :mod:`ConfigParser` module, you would
+do the following:
+
+.. code-block:: python
+
+   from ConfigParser import ConfigParser
+   config = ConfigParser()
+   config.read('example.cfg')
+
+The items in the section are now available as follows:
+
+>>> for name,value in config.items('A Section'):
+...     print '%r:%r' % (name,value)
+'dir':'frob'
+'long':'this value continues\non the next line'

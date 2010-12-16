@@ -1,6 +1,8 @@
 Testing with files and directories
 ==================================
 
+.. currentmodule:: testfixtures
+
 Working with files and directories in tests can often require
 excessive amounts of boilerplate code to make sure that the tests
 happen in their own sandbox, files and directories contain what they
@@ -10,7 +12,7 @@ cleared up at the end of the tests.
 Methods of use
 --------------
 To help with this, TestFixtures provides the
-:class:`~testfixtures.TempDirectory` class that hides most of the
+:class:`TempDirectory` class that hides most of the
 boilerplate code you would need to write.
 
 Suppose you wanted to test the following function:
@@ -34,7 +36,7 @@ The context manager
 ~~~~~~~~~~~~~~~~~~~
 
 If you're using a version of Python where the ``with`` keyword is
-available, a :class:`~testfixtures.TempDirectory` can be used as a
+available, a :class:`TempDirectory` can be used as a
 context manager:
 
 >>> from testfixtures import TempDirectory
@@ -71,7 +73,7 @@ Manual usage
 
 If you want to work with files or directories for the duration of a
 doctest or in every test in a :class:`~unittest.TestCase`, then you
-can use the :class:`~testfixtures.TempDirectory` manually.
+can use the :class:`TempDirectory` manually.
 
 The instantiation and replacement are done in the ``setUp`` function
 of the :class:`~unittest.TestCase` or passed to the
@@ -94,7 +96,7 @@ temporary directory is cleaned up:
 
 >>> d.cleanup()
 
-If you have multiple :class:`~testfixtures.TempDirectory` objects in use,
+If you have multiple :class:`TempDirectory` objects in use,
 you can easily clean them all up:
 
 >>> TempDirectory.cleanup_all()
@@ -103,7 +105,7 @@ Features of a temporary directory
 ---------------------------------
 
 No matter which usage pattern you pick, you will always end up with a
-:class:`~testfixtures.TempDirectory` object. These have an array of
+:class:`TempDirectory` object. These have an array of
 methods that let you perform common file and directory related tasks
 without all the manual boiler plate. The following sections show you
 how to perform the various tasks you're likely to bump into in the
@@ -112,6 +114,37 @@ course of testing.
 .. create a tempdir for the examples:
 
   >>> tempdir = TempDirectory()
+
+Computing paths
+~~~~~~~~~~~~~~~
+
+If you need to know the real path of the temporary directory, the
+:class:`TempDirectory` object has a :attr:`~TempDirectory.path`
+attribute:
+
+>>> tempdir.path
+'...tmp...'
+
+A common use case is to want to compute a path within the temporary
+directory to pass to code under test. This can be done with the
+:meth:`~TempDirectory.getpath` method:
+
+>>> tempdir.getpath('foo').rsplit(os.sep,1)[-1]
+'foo'
+
+If you want to compute a deeper path, you can either pass either a
+tuple or a forward slash-separated path:
+
+>>> tempdir.getpath(('foo','baz')).rsplit(os.sep,2)[-2:]
+['foo', 'baz']
+>>> tempdir.getpath('foo/baz') .rsplit(os.sep,2)[-2:]
+['foo', 'baz']
+
+.. note:: 
+
+  If passing a string containing path separators, a forward
+  slash should be used as the separator regardless of the underlying
+  platform separator.
 
 Writing files
 ~~~~~~~~~~~~~
@@ -124,8 +157,8 @@ the name of the file and the content you want to write:
 ...     print f.read()
 some text
 
-To make this pattern even easier, you can get the
-:meth:`~testfixtures.TempDirectory.write` method to return the full
+If you want to use the path of the newly written file, you can get the
+:meth:`TempDirectory.write` method to return the full
 path of the file it creates:
 
 >>> path = tempdir.write('anotherfile.txt','some more text',path=True)
@@ -133,7 +166,7 @@ path of the file it creates:
 ...     print f.read()
 some more text
 
-You can also write files into a sub-directory or the temporary
+You can also write files into a sub-directory of the temporary
 directory, whether or not that directory exists, as follows:
 
 >>> path = tempdir.write(('some','folder','afile.txt'),'the text',path=True)
@@ -149,15 +182,14 @@ string:
 ...     print f.read()
 the text
 
-Forward slashes should be used regardless of the operating system
-you are running on.
+Forward slashes should be used regardless of the file system or operating system
+in use.
 
 Creating directories
 ~~~~~~~~~~~~~~~~~~~~
 
-If you just want to create a sub-directory in the temporary directory,
-for example, if the code you are testing writes a set of files into a
-directory, then you can do so as follows:
+If you just want to create a sub-directory in the temporary directory
+you can do so as follows: 
 
 .. new tempdir:
 
@@ -192,15 +224,15 @@ False
 >>> os.path.exists(path)
 True
 
-Forward slashes should be used regardless of the operating system
-you are running on.
+Forward slashes should be used regardless of the file system or operating system
+in use.
 
 Checking the contents of files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Once a file has been written into the temporary directory, you will
 often want to check its contents. This is done with the
-:meth:`~testfixtures.TempDirectory.read` method.
+:meth:`TempDirectory.read` method.
 
 Suppose the code you are testing creates some files:
 
@@ -219,7 +251,7 @@ Suppose the code you are testing creates some files:
     os.mkdir(os.path.join(path,'subdir','logs'))
 
 We can test this function by passing it the temporary directory's path
-and then using the :meth:`~testfixtures.TempDirectory.read` method to
+and then using the :meth:`TempDirectory.read` method to
 check the files were created with the correct content:
 
 >>> spew(tempdir.path)
@@ -229,7 +261,7 @@ check the files were created with the correct content:
 'subdir output'
 
 The second part of the above test shows how to use the
-:meth:`~testfixtures.TempDirectory.read` method to check the contents
+:meth:`TempDirectory.read` method to check the contents
 of files that are in sub-directories of the temporary directory. This
 can also be done by specifying the path relative to the root of 
 the temporary directory as a forward-slash separated string:
@@ -237,14 +269,18 @@ the temporary directory as a forward-slash separated string:
 >>> tempdir.read('subdir/file.txt')
 'subdir output'
 
+Forward slashes should be used regardless of the file system or operating system
+in use.
+
 Checking the contents of directories
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:class:`~testfixtures.TempDirectory` objects have several methods
+:class:`TempDirectory` objects have several methods
 for checking the names of files and directories they contain, which
-one you use depends on whether you're unit testing or doc testing. In
-all cases, the methods provided sort the list of actual files
-alphanumerically so that the ordering will always remain constant.
+one you use depends on whether you're unit testing or testing
+docuemntation. In  all cases, the methods provided sort the list of
+actual files alphanumerically so that the ordering will always remain
+constant.
 
 As an example, to check that the :func:`spew` function above created no
 extraneous files, we could use the
@@ -363,7 +399,7 @@ directories, which may or may not be present:
 
 To test this, we can use any of the previously described methods.
 
-The context manager would be as follows:
+When used manually or as a context manager, this would be as follows:
 
 >>> with TempDirectory(ignore=['.svn']) as d:
 ...   svn_ish(d.path,'test.txt')
@@ -390,8 +426,8 @@ Working with an existing sandbox
 
 Some testing infrastructure already provides a sandbox temporary
 directory, however that infrastructure might not provide the same
-level of functionality that :class:`~testfixtures.TempDirectory` or
-its Manuel integration provide.
+level of functionality that :class:`~testfixtures.TempDirectory`
+provides.
 
 For this reason, it is possible to wrap an existing directory such as
 the following with a :class:`~testfixtures.TempDirectory`:
@@ -447,15 +483,11 @@ will need to make sure that the directory is cleaned up as required.
 
  >>> rmtree(thedir)
 
-.. clean them all up:
-
-  >>> TempDirectory.cleanup_all()
-
 Using with Manuel
-~~~~~~~~~~~~~~~~~
+-----------------
 
 `Manuel`__ is an excellent take on testing the examples found in
-plain-text documentation. It works by applying a set of specialised
+documentation. It works by applying a set of specialised
 parsers to the documentation and testing or otherwise using the the
 blocks returned by those parsers.
 
@@ -464,92 +496,70 @@ __ http://pypi.python.org/pypi/manuel
 The key differences between testing with Manuel and the traditional
 doctest are that it is possible to plug in different types of parser,
 not just the "python console session" one, and so it is possible to
-test different types of examples.
+test different types of examples. TestFixtures provides one these
+plugins to aid working with 
+:class:`~testfixtures.TempDirectory` objects. This plugin makes use of
+:rst:dir:`topic` directives with specific classes set to perform
+different actions. 
 
-TestFixtures provides one these plugins to aid working with
-:class:`~testfixtures.TempDirectory` objects. The following sections
-describe how to use this plugin to help with writing temporary files
-and checking their contents.
+The following sections describe how to use this plugin to help with
+writing temporary files and checking their contents.
+
+Setting up
+~~~~~~~~~~
+
+To use the Manuel plugin, you need to make sure a
+:class:`TempDirectory` instance is available under a particular name
+in the test globals. This name is then passed to the plugin's
+constructor and the plugin is passed to Manuel's
+:class:`~manuel.testing.TestSuite` constructor.
+
+The following example shows how to return a test suite that will
+execute all of the examples below. These require not only the
+TestFixtures plugin but also the Manuel plugins that give more
+traditional doctest behaviour, hidden code blocks
+that are useful for setting things up and checking examples without
+breaking up the flow of the documentation, and capturing of examples
+from the documentation to use for use in other forms of testing: 
+
+.. literalinclude:: ../testfixtures/tests/test_manuel_examples.py
+   :lines: 7-
 
 Writing files
--------------
+~~~~~~~~~~~~~
 
-.. code-block:: python
+To write a file with the plugin, a :rst:dir:`topic` with a class of
+``write-file`` is included in the documentation. The following example
+is a complete reStructuredText file that shows how to write a file
+that is then used by a later example:
 
- if __name__=='__main__':
-    raise 'Foo'
-
-.. -> text
-
-Here's an example where I want to write a file:
-
-.. topic:: test.txt
- :class: write-file
-
- ::
-
-    I want to write a file like the following::
-
-    .. topic:: test.txt
-     :class: write-file
-
-     ::
-
-       This is the file content.
-       A second line.
-
-       .. code-block:: python
-
-         phail(
-
-       A third line.
+.. literalinclude:: ../testfixtures/tests/configparser-read.txt
 
 Checking the contents of files
-------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Now I want to assert that the file has the following content:
+To read a file with the plugin, a :rst:dir:`topic` with a class of
+``read-file`` is included in the documentation. The following example
+is a complete reStructuredText file that shows how to check the values
+written by the code being documented while also using this check as
+part of the documentation:
 
-.. topic:: test.txt
- :class: read-file
-
-   .. code-block:: python
-
-     print "hello"
-     out = 'there'
-
-     foo = 'bar'
-
-Some blah blah
+.. literalinclude:: ../testfixtures/tests/configparser-write.txt
 
 Checking the contents of directories
-------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-I want to check the directory content::
+While the TestFixtures plugin itself does not offer any facility for
+checking the contents of directories, Manuel's :mod:`~manuel.capture`
+plugin can be used in conjunction with the existing features of a
+:class:`TempDirectory` to illustrate the contents expected
+in a directory seamlessly within the documentation.
 
- checker.txt
-  another/file.cfg
-  another/file.cfg.listing
-  some/folder.listing
-  some/folder/afile.cfg
-  some/folder/bfile.cfg
- 
- .. -> something_else
+Here's a complete reStructuredText document that illustrates this
+technique: 
 
-.. -> expected
+.. literalinclude:: ../testfixtures/tests/directory-contents.txt
 
-XXX
+.. clean up all tempdirs:
 
-- getting a tempdir
-- writing a file with an example
-- setting up for tests
-
-- test cleanup of Manuel instance tempdirs (unittest)
-
-- full paths in filename
-- split on '/', no matter OS
-- output when checking for file and it doesn't match
-- check for root paths on read and write
-
-- XXX need substitution on write and read!!!
-
-- XXX docs for getpath!
+  >>> TempDirectory.cleanup_all()
