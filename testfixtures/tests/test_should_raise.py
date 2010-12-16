@@ -226,6 +226,18 @@ class TestShouldRaise(TestCase):
     def test_import_errors(self):
         with ShouldRaise(ImportError('X')) as s:
             raise ImportError('X')
+
+    def test_custom_exception(self):
+
+        class FileTypeError(Exception):
+            def __init__(self,value):
+                self.value = value
+            def __str__(self):
+                return repr(self.value)
+
+        with ShouldRaise(FileTypeError('X')) as s:
+            raise FileTypeError('X')
+
     
 def test_suite():
     return TestSuite((

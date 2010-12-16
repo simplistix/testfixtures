@@ -197,9 +197,8 @@ class Comparison:
         elif isinstance(object_or_type,BaseException):
             c = object_or_type.__class__
             if attribute_dict is None:
-                attribute_dict = (
-                    vars(object_or_type) or {'args':object_or_type.args}
-                    )
+                attribute_dict = vars(object_or_type)
+                attribute_dict['args']=object_or_type.args
         else:
             c = object_or_type.__class__
             if attribute_dict is None:
@@ -216,7 +215,8 @@ class Comparison:
             return True
         self.failed = {}
         if isinstance(other,BaseException):
-            v = {'args':other.args}
+            v = vars(other)
+            v['args']=other.args
         else:
             try:
                 v = vars(other)

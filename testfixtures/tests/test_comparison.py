@@ -147,6 +147,7 @@ class TestC(TestCase):
             repr(C(WeirdException(1,2))),
             "\n"
             "  <C:testfixtures.tests.test_comparison.WeirdException>\n"
+            "  args:()\n"
             "  x:1\n"
             "  y:2\n"
             "  </C>"
@@ -504,9 +505,9 @@ class TestC(TestCase):
             )
 
     def test_exception_no_args_same(self):
-        self.assertNotEqual(
-            WeirdException(1,2),
-            C(WeirdException(1,2))
+        self.assertEqual(
+            C(WeirdException(1,2)),
+            WeirdException(1,2)
             )
         
     @tempdir()
@@ -625,7 +626,6 @@ class TestC(TestCase):
         self.failIf(
             C(ImportError('x'))!=ImportError('x')
             )
-        
         
 def test_suite():
     return TestSuite((
