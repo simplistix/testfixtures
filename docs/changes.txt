@@ -38,9 +38,9 @@ Changes
 -------------------
 
 - added support for using TempDirectory, Replacer and LogCapture as
-  context managers for with statements
+  context managers.
 
-- fixed test failure in Python 2.6
+- fixed test failure in Python 2.6.
 
 1.5.4 (11 Feb 2009)
 -------------------
@@ -49,7 +49,7 @@ Changes
   was raised but one was expected.
 
 - clarified that the return of a should_raise call will be None
-  in the event that an exception is raised by no expected 
+  in the event that an exception is raised but no expected 
   exception is specified.
 
 1.5.3 (17 Dec 2008)
