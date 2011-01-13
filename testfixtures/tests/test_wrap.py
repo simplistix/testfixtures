@@ -224,6 +224,19 @@ class TestWrap(TestCase):
             ('after', (), {})
             ])
 
+    def test_wrapping__name__(self):
+
+        m = Mock()
+
+        @wrap(m.before,m.after)
+        def test_function():
+            something = 1
+            import sample2
+            m.test()
+            return 'something'
+
+        compare(test_function.__name__,'test_function')
+
 
 def test_suite():
     return TestSuite((

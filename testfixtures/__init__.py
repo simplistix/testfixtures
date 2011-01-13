@@ -7,7 +7,7 @@ from calendar import timegm
 from cStringIO import StringIO
 from datetime import datetime,timedelta,date
 from difflib import unified_diff
-from functools import partial
+from functools import partial,wraps
 from inspect import getargspec
 from new import classobj
 from pprint import pformat
@@ -26,6 +26,7 @@ def wrap(before,after=None):
     def wrapper(wrapped):
         if getattr(wrapped,'_wrappings',None) is None:
             w = Wrappings()
+            @wraps(wrapped)
             def wrapping(*args,**kw):
                 args = list(args)
                 to_add = len(getargspec(wrapped)[0][len(args):])
@@ -447,6 +448,8 @@ def log_capture(*names):
     l = LogCaptureForDecorator(names or None,install=False)
     return wrap(l.install,l.uninstall)
 
+# stuff for date, time and datetime mocking below:
+
 @classmethod
 def add(cls,*args):
     cls._q.append(cls(*args))
@@ -578,6 +581,8 @@ def test_time(*args,**kw):
         _gap_d = gap_delta,
         _gap_t = delta_type,
         )
+
+# this marks the end of the test date, datetime and time stuff
 
 class TempDirectory:
 
