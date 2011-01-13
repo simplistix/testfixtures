@@ -1,23 +1,166 @@
 Utilities
 =========
 
+.. currentmodule:: testfixtures
+
+This section describes a few handy functions that didn't fit nicely in
+any other section.
+
 .. _generator:
 
 The ``generator`` helper
 ------------------------
 
-- generator
+It can be handy when testing to be able to turn a simple sequence into
+a generator. This can be necessary when you want to check that your
+code will behave correctly when processing a generator instead of a
+simple sequence, or when you're looking to make assertions about the
+expected return value of a callable that returns a generator.
+
+If you need to turn a simple sequence into a generator, the
+:func:`generator` function is the way to do it:
+
+>>> from testfixtures import generator
+>>> generator(1,2,3)
+<generator object generator at ...>
+
+Iterating over this generator will return the arguments passed to the
+:func:`generator` function:
+
+>>> for i in _:
+...     print i,
+1 2 3
 
 The ``wrap`` helper
 -------------------
 
-- wrap
+The :func:`wrap` helper is a decorator function that allows you to
+wrap the call to the decorated callable with calls to other
+callables. This can be useful when you want to perform setup and
+teardown actions either side of a test function.
 
-  - before
-  - after
-  - return value
-  - arguments (2.5 warning)
-  - stacked wrappers  
-    - return values
-    - less return values than wrappers
-  
+For example, take the following functions:
+
+.. code-block:: python
+
+  def before():
+      print "before"
+
+  def after():
+      print "after"
+
+The :func:`wrap` helper can be used to wrap a function with these:
+
+.. code-block:: python
+
+  from testfixtures import wrap
+
+  @wrap(before,after)
+  def a_function():
+      print "a_function"
+
+When the wrapped function is executed, the output is as follows:
+
+>>> a_function()
+before
+a_function
+after
+
+The section argument to :func:`wrap` is optional:
+
+.. code-block:: python
+
+  from testfixtures import wrap
+
+  @wrap(before)
+  def a_function():
+      print "a_function"
+
+Now, the wrapped function gives the following output when executed:
+
+>>> a_function()
+before
+a_function
+
+Multiple wrapping functions can be provided by stacking :func:`wrap`
+decorations:
+
+.. code-block:: python
+
+  def before1():
+      print "before 1"
+
+  def after1():
+      print "after 1"
+
+  def before2():
+      print "before 2"
+
+  def after2():
+      print "after 2"
+
+  @wrap(before2,after2)
+  @wrap(before1,after1)
+  def a_function():
+      print "a_function"
+
+The order of execution is illustrated below:
+
+>>> a_function()
+before 1
+before 2
+a_function
+after 2
+after 1
+
+The results of calling the wrapping functions executed before the
+wrapped function can be made available to the wrapped function
+provided it accepts positional arguments for these results:
+
+.. code-block:: python
+
+  def before1():
+      return "return 1"
+
+  def before2():
+      return "return 2"
+
+  @wrap(before2)
+  @wrap(before1)
+  def a_function(r1,r2):
+      print r1
+      print r2
+
+Calling the wrapped function illustrates the behaviour:
+
+>>> a_function()
+return 1
+return 2
+
+Finally, the return value of the wrapped function will always be that
+of the original function:
+
+.. code-block:: python
+
+  def before1():
+      return 1
+
+  def after1():
+      return 2
+
+  def before2():
+      return 3
+
+  def after2():
+      return 4
+
+  @wrap(before2,after2)
+  @wrap(before1,after2)
+  def a_function():
+      return 'original'
+
+When the above wrapped function is executed, the original return value
+is still returned:
+
+>>> a_function()
+'original'
