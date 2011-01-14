@@ -1,6 +1,62 @@
 Changes
 =======
 
+.. currentmodule:: testfixtures
+
+1.8.0 (14 January 2010)
+-----------------------
+
+- Added full Sphinx-based documentation.
+
+- added a `Manuel <http://packages.python.org/manuel/>`__ plugin for
+  reading and writing files into a :class:`TempDirectory`.
+
+- any existing log handlers present when a :class:`LogCapture` is
+  installed for a particular logger are now removed.
+
+- fix the semantics of :class:`should_raise`, which should always
+  expect an exception to be raised!
+
+- added the :class:`ShouldRaise` context manager.
+
+- added recursive support to :meth:`TempDirectory.listdir` and added
+  the new :meth:`TempDirectory.check_all` method.
+
+- added support for forward-slash separated paths to all relevant
+  :class:`TempDirectory` methods.
+
+- added :meth:`TempDirectory.getpath` method.
+
+- allow files and directories to be ignored by a regular expression
+  specification when using :class:`TempDirectory`.
+
+- made :class:`Comparison` objects work when the attributes expected
+  might be class attributes.
+
+- re-implement :func:`test_time` so that it uses the correct way to
+  get timezone-less time.
+
+- added :meth:`~tdatetime.set` along with `delta` and `delta_type`
+  parameters to :func:`test_date`, :func:`test_datetime` and
+  :func:`test_time`.
+
+- allow the date class returned by the :meth:`tdatetime.date` method
+  to be configured.
+
+- added the :class:`OutputCapture` context manager.
+
+- added the :class:`StringComparison` class.
+
+- added options to ignore trailing whitespace and blank lines when
+  comparing multi-line strings with :func:`compare`.
+
+- fixed bugs in the handling of some exception types when using
+  :class:`Comparison`, :class:`ShouldRaise` or :class:`should_raise`.
+
+- changed :func:`wrap` to correctly set __name__, along with some
+  other attributes, which should help when using the decorators with
+  certain testing frameworks.
+
 1.7.0 (20 January 2010)
 -----------------------
 
@@ -8,7 +64,7 @@ Changes
   rather than the replacment to the decorated callable when replacing
   a classmethod
 
-- added set method to test_date,test_datetime and test_time to allow
+- added set method to test_date, test_datetime and test_time to allow
   setting the parameters for the next instance to be returned.
 
 - added delta and delta_type parameters to test_date,test_datetime and

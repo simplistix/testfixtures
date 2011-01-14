@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-# Copyright (c) 2010 Simplistix Ltd
+# Copyright (c) 2010-2011 Simplistix Ltd
 #
 # See license.txt for more details.
 import re
