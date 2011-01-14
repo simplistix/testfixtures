@@ -44,6 +44,7 @@ context manager:
 ...   d.write('test.txt','some foo thing')
 ...   foo2bar(d.path,'test.txt')
 ...   d.read('test.txt')
+'...'
 'some bar thing'
 
 
@@ -85,6 +86,7 @@ of the :class:`~unittest.TestCase` or passed to the
 You can then use the temporary directory for your testing:
 
 >>> d.write('test.txt','some foo thing')
+'...'
 >>> foo2bar(d.path,'test.txt')
 >>> d.read('test.txt') == 'some bar thing'
 True
@@ -153,15 +155,14 @@ To write to a file in the root of the temporary directory, you pass
 the name of the file and the content you want to write:
 
 >>> tempdir.write('myfile.txt','some text')
+'...'
 >>> with file(os.path.join(tempdir.path,'myfile.txt')) as f:
 ...     print f.read()
 some text
 
-If you want to use the path of the newly written file, you can get the
-:meth:`TempDirectory.write` method to return the full
-path of the file it creates:
+The full path of the newly written file is returned:
 
->>> path = tempdir.write('anotherfile.txt','some more text',path=True)
+>>> path = tempdir.write('anotherfile.txt','some more text')
 >>> with file(path) as f:
 ...     print f.read()
 some more text
@@ -169,7 +170,7 @@ some more text
 You can also write files into a sub-directory of the temporary
 directory, whether or not that directory exists, as follows:
 
->>> path = tempdir.write(('some','folder','afile.txt'),'the text',path=True)
+>>> path = tempdir.write(('some','folder','afile.txt'),'the text')
 >>> with file(path) as f:
 ...     print f.read()
 the text
@@ -177,7 +178,7 @@ the text
 You can also specify the path to write to as a forward-slash separated
 string:
 
->>> path = tempdir.write('some/folder/bfile.txt','the text',path=True)
+>>> path = tempdir.write('some/folder/bfile.txt','the text')
 >>> with file(path) as f:
 ...     print f.read()
 the text
@@ -196,13 +197,14 @@ you can do so as follows:
   >>> tempdir = TempDirectory()
 
 >>> tempdir.makedir('output')
+'...'
 >>> os.path.isdir(os.path.join(tempdir.path,'output'))
 True
 
-As with file creation, there is a short hand way to return the full
-path of the sub-directory that has just been created:
+As with file creation, the full path of the sub-directory that has
+just been created is returned:
 
->>> path = tempdir.makedir('more_output',path=True)
+>>> path = tempdir.makedir('more_output')
 >>> os.path.isdir(path)
 True
 
@@ -211,7 +213,7 @@ parent directories do not exist:
 
 >>> os.path.exists(os.path.join(tempdir.path,'some'))
 False
->>> path = tempdir.makedir(('some','sub','dir'),path=True)
+>>> path = tempdir.makedir(('some','sub','dir'))
 >>> os.path.exists(path)
 True
 
@@ -220,7 +222,8 @@ string:
 
 >>> os.path.exists(os.path.join(tempdir.path,'another'))
 False
->>> path = tempdir.makedir('another/sub/dir',path=True)
+>>> tempdir.makedir('another/sub/dir')
+'...'
 >>> os.path.exists(path)
 True
 
@@ -392,7 +395,7 @@ directories, which may or may not be present:
   from random import choice
 
   def svn_ish(dirpath,filename):
-    if True or choice((True,False)):
+    if choice((True,False)):
       os.mkdir(os.path.join(dirpath,'.svn'))
     with open(os.path.join(dirpath,filename),'w') as f:
       f.write('something')
@@ -441,6 +444,8 @@ When working with the context manager, this is done as follows:
 ...   d.write('file','data')
 ...   d.makedir('directory')
 ...   os.listdir(thedir)
+'...'
+'...'
 ['directory', 'file']
 
 .. check thedir still exists and reset

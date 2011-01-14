@@ -22,12 +22,12 @@ class DemoTempDirectory:
         You can manually create files in the directory:
         
         >>> f = open(os.path.join(temp_dir.path,'something'),'wb')
-        >>> f.write('stuff')
+        >>> p = f.write('stuff')
         >>> f.close()
 
         TempDirectory also provides a handy method for doing so:
         
-        >>> temp_dir.write('.svn','stuff')
+        >>> p = temp_dir.write('.svn','stuff')
         
         There's a handy method for listing the contents of the
         directory:
@@ -52,7 +52,7 @@ class DemoTempDirectory:
         You can work with files and directories below the root temp
         dir with following methods:
 
-        >>> temp_dir.makedir('test')
+        >>> p = temp_dir.makedir('test')
         >>> temp_dir.listdir()
         test
         >>> os.path.isdir(os.path.join(temp_dir.path,'test'))
@@ -60,7 +60,7 @@ class DemoTempDirectory:
 
         You can also make directory structures easily:
         
-        >>> temp_dir.makedir(('another','test'))
+        >>> p = temp_dir.makedir(('another','test'))
         >>> temp_dir.listdir()
         another
         test
@@ -79,14 +79,14 @@ class DemoTempDirectory:
         
         `write` handles subpaths:
 
-        >>> temp_dir.write(('another','file.txt'),'data')
+        >>> p = temp_dir.write(('another','file.txt'),'data')
         >>> open(os.path.join(temp_dir.path,'another','file.txt'),'rb').read()
         'data'
 
         You can also write directly into a subdirectory that doesn't
         exist:
 
-        >>> temp_dir.write(('new','file'),'bar')
+        >>> p = temp_dir.write(('new','file'),'bar')
         >>> temp_dir.read(('new','file'))
         'bar'
 
@@ -110,7 +110,7 @@ class DemoTempDirectory:
         TempDirectories can also be set up to ignore certain files:
         
         >>> d = TempDirectory(ignore=('.svn',))
-        >>> d.write('.svn','stuff')
+        >>> p = d.write('.svn','stuff')
         >>> temp_dir.listdir()
         No files or directories found.
         """
@@ -120,10 +120,10 @@ class DemoTempDirectory:
         TempDirectories can also be set up to ignore certain files:
         
         >>> d = TempDirectory(ignore=('^\.svn$','.pyc$'))
-        >>> d.write('.svn','stuff')
-        >>> d.write('foo.svn','')
-        >>> d.write('foo.pyc','')
-        >>> d.write('bar.pyc','')
+        >>> p = d.write('.svn','stuff')
+        >>> p = d.write('foo.svn','')
+        >>> p = d.write('foo.pyc','')
+        >>> p = d.write('bar.pyc','')
         >>> d.listdir()
         foo.svn
         """
@@ -136,7 +136,7 @@ class TestTempDirectory:
         >>> p = d.path
         >>> os.path.exists(p)
         True
-        >>> d.write('something','stuff')
+        >>> p = d.write('something','stuff')
         >>> d.cleanup()
         >>> os.path.exists(p)
         False
@@ -176,7 +176,7 @@ class TestTempDirectory:
         >>> with TempDirectory() as d:
         ...    p = d.path
         ...    print os.path.exists(p)
-        ...    d.write('something','stuff')
+        ...    path = d.write('something','stuff')
         ...    os.listdir(p)
         ...    with open(os.path.join(p,'something')) as f:
         ...        print repr(f.read())
@@ -190,10 +190,10 @@ class TestTempDirectory:
     def test_listdir_sort(self):
        """
         >>> with TempDirectory() as d:
-        ...    d.write('ga','')
-        ...    d.write('foo1','')
-        ...    d.write('Foo2','')
-        ...    d.write('g.o','')
+        ...    p = d.write('ga','')
+        ...    p = d.write('foo1','')
+        ...    p = d.write('Foo2','')
+        ...    p = d.write('g.o','')
         ...    d.listdir()
         Foo2
         foo1
