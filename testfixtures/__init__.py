@@ -23,6 +23,10 @@ class Wrappings:
         self.after = []
         
 def wrap(before,after=None):
+    """
+    A decorator that causes the supplied callables to be called before
+    or after the wrapped callable, as appropriate.
+    """
     def wrapper(wrapped):
         if getattr(wrapped,'_wrappings',None) is None:
             w = Wrappings()
@@ -55,12 +59,32 @@ def wrap(before,after=None):
 not_there =object()
 
 class Replacer:
+    """
+    These are used to manage the mocking out of objects so that units
+    of code can be tested without having to rely on their normal
+    dependencies.
+    """
 
     def __init__(self,replace_returns=False):
         self.originals = {}
         self.replace_returns=replace_returns
 
     def replace(self,target,replacement,strict=True):
+        """
+        Replace the specified target with the supplied replacement.
+
+        :param target: A string containing the dotted-path to the
+                       object to be replaced. This path may specify a
+                       module in a package, an attribute of a module,
+                       or any attribute of something contained within
+                       a module.
+
+        :param replacement: The object to use as a replacement.
+
+        :param strict: When `True`, an exception will be raised if an
+                       attempt is made to replace an object that does
+                       not exist.
+        """
         container,attribute = target.rsplit('.',1)
         container = resolve(container)
         t_obj = getattr(container,attribute,not_there)
@@ -78,6 +102,10 @@ class Replacer:
             return replacement
 
     def restore(self):
+        """
+        Restore all the original objects that have been replaced by
+        calls to the :meth:`replace` method of this :class:`Replacer`.
+        """
         for target,original in tuple(self.originals.items()):
             if original is not_there:
                 container,attribute = target.rsplit('.',1)
@@ -87,10 +115,6 @@ class Replacer:
                 self.replace(target,original)
             del self.originals[target]
             
-    def __call__(self,original_function):
-        self.original_function = original_function
-        return self.new_function
-
     def __enter__(self):
         return self
     
@@ -98,10 +122,33 @@ class Replacer:
         self.restore()
 
 def replace(target,replacement,strict=True):
+    """
+    A decorator to replace a target object for the duration of a test
+    function.
+
+    :param target: A string containing the dotted-path to the
+                   object to be replaced. This path may specify a
+                   module in a package, an attribute of a module,
+                   or any attribute of something contained within
+                   a module.
+
+    :param replacement: The object to use as a replacement.
+
+    :param strict: When `True`, an exception will be raised if an
+                   attempt is made to replace an object that does
+                   not exist.
+    """
     r  = Replacer(replace_returns=True)
     return wrap(partial(r.replace,target,replacement,strict),r.restore)
 
 def diff(x,y):
+    """
+    A shorthand function that uses :mod:`difflib` to return a
+    string representing the differences between the two string
+    arguments.
+
+    Most useful when comparing multi-line strings.
+    """
     return '\n'.join(
         tuple(unified_diff(
             x.split('\n'),
@@ -122,6 +169,21 @@ def strip_blank_lines(text):
     return '\n'.join(result)
 
 def compare(x,y,blanklines=True,trailing_whitespace=True):
+    """
+    Compare the two supplied arguments and raise an
+    :class:`AssertionError` if they are not the same.
+
+    The :class:`AssertionError` raised will attempt to provide
+    descriptions of the differences found.
+
+    :param blanklines: If `False`, then when comparing multi-line
+                       strings, any blank lines in either argument
+                       will be ignored.
+
+    :param trailing_whitespace: If `False`, then when comparing
+                                multi-line strings, trailing
+                                whilespace on lines will be ignored.
+    """
     # pre-processing
     if isinstance(x,GeneratorType) and isinstance(x,GeneratorType):
         x = tuple(x)
@@ -176,10 +238,32 @@ def compare(x,y,blanklines=True,trailing_whitespace=True):
     raise AssertionError(message)
     
 def generator(*args):
+    """
+    A utility function for creating a generator that will yield the
+    supplied arguments.
+    """
     for i in args:
         yield i
 
 class Comparison:
+    """
+    These are used when you need to compare objects
+    that do not natively support comparison. 
+
+    :param object_or_type: The object or class from which to create the
+                           :class:`Comparison`.
+    
+    :param attribute_dict: An optional dictionary containing attibutes
+                           to place on the :class:`Comparison`.
+    
+    :param strict: If true, any expected attributes not present or extra
+                   attributes not expected on the object involved in the
+                   comparison will cause the comparison to fail.
+
+    :param attributes: Any other keyword parameters passed will placed
+                       as attributes on the :class:`Comparison`.
+    """
+    
     failed = None
     def __init__(self,
                  object_or_type,
@@ -293,9 +377,19 @@ class Comparison:
             return r
 
 class StringComparison:
+    """
+    An object that can be used in comparisons of expected and actual
+    strings where the string expected matches a pattern rather than a
+    specific concrete string.
 
-    def __init__(self,re_source):
-        self.re = compile(re_source)
+    :param regex_source: A string containing the source for a regular
+                         expression that will be used whenever this
+                         :class:`StringComparison` is compared with
+                         any :class:`basestring` instance.
+    
+    """
+    def __init__(self,regex_source):
+        self.re = compile(regex_source)
 
     def __eq__(self,other):
         if not isinstance(other,basestring):
@@ -334,6 +428,30 @@ class ShouldRaiseWrapper:
             self.sr.handle(None)
             
 class should_raise:
+    """
+    A wrapper to use when you want to assert that an exception is
+    raised.
+
+    .. note::
+
+      Consider using the :class:`ShouldRaise` context manager
+      instead.
+
+    :param callable: the object to be wrapped.
+
+    :param exception: This can be one of the following:
+    
+                      * `None`, indicating that an exception must be
+                        raised, but the type is unimportant.
+                        
+                      * An exception class, indicating that the type
+                        of the exception is important but not the
+                        parameters it is created with.
+                        
+                      * An exception instance, indicating that an
+                        exception exactly matching the one supplied
+                        should be raised.  
+    """
 
     raised = None
 
@@ -359,6 +477,23 @@ class should_raise:
         return ShouldRaiseWrapper(self,partial(self.callable))(*args,**kw)
 
 class ShouldRaise:
+    """
+    This context manager is used to assert that an exception is raised
+    within the context it is managing.
+
+    :param exception: This can be one of the following:
+    
+                      * `None`, indicating that an exception must be
+                        raised, but the type is unimportant.
+                        
+                      * An exception class, indicating that the type
+                        of the exception is important but not the
+                        parameters it is created with.
+                        
+                      * An exception instance, indicating that an
+                        exception exactly matching the one supplied
+                        should be raised.  
+    """
 
     def __init__(self,exception=None):
         self.exception = exception
@@ -375,7 +510,18 @@ class ShouldRaise:
         return True
         
 class LogCapture(logging.Handler):
+    """
+    These are used to capture entries logged to the Python logging
+    framework and make assertions about what was logged.
 
+    :param names: A sequence of strings containing the dotted names of
+                  loggers to capture. By default, the root logger is
+                  captured.
+                  
+    :param install: If `True`, the :class:`LogCapture` will be
+                    installed as part of its instantiation.
+    """
+    
     instances = set()
     
     def __init__(self, names=None, install=True):
@@ -390,12 +536,20 @@ class LogCapture(logging.Handler):
             self.install()
 
     def clear(self):
+        "Clear any entries that have been captured."
         self.records = []
         
     def emit(self, record):
         self.records.append(record)
 
     def install(self):
+        """
+        Install this :class:`LogHandler` into the Python logging
+        framework for the named loggers.
+
+        This will remove any existing handlers for those loggers and
+        drop their level to 1 in order to capture all logging.
+        """
         for name in self.names:
             logger = logging.getLogger(name)
             self.oldlevels[name] = logger.level
@@ -405,6 +559,14 @@ class LogCapture(logging.Handler):
         self.instances.add(self)
 
     def uninstall(self):
+        """
+        Un-install this :class:`LogHandler` from the Python logging
+        framework for the named loggers.
+
+        This will re-instate any existing handlers for those loggers
+        that were removed during installation and retore their level
+        that prior to installation.
+        """
         if self in self.instances:
             for name in self.names:
                 logger = logging.getLogger(name)
@@ -414,6 +576,7 @@ class LogCapture(logging.Handler):
 
     @classmethod
     def uninstall_all(cls):
+        "This will uninstall all existing :class:`LogHandler` objects."
         for i in tuple(cls.instances):
             i.uninstall()
         
@@ -427,6 +590,15 @@ class LogCapture(logging.Handler):
         return '\n'.join(["%s %s\n  %s" % r for r in self.actual()])
 
     def check(self,*expected):
+        """
+        This will compare the captured entries with the expected
+        entries provided and raise an :class:`AssertionError` if they
+        do not match.
+
+        :param expected: A sequence of 3-tuples containing the
+                         expected log entries. Each tuple should be of
+                         the form (logger_name, string_level, message)
+        """
         return compare(
             expected,
             tuple(self.actual())
@@ -445,6 +617,14 @@ class LogCaptureForDecorator(LogCapture):
         return self
     
 def log_capture(*names):
+    """
+    A decorator for making a :class:`LogCapture` installed an
+    available for the duration of a test function.
+
+    :param names: An optional sequence of names specifying the loggers
+                  to be captured. If not specified, the root logger
+                  will be captured.
+    """
     l = LogCaptureForDecorator(names or None,install=False)
     return wrap(l.install,l.uninstall)
 
@@ -585,8 +765,27 @@ def test_time(*args,**kw):
 # this marks the end of the test date, datetime and time stuff
 
 class TempDirectory:
+    """
+    A class representing a temporary directory on disk.
 
+    :param ignore: A sequence of strings containing regular expression
+                   patterns that match filenames that should be
+                   ignored by the :class:`TempDirectory` listing and
+                   checking methods.
+
+    :param create: If `True`, the temporary directory will be created
+                   as part of class instantiation.
+
+    :param path: If passed, this should be a string containing a
+                 physical path to use as the temporary directory. When
+                 passed, :class:`TempDirectory` will not create a new
+                 directory to use.
+    """
+    
     instances = set()
+
+    #: The physical path of the :class:`TempDirectory` on disk
+    path = None
     
     def __init__(self,ignore=(),create=True,path=None):
         self.ignore = []
@@ -597,6 +796,10 @@ class TempDirectory:
             self.create()
 
     def create(self):
+        """
+        Create a temporary directory for this instance to use if one
+        has not already been created.
+        """
         if self.path:
             return self
         self.path = mkdtemp()
@@ -604,12 +807,21 @@ class TempDirectory:
         return self
 
     def cleanup(self):
+        """
+        Delete the temporary directory and anything in it.
+        This :class:`TempDirectory` cannot be used again unless
+        :meth:`create` is called.
+        """
         if self in self.instances and os.path.exists(self.path):
             rmtree(self.path)
             self.instances.remove(self)
 
     @classmethod
     def cleanup_all(cls):
+        """
+        Delete all temporary directories associated with all
+        :class:`TempDirectory` objects.
+        """
         for i in tuple(cls.instances):
             i.cleanup()
 
@@ -643,6 +855,28 @@ class TempDirectory:
         return filtered
     
     def listdir(self,path=None,recursive=False):
+        """
+        Print the contents of the specified directory.
+
+        :param path: The path to list, which can be:
+
+                     * `None`, indicating the root of the temporary
+                       directory should be listed.
+
+                     * A tuple of strings, indicating that the
+                       elements of the tuple should be used as directory
+                       names to traverse from the root of the
+                       temporary directory to find the directory to be
+                       listed.
+
+                     * A forward-slash separated string, indicating
+                       the directory or subdirectory that should be
+                       traversed to from the temporary directory and
+                       listed.
+
+        :param recursive: If `True`, the directory specified will have
+                          its subdirectories recursively listed too.
+        """
         actual = self.actual(path,recursive)
         if not actual:
             print 'No files or directories found.'
@@ -650,12 +884,69 @@ class TempDirectory:
             print n
 
     def check(self,*expected):
+        """
+        Compare the contents of the temporary directory with the
+        expected contents supplied.
+
+        This method only checks the root of the temporary directory.
+
+        :param expected: A sequence of strings containing the names
+                         expected in the directory.
+        """
         compare(expected,tuple(self.actual()))
 
     def check_dir(self,dir,*expected):
+        """
+        Compare the contents of the specified subdirectory of the
+        temporary directory with the expected contents supplied.
+
+        This method will only check the contents of the subdirectory
+        specified and will not recursively check subdirectories.
+        
+        :param dir: The subdirectory to check, which can be:
+
+                     * A tuple of strings, indicating that the
+                       elements of the tuple should be used as directory
+                       names to traverse from the root of the
+                       temporary directory to find the directory to be
+                       checked.
+
+                     * A forward-slash separated string, indicating
+                       the directory or subdirectory that should be
+                       traversed to from the temporary directory and
+                       checked.
+
+        :param expected: A sequence of strings containing the names
+                         expected in the directory.
+        """
         compare(expected,tuple(self.actual(dir)))
 
     def check_all(self,dir,*expected):
+        """
+        Recursively compare the contents of the specified directory
+        with the expected contents supplied.
+
+        :param dir: The directory to check, which can be:
+
+                     * A tuple of strings, indicating that the
+                       elements of the tuple should be used as directory
+                       names to traverse from the root of the
+                       temporary directory to find the directory to be
+                       checked.
+
+                     * A forward-slash separated string, indicating
+                       the directory or subdirectory that should be
+                       traversed to from the temporary directory and
+                       checked.
+
+                     * An empty string, indicating that the whole
+                       temporary directory should be checked.
+
+        :param expected: A sequence of strings containing the paths
+                         expected in the directory. These paths should
+                         be forward-slash separated and relative to
+                         the root of the temporary directory.
+        """
         compare(expected,tuple(self.actual(dir,recursive=True)))
 
     def _join(self,name):
@@ -667,13 +958,47 @@ class TempDirectory:
                 )
         return os.path.join(self.path,*name)
         
-    def makedir(self,dirpath,path=False):
+    def makedir(self,dirpath,
+                # for backwards compatibility
+                path=True):
+        """
+        Make an empty directory at the specified path within the
+        temporary directory. Any intermediate subdirectories that do
+        not exist will also be created.
+
+        :param dirpath: The directory to create, which can be:
+        
+                        * A tuple of strings. 
+
+                        * A forward-slash separated string.
+
+        :returns: The full path of the created directory.
+        """
         thepath = self._join(dirpath)
         os.makedirs(thepath)
         if path:
             return thepath
     
-    def write(self,filepath,data,path=False):
+    def write(self,filepath,data,
+              # for backwards compatibility
+              path=True):
+        """
+        Write the supplied data to a file at the specified path within
+        the temporary directory. Any subdirectories specified that do
+        not exist will also be created.
+
+        The file will always be written in binary mode.
+        
+        :param filepath: The path to the file to create, which can be:
+        
+                         * A tuple of strings. 
+
+                         * A forward-slash separated string.
+
+        :param data: A string containing the data to be written.
+        
+        :returns: The full path of the file written.
+        """
         if isinstance(filepath,basestring):
             filepath = filepath.split('/')
         if len(filepath)>1:
@@ -688,9 +1013,35 @@ class TempDirectory:
             return thepath
 
     def getpath(self,path):
+        """
+        Return the full path on disk that corresponds to the path
+        relative to the temporary directory that is passed in.
+
+        :param path: The path to the file to create, which can be:
+        
+                     * A tuple of strings. 
+
+                     * A forward-slash separated string.
+
+        :returns: A string containing the full path.
+        """
         return self._join(path)
     
     def read(self,filepath):
+        """
+        Reading the file at the specified path within the temporary
+        directory.
+
+        The file is always read in binary mode.
+
+        :param filepath: The path to the file to read, which can be:
+        
+                         * A tuple of strings. 
+
+                         * A forward-slash separated string.
+
+        :returns: A string containing the data read.
+        """
         f = open(self._join(filepath),'rb')
         data = f.read()
         f.close()
@@ -703,12 +1054,22 @@ class TempDirectory:
         self.cleanup()
 
 def tempdir(*args,**kw):
+    """
+    A decorator for making a :class:`TempDirectory` available for the
+    duration of a test function.
+
+    All arguments and parameters are passed through to the
+    :class:`TempDirectory` constructor.
+    """
     kw['create']=False
     l = TempDirectory(*args,**kw)
     return wrap(l.create,l.cleanup)
 
 class OutputCapture:
-
+    """
+    A context manager for capturing output to the
+    :attr:`sys.stdout` and :attr:`sys.stderr` streams.
+    """
     def __enter__(self):
         self.original_stdout = sys.stdout
         self.original_stderr = sys.stderr
@@ -720,5 +1081,11 @@ class OutputCapture:
         sys.stderr = self.original_stderr
 
     def compare(self,expected):
+        """
+        Compare the captured output to that expected. If the output is
+        not the same, an :class:`AssertionError` will be raised.
+
+        :param expected: A string containing the expected output.
+        """
         compare(expected.strip(),self.output.getvalue().strip())
 

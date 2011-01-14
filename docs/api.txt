@@ -1,10 +1,177 @@
 API Reference
 =============
 
-.. automodule:: testfixtures
-   :members:
-   :undoc-members:
-   :inherited-members:
-   :show-inheritance:
+.. currentmodule:: testfixtures
 
-NB: make sure to document attributes of classes, eg: path attribute of TempDirectory
+.. autoclass:: Comparison
+
+.. autoclass:: LogCapture
+   :members:
+
+.. autoclass:: OutputCapture
+   :members:
+
+.. autoclass:: Replacer()
+   :members:
+
+.. autoclass:: ShouldRaise
+   :members:
+
+.. autoclass:: StringComparison
+   :members:
+
+.. autoclass:: TempDirectory
+   :members:
+   :exclude-members: makedir, write
+
+   .. automethod:: makedir(dirpath)
+
+   .. automethod:: write(filepath, data)
+
+.. autofunction:: compare
+
+.. autofunction:: diff
+
+.. autofunction:: generator
+
+.. autofunction:: log_capture
+
+.. autofunction:: replace
+
+.. autoclass:: should_raise
+
+.. autofunction:: tempdir
+
+.. function:: test_date(*date, delta=None, delta_type='days')
+
+   A function that returns a mock object that can be used in place of
+   the :class:`datetime.date` class but where the return value of
+   :meth:`~datetime.date.today` can be controlled.
+
+   :param date: An optional sequence of parameters used to create the
+                first date returned by
+                :meth:`~datetime.date.today`. If not supplied,
+                `(2001,1,1)` will be used.
+
+   :param delta: The size of the delta to use between values returned
+                 from :meth:`~datetime.date.today`. If not specified,
+                 it will increase by 1 with each call to
+                 :meth:`~datetime.date.today`.
+ 
+   :param delta_type: The type of the delta to use between values returned
+                      from :meth:`~datetime.date.today`. This can be
+                      any keyword parameter accepted by the
+                      :class:`~datetime.timedelta` constructor.
+
+   The mock returned will behave exactly as the :class:`datetime.date`
+   class with the exception of the following members:
+   
+   .. method:: tdate.add(*date)
+
+     This will add the :class:`datetime.date` created from the
+     supplied parameters to the queue of dates to be returned by
+     :meth:`~datetime.date.today`.
+
+   .. method:: tdate.set(*date)
+
+     This will set the :class:`datetime.date` created from the
+     supplied parameters as the next date to be returned by
+     :meth:`~datetime.date.today`, regardless of any dates in the
+     queue.
+
+   .. classmethod:: tdate.today()
+
+     This will return the next supplied or calculated date from the
+     internal queue, rather than the actual current date.
+
+.. function:: test_datetime(*datetime, delta=None, delta_type='seconds', date_type=datetime.date)
+
+   A function that returns a mock object that can be used in place of
+   the :class:`datetime.datetime` class but where the return value of
+   :meth:`~datetime.datetime.now` can be controlled.
+
+   :param datetime: An optional sequence of parameters used to create the
+                first datetime returned by
+                :meth:`~datetime.datetime.now`. If not supplied,
+                `(2001,1,1,0,0,0)` will be used.
+
+   :param delta: The size of the delta to use between values returned
+                 from :meth:`~datetime.datetime.now`. If not specified,
+                 it will increase by 1 with each call to
+                 :meth:`~datetime.datetime.now`.
+ 
+   :param delta_type: The type of the delta to use between values returned
+                      from :meth:`~datetime.datetime.now`. This can be
+                      any keyword parameter accepted by the
+                      :class:`~datetime.timedelta` constructor.
+
+   :param date_type: The type to use for the return value of the
+                     :meth:`~datetime.datetime.date` method. This can
+                     help with gotchas that occur when type checking
+                     if performed on values returned by the mock's
+                     :meth:`~datetime.datetime.date` method.
+
+   The mock returned will behave exactly as the :class:`datetime.datetime`
+   class with the exception of the following members:
+   
+   .. method:: tdatetime.add(*datetime)
+
+     This will add the :class:`datetime.datetime` created from the
+     supplied parameters to the queue of datetimes to be returned by
+     :meth:`~datetime.datetime.now`.
+
+   .. method:: tdatetime.set(*datetime)
+
+     This will set the :class:`datetime.datetime` created from the
+     supplied parameters as the next datetime to be returned by
+     :meth:`~datetime.datetime.now`, regardless of any datetimes in the
+     queue.
+
+   .. classmethod:: tdatetime.now()
+
+     This will return the next supplied or calculated datetime from the
+     internal queue, rather than the actual current datetime.
+
+   .. classmethod:: tdatetime.date()
+
+     This will return the date component of the current mock instance,
+     but using the date type supplied when the mock class was created.
+
+.. function:: test_time(*time, delta=None, delta_type='seconds')
+
+   A function that returns a mock object that can be used in place of
+   the :class:`time.time` function but where the return value can be
+   controlled.
+
+   :param time: An optional sequence of parameters used to create the
+                first time returned. The parameters taken are the same
+                as those of the :class:`datetime.datetime`
+                constructor.
+
+                If not supplied, `(2001,1,1,0,0,0)` will be used.
+
+   :param delta: The size of the delta to use between values returned.
+                 If not specified, it will increase by 1 with each
+                 call to the mock.
+ 
+   :param delta_type: The type of the delta to use between values
+                      returned.  This can be
+                      any keyword parameter accepted by the
+                      :class:`~datetime.timedelta` constructor.
+
+   The mock additionally has the following methods available on it:
+   
+   .. method:: ttime.add(*time)
+
+     This will add the time specified by the supplied parameters to the
+     queue of times to be returned by calls to the mock.
+
+   .. method:: ttime.set(*time)
+
+     This will set the time specified by the supplied parameters as
+     the next time to be returned by a call to the mock, regardless of
+     any times in the queue.
+
+.. autofunction:: wrap
+
+.. autoclass:: testfixtures.manuel.Files

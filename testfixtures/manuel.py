@@ -23,6 +23,15 @@ class FileResult(object):
     actual = None
 
 class Files(Manuel):
+    """
+    A `Manuel <http://packages.python.org/manuel/>`__ plugin that
+    parses certain ReST sections to read and write files in the
+    configured :class:`TempDirectory`.
+
+    :param name: This is the name of the :class:`TempDirectory` to use
+                 in the Manual global namespace (ie: `globs`).
+
+    """
     def __init__(self,name):
         self.name = name
         Manuel.__init__(self,
