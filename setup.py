@@ -28,6 +28,11 @@ setup(
         'zope.dottedname',
         ),
     extras_require=dict(
-        test=['mock','manuel'],
+        test=[
+            # used in our own tests
+            'mock','manuel',
+            # required to test optional features
+            'zope.component',
+            ],
         )
     )

@@ -174,4 +174,7 @@ API Reference
 
 .. autofunction:: wrap
 
+.. autoclass:: testfixtures.components.TestComponents
+   :members:
+
 .. autoclass:: testfixtures.manuel.Files

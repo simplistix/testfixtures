@@ -1,0 +1,66 @@
+Testing with zope.component
+===========================
+
+.. invisible-code-block: python
+
+  from zope.component import getSiteManager
+  from testfixtures.components import TestComponents
+
+.. currentmodule:: testfixtures
+
+`zope.component`__ is a fantastic aspect-oriented library for Python,
+however its unit testing support is somewhat convoluted. If you need
+to test code that registers adapters, utilities and the like then you
+may need to provide a sterile component registry.  For historical
+reasons, component registries are known as `Site Managers` in
+:mod:`zope.component`.
+
+__ http://pypi.python.org/pypi/zope.component
+
+TestFixtures provides the a :class:`~components.TestComponents` helper
+which provdes just such a sterile registry. It should be instantiated
+in your :class:`TestCase`'s :meth:`setUp` method. It's
+:meth:`uninstall` method should be called in the test's
+:meth:`tearDown` method.
+
+Normally, :meth:`zope.component.getSiteManager` returns whatever
+the current registry is. This may be influenced by frameworks that use
+:mod:`zope.component` which can means that unit tests have no
+baseline to start with:
+
+>>> original = getSiteManager()
+>>> print original
+<BaseGlobalComponents base>
+
+Once we've got a :class:`TestComponents` in place, we know what
+we're getting:
+
+>>> components = TestComponents()
+>>> getSiteManager()
+<Components Testing>
+
+The registry that :func:`getSiteManager` returns is now also
+available as an attribute of the :class:`TestComponents`
+instance:
+
+>>> getSiteManager() is components.registry
+True
+
+It's also empty:
+
+>>> tuple(components.registry.registeredUtilities())
+()
+>>> tuple(components.registry.registeredAdapters())
+()
+>>> tuple(components.registry.registeredHandlers())
+()
+
+You can do whatever you like with this registry. When you're done,
+just call the :meth:`uninstall` method:
+
+>>> components.uninstall()
+
+Now you'll have the original registy back in place:
+
+>>> getSiteManager() is original
+True

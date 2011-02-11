@@ -12,6 +12,7 @@ TestFixtures documentation
    streams.txt
    files.txt
    exceptions.txt
+   components.txt
    utilities.txt
 
    api.txt
