@@ -238,6 +238,22 @@ class TestShouldRaise(TestCase):
         with ShouldRaise(FileTypeError('X')) as s:
             raise FileTypeError('X')
 
+    def test_assert_keyerror_raised(self):
+        class Dodgy(dict):
+            def __getattr__(self,name):
+                # NB: we forgot to turn our KeyError into an attribute error
+                return self[name]
+        try:
+            with ShouldRaise(AttributeError('foo')):
+                Dodgy().foo
+        except AssertionError,e:
+            self.assertEqual(
+                e,
+                C(AssertionError("KeyError(('foo',),) raised, AttributeError('foo',) expected"))
+                )
+        else:
+            self.fail('No exception raised!')
+
     
 def test_suite():
     return TestSuite((

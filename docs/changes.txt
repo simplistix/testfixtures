@@ -3,6 +3,13 @@ Changes
 
 .. currentmodule:: testfixtures
 
+1.9.1 (11 March 2011)
+------------------------
+
+- Fix bug when :class:`ShouldRaise` context managers incorrectly
+  reported what exception was incorrectly raised when the incorrectly
+  raised exception was a :class:`KeyError`.
+
 1.9.0 (11 February 2011)
 ------------------------
 
