@@ -202,6 +202,11 @@ class TestDateTime(TestCase):
     def test_min_number_args(self):
         from datetime import datetime
         compare(datetime.now(),d(2001,1,2))
+
+    @replace('datetime.datetime',test_datetime(2001,1,2))
+    def test_utc_now(self):
+        from datetime import datetime
+        compare(datetime.utcnow(),d(2001,1,2))
         
 def test_suite():
     return TestSuite((

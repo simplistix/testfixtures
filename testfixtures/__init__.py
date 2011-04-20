@@ -705,6 +705,7 @@ def test_datetime(*args,**kw):
         'tdatetime',datetime,(2001,1,1,0,0,0),args,
         _ct=correct_datetime,
         now=instantiate,
+        utcnow=instantiate,
         _gap = gap,
         _gap_d = gap_delta,
         _gap_t = delta_type,

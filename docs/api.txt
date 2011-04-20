@@ -132,6 +132,22 @@ API Reference
      This will return the next supplied or calculated datetime from the
      internal queue, rather than the actual current datetime.
 
+   .. classmethod:: tdatetime.utcnow()
+
+     This will return the next supplied or calculated datetime from the
+     internal queue, rather than the actual current UTC datetime.
+
+     .. note :: 
+
+       This method does nothing to remove time zone information from
+       the datetimes in the internal queue. To correctly mimic
+       :meth:`~datetime.datetime.utcnow` you must ensure that all items in the
+       internal queue have :attr:`~datetime.datetime.tzinfo` set to
+       ``None``. This will happen by default, but you must be careful
+       if you cause datetimes that have
+       :attr:`~datetime.datetime.tzinfo` something other than ``None``
+       to end up in the internal queue.
+
    .. classmethod:: tdatetime.date()
 
      This will return the date component of the current mock instance,
