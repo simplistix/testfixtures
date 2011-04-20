@@ -443,7 +443,7 @@ When working with the context manager, this is done as follows:
 >>> with TempDirectory(path=thedir) as d:
 ...   d.write('file','data')
 ...   d.makedir('directory')
-...   os.listdir(thedir)
+...   sorted(os.listdir(thedir))
 '...'
 '...'
 ['directory', 'file']
@@ -466,7 +466,7 @@ For the decorator, usage would be as follows:
   def test_function(d):
       d.write('file','data')
       d.makedir('directory')
-      assert os.listdir(thedir)==['directory','file']
+      assert sorted(os.listdir(thedir))==['directory','file']
 
 .. check the above raises no assertion error and that thedir still
    exits:
