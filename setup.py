@@ -12,7 +12,7 @@ base_dir = os.path.join(os.path.dirname(__file__))
 
 setup(
     name='buildout-versions',
-    version='1.5',
+    version='1.6dev',
     author='Chris Withers',
     author_email='chris@simplistix.co.uk',
     license='MIT',

@@ -1,5 +1,12 @@
 Changes
 =======
+1.6 (XX XXX XXXX)
+-----------------
+
+- Fix problems with mixed-case packages when :mod:`buildout-versions`
+  is used with :mod:`mr.developer`.
+
+  Thanks to Maurits van Rees for the patch.
 
 1.5 (15 Sep 2010)
 -----------------
@@ -30,7 +37,7 @@ Changes
 
 - Put direct link to documentation in PyPI description
 
-Thanks for Marius Gedminas for the feedback.
+  Thanks for Marius Gedminas for the feedback.
 
 1.1 (30 Jul 2010)
 -----------------

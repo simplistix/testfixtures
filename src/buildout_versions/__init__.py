@@ -9,6 +9,7 @@ from zc.buildout import easy_install
 from zc.buildout.easy_install import Installer
 from zc.buildout.easy_install import logger
 from zc.buildout.easy_install import IncompatibleVersionError
+from zc.buildout.easy_install import default_versions
 
 required_by = {}
 picked_versions = {}
@@ -52,11 +53,19 @@ file_name = None
 def start(buildout):
     global file_name
 
-    # normalise version case
-    current = Installer._versions
-    Installer._versions = {}
-    for key,value in current.items():
-        Installer._versions[key.lower()]=value
+    # normalise version case and make sure that this is stored in
+    # buildout['versions']
+    versions_section = buildout['buildout'].get('versions')
+    current_versions = buildout.get(versions_section, {})
+    for key,value in current_versions.items():
+        lower_key = key.lower()
+        if lower_key != key:
+            del current_versions[key]  # optional, really
+            current_versions[lower_key] = value
+
+    # Apply the new versions in the Installer.  Whether this is needed
+    # depends on the loading order of extensions.
+    default_versions(current_versions)
 
     # patch methods
     easy_install._log_requirement = _log_requirement
