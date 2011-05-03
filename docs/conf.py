@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys, os, pkginfo, datetime
 
-pkg_info = pkginfo.Develop(os.path.join(os.path.dirname(__file__),'..'))
+pkg_info = pkginfo.Develop(os.path.join(os.path.dirname(__file__),'..','src'))
 
 extensions = [
     'sphinx.ext.autodoc',
