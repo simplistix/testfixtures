@@ -1,4 +1,4 @@
-# Copyright (c) 2010 Simplistix Ltd
+# Copyright (c) 2010-2011 Simplistix Ltd
 #
 # This Software is released under the MIT License:
 # http://www.opensource.org/licenses/mit-license.html
@@ -12,7 +12,7 @@ base_dir = os.path.join(os.path.dirname(__file__))
 
 setup(
     name='buildout-versions',
-    version='1.6dev',
+    version='1.6',
     author='Chris Withers',
     author_email='chris@simplistix.co.uk',
     license='MIT',

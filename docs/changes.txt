@@ -1,7 +1,7 @@
 Changes
 =======
 
-1.6 (XX XXX XXXX)
+1.6 (3 May 2011)
 -----------------
 
 - Fix problems with mixed-case packages when :mod:`buildout-versions`
