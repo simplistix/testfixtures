@@ -1,4 +1,4 @@
-# Copyright (c) 2010 Simplistix Ltd
+# Copyright (c) 2010-2011 Simplistix Ltd
 # See license.txt for license details.
 
 import os
@@ -10,6 +10,7 @@ from zc.buildout.easy_install import Installer
 from zc.buildout.easy_install import logger
 from zc.buildout.easy_install import IncompatibleVersionError
 from zc.buildout.easy_install import default_versions
+from zc.buildout.easy_install import is_distribute
 
 required_by = {}
 picked_versions = {}
@@ -34,6 +35,8 @@ def _get_dist(self, requirement, ws, always_unzip):
     return dists
 
 def _constrain(self, requirement):
+    if is_distribute and requirement.key == 'setuptools':
+        requirement = pkg_resources.Requirement.parse('distribute')
     version = self._versions.get(requirement.project_name.lower())
     if version:
         if version not in requirement:

@@ -1,12 +1,11 @@
 # Copyright (c) 2011 Simplistix Ltd
 # See license.txt for license details.
-from buildout_versions import start
+from buildout_versions import start, _constrain
 from pkg_resources import parse_requirements, Requirement
-from testfixtures import LogCapture, compare
+from testfixtures import LogCapture, compare, replace
 from unittest import TestSuite, makeSuite, TestCase
 from zc.buildout.easy_install import Installer
 from zc.buildout.easy_install import default_versions
-
 
 class TestStartExtension(TestCase):
     """Test the start extension.
@@ -65,9 +64,32 @@ class TestStartExtension(TestCase):
         self._check('ExtraUpper', 'ExtraUpper')
         self.logging.check()
 
-        
+class DummyInstaller:
 
+    def __init__(self):
+        self._versions = {}
+        
+class Test_constrain(TestCase):
+
+    def setUp(self):
+        self.Installer = DummyInstaller()
+
+    @replace('buildout_versions.is_distribute',False)
+    def test_setuptools_no_distribute(self):
+        compare(
+            Requirement.parse('setuptools'),
+            _constrain(self.Installer,Requirement.parse('setuptools'))
+            )
+
+    @replace('buildout_versions.is_distribute',True)
+    def test_setuptools_distribute(self):
+        compare(
+            Requirement.parse('distribute'),
+            _constrain(self.Installer,Requirement.parse('setuptools'))
+            )
+    
 def test_suite():
     return TestSuite((
         makeSuite(TestStartExtension),
+        makeSuite(Test_constrain),
         ))

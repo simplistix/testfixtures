@@ -1,5 +1,6 @@
 Changes
 =======
+
 1.6 (XX XXX XXXX)
 -----------------
 
@@ -7,6 +8,11 @@ Changes
   is used with :mod:`mr.developer`.
 
   Thanks to Maurits van Rees for the patch.
+
+- Fix use with :mod:`distribute` where :mod:`distribute` would never
+  be considered pinned.
+
+  Thanks to Ruslan Spivak for the patch.
 
 1.5 (15 Sep 2010)
 -----------------

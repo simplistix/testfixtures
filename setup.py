@@ -28,7 +28,7 @@ setup(
     zip_safe=False,
     include_package_data=True,
     install_requires=[
-        'zc.buildout',
+        'zc.buildout>=1.5.0',
     ],
     entry_points = { 
         'zc.buildout.extension': [
