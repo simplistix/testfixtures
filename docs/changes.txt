@@ -3,6 +3,13 @@ Changes
 
 .. currentmodule:: testfixtures
 
+1.9.2 (20 April 2011)
+---------------------
+
+- Fix for issue #328: :meth:`~tdatetime.utcnow` of :func:`test_datetime`
+  now returns items from the internal queue in the same way as 
+  :meth:`~tdatetime.now`.
+
 1.9.1 (11 March 2011)
 ------------------------
 
