@@ -230,6 +230,45 @@ shown in the following :class:`~unittest.TestCase`:
 The :meth:`~testfixtures.Replacer.replace` method also supports
 non-strict replacement using the same keyword parameter.
 
+Replacing items in dictionaries and lists
+-----------------------------------------
+
+Both the :class:`~testfixtures.Replacer` and the
+:func:`~testfixtures.replace` decorator can be used to replace items
+in dictionaries and lists.
+
+For example, suppose you have a data structure like the following:
+
+.. topic:: testfixtures.tests.sample1
+   :class: module
+
+   .. literalinclude:: ../testfixtures/tests/sample1.py
+      :lines: 52-55
+
+You can mock out the value associated with ``key`` and the second
+element in the ``complex_key`` list as follows:
+
+.. code-block:: python
+
+  from testfixtures import Replacer
+  from testfixtures.tests.sample1 import someDict
+  
+  def test_function():
+      with Replacer() as r:
+          r.replace('testfixtures.tests.sample1.someDict.key','foo')
+          r.replace('testfixtures.tests.sample1.someDict.complex_key.1',42)
+          print someDict
+
+While the replacement is in effect, the new items are in place:
+
+>>> test_function()
+{'complex_key': [1, 42, 3], 'key': 'foo'}
+
+When it is no longer in effect, the originals are returned:
+
+>>> print someDict
+{'complex_key': [1, 2, 3], 'key': 'value'}
+
 Gotchas
 -------
 
