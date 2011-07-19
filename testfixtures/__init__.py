@@ -15,8 +15,21 @@ from re import compile, MULTILINE
 from shutil import rmtree
 from tempfile import mkdtemp
 from types import ClassType,GeneratorType,MethodType
-from zope.dottedname.resolve import resolve
 
+def resolve(dotted_name):
+    names = dotted_name.split('.')
+    used = names.pop(0)
+    found = __import__(used)
+    for n in names:
+        used += '.' + n
+        try:
+            found = getattr(found, n)
+        except AttributeError:
+            __import__(used)
+            found = getattr(found, n)
+
+    return found
+    
 class Wrappings:
     def __init__(self):
         self.before = []
