@@ -49,3 +49,8 @@ class TestClassB(TestClassA):
 def a_function():
     return (TestClassA(1),TestClassB(2),TestClassA(3))
 
+someDict = dict(
+    key='value',
+    complex_key=[1,2,3],
+    )
+    

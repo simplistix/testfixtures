@@ -148,23 +148,6 @@ class TestReplacer:
         >>> r.restore()
         """
     
-    def test_no_dot_in_name(self):
-        """
-        You need at least one dot in the replacment
-        target since everything before the last dot
-        defines the object where the replacement will
-        take place and the part after the last dot
-        defines the name to be replaced.
-
-        If you don't have any dots, you'll get an error:
-        
-        >>> def test():pass
-        >>> Replacer().replace('sample1',test)
-        Traceback (most recent call last):
-        ...
-        ValueError: need more than 1 value to unpack
-        """
-    
     def test_remove_called_twice(self):
         """
         >>> import sample1

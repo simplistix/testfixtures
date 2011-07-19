@@ -276,4 +276,4 @@ Gotchas
   >>> Replacer().replace('sys',Mock())
   Traceback (most recent call last):
    ...
-  ValueError: need more than 1 value to unpack
+  ValueError: target must contain at least one dot!

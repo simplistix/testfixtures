@@ -16,19 +16,42 @@ from shutil import rmtree
 from tempfile import mkdtemp
 from types import ClassType,GeneratorType,MethodType
 
+not_there = object()
+
 def resolve(dotted_name):
     names = dotted_name.split('.')
     used = names.pop(0)
     found = __import__(used)
+    container = found
+    method = None
+    n = None
     for n in names:
+        container = found
         used += '.' + n
         try:
             found = getattr(found, n)
+            method = 'a'
         except AttributeError:
-            __import__(used)
-            found = getattr(found, n)
-
-    return found
+            try:
+                __import__(used)
+            except ImportError, e:
+                method = 'i'
+                try:
+                    found = found[n]
+                except KeyError:
+                    found = not_there
+                except TypeError:
+                    try:
+                        n = int(n)
+                    except ValueError:
+                        method = 'a'
+                        found = not_there
+                    else:
+                        found = found[n]
+            else:
+                found = getattr(found, n)
+                method = 'a'
+    return container, method, n, found
     
 class Wrappings:
     def __init__(self):
@@ -69,8 +92,6 @@ def wrap(before,after=None):
         return f
     return wrapper
 
-not_there =object()
-
 class Replacer:
     """
     These are used to manage the mocking out of objects so that units
@@ -81,6 +102,19 @@ class Replacer:
     def __init__(self,replace_returns=False):
         self.originals = {}
         self.replace_returns=replace_returns
+
+    def _replace(self, container, name, method, value):
+        if value is not_there:
+            if method=='a':
+                delattr(container,name)
+            elif method=='i':
+                del container[name]
+        else:
+            if method=='a':
+                setattr(container, name, value)
+            elif method=='i':
+                container[name] = value
+            
 
     def replace(self,target,replacement,strict=True):
         """
@@ -98,9 +132,9 @@ class Replacer:
                        attempt is made to replace an object that does
                        not exist.
         """
-        container,attribute = target.rsplit('.',1)
-        container = resolve(container)
-        t_obj = getattr(container,attribute,not_there)
+        container, method, attribute, t_obj = resolve(target)
+        if method is None:
+            raise ValueError('target must contain at least one dot!')
         if t_obj is not_there and strict:
             raise AttributeError('Original %r not found'%attribute)
         if (isinstance(t_obj,MethodType)
@@ -110,7 +144,7 @@ class Replacer:
         else:
             replacement_to_use = replacement
         self.originals[target] = t_obj
-        setattr(container,attribute,replacement_to_use)
+        self._replace(container, attribute, method, replacement_to_use)
         if self.replace_returns:
             return replacement
 
@@ -120,12 +154,8 @@ class Replacer:
         calls to the :meth:`replace` method of this :class:`Replacer`.
         """
         for target,original in tuple(self.originals.items()):
-            if original is not_there:
-                container,attribute = target.rsplit('.',1)
-                container = resolve(container)
-                delattr(container,attribute)
-            else:
-                self.replace(target,original)
+            container, method, attribute, found = resolve(target)
+            self._replace(container, attribute, method, original)
             del self.originals[target]
             
     def __enter__(self):
@@ -289,7 +319,9 @@ class Comparison:
             else:
                 attribute_dict.update(attributes)
         if isinstance(object_or_type,basestring):
-            c = resolve(object_or_type)
+            container, method, name, c = resolve(object_or_type)
+            if c is not_there:
+                raise AttributeError('%r could not be resolved' % object_or_type)
         elif isinstance(object_or_type,(ClassType,type)):
             c = object_or_type
         elif isinstance(object_or_type,BaseException):

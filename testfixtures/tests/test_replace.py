@@ -1,7 +1,7 @@
-# Copyright (c) 2008 Simplistix Ltd
+# Copyright (c) 2008-2011 Simplistix Ltd
 # See license.txt for license details.
 
-from testfixtures import replace,compare,should_raise
+from testfixtures import replace,compare,should_raise, not_there
 from unittest import TestCase,TestSuite,makeSuite
 
 import sample1,sample2
@@ -133,25 +133,6 @@ class TestReplace(TestCase):
         compare(sample1.z(),'original z')
         compare(sample2.z(),'original z')
 
-    def test_no_dot_in_name(self):
-        # You need at least one dot in the replacment
-        # target since everything before the last dot
-        # defines the object where the replacement will
-        # take place and the part after the last dot
-        # defines the name to be replaced.
-        
-        def test():pass
-
-        @replace('sample1',test)
-        def test_something():
-            pass
-        
-        # If you don't have any dots, you'll get an error:
-        should_raise(
-            test_something,
-            ValueError('need more than 1 value to unpack')
-            )()
-    
     def test_raises(self):
 
         def test_z():
@@ -205,6 +186,66 @@ class TestReplace(TestCase):
             self.failUnless(sample1.bad is o)
 
         test_something()
+
+    def test_replace_dict(self):
+
+        from sample1 import someDict
+
+        original = someDict['key']
+        replacement = object()
+        
+        @replace('testfixtures.tests.sample1.someDict.key',replacement)
+        def test_something(obj):
+            self.failUnless(obj is replacement)
+            self.failUnless(someDict['key'] is replacement)
+
+        test_something()
+
+        self.failUnless(someDict['key'] is original)
+
+    def test_replace_dict_remove_key(self):
+
+        from sample1 import someDict
+
+        @replace('testfixtures.tests.sample1.someDict.key',not_there)
+        def test_something(obj):
+            self.failIf('key' in someDict)
+
+        test_something()
+
+        self.assertEqual(someDict.keys(), ['complex_key','key'])
+
+    def test_replace_dict_not_there(self):
+
+        from sample1 import someDict
+
+        replacement = object()
+        
+        @replace('testfixtures.tests.sample1.someDict.key2',replacement,strict=False)
+        def test_something(obj):
+            self.failUnless(obj is replacement)
+            self.failUnless(someDict['key2'] is replacement)
+
+        test_something()
+
+        self.assertEqual(someDict.keys(), ['complex_key','key'])
+
+    def test_replace_complex(self):
+
+        from sample1 import someDict
+
+        original = someDict['complex_key'][1]
+        replacement = object()
+        
+        @replace('testfixtures.tests.sample1.someDict.complex_key.1',replacement)
+        def test_something(obj):
+            self.failUnless(obj is replacement)
+            self.assertEqual(someDict['complex_key'],[1,obj,3])
+
+        test_something()
+
+        self.assertEqual(someDict['complex_key'],[1,2,3])
+
 
 def test_suite():
     return TestSuite((
