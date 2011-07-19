@@ -269,6 +269,68 @@ When it is no longer in effect, the originals are returned:
 >>> print someDict
 {'complex_key': [1, 2, 3], 'key': 'value'}
 
+Removing attributes and dictionary items
+----------------------------------------
+
+The :class:`~testfixtures.Replacer` and
+:func:`~testfixtures.replace` decorator can be used to remove
+attributes from objects and remove items from dictionaries.
+
+For example, suppose you have a data structure like the following:
+
+.. topic:: testfixtures.tests.sample1
+   :class: module
+
+   .. literalinclude:: ../testfixtures/tests/sample1.py
+      :lines: 52-55
+
+If you want to remove the ``key`` for the duration of a test, you can
+do so as follows:
+
+.. code-block:: python
+
+  from testfixtures import Replacer, not_there
+  from testfixtures.tests.sample1 import someDict
+  
+  def test_function():
+      with Replacer() as r:
+          r.replace('testfixtures.tests.sample1.someDict.key',not_there)
+          print someDict
+
+While the replacement is in effect, ``key`` is gone:
+
+>>> test_function()
+{'complex_key': [1, 2, 3]}
+
+When it is no longer in effect, ``key`` is returned:
+
+>>> print someDict
+{'complex_key': [1, 2, 3], 'key': 'value'}
+
+If you want the whole ``someDict`` dictionary to be removed for the
+duration of a test, you would do so as follows:
+
+.. code-block:: python
+
+  from testfixtures import Replacer, not_there
+  from testfixtures.tests import sample1
+  
+  def test_function():
+      with Replacer() as r:
+          r.replace('testfixtures.tests.sample1.someDict',not_there)
+          print hasattr(sample1,'someDict')
+
+While the replacement is in effect, ``key`` is gone:
+
+>>> test_function()
+False
+
+When it is no longer in effect, ``key`` is returned:
+
+>>> print sample1.someDict
+{'complex_key': [1, 2, 3], 'key': 'value'}
+
+
 Gotchas
 -------
 
