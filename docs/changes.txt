@@ -3,6 +3,19 @@ Changes
 
 .. currentmodule:: testfixtures
 
+1.10.0 (19 July 2011)
+---------------------
+
+- Remove dependency on :mod:`zope.dottedname`.
+
+- Implement the ability to mock out :class:`dict` and :class:`list`
+  items using :class:`~testfixtures.Replacer` and
+  :func:`~testfixtures.replace`.
+
+- Implement the ability to remove attributes and :class:`dict`
+  items using :class:`~testfixtures.Replacer` and
+  :func:`~testfixtures.replace`.
+
 1.9.2 (20 April 2011)
 ---------------------
 
