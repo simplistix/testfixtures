@@ -183,6 +183,70 @@ class TestCompare(TestCase):
             "second:\n[]"
             )
 
+    def test_dict_same(self):
+        self.failUnless(compare(dict(x=1),dict(x=1)) is identity)
+
+    def test_dict_first_missing_keys(self):
+        self.checkRaises(
+            dict(),dict(z=3),
+            "dict not as expected:\n"
+            "\n"
+            "in second but not first:\n"
+            "'z': 3\n"
+            '\n'
+            )
+
+    def test_dict_second_missing_keys(self):
+        self.checkRaises(
+            dict(z=3),dict(),
+            "dict not as expected:\n"
+            "\n"
+            "in first but not second:\n"
+            "'z': 3\n"
+            '\n'
+            )
+
+    def test_dict_values_different(self):
+        self.checkRaises(
+            dict(x=1),dict(x=2),
+            "dict not as expected:\n"
+            "\n"
+            "values differ:\n"
+            "'x': 1 != 2\n"
+            '\n'
+            )
+    
+    def test_dict_full_diff(self):
+        self.checkRaises(
+            dict(x=1,y=2,a=4),dict(x=1,z=3,a=5),
+            "dict not as expected:\n"
+            "\n"
+            'same:\n'
+            "['x']\n"
+            "\n"
+            "in first but not second:\n"
+            "'y': 2\n"
+            '\n'
+            "in second but not first:\n"
+            "'z': 3\n"
+            '\n'
+            "values differ:\n"
+            "'a': 4 != 5\n"
+            '\n'
+            )
+
+    def test_dict_subclass_different(self):
+        class tdict(dict):
+            pass
+        self.checkRaises(
+            tdict(x=1),tdict(x=2),
+            "tdict not as expected:\n"
+            "\n"
+            "values differ:\n"
+            "'x': 1 != 2\n"
+            '\n'
+            )
+    
     def test_tuple_same(self):
         self.failUnless(compare((1,2,3),(1,2,3)) is identity)
 

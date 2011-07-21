@@ -276,6 +276,46 @@ def compare(x,y,blanklines=True,trailing_whitespace=True):
             pformat(x[i:]),
             pformat(y[i:]),
             )
+    elif isinstance(x,dict) and isinstance(y,dict):
+        x_keys = set(x.keys())
+        y_keys = set(y.keys())
+        x_not_y = x_keys - y_keys
+        y_not_x = y_keys - x_keys
+        same = []
+        diffs = []
+        for key in x_keys.intersection(y_keys):
+            if x[key]==y[key]:
+                same.append(key)
+            else:
+                diffs.append('%r: %s != %s' % (
+                    key,
+                    pformat(x[key]),
+                    pformat(y[key]),
+                    ))
+        lines = ['%s not as expected:' % x.__class__.__name__,'']
+        if same:
+            lines.extend(['same:',repr(same),''])
+        if x_not_y:
+            lines.append('in first but not second:')
+            for key in sorted(x_not_y):
+                lines.append('%r: %s' % (
+                    key,
+                    pformat(x[key])
+                    ))
+            lines.append('')
+        if y_not_x:
+            lines.append('in second but not first:')
+            for key in sorted(y_not_x):
+                lines.append('%r: %s' % (
+                    key,
+                    pformat(y[key])
+                    ))
+            lines.append('')
+        if diffs:
+            lines.append('values differ:')
+            lines.extend(diffs)
+            lines.append('')
+        message = '\n'.join(lines)+'\n'
     if message is None:
         message = '%r != %r'%(x,y)
     raise AssertionError(message)
