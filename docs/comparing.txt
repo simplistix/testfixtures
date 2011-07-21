@@ -67,6 +67,28 @@ first:
 second:
 [4]
 
+Likewise, comparing dicts that aren't the same will attempt to
+highlight where the differences lie:
+
+>>> compare(dict(x=1,y=2,a=4),dict(x=1,z=3,a=5))
+Traceback (most recent call last):
+ ...
+AssertionError: dict not as expected:
+<BLANKLINE>
+same:
+['x']
+<BLANKLINE>
+in first but not second:
+'y': 2
+<BLANKLINE>
+in second but not first:
+'z': 3
+<BLANKLINE>
+values differ:
+'a': 4 != 5
+<BLANKLINE>
+<BLANKLINE>
+
 You can also use the :ref:`generator <generator>` helper to get
 similar feedback about the results of iterating over a generator:
 
