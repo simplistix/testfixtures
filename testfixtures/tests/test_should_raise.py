@@ -254,6 +254,15 @@ class TestShouldRaise(TestCase):
         else:
             self.fail('No exception raised!')
 
+    def test_decorator_usage(self):
+
+        @should_raise(ValueError('bad'))
+        def to_test():
+            raise ValueError('bad')
+
+        to_test()
+        
+
     
 def test_suite():
     return TestSuite((

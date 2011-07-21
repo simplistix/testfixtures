@@ -512,7 +512,7 @@ class ShouldRaiseWrapper:
         else:
             self.sr.handle(None)
             
-class should_raise:
+class _should_raise:
     """
     A wrapper to use when you want to assert that an exception is
     raised.
@@ -584,7 +584,7 @@ class ShouldRaise:
         self.exception = exception
 
     def __enter__(self):
-        self.sr = should_raise(None,self.exception)
+        self.sr = _should_raise(None,self.exception)
         return self.sr
     
     def __exit__(self,type,value,traceback):
@@ -593,7 +593,29 @@ class ShouldRaise:
             value = type(value)
         self.sr.handle(value)
         return True
+
+class should_raise(object):
+
+    # backwards compatibility for the old should_raise
+    # wrapper stuff
+    def __new__(cls,target_or_exception, exception=None):
+        if exception is not None or callable(target_or_exception):
+            return _should_raise(target_or_exception, exception)
+        else:
+            return super(should_raise,cls).__new__(cls)
         
+    def __init__(self, exception=None):
+        self.exception=exception
+
+    def __call__(self,target):
+
+        @wraps(target)
+        def _should_raise_wrapper(*args, **kw):
+            with ShouldRaise(self.exception):
+                target(*args,**kw)
+                
+        return _should_raise_wrapper
+            
 class LogCapture(logging.Handler):
     """
     These are used to capture entries logged to the Python logging
