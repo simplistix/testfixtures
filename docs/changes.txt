@@ -3,6 +3,15 @@ Changes
 
 .. currentmodule:: testfixtures
 
+1.11.0 (27 July 2011)
+---------------------
+
+- Give more useful output when comparing dicts and their subclasses.
+
+- Turn :class:`should_raise` into a decorator form of
+  :class:`ShouldRaise` rather than the rather out-moded wrapper
+  function that it was.
+
 1.10.0 (19 July 2011)
 ---------------------
 
