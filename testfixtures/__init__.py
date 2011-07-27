@@ -595,6 +595,26 @@ class ShouldRaise:
         return True
 
 class should_raise(object):
+    """
+    A decorator to assert that the decorated function will raised
+    an exception. An exception class or exception instance may be
+    passed to check more specifically exactly what exception will be
+    raised.
+
+    :param exception: This can be one of the following:
+    
+                      * `None`, indicating that an exception must be
+                        raised, but the type is unimportant.
+                        
+                      * An exception class, indicating that the type
+                        of the exception is important but not the
+                        parameters it is created with.
+                        
+                      * An exception instance, indicating that an
+                        exception exactly matching the one supplied
+                        should be raised.  
+    
+    """
 
     # backwards compatibility for the old should_raise
     # wrapper stuff

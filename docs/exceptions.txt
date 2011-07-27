@@ -5,8 +5,7 @@ Testing exceptions
 
 The :mod:`unittest` support for asserting that exceptions are raised
 when expected is fairly weak. Like many other Python testing
-libraries, TestFixtures has tools to help with this depending on what
-version of Python you are using.
+libraries, TestFixtures has tools to help with this.
 
 The :class:`ShouldRaise` context manager
 ----------------------------------------
@@ -70,74 +69,29 @@ AssertionError: No exception raised!
 successfully used to test if code raises both :class:`SystemExit` and
 :class:`KeyboardInterrupt` exceptions.
  
-The :func:`should_raise` wrapper function
+The :func:`should_raise` decorator
 -----------------------------------------
 
-The basic idea of the :func:`should_raise` wrapper function is that it
-returns an object that that can be used in place of the original
-object where an action is expected to raise an exception. It's
-slightly less clear to use than the :class:`ShouldRaise` context
-manager and should only be used where the :keyword:`with` statement is
-not available.
-
-Suppose we wanted to test the following function to make sure that the
-right exception was raised:
-
+If you are working in a traditional :mod:`unittest` environment and
+want to check that a particular test function raises an exception, you
+may find the decorator suits your needs better:
+ 
 .. code-block:: python
 
-  def the_thrower(a,b,throw=True):
-      if throw:
-          raise ValueError('%s != %s'%(a,b))
+  from testfixtures import should_raise
+  
+  @should_raise(ValueError('Not good!'))
+  def test_function():
+      the_thrower()
 
-Testing is done by first creating a wrapper with the
-:func:`should_raise` function: 
+This decorator behaves exactly as the :class:`ShouldRaise` context
+manager described in the documentation above.
 
->>> from testfixtures import should_raise
->>> wrapped_thrower = should_raise(the_thrower,ValueError('1 != 2'))
+.. note:: 
 
-The wrapper can now be called exactly as the original function, and
-any exception raised will be compared against the expected one:
-
->>> wrapped_thrower(1,2)
-
-If an incorrect exception is raised, an :class:`AssertionError` will
-be raised:
-
->>> wrapped_thrower(1,1)
-Traceback (most recent call last):
-...
-AssertionError: ValueError('1 != 1',) raised, ValueError('1 != 2',) expected
-
-If no exception is raised by the code under test, an
-:class:`AssertionError` indicating this will be raised:
-
->>> wrapped_thrower(1,2,throw=False)
-Traceback (most recent call last):
-...
-AssertionError: None raised, ValueError('1 != 2',) expected
-
-If the parameters of the exception are not important to the test, a
-wrapper can be created which only checks for the type of the
-exception:
-
->>> wrapped_thrower = should_raise(the_thrower,ValueError)
->>> wrapped_thrower(1,2)
->>> wrapped_thrower(1,1)
-
-Furthermore, if even the type of the exception being raised is not
-important, then it need not be specified:
-
->>> wrapped_thrower = should_raise(the_thrower)
->>> wrapped_thrower(1,2)
-
-The wrappers returned can also be used to check for exceptions that
-occur when key lookups are performed:
-
->>> class MyDict(dict):
-...    pass
->>> wrapped_instance = should_raise(MyDict(),KeyError('foo'))
->>> wrapped_instance['foo']
-
-These wrappers have also been implemented such that they can be
-successfully used to test if code raises both :class:`SystemExit` and
-:class:`KeyboardInterrupt` exceptions.
+  It is slightly recommended that you use the context manager rather
+  than the decorator in most cases. With the decorator, all exceptions
+  raised within the decorated function will be checked, which can
+  hinder test development. With the context manager, you can make
+  assertions about only the exact lines of code that you expect to
+  raise the exception.
