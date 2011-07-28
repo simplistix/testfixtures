@@ -6,7 +6,7 @@ from os import environ
 from time import strptime, tzset
 from testfixtures import test_time,replace,compare,should_raise
 from unittest import TestCase,TestSuite,makeSuite
-from test_datetime import atzinfo
+from test_datetime import TestTZInfo
 
 class TestTime(TestCase):
 
@@ -105,10 +105,10 @@ class TestTime(TestCase):
         compare(time(),1009846800.0)
         compare(time(),1009846802.0)
         
-    @replace('time.time',test_time(2001,1,2,3,4,5,6,atzinfo()))
+    @replace('time.time',test_time(2001,1,2,3,4,5,6,TestTZInfo()))
     def test_max_number_args(self):
         from time import time
-        compare(time(),978404645.0)
+        compare(time(),978404465.0)
         
     @replace('time.time',test_time(2001,1,2))
     def test_min_number_args(self):

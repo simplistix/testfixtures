@@ -127,10 +127,17 @@ API Reference
      :meth:`~datetime.datetime.now`, regardless of any datetimes in the
      queue.
 
-   .. classmethod:: tdatetime.now()
+   .. classmethod:: tdatetime.now([tz])
+
+     :param tz: An optional timezone to apply to the returned time.
+                If supplied, it must be an instance of a 
+                :class:`~datetime.tzinfo` subclass.
 
      This will return the next supplied or calculated datetime from the
      internal queue, rather than the actual current datetime.
+
+     If `tz` is supplied, it will be applied to the datetime that
+     would have have been returned from the internal queue.
 
    .. classmethod:: tdatetime.utcnow()
 

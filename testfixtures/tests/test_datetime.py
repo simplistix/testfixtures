@@ -1,18 +1,27 @@
-# Copyright (c) 2008-2010 Simplistix Ltd
+# Copyright (c) 2008-2011 Simplistix Ltd
 # See license.txt for license details.
 
 import sample1,sample2
 from datetime import date
-from datetime import datetime as d, tzinfo
+from datetime import datetime as d
+from datetime import timedelta
+from datetime import tzinfo
 from time import strptime
 from testfixtures import test_datetime,test_date
 from testfixtures import replace,Replacer,compare,should_raise
 from unittest import TestCase,TestSuite,makeSuite
 
-class atzinfo(tzinfo):
-    def utcoffset(self,dt): return
-    def dst(self,dt): return
-    
+class TestTZInfo(tzinfo):
+
+    def utcoffset(self, dt):
+        return timedelta(minutes = 3)
+
+    def tzname(self, dt):
+        return 'TestTZ'
+
+    def dst(self, dt):
+        return timedelta(minutes = 1)
+
 class TestDateTime(TestCase):
 
     # NB: Only the now method is currently stubbed out,
@@ -25,6 +34,13 @@ class TestDateTime(TestCase):
         compare(datetime.now(),d(2001,1,1,0,0,0))
         compare(datetime.now(),d(2001,1,1,0,0,10))
         compare(datetime.now(),d(2001,1,1,0,0,30))
+
+    @replace('datetime.datetime',test_datetime())
+    def test_now_with_tz(self):
+        from datetime import datetime
+        info = TestTZInfo()
+        # the value has the timezone applied
+        compare(datetime.now(info),d(2001,1,1,0,3,tzinfo=info))
 
     @replace('datetime.datetime',test_datetime(2002,1,1,1,2,3))
     def test_now_supplied(self):
@@ -193,10 +209,10 @@ class TestDateTime(TestCase):
         compare(datetime.now(),d(2002,1,1,1,0,0))
         compare(datetime.now(),d(2002,1,1,1,0,20))
         
-    @replace('datetime.datetime',test_datetime(2001,1,2,3,4,5,6,atzinfo()))
+    @replace('datetime.datetime',test_datetime(2001,1,2,3,4,5,6,TestTZInfo()))
     def test_max_number_args(self):
         from datetime import datetime
-        compare(datetime.now(),d(2001,1,2,3,4,5,6,atzinfo()))
+        compare(datetime.now(),d(2001,1,2,3,4,5,6,TestTZInfo()))
         
     @replace('datetime.datetime',test_datetime(2001,1,2))
     def test_min_number_args(self):

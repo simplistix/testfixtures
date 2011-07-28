@@ -774,7 +774,7 @@ def __add__(self,other):
     return r
 
 @classmethod
-def instantiate(cls):
+def instantiate(cls,tz=None):
     r = cls._q.pop(0)
     if not cls._q:
         cls._gap += cls._gap_d
@@ -782,6 +782,8 @@ def instantiate(cls):
         if cls._ct:
             n = cls._ct(n)
         cls._q.append(n)
+    if tz is not None:
+        r = tz.fromutc(r.replace(tzinfo=tz))
     return r
 
 def test_factory(n,type,default,args,**to_patch):    
