@@ -3,6 +3,12 @@ Changes
 
 .. currentmodule:: testfixtures
 
+1.11.1 (28 July 2011)
+---------------------
+
+- Fix bug where :meth:`tdatetime.now` didn't accept the `tz`
+  parameter that :meth:`datetime.datetime.now` did.
+
 1.11.0 (27 July 2011)
 ---------------------
 
