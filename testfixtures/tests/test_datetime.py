@@ -209,6 +209,18 @@ class TestDateTime(TestCase):
         compare(datetime.now(),d(2002,1,1,1,0,0))
         compare(datetime.now(),d(2002,1,1,1,0,20))
         
+    @replace('datetime.datetime',test_datetime(None))
+    def test_set_kw(self):
+        from datetime import datetime
+        datetime.set(year=2002,month=1,day=1)
+        compare(datetime.now(),d(2002,1,1))
+        
+    @replace('datetime.datetime',test_datetime(None))
+    def test_add_kw(self,t):
+        from datetime import datetime
+        t.add(year=2002,day=1,month=1)
+        compare(datetime.now(),d(2002,1,1))
+        
     @replace('datetime.datetime',test_datetime(2001,1,2,3,4,5,6,TestTZInfo()))
     def test_max_number_args(self):
         from datetime import datetime
@@ -219,6 +231,20 @@ class TestDateTime(TestCase):
         from datetime import datetime
         compare(datetime.now(),d(2001,1,2))
 
+    @replace('datetime.datetime',test_datetime(
+        year=2001,
+        month=1,
+        day=2,
+        hour=3,
+        minute=4,
+        second=5,
+        microsecond=6,
+        tzinfo=TestTZInfo()
+        ))
+    def test_all_kw(self):
+        from datetime import datetime
+        compare(datetime.now(),d(2001,1,2,3,4,5,6,TestTZInfo()))
+        
     @replace('datetime.datetime',test_datetime(2001,1,2))
     def test_utc_now(self):
         from datetime import datetime

@@ -84,16 +84,35 @@ API Reference
      This will return the next supplied or calculated date from the
      internal queue, rather than the actual current date.
 
-.. function:: test_datetime(*datetime, delta=None, delta_type='seconds', date_type=datetime.date)
+.. function:: test_datetime(year=2001, month=1, day=1, hour=0, minute=0, second=0, microsecond=0,tzinfo=None, delta=None, delta_type='seconds', date_type=datetime.date)
 
    A function that returns a mock object that can be used in place of
    the :class:`datetime.datetime` class but where the return value of
    :meth:`~datetime.datetime.now` can be controlled.
 
-   :param datetime: An optional sequence of parameters used to create the
-                first datetime returned by
-                :meth:`~datetime.datetime.now`. If not supplied,
-                `(2001,1,1,0,0,0)` will be used.
+   :param year: An optional year used to create the first datetime returned by
+                :meth:`~datetime.datetime.now`.
+
+   :param month: An optional month used to create the first datetime returned by
+                :meth:`~datetime.datetime.now`.
+
+   :param day: An optional day used to create the first datetime returned by
+                :meth:`~datetime.datetime.now`.
+
+   :param hour: An optional hour used to create the first datetime returned by
+                :meth:`~datetime.datetime.now`.
+
+   :param minute: An optional minute used to create the first datetime returned by
+                :meth:`~datetime.datetime.now`.
+
+   :param second: An optional second used to create the first datetime returned by
+                :meth:`~datetime.datetime.now`.
+
+   :param microsecond: An optional microsecond used to create the first datetime returned by
+                :meth:`~datetime.datetime.now`.
+
+   :param tzinfo: An optional tzinfo used to create the first datetime returned by
+                :meth:`~datetime.datetime.now`.
 
    :param delta: The size of the delta to use between values returned
                  from :meth:`~datetime.datetime.now`. If not specified,
@@ -114,13 +133,13 @@ API Reference
    The mock returned will behave exactly as the :class:`datetime.datetime`
    class with the exception of the following members:
    
-   .. method:: tdatetime.add(*datetime)
+   .. method:: tdatetime.add(*args, **kw)
 
      This will add the :class:`datetime.datetime` created from the
      supplied parameters to the queue of datetimes to be returned by
      :meth:`~datetime.datetime.now`.
 
-   .. method:: tdatetime.set(*datetime)
+   .. method:: tdatetime.set(*args, *kw)
 
      This will set the :class:`datetime.datetime` created from the
      supplied parameters as the next datetime to be returned by
