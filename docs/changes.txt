@@ -3,6 +3,12 @@ Changes
 
 .. currentmodule:: testfixtures
 
+1.11.3 (3 August 2011)
+----------------------
+
+- Fix bugs where various :meth:`test_date`, :meth:`test_datetime` and
+  :meth:`test_time` methods didn't accept keyword parameters.
+
 1.11.2 (28 July 2011)
 ---------------------
 
