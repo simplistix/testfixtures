@@ -25,6 +25,11 @@ class TestDate(TestCase):
         from datetime import date
         compare(date.today(),d(2001,2,3))
 
+    @replace('datetime.date',test_date(year=2001,month=2,day=3))
+    def test_today_all_kw(self):
+        from datetime import date
+        compare(date.today(),d(2001,2,3))
+
     @replace('datetime.date',test_date(None))
     def test_today_sequence(self,t):
         t.add(2002,1,1)
@@ -156,6 +161,18 @@ class TestDate(TestCase):
         compare(date.today(),d(2002,1,1))
         compare(date.today(),d(2002,1,3))
         
+    @replace('datetime.date',test_date(None))
+    def test_set_kw(self):
+        from datetime import date
+        date.set(year=2001, month=1, day=2)
+        compare(date.today(),d(2001,1,2))
+        
+    @replace('datetime.date',test_date(None))
+    def test_add_kw(self,t):
+        t.add(year=2002,month=1,day=1)
+        from datetime import date
+        compare(date.today(),d(2002,1,1))
+
 def test_suite():
     return TestSuite((
         makeSuite(TestDate),

@@ -852,14 +852,14 @@ def correct_date(cls,d):
 
 def test_date(*args,**kw):
     if 'delta' in kw:
-        gap = kw['delta']
+        gap = kw.pop('delta')
         gap_delta = 0
     else:
         gap = 0
         gap_delta = 1
-    delta_type = kw.get('delta_type','days')
+    delta_type = kw.pop('delta_type','days')
     return test_factory(
-        'tdate',date,(2001,1,1),args,{},
+        'tdate',date,(2001,1,1),args,kw,
         _ct=correct_date,
         today=instantiate,
         _gap = gap,

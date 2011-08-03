@@ -42,16 +42,20 @@ API Reference
 
 .. autofunction:: tempdir
 
-.. function:: test_date(*date, delta=None, delta_type='days')
+.. function:: test_date(year=2001, month=1, day=1, delta=None, delta_type='days')
 
    A function that returns a mock object that can be used in place of
    the :class:`datetime.date` class but where the return value of
    :meth:`~datetime.date.today` can be controlled.
 
-   :param date: An optional sequence of parameters used to create the
-                first date returned by
-                :meth:`~datetime.date.today`. If not supplied,
-                `(2001,1,1)` will be used.
+   :param year: An optional year used to create the first date returned by
+                :meth:`~datetime.date.today`.
+
+   :param month: An optional month used to create the first date returned by
+                :meth:`~datetime.date.today`.
+
+   :param day: An optional day used to create the first date returned by
+                :meth:`~datetime.date.today`.
 
    :param delta: The size of the delta to use between values returned
                  from :meth:`~datetime.date.today`. If not specified,
@@ -66,13 +70,13 @@ API Reference
    The mock returned will behave exactly as the :class:`datetime.date`
    class with the exception of the following members:
    
-   .. method:: tdate.add(*date)
+   .. method:: tdate.add(*args, **kw)
 
      This will add the :class:`datetime.date` created from the
      supplied parameters to the queue of dates to be returned by
      :meth:`~datetime.date.today`.
 
-   .. method:: tdate.set(*date)
+   .. method:: tdate.set(*args, **kw)
 
      This will set the :class:`datetime.date` created from the
      supplied parameters as the next date to be returned by
