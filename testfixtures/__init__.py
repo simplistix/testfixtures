@@ -869,22 +869,22 @@ def test_date(*args,**kw):
 
 class ttimec(datetime):
 
-    def __new__(cls,*args):
-        if args:
-            return super(ttimec, cls).__new__(cls,*args)
+    def __new__(cls, *args, **kw):
+        if args or kw:
+            return super(ttimec, cls).__new__(cls, *args, **kw)
         else:
             return float(timegm(cls.instantiate().utctimetuple()))
 
 def test_time(*args,**kw):
     if 'delta' in kw:
-        gap = kw['delta']
+        gap = kw.pop('delta')
         gap_delta = 0
     else:
         gap = 0
         gap_delta = 1
-    delta_type = kw.get('delta_type','seconds')
+    delta_type = kw.pop('delta_type','seconds')
     return test_factory(
-        'ttime',ttimec,(2001,1,1,0,0,0),args,{},
+        'ttime',ttimec,(2001,1,1,0,0,0),args,kw,
         _ct=None,
         instantiate=instantiate,
         _gap = gap,

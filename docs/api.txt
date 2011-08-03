@@ -183,18 +183,27 @@ API Reference
      This will return the date component of the current mock instance,
      but using the date type supplied when the mock class was created.
 
-.. function:: test_time(*time, delta=None, delta_type='seconds')
+.. function:: test_time(year=2001, month=1, day=1, hour=0, minute=0, second=0, microsecond=0, tzinfo=None, delta=None, delta_type='seconds')
 
    A function that returns a mock object that can be used in place of
    the :class:`time.time` function but where the return value can be
    controlled.
 
-   :param time: An optional sequence of parameters used to create the
-                first time returned. The parameters taken are the same
-                as those of the :class:`datetime.datetime`
-                constructor.
+   :param year: An optional year used to create the first time returned.
 
-                If not supplied, `(2001,1,1,0,0,0)` will be used.
+   :param month: An optional month used to create the first time.
+
+   :param day: An optional day used to create the first time.
+
+   :param hour: An optional hour used to create the first time.
+
+   :param minute: An optional minute used to create the first time.
+
+   :param second: An optional second used to create the first time.
+
+   :param microsecond: An optional microsecond used to create the first time.
+
+   :param tzinfo: An optional tzinfo used to create the first time.
 
    :param delta: The size of the delta to use between values returned.
                  If not specified, it will increase by 1 with each
@@ -207,16 +216,19 @@ API Reference
 
    The mock additionally has the following methods available on it:
    
-   .. method:: ttime.add(*time)
+   .. method:: ttime.add(*args, **kw)
 
      This will add the time specified by the supplied parameters to the
-     queue of times to be returned by calls to the mock.
+     queue of times to be returned by calls to the mock. The
+     parameters are the same as the :class:`datetime.datetime`
+     constructor. 
 
-   .. method:: ttime.set(*time)
+   .. method:: ttime.set(*args, **kw)
 
      This will set the time specified by the supplied parameters as
      the next time to be returned by a call to the mock, regardless of
-     any times in the queue.
+     any times in the queue.  The parameters are the same as the
+     :class:`datetime.datetime` constructor. 
 
 .. autofunction:: wrap
 
