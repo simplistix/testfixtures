@@ -235,7 +235,41 @@ Only capturing specific logging
 Some actions that you want to test may generate a lot of logging, only
 some of which you actually need to care about. 
 
-In some cases this problem can be alleviated by only capturing a
+The logging you care about is often only that above a certain log
+level. If this is the case, you can configure :obj:`~testfixtures.LogCapture` to
+only capture logging at or above a specific level.
+
+If using the context manager, you would do this:
+
+>>> with LogCapture(level=logging.INFO) as l:
+...     logger = getLogger()
+...     logger.debug('junk') 
+...     logger.info('something we care about')
+...     logger.error('an error')
+>>> print l
+root INFO
+  something we care about
+root ERROR
+  an error
+
+If using the decorator, you would do this:
+
+.. code-block:: python
+
+  @log_capture(level=logging.INFO)
+  def test_function(l):
+      logger= getLogger()
+      logger.debug('junk')
+      logger.info('what we care about')
+
+      l.check(('root', 'INFO', 'what we care about'))
+
+.. check it behaves!
+ 
+  >>> test_function()
+
+ 
+In other cases this problem can be alleviated by only capturing a
 specific logger.
 
 If using the context manager, you would do this:

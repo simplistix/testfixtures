@@ -651,11 +651,12 @@ class LogCapture(logging.Handler):
     
     instances = set()
     
-    def __init__(self, names=None, install=True):
+    def __init__(self, names=None, install=True, level=1):
         logging.Handler.__init__(self)
         if not isinstance(names,tuple):
             names = (names,)
         self.names = names
+        self.level = level
         self.oldlevels = {}
         self.oldhandlers = {}
         self.clear()
@@ -681,7 +682,7 @@ class LogCapture(logging.Handler):
             logger = logging.getLogger(name)
             self.oldlevels[name] = logger.level
             self.oldhandlers[name] = logger.handlers
-            logger.setLevel(1)
+            logger.setLevel(self.level)
             logger.handlers = [self]
         self.instances.add(self)
 
@@ -743,7 +744,7 @@ class LogCaptureForDecorator(LogCapture):
         LogCapture.install(self)
         return self
     
-def log_capture(*names):
+def log_capture(*names, **kw):
     """
     A decorator for making a :class:`LogCapture` installed an
     available for the duration of a test function.
@@ -752,7 +753,8 @@ def log_capture(*names):
                   to be captured. If not specified, the root logger
                   will be captured.
     """
-    l = LogCaptureForDecorator(names or None,install=False)
+    level = kw.pop('level',1)
+    l = LogCaptureForDecorator(names or None, install=False, level=level)
     return wrap(l.install,l.uninstall)
 
 # stuff for date, time and datetime mocking below:
