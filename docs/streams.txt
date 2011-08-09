@@ -28,3 +28,22 @@ Here's a simple example:
       "Hello!",
       "Something bad happened!",
       ]))
+
+To make life easier, both the actual and expected output are stripped
+of leading and trailing whitespace before the comparison is done:
+
+>>> with OutputCapture() as o:
+...    print '  Bar! '
+...    o.compare(' Foo!  ')
+Traceback (most recent call last):
+...
+AssertionError: 'Foo!' != 'Bar!'
+
+However, if you need to make very explicit assertions about what has
+been written to the stream then you can do so using the `captured`
+property of the :class:`OutputCapture`:
+
+>>> with OutputCapture() as o:
+...    print '  Bar! '
+>>> print repr(o.captured)
+'  Bar! \n'

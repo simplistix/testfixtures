@@ -1210,6 +1210,10 @@ class OutputCapture:
         sys.stdout = self.original_stdout
         sys.stderr = self.original_stderr
 
+    @property
+    def captured(self):
+        return self.output.getvalue()
+    
     def compare(self,expected):
         """
         Compare the captured output to that expected. If the output is
@@ -1217,5 +1221,5 @@ class OutputCapture:
 
         :param expected: A string containing the expected output.
         """
-        compare(expected.strip(),self.output.getvalue().strip())
+        compare(expected.strip(),self.captured.strip())
 
