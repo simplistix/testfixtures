@@ -353,7 +353,7 @@ be controlled as shown in the following example:
 
 .. code-block:: python
 
-  from testfixtures import test_date, test_time
+  from testfixtures import test_date, test_datetime
 
   date_type = test_date()
   datetime_type = test_datetime(date_type=date_type)
