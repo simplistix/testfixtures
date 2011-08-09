@@ -47,3 +47,24 @@ property of the :class:`OutputCapture`:
 ...    print '  Bar! '
 >>> print repr(o.captured)
 '  Bar! \n'
+
+Finally, you may sometimes want to disable an :class:`OutputCapture`
+without removing it from your code. This often happens when you want
+to insert a debugger call while an :class:`OutputCapture` is active;
+if it remains enabled, all debugger output will be captured making the
+debugger very difficult to use!
+
+To deal with this problem, the :class:`OutputCapture` may be disabled
+and then re-enabled as follows:
+
+>>> with OutputCapture() as o:
+...    print 'Foo'
+...    o.disable()
+...    print 'Bar'
+...    o.enable()
+...    print 'Baz'
+Bar
+>>> print o.captured
+Foo
+Baz
+<BLANKLINE>

@@ -1200,16 +1200,30 @@ class OutputCapture:
     A context manager for capturing output to the
     :attr:`sys.stdout` and :attr:`sys.stderr` streams.
     """
+
+    original_stdout = None
+    original_stderr = None
+    
     def __enter__(self):
-        self.original_stdout = sys.stdout
-        self.original_stderr = sys.stderr
-        self.output = sys.stdout = sys.stderr = StringIO()
+        self.output = StringIO()
+        self.enable()
         return self
 
     def __exit__(self,*args):
+        self.disable()
+        
+    def disable(self):
+        "Disable the output capture if it is enabled."
         sys.stdout = self.original_stdout
         sys.stderr = self.original_stderr
-
+        
+    def enable(self):
+        "Enable the output capture if it is disabled."
+        if self.original_stdout is None:
+            self.original_stdout = sys.stdout
+            self.original_stderr = sys.stderr
+        sys.stdout = sys.stderr = self.output
+        
     @property
     def captured(self):
         return self.output.getvalue()
