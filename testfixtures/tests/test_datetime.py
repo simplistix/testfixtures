@@ -8,7 +8,7 @@ from datetime import timedelta
 from datetime import tzinfo
 from time import strptime
 from testfixtures import test_datetime,test_date
-from testfixtures import replace,Replacer,compare,should_raise
+from testfixtures import replace, Replacer, compare, ShouldRaise
 from unittest import TestCase,TestSuite,makeSuite
 
 class TestTZInfo(tzinfo):
@@ -108,8 +108,9 @@ class TestDateTime(TestCase):
             compare(datetime.now(),d(2001,1,1,0,0,0))
             compare(sample1.str_now_1(),'2001-01-01 00:00:10')
 
-        s = should_raise(test_something,AssertionError)
-        s()
+        with ShouldRaise(AssertionError) as s:
+            test_something()
+            
         # This convoluted check is because we can't stub
         # out the datetime, since we're testing stubbing out
         # the datetime ;-)
@@ -139,8 +140,9 @@ class TestDateTime(TestCase):
         def test_something():
             compare(sample1.str_now_2(),'2001-01-01 00:00:00')
 
-        s = should_raise(test_something,AssertionError)
-        s()
+        with ShouldRaise(AssertionError) as s:
+            test_something()
+            
         # This convoluted check is because we can't stub
         # out the datetime, since we're testing stubbing out
         # the datetime ;-)

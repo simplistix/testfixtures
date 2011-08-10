@@ -4,7 +4,7 @@
 import sample1,sample2
 from os import environ
 from time import strptime, tzset
-from testfixtures import test_time,replace,compare,should_raise
+from testfixtures import test_time, replace, compare, ShouldRaise
 from unittest import TestCase,TestSuite,makeSuite
 from test_datetime import TestTZInfo
 
@@ -59,8 +59,9 @@ class TestTime(TestCase):
             compare(time(),978307200.0)
             compare(sample1.str_time(),'978307201.0')
 
-        s = should_raise(test_something,AssertionError)
-        s()
+        with ShouldRaise(AssertionError) as s:
+            test_something()
+            
         # This convoluted check is because we can't stub
         # out time, since we're testing stubbing out time ;-)
         j,t1,j,t2,j = s.raised.args[0].split("'")
