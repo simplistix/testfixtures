@@ -761,10 +761,14 @@ def log_capture(*names, **kw):
 
 @classmethod
 def add(cls,*args,**kw):
+    if 'tzinfo' in kw or len(args)>7:
+        raise TypeError('Cannot add tzinfo to %s' % cls.__name__)
     cls._q.append(cls(*args,**kw))
 
 @classmethod
 def set_(cls,*args,**kw):
+    if 'tzinfo' in kw or len(args)>7:
+        raise TypeError('Cannot set tzinfo on %s' % cls.__name__)
     if cls._q:
         cls._q.pop()
     cls.add(*args,**kw)
@@ -776,7 +780,7 @@ def __add__(self,other):
     return r
 
 @classmethod
-def instantiate(cls,tz=None):
+def instantiate(cls):
     r = cls._q.pop(0)
     if not cls._q:
         cls._gap += cls._gap_d
@@ -784,13 +788,21 @@ def instantiate(cls,tz=None):
         if cls._ct:
             n = cls._ct(n)
         cls._q.append(n)
-    if tz is not None:
-        r = tz.fromutc(r.replace(tzinfo=tz))
     return r
 
-def test_factory(n,type,default,args,kw,**to_patch):    
+@classmethod
+def instantiate_tz(cls,tz=None):
+    r = cls.utcnow()
+    if tz is not None:
+        return tz.fromutc(r.replace(tzinfo=tz))
+    elif cls._tzta is not None:
+        r = r + cls._tzta.utcoffset(r)
+    return r
+
+def test_factory(n,type,default,args,kw,tz=None,**to_patch):    
     q = []
     to_patch['_q']=q
+    to_patch['_tzta']=tz
     to_patch['add']=add
     to_patch['set']=set_
     to_patch['__add__']=__add__
@@ -824,6 +836,12 @@ def correct_datetime(cls,dt):
         )
 
 def test_datetime(*args,**kw):
+    tz = None
+    if len(args) > 7:
+        tz = args[7]
+        args = args[:7]
+    else:
+        tz = kw.pop('tzinfo', None)
     if 'delta' in kw:
         gap = kw.pop('delta')
         gap_delta = 0
@@ -833,9 +851,9 @@ def test_datetime(*args,**kw):
     delta_type = kw.pop('delta_type','seconds')
     date_type = kw.pop('date_type',date)
     return test_factory(
-        'tdatetime',datetime,(2001,1,1,0,0,0),args,kw,
+        'tdatetime',datetime,(2001,1,1,0,0,0),args,kw,tz,
         _ct=correct_datetime,
-        now=instantiate,
+        now=instantiate_tz,
         utcnow=instantiate,
         _gap = gap,
         _gap_d = gap_delta,
@@ -878,6 +896,8 @@ class ttimec(datetime):
             return float(timegm(cls.instantiate().utctimetuple()))
 
 def test_time(*args,**kw):
+    if 'tzinfo' in kw or len(args)>7:
+        raise TypeError("You don't want to use tzinfo with test_time")
     if 'delta' in kw:
         gap = kw.pop('delta')
         gap_delta = 0

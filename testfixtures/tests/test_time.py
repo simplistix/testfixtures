@@ -113,15 +113,47 @@ class TestTime(TestCase):
         compare(time(),978310801.0)
         
     @replace('time.time',test_time(None))
+    def test_set_kw_tzinfo(self):
+        from time import time
+        with ShouldRaise(TypeError('Cannot set tzinfo on ttime')):
+            time.set(year=2001,tzinfo=TestTZInfo())
+        
+    @replace('time.time',test_time(None))
+    def test_set_args_tzinfo(self):
+        from time import time
+        with ShouldRaise(TypeError('Cannot set tzinfo on ttime')):
+            time.set(2002,1,2,3,4,5,6,TestTZInfo())
+        
+    @replace('time.time',test_time(None))
     def test_add_kw(self):
         from time import time
         time.add(year=2001,month=1,day=1,hour=1,second=1)
         compare(time(),978310801.0)
         
-    @replace('time.time',test_time(2001,1,2,3,4,5,6,TestTZInfo()))
+    @replace('time.time',test_time(None))
+    def test_add_tzinfo_kw(self):
+        from time import time
+        with ShouldRaise(TypeError('Cannot add tzinfo to ttime')):
+            time.add(year=2001,tzinfo=TestTZInfo())
+        
+    @replace('time.time',test_time(None))
+    def test_add_tzinfo_args(self):
+        from time import time
+        with ShouldRaise(TypeError('Cannot add tzinfo to ttime')):
+            time.add(2001,1,2,3,4,5,6,TestTZInfo())
+        
+    @replace('time.time',test_time(2001,1,2,3,4,5,6))
     def test_max_number_args(self):
         from time import time
-        compare(time(),978404465.0)
+        compare(time(),978404645.0)
+        
+    def test_max_number_tzinfo(self):
+        with ShouldRaise(TypeError(
+            "You don't want to use tzinfo with test_time"
+            )):
+            @replace('time.time',test_time(2001,1,2,3,4,5,6,TestTZInfo()))
+            def myfunc():
+                pass
         
     @replace('time.time',test_time(2001,1,2))
     def test_min_number_args(self):
@@ -136,11 +168,18 @@ class TestTime(TestCase):
         minute=4,
         second=5,
         microsecond=6,
-        tzinfo=TestTZInfo()
         ))
     def test_all_kw(self):
         from time import time
-        compare(time(),978404465.0)
+        compare(time(),978404645.0)
+        
+    def test_kw_tzinfo(self):
+        with ShouldRaise(TypeError(
+            "You don't want to use tzinfo with test_time"
+            )):
+            @replace('time.time',test_time(year=2001,tzinfo=TestTZInfo()))
+            def myfunc():
+                pass
         
     def test_non_gmt_timezone(self):
         try:

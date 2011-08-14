@@ -14,7 +14,7 @@ from unittest import TestCase,TestSuite,makeSuite
 class TestTZInfo(tzinfo):
 
     def utcoffset(self, dt):
-        return timedelta(minutes = 3)
+        return timedelta(minutes = 3) + self.dst(dt)
 
     def tzname(self, dt):
         return 'TestTZ'
@@ -22,11 +22,18 @@ class TestTZInfo(tzinfo):
     def dst(self, dt):
         return timedelta(minutes = 1)
 
-class TestDateTime(TestCase):
+class TestTZ2Info(tzinfo):
 
-    # NB: Only the now method is currently stubbed out,
-    #     if you need other methods, tests and patches
-    #     greatfully received!
+    def utcoffset(self, dt):
+        return timedelta(minutes = 5)
+
+    def tzname(self, dt):
+        return 'TestTZ'
+
+    def dst(self, dt):
+        return timedelta(minutes = 0)
+
+class TestDateTime(TestCase):
 
     @replace('datetime.datetime',test_datetime())
     def test_now(self):
@@ -36,11 +43,27 @@ class TestDateTime(TestCase):
         compare(datetime.now(),d(2001,1,1,0,0,30))
 
     @replace('datetime.datetime',test_datetime())
-    def test_now_with_tz(self):
+    def test_now_with_tz_supplied(self):
         from datetime import datetime
         info = TestTZInfo()
-        # the value has the timezone applied
-        compare(datetime.now(info),d(2001,1,1,0,3,tzinfo=info))
+        compare(datetime.now(info),d(2001,1,1,0,4,tzinfo=TestTZInfo()))
+
+    @replace('datetime.datetime',test_datetime(tzinfo=TestTZInfo()))
+    def test_now_with_tz_setup(self):
+        from datetime import datetime
+        compare(datetime.now(),d(2001,1,1,0,4))
+
+    @replace('datetime.datetime',test_datetime(tzinfo=TestTZInfo()))
+    def test_now_with_tz_setup_and_supplied(self):
+        from datetime import datetime
+        info = TestTZ2Info()
+        compare(datetime.now(info),d(2001,1,1,0,5,tzinfo=info))
+
+    @replace('datetime.datetime',test_datetime(tzinfo=TestTZInfo()))
+    def test_now_with_tz_setup_and_same_supplied(self):
+        from datetime import datetime
+        info = TestTZInfo()
+        compare(datetime.now(info),d(2001,1,1,0,4,tzinfo=info))
 
     @replace('datetime.datetime',test_datetime(2002,1,1,1,2,3))
     def test_now_supplied(self):
@@ -211,6 +234,12 @@ class TestDateTime(TestCase):
         compare(datetime.now(),d(2002,1,1,1,0,0))
         compare(datetime.now(),d(2002,1,1,1,0,20))
         
+    @replace('datetime.datetime',test_datetime(None,tzinfo=TestTZInfo()))
+    def test_set_tz_setup(self):
+        from datetime import datetime
+        datetime.set(year=2002,month=1,day=1)
+        compare(datetime.now(),d(2002,1,1,0,4))
+        
     @replace('datetime.datetime',test_datetime(None))
     def test_set_kw(self):
         from datetime import datetime
@@ -218,15 +247,39 @@ class TestDateTime(TestCase):
         compare(datetime.now(),d(2002,1,1))
         
     @replace('datetime.datetime',test_datetime(None))
+    def test_set_tzinfo_kw(self):
+        from datetime import datetime
+        with ShouldRaise(TypeError('Cannot set tzinfo on tdatetime')):
+            datetime.set(year=2002,month=1,day=1,tzinfo=TestTZInfo())
+        
+    @replace('datetime.datetime',test_datetime(None))
+    def test_set_tzinfo_args(self):
+        from datetime import datetime
+        with ShouldRaise(TypeError('Cannot set tzinfo on tdatetime')):
+            datetime.set(2002,1,2,3,4,5,6,TestTZInfo())
+        
+    @replace('datetime.datetime',test_datetime(None))
     def test_add_kw(self,t):
         from datetime import datetime
         t.add(year=2002,day=1,month=1)
         compare(datetime.now(),d(2002,1,1))
         
+    @replace('datetime.datetime',test_datetime(None))
+    def test_add_tzinfo_kw(self,t):
+        from datetime import datetime
+        with ShouldRaise(TypeError('Cannot add tzinfo to tdatetime')):
+            datetime.add(year=2002,month=1,day=1,tzinfo=TestTZInfo())
+        
+    @replace('datetime.datetime',test_datetime(None))
+    def test_add_tzinfo_args(self,t):
+        from datetime import datetime
+        with ShouldRaise(TypeError('Cannot add tzinfo to tdatetime')):
+            datetime.add(2002,1,2,3,4,5,6,TestTZInfo())
+        
     @replace('datetime.datetime',test_datetime(2001,1,2,3,4,5,6,TestTZInfo()))
     def test_max_number_args(self):
         from datetime import datetime
-        compare(datetime.now(),d(2001,1,2,3,4,5,6,TestTZInfo()))
+        compare(datetime.now(),d(2001,1,2,3,8,5,6))
         
     @replace('datetime.datetime',test_datetime(2001,1,2))
     def test_min_number_args(self):
@@ -245,10 +298,16 @@ class TestDateTime(TestCase):
         ))
     def test_all_kw(self):
         from datetime import datetime
-        compare(datetime.now(),d(2001,1,2,3,4,5,6,TestTZInfo()))
+        compare(datetime.now(),d(2001,1,2,3,8,5,6))
         
     @replace('datetime.datetime',test_datetime(2001,1,2))
     def test_utc_now(self):
+        from datetime import datetime
+        compare(datetime.utcnow(),d(2001,1,2))
+        
+    @replace('datetime.datetime',
+             test_datetime(2001, 1, 2, tzinfo=TestTZInfo()))
+    def test_utc_now_with_tz(self):
         from datetime import datetime
         compare(datetime.utcnow(),d(2001,1,2))
         
