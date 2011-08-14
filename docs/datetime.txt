@@ -199,6 +199,94 @@ this will be the set value plus the ``delta`` in effect:
 '1978-08-01 00:00:00'
 '1978-08-01 00:00:02'
 
+Timezones
+-----------------------------
+
+In many situations where you're mocking out
+:meth:`~datetime.datetime.now` or :meth:`~datetime.datetime.utcnow`
+you're not concerned about timezones, especially given that both
+functions will usually return :class:`~datetime.datetime` objects that
+have a `tzinfo` of ``None``.
+
+However, in some applications it is important that
+:meth:`~datetime.datetime.now` and :meth:`~datetime.datetime.utcnow`
+return different times, as they would normally if the application is
+run anywhere other than the UTC timezone.
+
+The best way to understand how to use
+:func:`~testfixtures.test_datetime` in these situations is to think of
+the internal queue as being a queue of UTC :class:`~datetime.datetime`
+objects. If you pass in a `tzinfo` to
+:func:`~testfixtures.test_datetime`, this will be applied to each
+value that would be returned from
+:meth:`~tdatetime.now`, but the tzinfo attribute will
+be ``None`` as it would for a normal call to
+:meth:`datetime.datetime.now`. If you pass in a `tz` parameter to
+:meth:`~tdatetime.now` it will be applied to the value
+before it is returned in the same way as it would by
+:meth:`datetime.datetime.now`. Calls to 
+:meth:`~tdatetime.utcnow` will not be affected by any
+`tzinfo` passed to :func:`~testfixtures.test_datetime`.
+
+For example, lets take a timezone as defined by the following class:
+
+.. code-block:: python
+
+  from datetime import tzinfo, timedelta
+  
+  class ATZInfo(tzinfo):
+
+     def tzname(self, dt):
+          return 'A TimeZone'
+        
+     def utcoffset(self, dt):
+          # In general, this timezone is 5 hours behind UTC
+          offset  = timedelta(hours=-5)
+          return offset+self.dst(dt)
+   
+     def dst(self, dt):
+          # However, between March and September, it is only
+          # 4 hours behind UTC
+          if 3 < dt.month < 9:
+              return timedelta(hours=1)
+          return timedelta()
+
+If we create a :class:`~testfixtures.test_datetime` with this
+timezone and a delta of zero, so we can see affect of the timezone
+over multiple calls, the values returned by
+:meth:`~tdatetime.now` will be affected:
+
+>>> datetime = test_datetime(2001, 1, 1, delta=0, tzinfo=ATZInfo())
+>>> print datetime.now()
+2000-12-31 19:00:00
+
+However, the value of :meth:`~tdatetime.utcnow` will
+not be affected:
+
+>>> print datetime.utcnow()
+2001-01-01 00:00:00
+
+The timezone passed in when the :class:`~testfixtures.test_datetime`
+is created also has effect on any items set:
+
+>>> datetime.set(2011,5,1,10)
+>>> print datetime.now()
+2011-05-01 06:00:00
+
+Likewise, :meth:`~tdatetime.add` is also affected by
+the timezone:
+
+>>> datetime = test_datetime(None, delta=0, tzinfo=ATZInfo())
+>>> datetime.add(2011,1,1,10)
+>>> datetime.add(2011,5,1,10)
+>>> datetime.add(2011,10,1,10)
+>>> print datetime.now()
+2011-01-01 05:00:00
+>>> print datetime.now()
+2011-05-01 06:00:00
+>>> print datetime.now()
+2011-10-01 05:00:00
+
 Times
 ~~~~~
 

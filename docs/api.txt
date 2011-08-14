@@ -92,39 +92,39 @@ API Reference
 
    A function that returns a mock object that can be used in place of
    the :class:`datetime.datetime` class but where the return value of
-   :meth:`~datetime.datetime.now` can be controlled.
+   :meth:`~tdatetime.now` can be controlled.
 
    :param year: An optional year used to create the first datetime returned by
-                :meth:`~datetime.datetime.now`.
+                :meth:`~tdatetime.now`.
 
    :param month: An optional month used to create the first datetime returned by
-                :meth:`~datetime.datetime.now`.
+                :meth:`~tdatetime.now`.
 
    :param day: An optional day used to create the first datetime returned by
-                :meth:`~datetime.datetime.now`.
+                :meth:`~tdatetime.now`.
 
    :param hour: An optional hour used to create the first datetime returned by
-                :meth:`~datetime.datetime.now`.
+                :meth:`~tdatetime.now`.
 
    :param minute: An optional minute used to create the first datetime returned by
-                :meth:`~datetime.datetime.now`.
+                :meth:`~tdatetime.now`.
 
    :param second: An optional second used to create the first datetime returned by
-                :meth:`~datetime.datetime.now`.
+                :meth:`~tdatetime.now`.
 
    :param microsecond: An optional microsecond used to create the first datetime returned by
-                :meth:`~datetime.datetime.now`.
+                :meth:`~tdatetime.now`.
 
-   :param tzinfo: An optional tzinfo used to create the first datetime returned by
-                :meth:`~datetime.datetime.now`.
+   :param tzinfo: An optional tzinfo that will be applied to any value
+                returned by :meth:`~tdatetime.now`.
 
    :param delta: The size of the delta to use between values returned
-                 from :meth:`~datetime.datetime.now`. If not specified,
+                 from :meth:`~tdatetime.now`. If not specified,
                  it will increase by 1 with each call to
-                 :meth:`~datetime.datetime.now`.
+                 :meth:`~tdatetime.now`.
  
    :param delta_type: The type of the delta to use between values returned
-                      from :meth:`~datetime.datetime.now`. This can be
+                      from :meth:`~tdatetime.now`. This can be
                       any keyword parameter accepted by the
                       :class:`~datetime.timedelta` constructor.
 
@@ -141,14 +141,14 @@ API Reference
 
      This will add the :class:`datetime.datetime` created from the
      supplied parameters to the queue of datetimes to be returned by
-     :meth:`~datetime.datetime.now`.
+     :meth:`~tdatetime.now` or :meth:`~tdatetime.utcnow` .
 
    .. method:: tdatetime.set(*args, *kw)
 
      This will set the :class:`datetime.datetime` created from the
      supplied parameters as the next datetime to be returned by
-     :meth:`~datetime.datetime.now`, regardless of any datetimes in the
-     queue.
+     :meth:`~tdatetime.now` or :meth:`~tdatetime.utcnow`, clearing out
+     any datetimes in the queue.
 
    .. classmethod:: tdatetime.now([tz])
 
@@ -160,23 +160,15 @@ API Reference
      internal queue, rather than the actual current datetime.
 
      If `tz` is supplied, it will be applied to the datetime that
-     would have have been returned from the internal queue.
+     would have have been returned from the internal queue, treating
+     that datetime as if it were in the UTC timezone.
 
    .. classmethod:: tdatetime.utcnow()
 
      This will return the next supplied or calculated datetime from the
      internal queue, rather than the actual current UTC datetime.
 
-     .. note :: 
-
-       This method does nothing to remove time zone information from
-       the datetimes in the internal queue. To correctly mimic
-       :meth:`~datetime.datetime.utcnow` you must ensure that all items in the
-       internal queue have :attr:`~datetime.datetime.tzinfo` set to
-       ``None``. This will happen by default, but you must be careful
-       if you cause datetimes that have
-       :attr:`~datetime.datetime.tzinfo` something other than ``None``
-       to end up in the internal queue.
+     No timezone will be applied, even that supplied to the constructor.
 
    .. classmethod:: tdatetime.date()
 
@@ -202,8 +194,6 @@ API Reference
    :param second: An optional second used to create the first time.
 
    :param microsecond: An optional microsecond used to create the first time.
-
-   :param tzinfo: An optional tzinfo used to create the first time.
 
    :param delta: The size of the delta to use between values returned.
                  If not specified, it will increase by 1 with each
