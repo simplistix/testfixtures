@@ -3,6 +3,23 @@ Changes
 
 .. currentmodule:: testfixtures
 
+1.12.0 (16 August 2011)
+-----------------------
+
+- Add a :attr:`~OutputCapture.captured` property to
+  :class:`OutputCapture` so that more complex assertion can be made
+  about the output that has been captured.
+
+- :class:`OutputCapture` context managers can now be temporarily
+  disabled using their :meth:`~OutputCapture.disable` method.
+
+- Logging can now be captured only when it exceeds a specified logging
+  level.
+
+- The handling of timezones has been reworked in both
+  :func:`test_datetime` and :func:`test_time`. This is not backwards
+  compatible but is much more useful and correct.
+
 1.11.3 (3 August 2011)
 ----------------------
 
