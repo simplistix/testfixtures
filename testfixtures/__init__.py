@@ -1248,6 +1248,7 @@ class OutputCapture:
         
     @property
     def captured(self):
+        "A property containing any output that has been captured so far."
         return self.output.getvalue()
     
     def compare(self,expected):
