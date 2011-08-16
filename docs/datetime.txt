@@ -205,7 +205,7 @@ Timezones
 In many situations where you're mocking out
 :meth:`~datetime.datetime.now` or :meth:`~datetime.datetime.utcnow`
 you're not concerned about timezones, especially given that both
-functions will usually return :class:`~datetime.datetime` objects that
+methods will usually return :class:`~datetime.datetime` objects that
 have a `tzinfo` of ``None``.
 
 However, in some applications it is important that
@@ -224,7 +224,8 @@ be ``None`` as it would for a normal call to
 :meth:`datetime.datetime.now`. If you pass in a `tz` parameter to
 :meth:`~tdatetime.now` it will be applied to the value
 before it is returned in the same way as it would by
-:meth:`datetime.datetime.now`. Calls to 
+:meth:`datetime.datetime.now` and the `tzinfo` passed to the
+constructor will be ignored. Calls to 
 :meth:`~tdatetime.utcnow` will not be affected by any
 `tzinfo` passed to :func:`~testfixtures.test_datetime`.
 
