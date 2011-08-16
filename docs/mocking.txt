@@ -149,7 +149,7 @@ than one thing at a time. For the former, this is fairly obvious:
 .. the result:
   
    >>> test_function()
-   <mock.Mock object at ...> <mock.Mock object at ...>
+   <...Mock...> <...Mock...>
 
 For the decorator, it's less obvious but still pretty easy:
 
@@ -164,7 +164,7 @@ For the decorator, it's less obvious but still pretty easy:
 .. the result:
   
    >>> test_function()
-   <mock.Mock object at ...> <mock.Mock object at ...>
+   <...Mock...> <...Mock...>
 
 You'll notice that you can still get access to the replacements, even
 though there are more than one of them.
@@ -357,7 +357,7 @@ Gotchas
 
   >>> r.replace('testfixtures.tests.sample1.time',Mock())
   >>> str_time()
-  '<mock.Mock object at ...>'
+  "<...Mock...>"
 
   .. cleanup  
  
