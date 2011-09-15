@@ -3,6 +3,8 @@ directories:
 
 .. code-block:: python
 
+  import os
+
   def spew(path):
     with file(os.path.join(path,'root.txt'),'w') as f:
         f.write('root output')
