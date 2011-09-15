@@ -208,7 +208,7 @@ class TestDateTime(TestCase):
     @replace('datetime.datetime',test_datetime())
     def test_repr(self):
         from datetime import datetime
-        compare(repr(datetime),"<class 'testfixtures.tdatetime'>")
+        compare(repr(datetime),"<class 'testfixtures.tdatetime.tdatetime'>")
 
 
     @replace('datetime.datetime',test_datetime(delta=1))

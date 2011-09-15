@@ -59,7 +59,7 @@ class TestTempDir(TestCase):
             m = Mock()
             d = mkdtemp()
             m.return_value = d
-            r.replace('testfixtures.mkdtemp',m)
+            r.replace('testfixtures.tempdirectory.mkdtemp',m)
 
             self.failUnless(os.path.exists(d))
 
@@ -98,8 +98,8 @@ class TestTempDir(TestCase):
     def test_dont_create_or_cleanup_with_path(self):
         with Replacer() as r:
             m = Mock()
-            r.replace('testfixtures.mkdtemp',m)
-            r.replace('testfixtures.rmtree',m)
+            r.replace('testfixtures.tempdirectory.mkdtemp',m)
+            r.replace('testfixtures.tempdirectory.rmtree',m)
 
             @tempdir(path='foo')
             def test_method(d):

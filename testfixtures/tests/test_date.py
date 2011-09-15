@@ -136,7 +136,7 @@ class TestDate(TestCase):
     @replace('datetime.date',test_date())
     def test_repr(self):
         from datetime import date
-        compare(repr(date),"<class 'testfixtures.tdate'>")
+        compare(repr(date),"<class 'testfixtures.tdatetime.tdate'>")
 
     @replace('datetime.date',test_date(delta=2))
     def test_delta(self):

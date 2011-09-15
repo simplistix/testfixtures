@@ -81,7 +81,7 @@ class TestTime(TestCase):
     @replace('time.time',test_time())
     def test_repr_time(self):
         from time import time
-        compare(repr(time),"<class 'testfixtures.ttime'>")
+        compare(repr(time),"<class 'testfixtures.tdatetime.ttime'>")
 
     @replace('time.time',test_time(delta=10))
     def test_delta(self):
