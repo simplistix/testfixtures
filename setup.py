@@ -27,7 +27,7 @@ setup(
     extras_require=dict(
         test=[
             # used in our own tests
-            'mock','manuel',
+            'mock', 'manuel', 'pytz',
             # required to test optional features
             'zope.component',
             ],
