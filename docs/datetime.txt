@@ -261,6 +261,13 @@ over multiple calls, the values returned by
 >>> print datetime.now()
 2000-12-31 19:00:00
 
+If we now ask for this time but in the timezone we passed to
+:class:`~testfixtures.test_datetime`, we will get the same hours,
+minutes and seconds but with a ``tzinfo`` attribute set:
+
+>>> print datetime.now(ATZInfo())
+2000-12-31 19:00:00-05:00
+
 However, the value of :meth:`~tdatetime.utcnow` will
 not be affected:
 
