@@ -17,6 +17,24 @@ def strip_blank_lines(text):
             result.append(line)
     return '\n'.join(result)
 
+def compare_sequence(x, y):
+    l_x = len(x)
+    l_y = len(y)
+    i = 0
+    while i<l_x and i<l_y:
+        if x[i]!=y[i]:
+            break
+        i+=1
+    return (
+        'Sequence not as expected:\n\n'
+        'same:\n%s\n\n'
+        'first:\n%s\n\n'
+        'second:\n%s')%(
+        pformat(x[:i]),
+        pformat(x[i:]),
+        pformat(y[i:]),
+        )
+
 def compare_dict(x, y):
     x_keys = set(x.keys())
     y_keys = set(y.keys())
@@ -59,7 +77,9 @@ def compare_dict(x, y):
     return '\n'.join(lines)+'\n'
     
 _registry = {
-    dict: compare_dict
+    dict: compare_dict,
+    list: compare_sequence,
+    tuple: compare_sequence,
     }
 
 def compare(x,y,blanklines=True,trailing_whitespace=True):
@@ -108,26 +128,6 @@ def compare(x,y,blanklines=True,trailing_whitespace=True):
             "if blanklines or trailing_whitespace are not True, only string "
             "arguments should be passed, got %r and %r" % (x,y)
             )
-    elif ((isinstance(x,tuple) and isinstance(y,tuple))
-          or
-          (isinstance(x,list) and isinstance(y,list))):
-        l_x = len(x)
-        l_y = len(y)
-        i = 0
-        while i<l_x and i<l_y:
-            if x[i]!=y[i]:
-                break
-            i+=1
-        message = (
-            'Sequence not as expected:\n\n'
-            'same:\n%s\n\n'
-            'first:\n%s\n\n'
-            'second:\n%s')%(
-            pformat(x[:i]),
-            pformat(x[i:]),
-            pformat(y[i:]),
-            )
-
     # This mirror unittest2's functionality
     if type(x) is type(y):
         comparer = _registry.get(type(x))
