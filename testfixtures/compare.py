@@ -26,6 +26,15 @@ def compare_sequence(x, y):
         pformat(y[i:]),
         )
 
+def compare_generator(x, y):
+    x = tuple(x)
+    y = tuple(y)
+
+    if x==y:
+        return identity
+
+    return compare_sequence(x, y)
+
 def compare_dict(x, y):
     x_keys = set(x.keys())
     y_keys = set(y.keys())
@@ -130,7 +139,8 @@ _registry = {
     list: compare_sequence,
     tuple: compare_sequence,
     str: compare_text,
-    unicode: compare_text, 
+    unicode: compare_text,
+    GeneratorType: compare_generator,
     }
 
 def compare(x, y, **kw):
@@ -141,11 +151,6 @@ def compare(x, y, **kw):
     The :class:`AssertionError` raised will attempt to provide
     descriptions of the differences found.
     """
-    # pre-processing
-    if isinstance(x,GeneratorType) and isinstance(x,GeneratorType):
-        x = tuple(x)
-        y = tuple(y)
-        
     # short-circuit check
     if x==y:
         return identity
