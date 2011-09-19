@@ -235,21 +235,42 @@ class TestCompare(TestCase):
             '\n'
             )
 
-    def test_dict_subclass_different(self):
-        class tdict(dict):
-            pass
+    def test_set_same(self):
+        self.failUnless(compare(set([1]),set([1])) is identity)
+
+    def test_set_first_missing_keys(self):
         self.checkRaises(
-            tdict(x=1),tdict(x=2),
-            # won't work without being able
-            # to register a comparison for tdict!
-            #"tdict not as expected:\n"
-            #"\n"
-            #"values differ:\n"
-            #"'x': 1 != 2\n"
-            #'\n'
-            "{'x': 1} != {'x': 2}"
+            set(),set([3]),
+            "set not as expected:\n"
+            "\n"
+            "in second but not first:\n"
+            "[3]\n"
+            '\n'
             )
-    
+
+    def test_set_second_missing_keys(self):
+        self.checkRaises(
+            set([3]),set(),
+            "set not as expected:\n"
+            "\n"
+            "in first but not second:\n"
+            "[3]\n"
+            '\n'
+            )
+
+    def test_set_full_diff(self):
+        self.checkRaises(
+            set([1, 2, 4]),set([1, 3, 5]),
+            "set not as expected:\n"
+            "\n"
+            "in first but not second:\n"
+            "[2, 4]\n"
+            '\n'
+            "in second but not first:\n"
+            "[3, 5]\n"
+            '\n'
+            )
+
     def test_tuple_same(self):
         self.failUnless(compare((1,2,3),(1,2,3)) is identity)
 

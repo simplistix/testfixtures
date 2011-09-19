@@ -67,6 +67,24 @@ def compare_dict(x, y):
         lines.append('')
     return '\n'.join(lines)+'\n'
 
+def compare_set(x, y):
+    x_not_y = x - y
+    y_not_x = y - x
+    lines = ['%s not as expected:' % x.__class__.__name__,'']
+    if x_not_y:
+        lines.extend((
+            'in first but not second:',
+            pformat(sorted(x_not_y)),
+            '',
+            ))
+    if y_not_x:
+        lines.extend((
+            'in second but not first:',
+            pformat(sorted(y_not_x)),
+            '',
+            ))
+    return '\n'.join(lines)+'\n'
+
 trailing_whitespace_re = compile('\s+$',MULTILINE)
 
 def strip_blank_lines(text):
@@ -108,6 +126,7 @@ def _default_compare(x, y):
 
 _registry = {
     dict: compare_dict,
+    set: compare_set,
     list: compare_sequence,
     tuple: compare_sequence,
     str: compare_text,
