@@ -8,15 +8,6 @@ from testfixtures import identity, not_there
 from testfixtures.resolve import resolve
 from types import ClassType, GeneratorType
 
-trailing_whitespace_re = compile('\s+$',MULTILINE)
-
-def strip_blank_lines(text):
-    result = []
-    for line in text.split('\n'):
-        if line and not line.isspace():
-            result.append(line)
-    return '\n'.join(result)
-
 def compare_sequence(x, y):
     l_x = len(x)
     l_y = len(y)
@@ -75,21 +66,18 @@ def compare_dict(x, y):
         lines.extend(diffs)
         lines.append('')
     return '\n'.join(lines)+'\n'
-    
-_registry = {
-    dict: compare_dict,
-    list: compare_sequence,
-    tuple: compare_sequence,
-    }
 
-def compare(x,y,blanklines=True,trailing_whitespace=True):
+trailing_whitespace_re = compile('\s+$',MULTILINE)
+
+def strip_blank_lines(text):
+    result = []
+    for line in text.split('\n'):
+        if line and not line.isspace():
+            result.append(line)
+    return '\n'.join(result)
+
+def compare_text(x, y, blanklines=True, trailing_whitespace=True):
     """
-    Compare the two supplied arguments and raise an
-    :class:`AssertionError` if they are not the same.
-
-    The :class:`AssertionError` raised will attempt to provide
-    descriptions of the differences found.
-
     :param blanklines: If `False`, then when comparing multi-line
                        strings, any blank lines in either argument
                        will be ignored.
@@ -98,43 +86,61 @@ def compare(x,y,blanklines=True,trailing_whitespace=True):
                                 multi-line strings, trailing
                                 whilespace on lines will be ignored.
     """
+    if not trailing_whitespace:
+        x = trailing_whitespace_re.sub('', x)
+        y = trailing_whitespace_re.sub('', y)
+    if not blanklines:
+        x = strip_blank_lines(x)
+        y = strip_blank_lines(y)
+    if x==y:
+        return identity
+    if len(x)>10 or len(y)>10:
+        if '\n' in x or '\n' in y:
+            message = '\n' + diff(x, y)
+        else:
+            message = '\n%r\n!=\n%r' % (x, y)
+    else:
+        message = '%r != %r' % (x, y)
+    return message
+
+def _default_compare(x, y):
+    return '%r != %r' % (x, y)
+
+_registry = {
+    dict: compare_dict,
+    list: compare_sequence,
+    tuple: compare_sequence,
+    str: compare_text,
+    unicode: compare_text, 
+    }
+
+def compare(x, y, **kw):
+    """
+    Compare the two supplied arguments and raise an
+    :class:`AssertionError` if they are not the same.
+
+    The :class:`AssertionError` raised will attempt to provide
+    descriptions of the differences found.
+    """
     # pre-processing
     if isinstance(x,GeneratorType) and isinstance(x,GeneratorType):
         x = tuple(x)
         y = tuple(y)
-    if isinstance(x,basestring) and isinstance(y,basestring):
-        if not trailing_whitespace:
-            x = trailing_whitespace_re.sub('',x)
-            y = trailing_whitespace_re.sub('',y)
-        if not blanklines:
-            x = strip_blank_lines(x)
-            y = strip_blank_lines(y)
-
-    # the check
+        
+    # short-circuit check
     if x==y:
         return identity
 
-    # error reporting
-    message = None
-    if isinstance(x,basestring) and isinstance(y,basestring):
-            
-        if len(x)>10 or len(y)>10:
-            if '\n' in x or '\n' in y:
-                message = '\n'+diff(x,y)
-            else:
-                message = '\n%r\n!=\n%r'%(x,y)
-    elif not (blanklines and trailing_whitespace):
-        raise TypeError(
-            "if blanklines or trailing_whitespace are not True, only string "
-            "arguments should be passed, got %r and %r" % (x,y)
-            )
-    # This mirror unittest2's functionality
+    # extensive, extendable, comparison and error reporting
     if type(x) is type(y):
-        comparer = _registry.get(type(x))
-        if comparer is not None:
-            message = comparer(x, y)
-    if message is None:
-        message = '%r != %r' % (x, y)
+        comparer = _registry.get(type(x), _default_compare)
+    else:
+        comparer = _default_compare
+        
+    message = comparer(x, y, **kw)
+    if message is identity:
+        return identity
+        
     raise AssertionError(message)
     
 class Comparison:

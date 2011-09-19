@@ -366,8 +366,7 @@ class TestCompare(TestCase):
         
     def test_ignore_trailing_whitespace_non_string(self):
         with ShouldRaise(TypeError(
-            "if blanklines or trailing_whitespace are not True, only string "
-            "arguments should be passed, got 1 and ''"
+            "_default_compare() got an unexpected keyword argument 'trailing_whitespace'"
             )):
             compare(1,'',trailing_whitespace=False)
 
@@ -399,8 +398,7 @@ b
         
     def test_ignore_blank_lines_non_string(self):
         with ShouldRaise(TypeError(
-            "if blanklines or trailing_whitespace are not True, only string "
-            "arguments should be passed, got 1 and ''"
+            "_default_compare() got an unexpected keyword argument 'blanklines'"
             )):
             compare(1,'',blanklines=False)
 
