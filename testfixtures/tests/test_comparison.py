@@ -26,6 +26,19 @@ class X(object):
     __slots__ = ['x']
     def __repr__(self):
         return '<X>'
+
+class FussyDefineComparison(object):
+
+    def __init__(self, attr):
+        self.attr = attr
+        
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            raise TypeError()
+        return False
+
+    def __ne__(self, other):
+        return not self==other
     
 class TestC(TestCase):
     
@@ -625,6 +638,12 @@ class TestC(TestCase):
     def test_importerror(self):
         self.failIf(
             C(ImportError('x'))!=ImportError('x')
+            )
+        
+    def test_class_defines_comparison_strictly(self):
+        self.assertEqual(
+            C('testfixtures.tests.test_comparison.FussyDefineComparison', attr=1),
+            FussyDefineComparison(1)
             )
         
 def test_suite():
