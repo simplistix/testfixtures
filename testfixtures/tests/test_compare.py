@@ -376,6 +376,25 @@ class TestCompare(TestCase):
             "<class testfixtures.tests.test_compare.Y at ...>"
             )
 
+    def test_show_whitespace(self):
+        # does nothing! ;-)
+        self.checkRaises(
+            ' x \n\r',' x \n \t',
+            "' x \\n\\r' != ' x \\n \\t'",
+            show_whitespace=True
+            )
+
+    def test_show_whitespace_long(self):
+        self.checkRaises(
+            "\t         \n  '",'\r     \n  ',
+            '\n@@ -1,2 +1,2 @@\n'
+            '-\'\\t         \\n\'\n'
+            '-"  \'"\n'
+            '+\'\\r     \\n\'\n'
+            '+\'  \'',
+            show_whitespace=True
+            )
+
     def test_include_trailing_whitespace(self):
         self.checkRaises(
             ' x \n',' x  \n',

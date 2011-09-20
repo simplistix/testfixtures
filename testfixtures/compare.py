@@ -103,7 +103,17 @@ def strip_blank_lines(text):
             result.append(line)
     return '\n'.join(result)
 
-def compare_text(x, y, blanklines=True, trailing_whitespace=True):
+def split_repr(text):
+    parts = text.split('\n')
+    for i, part in enumerate(parts[:-1]):
+        parts[i] = repr(part +'\n')
+    parts[-1] = repr(parts[-1])
+    return '\n'.join(parts)
+
+def compare_text(x, y,
+                 blanklines=True,
+                 trailing_whitespace=True,
+                 show_whitespace=False):
     """
     :param blanklines: If `False`, then when comparing multi-line
                        strings, any blank lines in either argument
@@ -112,6 +122,10 @@ def compare_text(x, y, blanklines=True, trailing_whitespace=True):
     :param trailing_whitespace: If `False`, then when comparing
                                 multi-line strings, trailing
                                 whilespace on lines will be ignored.
+                                
+    :param show_whitespace: If `True`, then whitespace characters in
+                            multi-line strings will be replaced with their
+                            representations.
     """
     if not trailing_whitespace:
         x = trailing_whitespace_re.sub('', x)
@@ -123,6 +137,9 @@ def compare_text(x, y, blanklines=True, trailing_whitespace=True):
         return identity
     if len(x)>10 or len(y)>10:
         if '\n' in x or '\n' in y:
+            if show_whitespace:
+                x = split_repr(x)
+                y = split_repr(y)
             message = '\n' + diff(x, y)
         else:
             message = '\n%r\n!=\n%r' % (x, y)
