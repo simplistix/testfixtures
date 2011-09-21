@@ -30,6 +30,16 @@ API Reference
 
 .. autofunction:: compare
 
+.. autofunction:: testfixtures.compare.compare_sequence
+
+.. autofunction:: testfixtures.compare.compare_generator
+
+.. autofunction:: testfixtures.compare.compare_dict
+
+.. autofunction:: testfixtures.compare.compare_set
+
+.. autofunction:: testfixtures.compare.compare_text
+
 .. autofunction:: diff
 
 .. autofunction:: generator

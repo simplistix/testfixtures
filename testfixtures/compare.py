@@ -9,6 +9,10 @@ from testfixtures.resolve import resolve
 from types import ClassType, GeneratorType
 
 def compare_sequence(x, y):
+    """
+    Returns a textual description of the differences between the two
+    supplied sequences.
+    """
     l_x = len(x)
     l_y = len(y)
     i = 0
@@ -27,6 +31,14 @@ def compare_sequence(x, y):
         )
 
 def compare_generator(x, y):
+    """
+    Returns a textual description of the differences between the two
+    supplied generators.
+
+    This is done by first unwinding each of the generators supplied
+    into tuples and then passing those tuples to
+    :func:`compare_sequence`.
+    """
     x = tuple(x)
     y = tuple(y)
 
@@ -36,6 +48,10 @@ def compare_generator(x, y):
     return compare_sequence(x, y)
 
 def compare_dict(x, y):
+    """
+    Returns a textual description of the differences between the two
+    supplied dictionaries.
+    """
     x_keys = set(x.keys())
     y_keys = set(y.keys())
     x_not_y = x_keys - y_keys
@@ -77,6 +93,10 @@ def compare_dict(x, y):
     return '\n'.join(lines)+'\n'
 
 def compare_set(x, y):
+    """
+    Returns a textual description of the differences between the two
+    supplied sets.
+    """
     x_not_y = x - y
     y_not_x = y - x
     lines = ['%s not as expected:' % x.__class__.__name__,'']
@@ -115,6 +135,10 @@ def compare_text(x, y,
                  trailing_whitespace=True,
                  show_whitespace=False):
     """
+    Returns an informative string describing the differences between the two
+    supplied strings. The way in which this comparison is performed
+    can be controlled using the following parameters:
+
     :param blanklines: If `False`, then when comparing multi-line
                        strings, any blank lines in either argument
                        will be ignored.
@@ -164,9 +188,12 @@ def compare(x, y, **kw):
     """
     Compare the two supplied arguments and raise an
     :class:`AssertionError` if they are not the same.
-
     The :class:`AssertionError` raised will attempt to provide
     descriptions of the differences found.
+
+    Any keywords parameters supplied will be passed to the function
+    that ends up doing the comparison. See the API documentation below
+    for details of these.
     """
     # short-circuit check
     if x==y:
