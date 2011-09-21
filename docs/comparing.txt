@@ -18,16 +18,128 @@ This function can be used as a replacement for
 reported as a test failure:
 
 >>> from testfixtures import compare
->>> compare(1,2)
+>>> compare(1, 2)
 Traceback (most recent call last):
  ...
 AssertionError: 1 != 2
 
 The real strengths of this function come when comparing more complex
-data types.
+data types. A number of common python data types will give more
+detailed output when a comparison fails as described below:
 
-Multi-line strings give unified diffs when their
-comparison fails:
+sets
+~~~~
+ 
+Comparing sets that aren't the same will attempt to
+highlight where the differences lie:
+
+>>> compare(set([1, 2]), set([2, 3]))
+Traceback (most recent call last):
+ ...
+AssertionError: set not as expected:
+<BLANKLINE>
+in first but not second:
+[1]
+<BLANKLINE>
+in second but not first:
+[3]
+<BLANKLINE>
+<BLANKLINE>
+
+dicts
+~~~~~
+
+Comparing dictionaries that aren't the same will attempt to
+highlight where the differences lie:
+
+>>> compare(dict(x=1, y=2, a=4),dict(x=1, z=3, a=5))
+Traceback (most recent call last):
+ ...
+AssertionError: dict not as expected:
+<BLANKLINE>
+same:
+['x']
+<BLANKLINE>
+in first but not second:
+'y': 2
+<BLANKLINE>
+in second but not first:
+'z': 3
+<BLANKLINE>
+values differ:
+'a': 4 != 5
+<BLANKLINE>
+<BLANKLINE>
+
+lists and tuples
+~~~~~~~~~~~~~~~~
+
+Comparing lists or tuples that aren't the same will attempt to highlight
+where the differences lie:
+
+>>> compare([1, 2, 3], [1, 2, 4])
+Traceback (most recent call last):
+ ...
+AssertionError: Sequence not as expected:
+<BLANKLINE>
+same:
+[1, 2]
+<BLANKLINE>
+first:
+[3]
+<BLANKLINE>
+second:
+[4]
+
+generators
+~~~~~~~~~~
+
+When two generators are compared, they are both first unwound into
+tuples and those tuples are then compared.
+
+The :ref:`generator <generator>` helper is useful for creating a
+generator to represent the expected results:
+
+>>> from testfixtures import generator
+>>> def my_gen(t):
+...     i = 0
+...     while i<t:
+...         i += 1
+...         yield i
+>>> compare(my_gen(2),generator(1, 2, 3))
+Traceback (most recent call last):
+ ...
+AssertionError: Sequence not as expected:
+<BLANKLINE>
+same:
+(1, 2)
+<BLANKLINE>
+first:
+()
+<BLANKLINE>
+second:
+(3,)
+
+strings and unicodes
+~~~~~~~~~~~~~~~~~~~~
+
+Comparison of strings can be tricky, particularly when those strings
+contain multiple lines; spotting the differences between the expected
+and actual values can be hard.
+
+To help with this, long strings give a more helpful representation
+when comparison fails:
+
+>>> compare("1234567891011", "1234567789")
+Traceback (most recent call last):
+ ...
+AssertionError: 
+'1234567891011'
+!=
+'1234567789'
+
+Likewise, multi-line strings give unified diffs when their comparison
+fails:
 
 >>> compare("""
 ...         This is line 1
@@ -50,92 +162,22 @@ AssertionError:
          This is line 3
 <BLANKLINE>
 
-Comparing sequences that aren't the same will attempt to highlight
-where the differences lie:
+Such comparisons can still be confusing as white space is taken into
+account. If you need to care about whitespace characters, you can make
+spotting the differences easier as follows:
 
->>> compare([1,2,3],[1,2,4])
+>>> compare("\tline 1\r\nline 2"," line1 \nline 2", show_whitespace=True)
 Traceback (most recent call last):
  ...
-AssertionError: Sequence not as expected:
-<BLANKLINE>
-same:
-[1, 2]
-<BLANKLINE>
-first:
-[3]
-<BLANKLINE>
-second:
-[4]
+AssertionError: 
+@@ -1,2 +1,2 @@
+-'\tline 1\r\n'
++' line1 \n'
+ 'line 2'
 
-Likewise, comparing dicts that aren't the same will attempt to
-highlight where the differences lie:
-
->>> compare(dict(x=1,y=2,a=4),dict(x=1,z=3,a=5))
-Traceback (most recent call last):
- ...
-AssertionError: dict not as expected:
-<BLANKLINE>
-same:
-['x']
-<BLANKLINE>
-in first but not second:
-'y': 2
-<BLANKLINE>
-in second but not first:
-'z': 3
-<BLANKLINE>
-values differ:
-'a': 4 != 5
-<BLANKLINE>
-<BLANKLINE>
-
-You can also use the :ref:`generator <generator>` helper to get
-similar feedback about the results of iterating over a generator:
-
->>> from testfixtures import generator
->>> def my_gen(t):
-...     i = 0
-...     while i<t:
-...         i += 1
-...         yield i
->>> compare(my_gen(2),generator(1,2,3))
-Traceback (most recent call last):
- ...
-AssertionError: Sequence not as expected:
-<BLANKLINE>
-same:
-(1, 2)
-<BLANKLINE>
-first:
-()
-<BLANKLINE>
-second:
-(3,)
-
-The :meth:`~testfixtures.compare` function can also be used to replace
-the the ``failUnless(x() is True)`` pattern: 
-
->>> compare(1 and 1,False)
-Traceback (most recent call last):
- ...
-AssertionError: 1 != False
-
-If, for any reason, you need to check what is returned by
-:meth:`~testfixtures.compare`, it will either raise an exception, or
-return the ``identity`` singleton:
-
->>> from testfixtures import identity
->>> result = compare(1 and 1,True)
->>> result is identity
-True
-
-Comparing multi-line strings
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Comparison of multi-line strings can be painful, especially when small
-differences occur that you don't actually care about but which cause
-tests to fail. To help with this, :func:`compare` has two options that
-can be set to ignore certain types of whitespace.
+However, you may not care about some of the whitespace involved. To
+help with this, :func:`compare` has two options that can be set to
+ignore certain types of whitespace.
 
 If you wish to compare two strings that contain blank lines or lines
 containing only whitespace characters, but where you only care about
@@ -143,7 +185,7 @@ the content, you can use the following:
 
 .. code-block:: python
 
-  compare('line1\nline2','line1\n \nline2\n\n',
+  compare('line1\nline2', 'line1\n \nline2\n\n',
           blanklines=False)
 
 If you wish to compare two strings made up of lines that may have
@@ -152,7 +194,7 @@ following:
 
 .. code-block:: python
 
-  compare('line1\nline2','line1 \t\nline2   \n',
+  compare('line1\nline2', 'line1 \t\nline2   \n',
           trailing_whitespace=False)
 
 Comparison objects
