@@ -48,36 +48,6 @@ class TestTime(TestCase):
         from time import time
         compare(time(),978307201.0)
     
-    def test_gotcha_import(self):
-        # standard `replace` caveat, make sure you
-        # patch all revelent places where time
-        # has been imported:
-        
-        @replace('time.time',test_time())
-        def test_something():
-            from time import time
-            compare(time(),978307200.0)
-            compare(sample1.str_time(),'978307201.0')
-
-        with ShouldRaise(AssertionError) as s:
-            test_something()
-            
-        # This convoluted check is because we can't stub
-        # out time, since we're testing stubbing out time ;-)
-        j,t1,j,t2,j = s.raised.args[0].split("'")
-        
-        # check we can parse the time
-        t1 = float(t1)
-        # check the t2 bit was as it should be
-        compare(t2,'978307201.0')
-
-        # What you need to do is replace the imported type:
-        @replace('testfixtures.tests.sample1.time',test_time())
-        def test_something():
-            compare(sample1.str_time(),'978307200.0')
-
-        test_something()
-        
     @replace('time.time',test_time())
     def test_repr_time(self):
         from time import time
