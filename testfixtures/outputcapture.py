@@ -4,7 +4,7 @@
 import sys
 
 from cStringIO import StringIO
-from testfixtures.compare import compare
+from testfixtures.comparison import compare
 
 class OutputCapture:
     """

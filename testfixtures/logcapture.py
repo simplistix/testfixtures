@@ -3,7 +3,7 @@
 
 import logging
 
-from testfixtures.compare import compare
+from testfixtures.comparison import compare
 from testfixtures.utils import wrap
 
 class LogCapture(logging.Handler):

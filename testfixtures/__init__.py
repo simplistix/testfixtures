@@ -16,7 +16,7 @@
 identity = object()
 not_there = object()
 
-from testfixtures.compare import Comparison, StringComparison, compare, diff
+from testfixtures.comparison import Comparison, StringComparison, compare, diff
 from testfixtures.tdatetime import test_datetime, test_date, test_time
 from testfixtures.logcapture import LogCapture, log_capture
 from testfixtures.outputcapture import OutputCapture

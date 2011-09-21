@@ -6,7 +6,7 @@ import os
 from re import compile
 from shutil import rmtree
 from tempfile import mkdtemp
-from testfixtures.compare import compare
+from testfixtures.comparison import compare
 from testfixtures.utils import wrap
 
 class TempDirectory:
