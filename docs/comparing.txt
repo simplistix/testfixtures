@@ -229,7 +229,7 @@ For example, suppose you're using a :func:`~collections.namedtuple`:
   r.replace('testfixtures.comparison._registry', {})
 
 If this tuple contained many elements, you may want to use the
-:func:`~testfixtures.compare.compare_sequence` function to show
+:func:`~testfixtures.comparison.compare_sequence` function to show
 differences when two of these objects are not equal. This can be done
 as follows:
 
@@ -328,7 +328,7 @@ reason, TextFixtures provides the :class:`~testfixtures.Comparison`
 class.
 
 This class lets you instantiate placeholders that can be used to
-compared expected results with actual results where objects in the
+compare expected results with actual results where objects in the
 actual results do not support useful comparison.  
 
 Comparisons will appear to be equal to any object they are compared
