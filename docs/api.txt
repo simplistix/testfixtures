@@ -60,6 +60,11 @@ API Reference
    the :class:`datetime.date` class but where the return value of
    :meth:`~datetime.date.today` can be controlled.
 
+   If a single positional argument of ``None`` is passed, then the
+   queue of dates to be returned will be empty and you will need to
+   call :meth:`~tdate.set` or :meth:`~tdate.add` before calling
+   :meth:`~tdate.today`.
+
    :param year: An optional year used to create the first date returned by
                 :meth:`~datetime.date.today`.
 
@@ -106,6 +111,11 @@ API Reference
    the :class:`datetime.datetime` class but where the return value of
    :meth:`~tdatetime.now` can be controlled.
 
+   If a single positional argument of ``None`` is passed, then the
+   queue of datetimes to be returned will be empty and you will need to
+   call :meth:`~tdatetime.set` or :meth:`~tdatetime.add` before calling
+   :meth:`~tdatetime.now` or :meth:`~tdatetime.utcnow`.
+
    :param year: An optional year used to create the first datetime returned by
                 :meth:`~tdatetime.now`.
 
@@ -127,8 +137,12 @@ API Reference
    :param microsecond: An optional microsecond used to create the first datetime returned by
                 :meth:`~tdatetime.now`.
 
-   :param tzinfo: An optional tzinfo that will be applied to any value
-                returned by :meth:`~tdatetime.now`.
+   :param tzinfo: An optional tzinfo that will be used to indicate the
+                timezone intended for the values returned by
+                returned by :meth:`~tdatetime.now`. It will be used to
+                correctly calculate return values when `tz` is passed
+                to :meth:`~tdatetime.now` and when
+                :meth:`~tdatetime.utcnow` is called.
 
    :param delta: The size of the delta to use between values returned
                  from :meth:`~tdatetime.now`. If not specified,
@@ -192,6 +206,11 @@ API Reference
    A function that returns a mock object that can be used in place of
    the :class:`time.time` function but where the return value can be
    controlled.
+
+   If a single positional argument of ``None`` is passed, then the
+   queue of times to be returned will be empty and you will need to
+   call :meth:`~ttime.set` or :meth:`~ttime.add` before calling
+   the mock.
 
    :param year: An optional year used to create the first time returned.
 
