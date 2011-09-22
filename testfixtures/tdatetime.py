@@ -37,14 +37,21 @@ def instantiate(cls):
     return r
 
 @classmethod
-def instantiate_tz(cls,tz=None):
-    r = cls.utcnow()
+def now(cls,tz=None):
+    r = cls._instantiate()
     if tz is not None:
+        if cls._tzta:
+            r = r - cls._tzta.utcoffset(r)
         return tz.fromutc(r.replace(tzinfo=tz))
-    elif cls._tzta is not None:
-        r = r + cls._tzta.utcoffset(r)
     return r
 
+@classmethod
+def utcnow(cls):
+    r = cls._instantiate()
+    if cls._tzta is not None:
+        r = r - cls._tzta.utcoffset(r)
+    return r
+    
 def test_factory(n,type,default,args,kw,tz=None,**to_patch):    
     q = []
     to_patch['_q']=q
@@ -99,8 +106,9 @@ def test_datetime(*args,**kw):
     return test_factory(
         'tdatetime',datetime,(2001,1,1,0,0,0),args,kw,tz,
         _ct=correct_datetime,
-        now=instantiate_tz,
-        utcnow=instantiate,
+        _instantiate=instantiate,
+        now=now,
+        utcnow=utcnow,
         _gap = gap,
         _gap_d = gap_delta,
         _gap_t = delta_type,
