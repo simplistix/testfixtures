@@ -1,6 +1,7 @@
-# Copyright (c) 2008 Simplistix Ltd
+# Copyright (c) 2008-2011 Simplistix Ltd
 # See license.txt for license details.
 
+from mock import Mock
 from re import compile
 from testfixtures import identity,compare,Comparison as C,generator, ShouldRaise
 from unittest import TestCase,TestSuite,makeSuite
@@ -441,6 +442,17 @@ b
             "_default_compare() got an unexpected keyword argument 'blanklines'"
             )):
             compare(1,'',blanklines=False)
+
+    def test_supply_registry(self):
+        compare_dict = Mock()
+        compare_dict.return_value = 'not equal'
+        with ShouldRaise(AssertionError('not equal')):
+            compare({1:1}, {2:2},
+                    foo='bar',
+                    registry={dict: compare_dict})
+        compare_dict.assert_called_with(
+            {1:1}, {2:2}, foo='bar'
+            )
 
 def test_suite():
     return TestSuite((

@@ -184,6 +184,14 @@ _registry = {
     GeneratorType: compare_generator,
     }
 
+def register(type, comparer):
+    """
+    Register the supplied comparer for the specified type.
+    This registration is global and will be in effect from the point
+    this function is called until the end of the current process.
+    """
+    _registry[type] = comparer
+    
 def compare(x, y, **kw):
     """
     Compare the two supplied arguments and raise an
@@ -194,14 +202,20 @@ def compare(x, y, **kw):
     Any keywords parameters supplied will be passed to the function
     that ends up doing the comparison. See the API documentation below
     for details of these.
+    
+    :param registry: If supplied, should be a dictionary mapping
+        classes to comparer functions for those classes. This will be
+        used instead of the global comparer registry.
+
     """
     # short-circuit check
     if x==y:
         return identity
 
     # extensive, extendable, comparison and error reporting
+    registry = kw.pop('registry', _registry)
     if type(x) is type(y):
-        comparer = _registry.get(type(x), _default_compare)
+        comparer = registry.get(type(x), _default_compare)
     else:
         comparer = _default_compare
         

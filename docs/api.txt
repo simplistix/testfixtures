@@ -30,6 +30,8 @@ API Reference
 
 .. autofunction:: compare
 
+.. autofunction:: testfixtures.comparison.register
+
 .. autofunction:: testfixtures.comparison.compare_sequence
 
 .. autofunction:: testfixtures.comparison.compare_generator

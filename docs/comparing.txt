@@ -197,6 +197,128 @@ following:
   compare('line1\nline2', 'line1 \t\nline2   \n',
           trailing_whitespace=False)
 
+providing your own comparers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When using :meth:`compare` frequently for your own complex objects,
+it can be beneficial to give more descriptive output when two objects
+don't compare as equal.
+
+.. note:: 
+
+    If you are reading this section as a result of needing to test
+    objects that don't natively support comparison, or as a result of
+    needing to infrequently compare your own subclasses of python
+    basic types, take a look at :ref:`comparison-objects` as this may
+    well be an easier solution.
+
+Providing a comparer can be particularly useful when the objects
+involved are instances of subclasses of python basic data types. 
+For example, suppose you're using a :func:`~collections.namedtuple`:
+
+.. code-block:: python
+
+  from collections import namedtuple  
+  DataRow = namedtuple('DataRow', ('x', 'y', 'z'))
+
+.. invisible-code-block: python
+
+  from testfixtures.comparison import _registry
+  from testfixtures import Replacer
+  r = Replacer()
+  r.replace('testfixtures.comparison._registry', {})
+
+If this tuple contained many elements, you may want to use the
+:func:`~testfixtures.compare.compare_sequence` function to show
+differences when two of these objects are not equal. This can be done
+as follows:
+
+>>> from testfixtures.comparison import register, compare_sequence
+>>> register(DataRow, compare_sequence)
+>>> compare(DataRow(1, 2, 3), DataRow(1, 2, 4))
+Traceback (most recent call last):
+ ...
+AssertionError: Sequence not as expected:
+<BLANKLINE>
+same:
+(1, 2)
+<BLANKLINE>
+first:
+(3,)
+<BLANKLINE>
+second:
+(4,)
+
+.. invisible-code-block: python
+
+  import testfixtures.comparison
+  assert testfixtures.comparison._registry == {DataRow: compare_sequence}
+
+A full list of the available comparers included can be found below the
+API documentation for :func:`compare`. If you wish to provide your own
+comparer, it should be a function that takes two positional arguments,
+the two objects to be compare, and, if necessary, keyword arguments to
+configure the comparison, which will be passed through from the
+:func:`compare` call. Comparers may do some processing and then decide
+that, for the purposes of the test, the two objects are equal. In this
+case, the comparer should return
+:data:`~testfixtures.identity` to indicate that no exception
+should be raised.
+
+For example, suppose you want to optionally compare only two of the
+three elements of the :func:`~collections.namedtuple` above; this
+could be implemented as follows:
+
+.. code-block:: python
+
+  from testfixtures import identity
+
+  def compare_DataRow(x, y, all=True):
+      cx, cy = x[:2], y[:2]
+      if not all and (cx==cy):
+          return identity
+      return '%r != %r' % (x, y)
+
+To use this, you'd do the following:
+
+>>> from testfixtures.comparison import register
+>>> register(DataRow, compare_DataRow)
+>>> compare(DataRow(1, 2, 3), DataRow(1, 2, 4))
+Traceback (most recent call last):
+ ...
+AssertionError: DataRow(x=1, y=2, z=3) != DataRow(x=1, y=2, z=4)
+>>> compare(DataRow(1, 2, 3), DataRow(1, 2, 4), all=False)
+<identity>
+
+.. invisible-code-block: python
+
+  assert testfixtures.comparison._registry == {DataRow: compare_DataRow}
+  r.restore()
+
+  # set up for the next test
+  r = Replacer()
+  r.replace('testfixtures.comparison._registry', {})
+
+Now, it may be that you only want to use a comparer or set of
+comparers for a particular test. If that's the case, you can pass in a
+registry to the compare function, which will be used instead of the
+global registry:
+
+>>> compare(DataRow(1, 2, 3), DataRow(1, 2, 4),
+...         registry={DataRow:compare_DataRow})
+Traceback (most recent call last):
+ ...
+AssertionError: DataRow(x=1, y=2, z=3) != DataRow(x=1, y=2, z=4)
+
+
+.. invisible-code-block: python
+
+  import testfixtures.comparison
+  assert testfixtures.comparison._registry == {}
+  r.restore()
+
+.. _comparison-objects:
+
 Comparison objects
 ------------------
 
