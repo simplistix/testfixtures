@@ -3,6 +3,32 @@ Changes
 
 .. currentmodule:: testfixtures
 
+2.0.0 (23 September 2011)
+-------------------------
+
+- :func:`compare` now uses a registry of comparers that can be
+  modified either by passing a `registry` option to :func:`compare`
+  or, globally, using the :func:`~comparison.register` function.
+
+- added a comparer for :class:`set` instances to :func:`compare`.
+
+- added a new `show_whitespace` parameter to
+  :func:`~comparison.compare_text`, the comparer used when comparing
+  strings and unicodes with :func:`compare`.
+
+- The internal queue for :class:`test_datetime` is now considered to
+  be in local time. This has implication on the values returned from
+  both :meth:`~tdatetime.now` and :meth:`~tdatetime.utcnow` when
+  `tzinfo` is passed to the :class:`test_datetime` constructor.
+
+- :meth:`set` and :meth:`add` on :class:`test_date`,
+  :class:`test_datetime` and :class:`test_time` now accept instances
+  of the appropriate type as an alternative to just passing in the
+  parameters to create the instance.
+
+- Refactored the monolithic ``__init__.py`` into modules for each
+  type of functionality.
+
 1.12.0 (16 August 2011)
 -----------------------
 
