@@ -80,6 +80,16 @@ class TestDateTime(TestCase):
         compare(datetime.now(),d(2002,1,1,2,0,0))
         compare(datetime.now(),d(2002,1,1,3,0,0))
 
+    @replace('datetime.datetime',test_datetime())
+    def test_add_and_set(self,t):
+        t.add(2002,1,1,1,0,0)
+        t.add(2002,1,1,2,0,0)
+        t.set(2002,1,1,3,0,0)
+        from datetime import datetime
+        compare(datetime.now(),d(2002,1,1,3,0,0))
+        compare(datetime.now(),d(2002,1,1,3,0,10))
+        compare(datetime.now(),d(2002,1,1,3,0,30))
+
     @replace('datetime.datetime',test_datetime(None))
     def test_add_datetime_supplied(self,t):
         from datetime import datetime

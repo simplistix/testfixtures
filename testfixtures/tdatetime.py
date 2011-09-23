@@ -32,7 +32,7 @@ def set_(cls,*args,**kw):
                 'Cannot set %s with tzinfo set' % inst.__class__.__name__
                 )
     if cls._q:
-        cls._q.pop()
+        cls._q=[]
     cls.add(*args,**kw)
 
 def __add__(self,other):
