@@ -106,7 +106,7 @@ generator to represent the expected results:
 ...     while i<t:
 ...         i += 1
 ...         yield i
->>> compare(my_gen(2),generator(1, 2, 3))
+>>> compare(generator(1, 2, 3), my_gen(2))
 Traceback (most recent call last):
  ...
 AssertionError: Sequence not as expected:
@@ -115,10 +115,10 @@ same:
 (1, 2)
 <BLANKLINE>
 first:
-()
+(3,)
 <BLANKLINE>
 second:
-(3,)
+()
 
 strings and unicodes
 ~~~~~~~~~~~~~~~~~~~~
