@@ -9,12 +9,28 @@ from new import classobj
 def add(cls,*args,**kw):
     if 'tzinfo' in kw or len(args)>7:
         raise TypeError('Cannot add tzinfo to %s' % cls.__name__)
-    cls._q.append(cls(*args,**kw))
+    if args and (isinstance(args[0], cls.__bases__[0]) or
+                 (isinstance(args[0], datetime) and issubclass(cls, ttimec))):
+        inst = args[0]
+        if getattr(inst, 'tzinfo', None):
+            raise ValueError(
+                'Cannot add %s with tzinfo set' % inst.__class__.__name__
+                )
+        cls._q.append(inst)
+    else:
+        cls._q.append(cls(*args,**kw))
 
 @classmethod
 def set_(cls,*args,**kw):
     if 'tzinfo' in kw or len(args)>7:
         raise TypeError('Cannot set tzinfo on %s' % cls.__name__)
+    if args and (isinstance(args[0], cls.__bases__[0]) or
+                 (isinstance(args[0], datetime) and issubclass(cls, ttimec))):
+        inst = args[0]
+        if getattr(inst, 'tzinfo', None):
+            raise ValueError(
+                'Cannot set %s with tzinfo set' % inst.__class__.__name__
+                )
     if cls._q:
         cls._q.pop()
     cls.add(*args,**kw)

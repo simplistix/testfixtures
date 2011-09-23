@@ -91,14 +91,18 @@ API Reference
 
      This will add the :class:`datetime.date` created from the
      supplied parameters to the queue of dates to be returned by
-     :meth:`~datetime.date.today`.
+     :meth:`~datetime.date.today`.  An instance
+     of :class:`~datetime.date` may also be passed as a single
+     positional argument.
 
    .. method:: tdate.set(*args, **kw)
 
      This will set the :class:`datetime.date` created from the
      supplied parameters as the next date to be returned by
      :meth:`~datetime.date.today`, regardless of any dates in the
-     queue.
+     queue.   An instance
+     of :class:`~datetime.date` may also be passed as a single
+     positional argument.
 
    .. classmethod:: tdate.today()
 
@@ -167,14 +171,18 @@ API Reference
 
      This will add the :class:`datetime.datetime` created from the
      supplied parameters to the queue of datetimes to be returned by
-     :meth:`~tdatetime.now` or :meth:`~tdatetime.utcnow` .
+     :meth:`~tdatetime.now` or :meth:`~tdatetime.utcnow`. An instance
+     of :class:`~datetime.datetime` may also be passed as a single
+     positional argument.
 
    .. method:: tdatetime.set(*args, *kw)
 
      This will set the :class:`datetime.datetime` created from the
      supplied parameters as the next datetime to be returned by
      :meth:`~tdatetime.now` or :meth:`~tdatetime.utcnow`, clearing out
-     any datetimes in the queue.
+     any datetimes in the queue.  An instance
+     of :class:`~datetime.datetime` may also be passed as a single
+     positional argument.
 
    .. classmethod:: tdatetime.now([tz])
 
@@ -242,14 +250,17 @@ API Reference
      This will add the time specified by the supplied parameters to the
      queue of times to be returned by calls to the mock. The
      parameters are the same as the :class:`datetime.datetime`
-     constructor. 
+     constructor. An instance of :class:`~datetime.datetime` may also
+     be passed as a single positional argument.
 
    .. method:: ttime.set(*args, **kw)
 
      This will set the time specified by the supplied parameters as
      the next time to be returned by a call to the mock, regardless of
      any times in the queue.  The parameters are the same as the
-     :class:`datetime.datetime` constructor. 
+     :class:`datetime.datetime` constructor.  An instance of
+     :class:`~datetime.datetime` may also be passed as a single
+     positional argument.
 
 .. autofunction:: wrap
 

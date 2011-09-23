@@ -1,4 +1,4 @@
-# Copyright (c) 2008 Simplistix Ltd
+# Copyright (c) 2008-2011 Simplistix Ltd
 # See license.txt for license details.
 
 import sample1,sample2
@@ -50,6 +50,14 @@ class TestDate(TestCase):
         compare(date.today(),d(2002,1,3))
         compare(date.today(),d(2002,1,5))
 
+    @replace('datetime.date',test_date(None))
+    def test_add_date_supplied(self):
+        from datetime import date
+        date.add(d(2001, 1, 2))
+        date.add(date(2001, 1, 3))
+        compare(date.today(),d(2001,1,2))
+        compare(date.today(),d(2001,1,3))
+        
     @replace('datetime.date',test_date())
     def test_call(self,t):
         compare(t(2002,1,2),d(2002,1,2))
@@ -160,6 +168,14 @@ class TestDate(TestCase):
         date.set(2002,1,1)
         compare(date.today(),d(2002,1,1))
         compare(date.today(),d(2002,1,3))
+        
+    @replace('datetime.date',test_date(None))
+    def test_set_date_supplied(self):
+        from datetime import date
+        date.set(d(2001, 1, 2))
+        compare(date.today(),d(2001,1,2))
+        date.set(date(2001, 1, 3))
+        compare(date.today(),d(2001,1,3))
         
     @replace('datetime.date',test_date(None))
     def test_set_kw(self):

@@ -33,6 +33,17 @@ class TestTime(TestCase):
         compare(time(),1009854000.0)
 
     @replace('time.time',test_time(None))
+    def test_add_datetime_supplied(self,t):
+        from datetime import datetime
+        from time import time
+        t.add(datetime(2002,1,1,2))
+        compare(time(),1009850400.0)
+        with ShouldRaise(ValueError(
+            'Cannot add datetime with tzinfo set'
+            )):
+            t.add(datetime(2001, 1, 1, tzinfo=TestTZInfo()))
+            
+    @replace('time.time',test_time(None))
     def test_now_requested_longer_than_supplied(self,t):
         t.add(2002,1,1,1,0,0)
         t.add(2002,1,1,2,0,0)
@@ -76,6 +87,17 @@ class TestTime(TestCase):
         compare(time(),1009846800.0)
         compare(time(),1009846802.0)
         
+    @replace('time.time',test_time(None))
+    def test_set_datetime_supplied(self,t):
+        from datetime import datetime
+        from time import time
+        t.set(datetime(2001,1,1,1,0,1))
+        compare(time(),978310801.0)
+        with ShouldRaise(ValueError(
+            'Cannot set datetime with tzinfo set'
+            )):
+            t.set(datetime(2001, 1, 1, tzinfo=TestTZInfo()))
+            
     @replace('time.time',test_time(None))
     def test_set_kw(self):
         from time import time
