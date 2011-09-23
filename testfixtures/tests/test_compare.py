@@ -350,12 +350,25 @@ class TestCompare(TestCase):
             "second:\n()"
             )
 
-    def test_generator_and_sequence(self):
+    def test_sequence_and_generator(self):
         expected = compile("\(1, 2, 3\) != <generator object (generator )?at ...>")
         self.checkRaises(
             (1,2,3),generator(1,2,3),
             regex=expected,
             )
+
+    def test_generator_and_sequence(self):
+        compare(generator(1,2,3), (1,2,3))
+
+    def test_iterable_and_generator(self):
+        expected = compile("xrange\(1, 4\) != <generator object (generator )?at ...>")
+        self.checkRaises(
+            xrange(1,4), generator(1,2,3),
+            regex=expected,
+            )
+
+    def test_generator_and_iterable(self):
+        compare(generator(1,2,3), xrange(1,4))
 
     def test_tuple_and_list(self):
         self.checkRaises(

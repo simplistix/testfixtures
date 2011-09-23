@@ -6,6 +6,7 @@ from pprint import pformat
 from re import compile, MULTILINE
 from testfixtures import identity, not_there
 from testfixtures.resolve import resolve
+from testfixtures.utils import generator
 from types import ClassType, GeneratorType
 
 def compare_sequence(x, y):
@@ -211,6 +212,10 @@ def compare(x, y, **kw):
     # short-circuit check
     if x==y:
         return identity
+
+    # ugly, but important backwards compatibility
+    if isinstance(x, GeneratorType):
+        y = generator(*y)
 
     # extensive, extendable, comparison and error reporting
     registry = kw.pop('registry', _registry)
