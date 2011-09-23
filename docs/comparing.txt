@@ -120,6 +120,29 @@ first:
 second:
 ()
 
+If only the first item passed to :func:`compare` is a generator, the
+second item will be cast into a generator. This is very useful for
+making assertions about return values that are iterable without
+actually being generators and without having to manually cast the
+value to something comparable, such as a tuple:
+
+>>> compare(generator(1, 2, 3), xrange(1,4))
+<identity>
+
+.. warning::
+
+  If you wish to assert that a function returns a generator, say, for
+  performance reasons, then you must do the opposite of the normally
+  recommended :func:`compare` pattern and pass the actual value from
+  the function first and the expected generator second:
+
+  >>> def should_be_a_gen():
+  ...     return (1, 2)
+  >>> compare(should_be_a_gen(), generator(1, 2))
+  Traceback (most recent call last):
+   ...
+  AssertionError: (1, 2) != <generator object ...>
+  
 strings and unicodes
 ~~~~~~~~~~~~~~~~~~~~
 
