@@ -3,6 +3,12 @@ Changes
 
 .. currentmodule:: testfixtures
 
+2.0.1 (23 September 2011)
+-------------------------
+
+- add back functionality to allow comparison of generators with
+  non-generators. See the :ref:`docs <comparison-generators>` for details.
+
 2.0.0 (23 September 2011)
 -------------------------
 

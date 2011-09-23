@@ -120,6 +120,8 @@ first:
 second:
 ()
 
+.. _comparison-generators:
+
 If only the first item passed to :func:`compare` is a generator, the
 second item will be cast into a generator. This is very useful for
 making assertions about return values that are iterable without
