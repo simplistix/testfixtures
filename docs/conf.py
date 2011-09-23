@@ -8,7 +8,7 @@ extensions = [
     'sphinx.ext.intersphinx'
     ]
 
-intersphinx_mapping = {'http://docs.python.org/dev': None}
+intersphinx_mapping = {'http://docs.python.org': None}
 
 # General
 source_suffix = '.txt'
