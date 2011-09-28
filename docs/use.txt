@@ -56,7 +56,7 @@ Development packages
 --------------------
 
 Packages being developed will never be considered as unpinned. 
-Take the following :file:`buildout.cfg`:: as an example::
+Take the following :file:`buildout.cfg` as an example::
 
   [buildout]
   extensions = buildout-versions
