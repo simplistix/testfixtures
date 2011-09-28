@@ -4,3 +4,4 @@
 /src/*.egg-info/
 /parts/
 *.pyc
+/docs/_build
