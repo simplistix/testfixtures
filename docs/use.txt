@@ -52,6 +52,66 @@ Now, when the buildout is run, there will be no output::
 
   run_buildout(buildout_cfg,expected)
 
+Pinning the Python version
+--------------------------
+
+If you want to make sure that a buildout is only run with a specific
+version of python, then you can specify this in the versions section::
+
+  [buildout]
+  extensions = buildout-versions
+  versions = versions
+  parts =
+
+  [versions]
+  python = 2.6
+  buildout-versions = 1.2
+  setuptools = 0.6c11
+  zc.buildout = 1.5.0
+
+.. -> buildout_cfg
+
+.. invisible-code-block: python
+
+  import sys
+  run_buildout(buildout_cfg.replace('2.6', sys.version.split()[0]),expected)
+
+This check is a substring check of the value specified, so you can be
+as specific as you want. If you need a bug fix that appeared in Python
+2.6.2, you could specify `python` as ``2.6.1``. If you need
+Enthought's python distribution, you could specify `python` as ``EPD 7.1-2``.
+
+The following :file:`buildout.cfg` contains a python version that
+doesn't match the python used to run the buildout::
+
+  [buildout]
+  extensions = buildout-versions
+  versions = versions
+  parts =
+
+  [versions]
+  python = 1.0
+  buildout-versions = 1.2
+  setuptools = 0.6c11
+  zc.buildout = 1.5.0
+
+.. -> buildout_cfg
+
+When this file is used, buildout will fail with an error::
+
+  $ bin/buildout
+  While:
+    Installing.
+    Loading extensions.
+  Error: python version specified not found in sys.version: 1.0
+
+.. -> expected
+
+.. invisible-code-block: python
+
+  run_buildout(buildout_cfg, expected)
+
+
 Development packages
 --------------------
 

@@ -3,6 +3,7 @@
 
 import os
 import pkg_resources
+import sys
 
 from datetime import datetime
 from zc.buildout import easy_install
@@ -66,6 +67,13 @@ def start(buildout):
             del current_versions[key]  # optional, really
             current_versions[lower_key] = value
 
+    python_version = current_versions.get('python')
+    if python_version and python_version not in sys.version:
+        raise IncompatibleVersionError(
+            "python version specified not found in sys.version:",
+            python_version
+            )
+        
     # Apply the new versions in the Installer.  Whether this is needed
     # depends on the loading order of extensions.
     default_versions(current_versions)

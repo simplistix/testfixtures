@@ -100,7 +100,7 @@ setup(name='PackageD',version='5.0')
         if match:
             package = match.group(1)
             # don't try and fix versions for our test packages
-            if not package.lower().startswith('package'):
+            if not (package.lower().startswith('package') or package=='python'):
                 version = require(package)[0].version
                 line = '%s = %s' % (package,version)
         return line
