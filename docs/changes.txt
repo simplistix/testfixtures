@@ -1,6 +1,11 @@
 Changes
 =======
 
+1.7 (28 Sep 2011)
+-----------------
+
+- Implement Python version pinning.
+
 1.6 (3 May 2011)
 -----------------
 
