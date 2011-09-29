@@ -230,6 +230,18 @@ class TestReplace(TestCase):
 
         self.assertEqual(someDict.keys(), ['complex_key','key'])
 
+    def test_replace_dict_not_there_empty_string(self):
+
+        from sample1 import someDict
+
+        @replace('testfixtures.tests.sample1.someDict.key2', '', strict=False)
+        def test_something():
+            self.assertEqual(someDict['key2'], '')
+
+        test_something()
+
+        self.assertEqual(someDict.keys(), ['complex_key', 'key'])
+
     def test_replace_complex(self):
 
         from sample1 import someDict
