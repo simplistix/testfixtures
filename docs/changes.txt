@@ -3,6 +3,17 @@ Changes
 
 .. currentmodule:: testfixtures
 
+2.1.0 (29 September 2011)
+-------------------------
+
+- Add a :ref:`strict mode <strict-comparison>` to
+  :func:`compare`. When used, it ensures that
+  the values compared are not only equal but also of the same
+  type. This mode is not used by default, and the default mode
+  restores the more commonly useful functionality where values of
+  similar types but that aren't equal give useful feedback about
+  differences.
+
 2.0.1 (23 September 2011)
 -------------------------
 
