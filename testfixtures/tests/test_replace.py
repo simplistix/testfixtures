@@ -246,6 +246,8 @@ class TestReplace(TestCase):
 
         self.assertEqual(someDict['complex_key'],[1,2,3])
 
+        self.failUnless(original is someDict['complex_key'][1])
+
 
 def test_suite():
     return TestSuite((
