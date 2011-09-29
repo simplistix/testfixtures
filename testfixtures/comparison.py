@@ -175,6 +175,18 @@ def compare_text(x, y,
 def _default_compare(x, y):
     return '%r != %r' % (x, y)
 
+def _default_compare_strict(x, y):
+    r = {}
+    l = locals()
+    for vn in 'x', 'y':
+        v = l[vn]
+        r['t'+vn] = type(v)
+        rv = repr(v)
+        if len(rv)>30:
+            rv = rv[:30]+'...'
+        r[vn] = rv
+    return '%(x)s (%(tx)r)!= %(y)s (%(ty)r)' % r
+
 _registry = {
     dict: compare_dict,
     set: compare_set,
@@ -205,24 +217,39 @@ def compare(x, y, **kw):
     for details of these.
     
     :param registry: If supplied, should be a dictionary mapping
-        classes to comparer functions for those classes. This will be
+        types to comparer functions for those types. This will be
         used instead of the global comparer registry.
 
+    :param strict: If ``True``, objects will only compare equal if
+                   they are of the same type as well as being equal.
+                   Defaults to ``False``.
     """
-    # short-circuit check
-    if x==y:
-        return identity
-
-    # ugly, but important backwards compatibility
-    if isinstance(x, GeneratorType):
-        y = generator(*y)
-
-    # extensive, extendable, comparison and error reporting
     registry = kw.pop('registry', _registry)
-    if type(x) is type(y):
-        comparer = registry.get(type(x), _default_compare)
+    strict = kw.pop('strict', False)
+
+    # short-circuit check
+    if strict:
+        comparer = _default_compare_strict
+        if (type(x) is type(y)) and x==y:
+            return identity
+    elif x==y:
+        return identity
     else:
         comparer = _default_compare
+        
+    # extensive, extendable, comparison and error reporting
+    if strict:
+        if type(x) is type(y):
+            comparer = registry.get(type(x), _default_compare)
+    else:
+        # allow comparison of generators with any sequence
+        if isinstance(x, GeneratorType):
+            y = generator(*y)
+
+        for t in registry.keys():
+            if isinstance(x, t) and isinstance(y, t):
+                comparer = registry[t]
+                break
         
     message = comparer(x, y, **kw)
     if message is identity:

@@ -1,7 +1,7 @@
 # Copyright (c) 2008-2011 Simplistix Ltd
 # See license.txt for license details.
 
-from mock import Mock
+from mock import Mock, call
 from re import compile
 from testfixtures import identity,compare,Comparison as C,generator, ShouldRaise
 from unittest import TestCase,TestSuite,makeSuite
@@ -465,6 +465,36 @@ b
                     registry={dict: compare_dict})
         compare_dict.assert_called_with(
             {1:1}, {2:2}, foo='bar'
+            )
+
+    def test_list_subclass(self):
+        m = Mock()
+        m.aCall()
+        self.checkRaises(
+            [call.bCall()], m.method_calls,
+            "Sequence not as expected:\n\n"
+            "same:\n[]\n\n"
+            "first:\n[call.bCall()]\n\n"
+            "second:\n[call.aCall()]"
+            )
+
+    def test_list_subclass_strict(self):
+        m = Mock()
+        m.aCall()
+        self.checkRaises(
+            [call.aCall()], m.method_calls,
+            "[call.aCall()] (<type 'list'>)!= [call.aCall()] (<class 'mock._CallList'>)",
+            strict=True,
+            )
+
+    def test_list_subclass_long_strict(self):
+        m = Mock()
+        m.call('X'*20)
+        self.checkRaises(
+            [call.call('Y'*20)], m.method_calls,
+            "[call.call('YYYYYYYYYYYYYYYYYY... (<type 'list'>)!= "
+            "[call.call('XXXXXXXXXXXXXXXXXX... (<class 'mock._CallList'>)",
+            strict=True,
             )
 
 def test_suite():

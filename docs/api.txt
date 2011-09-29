@@ -28,7 +28,7 @@ API Reference
 
    .. automethod:: write(filepath, data)
 
-.. autofunction:: compare
+.. autofunction:: compare(x, y, registry=None, strict=False, **kw)
 
 .. autofunction:: testfixtures.comparison.register
 

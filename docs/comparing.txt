@@ -134,16 +134,8 @@ value to something comparable, such as a tuple:
 .. warning::
 
   If you wish to assert that a function returns a generator, say, for
-  performance reasons, then you must do the opposite of the normally
-  recommended :func:`compare` pattern and pass the actual value from
-  the function first and the expected generator second:
-
-  >>> def should_be_a_gen():
-  ...     return (1, 2)
-  >>> compare(should_be_a_gen(), generator(1, 2))
-  Traceback (most recent call last):
-   ...
-  AssertionError: (1, 2) != <generator object ...>
+  performance reasons, then you should use 
+  :ref:`strict comparison <strict-comparison>`.
   
 strings and unicodes
 ~~~~~~~~~~~~~~~~~~~~
@@ -341,6 +333,32 @@ AssertionError: DataRow(x=1, y=2, z=3) != DataRow(x=1, y=2, z=4)
   import testfixtures.comparison
   assert testfixtures.comparison._registry == {}
   r.restore()
+
+.. _strict-comparison:
+
+Strict comparison
+~~~~~~~~~~~~~~~~~
+
+If is it important that the two values being compared are of exactly
+the same type, rather than just being equal as far as python is
+concerned, then the scrict mode of :func:`compare` should be used.
+
+For example, these two instances will normally appear to be equal
+provided the elements within them are the same:
+
+>>> from collections import namedtuple  
+>>> TypeA = namedtuple('A', 'x')
+>>> TypeB = namedtuple('B', 'x')
+>>> compare(TypeA(1), TypeB(1))
+<identity>
+
+If this type difference is important, then the `strict` parameter
+should be used:
+
+>>> compare(TypeA(1), TypeB(1), strict=True)
+Traceback (most recent call last):
+ ...
+AssertionError: A(x=1) (<class '__main__.A'>)!= B(x=1) (<class '__main__.B'>)
 
 .. _comparison-objects:
 
