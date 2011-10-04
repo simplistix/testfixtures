@@ -189,6 +189,34 @@ class TestDate(TestCase):
         from datetime import date
         compare(date.today(),d(2002,1,1))
 
+    @replace('datetime.date', test_date())
+    def test_isinstance_default(self):
+        from datetime import date
+        to_check = []
+        to_check.append(date(1999, 1, 1))
+        to_check.append(date.today())
+        date.set(2001, 1, 2)
+        to_check.append(date.today())
+        date.add(2001, 1, 3)
+        to_check.append(date.today())
+        to_check.append(date.today())
+        date.set(date(2001, 1, 4))
+        to_check.append(date.today())
+        date.add(date(2001, 1, 5))
+        to_check.append(date.today())
+        to_check.append(date.today())
+        date.set(d(2001, 1, 4))
+        to_check.append(date.today())
+        date.add(d(2001, 1, 5))
+        to_check.append(date.today())
+        to_check.append(date.today())
+                     
+        for inst in to_check:
+            self.failUnless(isinstance(inst, date), inst)
+            self.failUnless(inst.__class__ is date, inst)
+            self.failUnless(isinstance(inst, d), inst)
+            self.failIf(inst.__class__ is d, inst)
+            
 def test_suite():
     return TestSuite((
         makeSuite(TestDate),

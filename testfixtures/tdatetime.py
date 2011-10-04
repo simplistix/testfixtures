@@ -16,6 +16,8 @@ def add(cls,*args,**kw):
             raise ValueError(
                 'Cannot add %s with tzinfo set' % inst.__class__.__name__
                 )
+        if cls._ct:
+            inst = cls._ct(inst)
         cls._q.append(inst)
     else:
         cls._q.append(cls(*args,**kw))
