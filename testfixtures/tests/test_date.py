@@ -58,7 +58,7 @@ class TestDate(TestCase):
         compare(date.today(),d(2001,1,2))
         compare(date.today(),d(2001,1,3))
         
-    @replace('datetime.date',test_date())
+    @replace('datetime.date',test_date(strict=True))
     def test_call(self,t):
         compare(t(2002,1,2),d(2002,1,2))
         from datetime import date
@@ -189,8 +189,8 @@ class TestDate(TestCase):
         from datetime import date
         compare(date.today(),d(2002,1,1))
 
-    @replace('datetime.date', test_date())
-    def test_isinstance_default(self):
+    @replace('datetime.date', test_date(strict=True))
+    def test_isinstance_strict_true(self):
         from datetime import date
         to_check = []
         to_check.append(date(1999, 1, 1))
@@ -217,8 +217,8 @@ class TestDate(TestCase):
             self.failUnless(isinstance(inst, d), inst)
             self.failIf(inst.__class__ is d, inst)
             
-    @replace('datetime.date', test_date(strict=False))
-    def test_isinstance_strict_false(self):
+    @replace('datetime.date', test_date())
+    def test_isinstance_default(self):
         from datetime import date
         to_check = []
         to_check.append(date(1999, 1, 1))

@@ -54,7 +54,7 @@ API Reference
 
 .. autofunction:: tempdir
 
-.. function:: test_date(year=2001, month=1, day=1, delta=None, delta_type='days')
+.. function:: test_date(year=2001, month=1, day=1, delta=None, delta_type='days', strict=False)
 
    A function that returns a mock object that can be used in place of
    the :class:`datetime.date` class but where the return value of
@@ -84,6 +84,12 @@ API Reference
                       any keyword parameter accepted by the
                       :class:`~datetime.timedelta` constructor.
 
+   :param strict: If ``True``, calling the mock class and any of its
+                  methods will result in an instance of the mock
+                  being returned. If ``False``, the default, an
+                  instance of :class:`~datetime.date` will be returned
+                  instead.
+
    The mock returned will behave exactly as the :class:`datetime.date`
    class with the exception of the following members:
    
@@ -109,7 +115,7 @@ API Reference
      This will return the next supplied or calculated date from the
      internal queue, rather than the actual current date.
 
-.. function:: test_datetime(year=2001, month=1, day=1, hour=0, minute=0, second=0, microsecond=0,tzinfo=None, delta=None, delta_type='seconds', date_type=datetime.date)
+.. function:: test_datetime(year=2001, month=1, day=1, hour=0, minute=0, second=0, microsecond=0,tzinfo=None, delta=None, delta_type='seconds', date_type=datetime.date, strict=False)
 
    A function that returns a mock object that can be used in place of
    the :class:`datetime.datetime` class but where the return value of
@@ -163,6 +169,12 @@ API Reference
                      help with gotchas that occur when type checking
                      if performed on values returned by the mock's
                      :meth:`~datetime.datetime.date` method.
+
+   :param strict: If ``True``, calling the mock class and any of its
+                  methods will result in an instance of the mock
+                  being returned. If ``False``, the default, an
+                  instance of :class:`~datetime.datetime` will be
+                  returned instead.
 
    The mock returned will behave exactly as the :class:`datetime.datetime`
    class with the exception of the following members:

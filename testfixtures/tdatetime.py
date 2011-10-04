@@ -84,7 +84,7 @@ def test_factory(n,type,default,args,kw,tz=None,**to_patch):
     if '__new__' not in to_patch:
         to_patch['__new__'] = __new__
     class_ = classobj(n,(type,),to_patch)
-    strict = kw.pop('strict', True)
+    strict = kw.pop('strict', False)
     if strict:
         class_._cls = class_
     else:

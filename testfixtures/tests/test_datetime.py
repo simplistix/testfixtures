@@ -112,7 +112,7 @@ class TestDateTime(TestCase):
         compare(datetime.now(),d(2002,1,1,2,0,10))
         compare(datetime.now(),d(2002,1,1,2,0,30))
 
-    @replace('datetime.datetime',test_datetime())
+    @replace('datetime.datetime',test_datetime(strict=True))
     def test_call(self,t):
         compare(t(2002,1,2,3,4,5),d(2002,1,2,3,4,5))
         from datetime import datetime
@@ -131,10 +131,11 @@ class TestDateTime(TestCase):
     
     def test_date_return_type_picky(self):
         # type checking is a bitch :-/
-        date_type = test_date()
+        date_type = test_date(strict=True)
         with Replacer() as r:
             r.replace('datetime.datetime',test_datetime(
-                    date_type=date_type
+                    date_type=date_type,
+                    strict=True,
                     ))
             from datetime import datetime
             dt = datetime(2010,8,26,14,33,13)
@@ -278,7 +279,7 @@ class TestDateTime(TestCase):
         from datetime import datetime
         compare(datetime.utcnow(),d(2001, 1, 1, 23, 56))
         
-    @replace('datetime.datetime', test_datetime())
+    @replace('datetime.datetime', test_datetime(strict=True))
     def test_isinstance_default(self):
         from datetime import datetime
         to_check = []
@@ -307,8 +308,8 @@ class TestDateTime(TestCase):
             self.failUnless(isinstance(inst, d), inst)
             self.failIf(inst.__class__ is d, inst)
             
-    @replace('datetime.datetime', test_datetime(strict=False))
-    def test_isinstance_default_strict_false(self):
+    @replace('datetime.datetime', test_datetime())
+    def test_isinstance_default_default(self):
         from datetime import datetime
         to_check = []
         to_check.append(datetime(1999, 1, 1))
