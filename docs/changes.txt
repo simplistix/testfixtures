@@ -3,6 +3,16 @@ Changes
 
 .. currentmodule:: testfixtures
 
+2.2.0 (4 October 2011)
+-------------------------
+
+- Add a :ref:`strict mode <strict-dates-and-times>` to
+  :class:`test_datetime` and :class:`test_date`. 
+  When used, instances returned from the mocks are instances of those
+  mocks. The default behaviour is now to return instances of the real
+  :class:`~datetime.datetime` and :class:`~datetime.date` classes
+  instead, which is usually much more useful.
+
 2.1.0 (29 September 2011)
 -------------------------
 

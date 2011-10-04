@@ -425,6 +425,8 @@ In these cases, you need to be careful with the replacement:
 '2001-01-01'
 '2001-01-01 00:00:00'
 
+.. _strict-dates-and-times:
+
 Use with code that checks class types
 -------------------------------------
 
