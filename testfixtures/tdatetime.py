@@ -43,6 +43,12 @@ def __add__(self,other):
         r = self._ct(r)
     return r
 
+def __new__(cls, *args, **kw):
+    if cls is cls._cls:
+        return super(cls, cls).__new__(cls, *args,**kw)
+    else:
+        return cls._cls(*args, **kw)
+
 @classmethod
 def instantiate(cls):
     r = cls._q.pop(0)
@@ -77,7 +83,14 @@ def test_factory(n,type,default,args,kw,tz=None,**to_patch):
     to_patch['add']=add
     to_patch['set']=set_
     to_patch['__add__']=__add__
+    if '__new__' not in to_patch:
+        to_patch['__new__'] = __new__
     class_ = classobj(n,(type,),to_patch)
+    strict = kw.pop('strict', True)
+    if strict:
+        class_._cls = class_
+    else:
+        class_._cls = type
     if args==(None,):
         pass
     elif args or kw:
@@ -95,7 +108,7 @@ def correct_date_method(self):
 
 @classmethod
 def correct_datetime(cls,dt):
-    return cls(
+    return cls._cls(
         dt.year,
         dt.month,
         dt.day,
@@ -136,7 +149,7 @@ def test_datetime(*args,**kw):
     
 @classmethod
 def correct_date(cls,d):
-    return cls(
+    return cls._cls(
         d.year,
         d.month,
         d.day,

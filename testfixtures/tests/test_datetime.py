@@ -307,6 +307,35 @@ class TestDateTime(TestCase):
             self.failUnless(isinstance(inst, d), inst)
             self.failIf(inst.__class__ is d, inst)
             
+    @replace('datetime.datetime', test_datetime(strict=False))
+    def test_isinstance_default_strict_false(self):
+        from datetime import datetime
+        to_check = []
+        to_check.append(datetime(1999, 1, 1))
+        to_check.append(datetime.now())
+        to_check.append(datetime.utcnow())
+        datetime.set(2001, 1, 1, 20)
+        to_check.append(datetime.now())
+        datetime.add(2001, 1, 1, 21)
+        to_check.append(datetime.now())
+        to_check.append(datetime.now())
+        datetime.set(datetime(2001, 1, 1, 22))
+        to_check.append(datetime.now())
+        datetime.add(datetime(2001, 1, 1, 23))
+        to_check.append(datetime.now())
+        to_check.append(datetime.now())
+        datetime.set(d(2001, 1, 1, 22))
+        to_check.append(datetime.now())
+        datetime.add(d(2001, 1, 1, 23))
+        to_check.append(datetime.now())
+        to_check.append(datetime.now())
+                     
+        for inst in to_check:
+            self.failIf(isinstance(inst, datetime), inst)
+            self.failIf(inst.__class__ is datetime, inst)
+            self.failUnless(isinstance(inst, d), inst)
+            self.failUnless(inst.__class__ is d, inst)
+
 def test_suite():
     return TestSuite((
         makeSuite(TestDateTime),
