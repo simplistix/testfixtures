@@ -9,8 +9,7 @@ from new import classobj
 def add(cls,*args,**kw):
     if 'tzinfo' in kw or len(args)>7:
         raise TypeError('Cannot add tzinfo to %s' % cls.__name__)
-    if args and (isinstance(args[0], cls.__bases__[0]) or
-                 (isinstance(args[0], datetime) and issubclass(cls, ttimec))):
+    if args and isinstance(args[0], cls.__bases__[0]):
         inst = args[0]
         if getattr(inst, 'tzinfo', None):
             raise ValueError(
@@ -26,8 +25,7 @@ def add(cls,*args,**kw):
 def set_(cls,*args,**kw):
     if 'tzinfo' in kw or len(args)>7:
         raise TypeError('Cannot set tzinfo on %s' % cls.__name__)
-    if args and (isinstance(args[0], cls.__bases__[0]) or
-                 (isinstance(args[0], datetime) and issubclass(cls, ttimec))):
+    if args and isinstance(args[0], cls.__bases__[0]):
         inst = args[0]
         if getattr(inst, 'tzinfo', None):
             raise ValueError(
@@ -172,13 +170,11 @@ def test_date(*args,**kw):
         _gap_t = delta_type,
         )
 
-class ttimec(datetime):
-
-    def __new__(cls, *args, **kw):
-        if args or kw:
-            return super(ttimec, cls).__new__(cls, *args, **kw)
-        else:
-            return float(timegm(cls.instantiate().utctimetuple()))
+def __time_new__(cls, *args, **kw):
+    if args or kw:
+        return super(cls, cls).__new__(cls, *args, **kw)
+    else:
+        return float(timegm(cls.instantiate().utctimetuple()))
 
 def test_time(*args,**kw):
     if 'tzinfo' in kw or len(args)>7:
@@ -191,11 +187,12 @@ def test_time(*args,**kw):
         gap_delta = 1
     delta_type = kw.pop('delta_type','seconds')
     return test_factory(
-        'ttime',ttimec,(2001,1,1,0,0,0),args,kw,
+        'ttime',datetime,(2001,1,1,0,0,0),args,kw,
         _ct=None,
         instantiate=instantiate,
         _gap = gap,
         _gap_d = gap_delta,
         _gap_t = delta_type,
+        __new__ = __time_new__,
         )
 
