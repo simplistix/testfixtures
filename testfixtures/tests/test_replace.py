@@ -1,10 +1,11 @@
 # Copyright (c) 2008-2011 Simplistix Ltd
 # See license.txt for license details.
 
-from testfixtures import replace,compare,should_raise, not_there
+from testfixtures import Replacer, replace, compare, should_raise, not_there
 from unittest import TestCase,TestSuite,makeSuite
 
 import sample1,sample2
+import warnings
 
 class TestReplace(TestCase):
 
@@ -260,7 +261,17 @@ class TestReplace(TestCase):
 
         self.failUnless(original is someDict['complex_key'][1])
 
-
+    def test_replacer_del(self):
+        r = Replacer()
+        r.replace('testfixtures.tests.sample1.left_behind',
+                  object(), strict=False)
+        with warnings.catch_warnings(record=True) as w:
+            del r
+            self.assertTrue(len(w), 1)
+            compare(str(w[0].message),
+                    "Replacer deleted without being restored, ""originals left:"
+                    " {'testfixtures.tests.sample1.left_behind': <not_there>}")
+        
 def test_suite():
     return TestSuite((
         makeSuite(TestReplace),

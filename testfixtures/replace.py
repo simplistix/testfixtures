@@ -6,6 +6,8 @@ from testfixtures.resolve import resolve, not_there
 from testfixtures.utils import wrap
 from types import MethodType
 
+import warnings
+
 class Replacer:
     """
     These are used to manage the mocking out of objects so that units
@@ -77,6 +79,13 @@ class Replacer:
     
     def __exit__(self,type,value,traceback):
         self.restore()
+
+    def __del__(self):
+        if self.originals:
+            warnings.warn(
+                'Replacer deleted without being restored, '
+                'originals left: %r' % self.originals
+                )
 
 def replace(target,replacement,strict=True):
     """
