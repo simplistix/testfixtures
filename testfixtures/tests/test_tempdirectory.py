@@ -1,13 +1,15 @@
 from __future__ import with_statement
-# Copyright (c) 2008 Simplistix Ltd
+# Copyright (c) 2008-2011 Simplistix Ltd
 # See license.txt for license details.
 
+import atexit
 import os
+import warnings
 
 from doctest import DocTestSuite,ELLIPSIS
 from shutil import rmtree
 from tempfile import mkdtemp
-from testfixtures import TempDirectory,should_raise
+from testfixtures import TempDirectory, should_raise, compare
 from unittest import TestCase,TestSuite, makeSuite
 
 from logging import getLogger
@@ -158,16 +160,18 @@ class TestTempDirectory:
 
         >>> os.path.exists(d1.path)
         True
+        >>> p1 = d1.path
         >>> os.path.exists(d2.path)
         True
+        >>> p2 = d2.path
 
         Now we show the function in action:
 
         >>> TempDirectory.cleanup_all()
 
-        >>> os.path.exists(d1.path)
+        >>> os.path.exists(p1)
         False
-        >>> os.path.exists(d2.path)
+        >>> os.path.exists(p2)
         False
         """
 
@@ -332,6 +336,20 @@ class TempDirectoryTests(TestCase):
         self.assertEqual(expected1,actual1)
         self.assertEqual(expected2,actual2)
         self.assertEqual(expected3,actual3)
+        
+    def test_atexit(self):
+        d = TempDirectory()
+        self.assertTrue(
+            TempDirectory.atexit in [t[0] for t in atexit._exithandlers]
+            )
+        with warnings.catch_warnings(record=True) as w:
+            d.atexit()
+            self.assertTrue(len(w), 1)
+            compare(str(w[0].message), (
+                "TempDirectory instances not cleaned up by shutdown:\n" +
+                d.path
+                ))
+        d.cleanup()
         
 # using a set up and teardown function
 # gets rid of the need for the imports in

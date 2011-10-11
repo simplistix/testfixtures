@@ -1,13 +1,16 @@
 # Copyright (c) 2008-2011 Simplistix Ltd
 # See license.txt for license details.
 
+import atexit
 import os
+import warnings
 
 from re import compile
 from shutil import rmtree
 from tempfile import mkdtemp
 from testfixtures.comparison import compare
 from testfixtures.utils import wrap
+
 
 class TempDirectory:
     """
@@ -28,7 +31,8 @@ class TempDirectory:
     """
     
     instances = set()
-
+    atexit_setup = False
+    
     #: The physical path of the :class:`TempDirectory` on disk
     path = None
     
@@ -37,9 +41,18 @@ class TempDirectory:
         for regex in ignore:
             self.ignore.append(compile(regex))
         self.path = path
+        self.dont_remove = bool(path)
         if create:
             self.create()
 
+    @classmethod
+    def atexit(cls):
+        if cls.instances:
+            warnings.warn(
+                'TempDirectory instances not cleaned up by shutdown:\n'
+                '%s' % ('\n'.join(i.path for i in cls.instances))
+                )
+        
     def create(self):
         """
         Create a temporary directory for this instance to use if one
@@ -49,6 +62,9 @@ class TempDirectory:
             return self
         self.path = mkdtemp()
         self.instances.add(self)
+        if not self.__class__.atexit_setup:
+            atexit.register(self.atexit)
+            self.__class__.atexit_setup = True
         return self
 
     def cleanup(self):
@@ -57,8 +73,10 @@ class TempDirectory:
         This :class:`TempDirectory` cannot be used again unless
         :meth:`create` is called.
         """
-        if self in self.instances and os.path.exists(self.path):
+        if self.path and os.path.exists(self.path) and not self.dont_remove:
             rmtree(self.path)
+            del self.path
+        if self in self.instances:
             self.instances.remove(self)
 
     @classmethod
