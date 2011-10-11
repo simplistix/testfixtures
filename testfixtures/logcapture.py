@@ -1,7 +1,9 @@
 # Copyright (c) 2008-2011 Simplistix Ltd
 # See license.txt for license details.
 
+import atexit
 import logging
+import warnings
 
 from testfixtures.comparison import compare
 from testfixtures.utils import wrap
@@ -20,6 +22,8 @@ class LogCapture(logging.Handler):
     """
     
     instances = set()
+    atexit_setup = False
+    installed = False
     
     def __init__(self, names=None, install=True, level=1):
         logging.Handler.__init__(self)
@@ -33,6 +37,15 @@ class LogCapture(logging.Handler):
         if install:
             self.install()
 
+    @classmethod
+    def atexit(cls):
+        if cls.instances:
+            warnings.warn(
+                'LogCapture instances not uninstalled by shutdown, '
+                'loggers captured:\n'
+                '%s' % ('\n'.join((str(i.names) for i in cls.instances)))
+                )
+        
     def clear(self):
         "Clear any entries that have been captured."
         self.records = []
@@ -55,6 +68,9 @@ class LogCapture(logging.Handler):
             logger.setLevel(self.level)
             logger.handlers = [self]
         self.instances.add(self)
+        if not self.__class__.atexit_setup:
+            atexit.register(self.atexit)
+            self.__class__.atexit_setup = True
 
     def uninstall(self):
         """

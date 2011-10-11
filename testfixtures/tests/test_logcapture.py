@@ -1,6 +1,9 @@
 from __future__ import with_statement
-# Copyright (c) 2008-2010 Simplistix Ltd
+# Copyright (c) 2008-2011 Simplistix Ltd
 # See license.txt for license details.
+
+import atexit
+import warnings
 
 from doctest import DocTestSuite
 from testfixtures import LogCapture, compare
@@ -295,6 +298,21 @@ class LogCaptureTests(TestCase):
 
         compare(logger.handlers,start)
 
+    def test_atexit(self):
+        l = LogCapture()
+        self.assertTrue(
+            LogCapture.atexit in [t[0] for t in atexit._exithandlers]
+            )
+        with warnings.catch_warnings(record=True) as w:
+            l.atexit()
+            self.assertTrue(len(w), 1)
+            compare(str(w[0].message), (
+                "LogCapture instances not uninstalled by shutdown, "
+                "loggers captured:\n"
+                "(None,)"
+                ))
+        l.uninstall()
+        
 # using a set up and teardown function
 # gets rid of the need for the imports in
 # doc tests
