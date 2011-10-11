@@ -3,6 +3,16 @@ Changes
 
 .. currentmodule:: testfixtures
 
+2.3.0 (11 October 2011)
+-------------------------
+
+- :class:`Replacer`, :class:`TempDirectory`, :class:`LogCapture` and
+  :class:`~components.TestComponents` instances will now warn if the
+  process they are created in exits without them being cleaned
+  up. Instances of these classes should be cleaned up at the end of
+  each test and these warnings serve to point to a cause for possible
+  mysterious failures elsewhere.
+
 2.2.0 (4 October 2011)
 -------------------------
 
