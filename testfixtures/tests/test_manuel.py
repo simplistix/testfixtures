@@ -1,4 +1,4 @@
-# Copyright (c) 2010 Simplistix Ltd
+# Copyright (c) 2010-2011 Simplistix Ltd
 #
 # See license.txt for more details.
 
@@ -21,6 +21,9 @@ class TestContainer(RegionContainer):
 
 class TestManuel(TestCase):
 
+    def tearDown(self):
+        TempDirectory.cleanup_all()
+        
     def test_multiple_files(self):
         d = Document("""
 
