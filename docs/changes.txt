@@ -3,6 +3,16 @@ Changes
 
 .. currentmodule:: testfixtures
 
+2.3.1 (8 November 2011)
+-------------------------
+
+- Move to use `nose <http://readthedocs.org/docs/nose/>`__ for running
+  the TestFixtures unit tests.
+
+- Fixed a bug where :meth:`tdatetime.now` returned an instance of the
+  wrong type when `tzinfo` was passed in 
+  :ref:`strict mode <strict-dates-and-times>`.
+
 2.3.0 (11 October 2011)
 -------------------------
 

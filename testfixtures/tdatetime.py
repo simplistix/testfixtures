@@ -64,7 +64,9 @@ def now(cls,tz=None):
     if tz is not None:
         if cls._tzta:
             r = r - cls._tzta.utcoffset(r)
-        return tz.fromutc(r.replace(tzinfo=tz))
+        r = tz.fromutc(r.replace(tzinfo=tz))
+    if cls._ct:
+        r = cls._ct(r)
     return r
 
 @classmethod
