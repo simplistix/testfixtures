@@ -1,7 +1,7 @@
 # Copyright (c) 2008-2011 Simplistix Ltd
 # See license.txt for license details.
 
-from testfixtures import Replacer, replace, compare, should_raise, not_there
+from testfixtures import Replacer, ShouldRaise, replace, compare, should_raise, not_there
 from unittest import TestCase,TestSuite,makeSuite
 
 import sample1,sample2
@@ -204,6 +204,39 @@ class TestReplace(TestCase):
 
         self.failUnless(someDict['key'] is original)
 
+    def test_replace_delattr(self):
+
+        from testfixtures.tests import sample1
+
+        @replace('testfixtures.tests.sample1.someDict', not_there)
+        def test_something(obj):
+            self.failIf(hasattr(sample1, 'someDict'))
+
+        test_something()
+
+        self.assertEqual(sample1.someDict,
+                         {'complex_key': [1, 2, 3], 'key': 'value'})
+
+    def test_replace_delattr_not_there(self):
+
+        @replace('testfixtures.tests.sample1.foo', not_there)
+        def test_something(obj):
+            pass
+
+        with ShouldRaise(AttributeError("Original 'foo' not found")):
+            test_something()
+
+    def test_replace_delattr_not_there_not_strict(self):
+
+        from testfixtures.tests import sample1
+
+        @replace('testfixtures.tests.sample1.foo',
+                 not_there, strict=False)
+        def test_something(obj):
+            self.failIf(hasattr(sample1, 'foo'))
+
+        test_something()
+
     def test_replace_dict_remove_key(self):
 
         from sample1 import someDict
@@ -211,6 +244,32 @@ class TestReplace(TestCase):
         @replace('testfixtures.tests.sample1.someDict.key',not_there)
         def test_something(obj):
             self.failIf('key' in someDict)
+
+        test_something()
+
+        self.assertEqual(someDict.keys(), ['complex_key','key'])
+
+    def test_replace_dict_remove_key_not_there(self):
+
+        from sample1 import someDict
+
+        @replace('testfixtures.tests.sample1.someDict.badkey', not_there)
+        def test_something(obj):
+            self.failIf('badkey' in someDict)
+
+        with ShouldRaise(AttributeError("Original 'badkey' not found")):
+            test_something()
+
+        self.assertEqual(someDict.keys(), ['complex_key','key'])
+
+    def test_replace_dict_remove_key_not_there_not_strict(self):
+
+        from sample1 import someDict
+
+        @replace('testfixtures.tests.sample1.someDict.badkey',
+                 not_there, strict=False)
+        def test_something(obj):
+            self.failIf('badkey' in someDict)
 
         test_something()
 

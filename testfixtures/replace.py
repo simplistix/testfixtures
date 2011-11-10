@@ -19,12 +19,27 @@ class Replacer:
         self.originals = {}
         self.replace_returns=replace_returns
 
-    def _replace(self, container, name, method, value):
+    def _replace(self, container, name, method, value, strict=True):
         if value is not_there:
             if method=='a':
-                delattr(container,name)
+                try:
+                    delattr(container,name)
+                except AttributeError:
+                    if strict:
+                        raise AssertionError(
+                            'Could not remove attribute %r from %r' % (
+                                name, container
+                                ))
             elif method=='i':
-                del container[name]
+                try:
+                    del container[name]
+                except KeyError:
+                    if strict:
+                        raise AssertionError(
+                            'Could not remove key %r from %r' % (
+                                name, container
+                                ))
+                    
         else:
             if method=='a':
                 setattr(container, name, value)
@@ -60,7 +75,7 @@ class Replacer:
         else:
             replacement_to_use = replacement
         self.originals[target] = t_obj
-        self._replace(container, attribute, method, replacement_to_use)
+        self._replace(container, attribute, method, replacement_to_use, strict)
         if self.replace_returns:
             return replacement
 
@@ -71,7 +86,7 @@ class Replacer:
         """
         for target,original in tuple(self.originals.items()):
             container, method, attribute, found = resolve(target)
-            self._replace(container, attribute, method, original)
+            self._replace(container, attribute, method, original, strict=False)
             del self.originals[target]
             
     def __enter__(self):
