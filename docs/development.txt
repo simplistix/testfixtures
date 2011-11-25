@@ -19,7 +19,7 @@ Running the tests
 
 Once you have a buildout, the tests can be run as follows::
 
-  $ bin/test
+  $ bin/nosetests
 
 Building the documentation
 --------------------------
