@@ -74,7 +74,8 @@ class Replacer:
             replacement_to_use = classmethod(replacement)
         else:
             replacement_to_use = replacement
-        self.originals[target] = t_obj
+        if target not in self.originals:
+            self.originals[target] = t_obj
         self._replace(container, attribute, method, replacement_to_use, strict)
         if self.replace_returns:
             return replacement

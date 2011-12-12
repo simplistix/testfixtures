@@ -4,7 +4,9 @@
 from testfixtures import Replacer, ShouldRaise, replace, compare, should_raise, not_there
 from unittest import TestCase,TestSuite,makeSuite
 
-import sample1,sample2
+import os
+import sample1
+import sample2
 import warnings
 
 class TestReplace(TestCase):
@@ -331,6 +333,16 @@ class TestReplace(TestCase):
                     "Replacer deleted without being restored, ""originals left:"
                     " {'testfixtures.tests.sample1.left_behind': <not_there>}")
         
+    def test_multiple_replaces(self):
+        orig = os.path.sep
+        with Replacer() as r:
+            r.replace('os.path.sep', '$')
+            compare(os.path.sep, '$')
+            r.replace('os.path.sep', '=')
+            compare(os.path.sep, '=')
+        compare(orig, os.path.sep)
+
+
 def test_suite():
     return TestSuite((
         makeSuite(TestReplace),
