@@ -2,10 +2,22 @@
 # See license.txt for license details.
 
 import os
+from ConfigParser import RawConfigParser
 from setuptools import setup, find_packages
 
 name = 'testfixtures'
 base_dir = os.path.dirname(__file__)
+
+# read test requirements from tox.ini
+config = RawConfigParser()
+config.read(os.path.join(base_dir, 'tox.ini'))
+test_requires = []
+for item in config.get('testenv', 'deps').split():
+    if item.endswith('==dev'):
+        item = item[:-5]
+    test_requires.append(item)
+# Tox doesn't need itself, but we need it for testing.
+test_requires.append('tox')
 
 setup(
     name=name,
@@ -25,11 +37,6 @@ setup(
     zip_safe=False,
     include_package_data=True,
     extras_require=dict(
-        test=[
-            # used in our own tests
-            'mock', 'manuel',
-            # required to test optional features
-            'zope.component',
-            ],
+        test=test_requires,
         )
     )
