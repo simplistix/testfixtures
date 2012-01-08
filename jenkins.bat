@@ -1,3 +1,3 @@
 %PYTHON_EXE% bootstrap.py
-bin\buildout
+bin\buildout -d
 bin\nosetests --with-xunit
