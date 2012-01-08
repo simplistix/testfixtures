@@ -1,1 +1,3 @@
-$PYTHON_EXE -V
+$PYTHON_EXE  bootstrap.py
+bin/buildout
+bin/nosetests
