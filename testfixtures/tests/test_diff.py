@@ -5,8 +5,6 @@ from unittest import TestCase,TestSuite,makeSuite
 
 from testfixtures import diff
 
-from .compat import py_27_plus
-
 class TestDiff(TestCase):
 
     def test_example(self):
@@ -35,15 +33,21 @@ class TestDiff(TestCase):
         
     def test_no_newlines(self):
         actual = diff('x','y')
-        if py_27_plus:
+        # no rhyme or reason as to which of these comes back :-/
+        try:
             expected = '@@ -1 +1 @@\n-x\n+y'
-        else:
+            self.assertEqual(
+                expected,
+                actual,
+                '\n%r\n!=\n%r' % (expected, actual)
+                )
+        except AssertionError:
             expected = '@@ -1,1 +1,1 @@\n-x\n+y'
-        self.assertEqual(
-            expected,
-            actual,
-            '\n%r\n!=\n%r'%(expected,actual)
-            )
+            self.assertEqual(
+                expected,
+                actual,
+                '\n%r\n!=\n%r' % (expected, actual)
+                )
     
 def test_suite():
     return TestSuite((
