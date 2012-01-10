@@ -1,15 +1,17 @@
-# Copyright (c) 2010 Simplistix Ltd
+# Copyright (c) 2010-2011 Simplistix Ltd
 #
 # See license.txt for more details.
 from os.path import dirname
 path_to_your_docs = dirname(__file__)
 
 from glob import glob
-from manuel import doctest,codeblock,capture
+from manuel import doctest, capture
 from manuel.testing import TestSuite
 from os.path import join
 from testfixtures import TempDirectory
 from testfixtures.manuel import Files
+
+from . import codeblock
 
 def setUp(test):
     test.globs['tempdir']=TempDirectory()

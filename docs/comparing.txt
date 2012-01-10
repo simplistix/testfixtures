@@ -233,6 +233,18 @@ Providing a comparer can be particularly useful when the objects
 involved are instances of subclasses of python basic data types. 
 For example, suppose you're using a :func:`~collections.namedtuple`:
 
+.. invisible-code-block: python
+
+  # python2.5 doesn't have namedtuple
+  try:
+      from collections import namedtuple
+  except ImportError:
+      from nose.exc import SkipTest
+      def namedtuple(name, *args):
+          raise SkipTest('no namedtuples')
+      import collections
+      collections.namedtuple = namedtuple
+
 .. code-block:: python
 
   from collections import namedtuple  
