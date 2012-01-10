@@ -10,7 +10,8 @@ module, you would do the following:
 .. code-block:: python
 
    from ConfigParser import ConfigParser
-   config = ConfigParser()
+   from ordereddict import OrderedDict
+   config = ConfigParser(dict_type=OrderedDict)
    config.add_section('A Section')
    config.set('A Section', 'dir', 'frob')
    config.set('A Section', 'long', 'this value continues\non the next line')
