@@ -1,9 +1,11 @@
-# Copyright (c) 2008 Simplistix Ltd
+# Copyright (c) 2008-2012 Simplistix Ltd
 # See license.txt for license details.
 
 from unittest import TestCase,TestSuite,makeSuite
 
 from testfixtures import diff
+
+from .compat import py_27_plus
 
 class TestDiff(TestCase):
 
@@ -33,9 +35,10 @@ class TestDiff(TestCase):
         
     def test_no_newlines(self):
         actual = diff('x','y')
-        expected = '''@@ -1,1 +1,1 @@
--x
-+y'''
+        if py_27_plus:
+            expected = '@@ -1 +1 @@\n-x\n+y'
+        else:
+            expected = '@@ -1,1 +1,1 @@\n-x\n+y'
         self.assertEqual(
             expected,
             actual,

@@ -5,6 +5,8 @@ from __future__ import with_statement
 from testfixtures import should_raise,ShouldRaise,Comparison as C
 from unittest import TestCase,TestSuite,makeSuite
 
+from .compat import py_27_plus
+
 class TestShouldRaise(TestCase):
 
     def test_no_params(self):
@@ -239,6 +241,12 @@ class TestShouldRaise(TestCase):
             raise FileTypeError('X')
 
     def test_assert_keyerror_raised(self):
+        # 2.7 compat
+        if py_27_plus:
+            expected = "KeyError('foo',) raised, AttributeError('foo',) expected"
+        else:
+            expected = "KeyError(('foo',),) raised, AttributeError('foo',) expected"
+            
         class Dodgy(dict):
             def __getattr__(self,name):
                 # NB: we forgot to turn our KeyError into an attribute error
@@ -248,8 +256,8 @@ class TestShouldRaise(TestCase):
                 Dodgy().foo
         except AssertionError,e:
             self.assertEqual(
-                e,
-                C(AssertionError("KeyError(('foo',),) raised, AttributeError('foo',) expected"))
+                C(AssertionError(expected)),
+                e
                 )
         else:
             self.fail('No exception raised!')

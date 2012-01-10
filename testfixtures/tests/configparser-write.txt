@@ -26,9 +26,9 @@ The generated configuration file will be as follows:
  ::
 
    [A Section]
+   dir = frob
    long = this value continues
    	on the next line
-   dir = frob
 
    
 .. config parser writes whitespace at the end, be careful when testing!

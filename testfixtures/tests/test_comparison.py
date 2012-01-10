@@ -1,9 +1,11 @@
-# Copyright (c) 2008-2009 Simplistix Ltd
+# Copyright (c) 2008-2012 Simplistix Ltd
 # See license.txt for license details.
 
 from testfixtures import Comparison as C, compare, tempdir
 from testfixtures.tests.sample1 import TestClassA,a_function
 from unittest import TestCase,TestSuite,makeSuite
+
+from .compat import py_27_plus
 
 class AClass:
 
@@ -310,62 +312,65 @@ class TestC(TestCase):
             self.fail('No exception raised!')
 
     def test_repr_failed_nested(self):
-        try:
-            self.assertEqual(
-                [C(AClass,x=1,y=2),
-                 C(BClass,x=C(AClass,x=1),y=C(AClass))],
-                [AClass(1,3),
-                 AClass(1,3)]
-                )
-        except Exception,e:
-            self.failUnless(isinstance(e,AssertionError))
-            self.assertEqual(
-                e.args,
-                (
-                "[\n"
-                "  <C(failed):testfixtures.tests.test_comparison.AClass>\n"
-                "  y:2 != 3\n"
-                "  </C>, \n"
-                "  <C:testfixtures.tests.test_comparison.BClass>\n"
-                "  x:\n"
-                "    <C:testfixtures.tests.test_comparison.AClass>\n"
-                "    x:1\n"
-                "    </C>\n"
-                "  y:<C:testfixtures.tests.test_comparison.AClass>\n"
-                "  </C>] != [<AClass>, <AClass>]",
-                ))
-        else:
-            self.fail('No exception raised!')
+        left_side = [C(AClass, x=1, y=2),
+                     C(BClass, x=C(AClass, x=1), y=C(AClass))]
+        right_side = [AClass(1, 3), AClass(1, 3)]
+
+        # do the comparison
+        left_side == right_side
+        
+        self.assertEqual(
+            "[\n"
+            "  <C(failed):testfixtures.tests.test_comparison.AClass>\n"
+            "  y:2 != 3\n"
+            "  </C>, \n"
+            "  <C:testfixtures.tests.test_comparison.BClass>\n"
+            "  x:\n"
+            "    <C:testfixtures.tests.test_comparison.AClass>\n"
+            "    x:1\n"
+            "    </C>\n"
+            "  y:<C:testfixtures.tests.test_comparison.AClass>\n"
+            "  </C>]",
+            repr(left_side)
+            )
+
+        self.assertEqual(
+            "[<AClass>, <AClass>]",
+            repr(right_side)
+            )
 
     def test_repr_failed_nested_failed(self):
-        try:
-            self.assertEqual(
-                [C(AClass,x=1,y=2),
-                 C(BClass,x=C(AClass,x=1,strict=False),y=C(AClass,z=2))],
-                [AClass(1,2),
-                 BClass(AClass(1,2),AClass(1,2))]
-                )
-        except Exception,e:
-            self.failUnless(isinstance(e,AssertionError))
-            compare(
-                e.args[0],
-                (
-                "[\n"
-                "  <C:testfixtures.tests.test_comparison.AClass>\n"
-                "  x:1\n"
-                "  y:2\n"
-                "  </C>, \n"
-                "  <C(failed):testfixtures.tests.test_comparison.BClass>\n"
-                "  y:\n"
-                "  <C(failed):testfixtures.tests.test_comparison.AClass>\n"
-                "  x:1 not in Comparison\n"
-                "  y:2 not in Comparison\n"
-                "  z:2 not in other\n"
-                "  </C> != <AClass>\n"
-                "  </C>] != [<AClass>, <BClass>]",
-                )[0])
-        else:
-            self.fail('No exception raised!')
+        left_side = [C(AClass, x=1, y=2),
+                     C(BClass,
+                       x=C(AClass, x=1, strict=False),
+                       y=C(AClass, z=2))]
+        right_side = [AClass(1, 2),
+                      BClass(AClass(1, 2),AClass(1, 2))]
+        
+        # do the comparison
+        left_side == right_side
+        
+        self.assertEqual(
+            "[\n"
+            "  <C:testfixtures.tests.test_comparison.AClass>\n"
+            "  x:1\n"
+            "  y:2\n"
+            "  </C>, \n"
+            "  <C(failed):testfixtures.tests.test_comparison.BClass>\n"
+            "  y:\n"
+            "  <C(failed):testfixtures.tests.test_comparison.AClass>\n"
+            "  x:1 not in Comparison\n"
+            "  y:2 not in Comparison\n"
+            "  z:2 not in other\n"
+            "  </C> != <AClass>\n"
+            "  </C>]",
+            repr(left_side)
+            )
+
+        self.assertEqual(
+            '[<AClass>, <BClass>]',
+            repr(right_side)
+            )
 
     def test_repr_failed_passed_failed(self):
         c = C('testfixtures.tests.test_comparison.AClass',x=1,y=2)
@@ -586,16 +591,19 @@ class TestC(TestCase):
                     return True
                 return False
 
-        self.assertEqual(Annoying(),Annoying())
+        self.assertEqual(Annoying(), Annoying())
 
         # Suddenly, order matters.
 
         # This order is wrong, as it uses the class's __eq__:
-        self.assertNotEqual(Annoying(),C(Annoying))
+        self.assertFalse(Annoying() == C(Annoying))
+        # although this, which is subtle different, does not:
+        self.assertFalse(Annoying() != C(Annoying))
 
         # This is the right ordering:
-        self.assertEqual(C(Annoying),Annoying())
-
+        self.assertTrue(C(Annoying) == Annoying())
+        self.assertFalse(C(Annoying) != Annoying())
+        
         # When the ordering is right, you still get the useful
         # comparison representation afterwards
         c = C(Annoying,eq_called=1)        
