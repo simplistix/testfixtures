@@ -1,5 +1,5 @@
 from __future__ import with_statement
-# Copyright (c) 2008-2011 Simplistix Ltd
+# Copyright (c) 2008-2012 Simplistix Ltd
 # See license.txt for license details.
 
 from testfixtures import Replacer, ShouldRaise, replace, compare, should_raise, not_there
@@ -8,7 +8,8 @@ from unittest import TestCase,TestSuite,makeSuite
 import os
 import sample1
 import sample2
-import warnings
+
+from .compat import catch_warnings
 
 class TestReplace(TestCase):
 
@@ -327,7 +328,7 @@ class TestReplace(TestCase):
         r = Replacer()
         r.replace('testfixtures.tests.sample1.left_behind',
                   object(), strict=False)
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings(record=True) as w:
             del r
             self.assertTrue(len(w), 1)
             compare(str(w[0].message),

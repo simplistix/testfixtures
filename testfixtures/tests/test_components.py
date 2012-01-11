@@ -1,13 +1,14 @@
 from __future__ import with_statement
-# Copyright (c) 2011 Simplistix Ltd
+# Copyright (c) 2011-2012 Simplistix Ltd
 # See license.txt for license details.
 
 import atexit
-import warnings
 
 from testfixtures import compare
 from testfixtures.components import TestComponents
 from unittest import TestCase
+
+from .compat import catch_warnings
 
 class ComponentsTests(TestCase):
 
@@ -16,7 +17,7 @@ class ComponentsTests(TestCase):
         self.assertTrue(
             TestComponents.atexit in [t[0] for t in atexit._exithandlers]
             )
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings(record=True) as w:
             c.atexit()
             self.assertTrue(len(w), 1)
             compare(str(w[0].message), (
