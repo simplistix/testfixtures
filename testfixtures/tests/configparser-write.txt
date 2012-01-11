@@ -10,11 +10,9 @@ module, you would do the following:
 .. code-block:: python
 
    from ConfigParser import ConfigParser
-   from ordereddict import OrderedDict
-   config = ConfigParser(dict_type=OrderedDict)
+   config = ConfigParser()
    config.add_section('A Section')
    config.set('A Section', 'dir', 'frob')
-   config.set('A Section', 'long', 'this value continues\non the next line')
    f = open('example.cfg','w')
    config.write(f)
    f.close()
@@ -28,8 +26,6 @@ The generated configuration file will be as follows:
 
    [A Section]
    dir = frob
-   long = this value continues
-   	on the next line
 
    
 .. config parser writes whitespace at the end, be careful when testing!
