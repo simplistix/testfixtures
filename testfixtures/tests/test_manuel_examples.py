@@ -1,4 +1,4 @@
-# Copyright (c) 2010-2011 Simplistix Ltd
+# Copyright (c) 2010-2012 Simplistix Ltd
 #
 # See license.txt for more details.
 from os.path import dirname
@@ -11,7 +11,7 @@ from os.path import join
 from testfixtures import TempDirectory
 from testfixtures.manuel import Files
 
-from . import codeblock
+from . import compat
 
 def setUp(test):
     test.globs['tempdir']=TempDirectory()
@@ -21,7 +21,7 @@ def tearDown(test):
 
 def test_suite():
     m = doctest.Manuel()
-    m += codeblock.Manuel()
+    m += compat.Manuel()
     m += capture.Manuel()
     m += Files('tempdir')
     return TestSuite(

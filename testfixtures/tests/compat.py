@@ -1,12 +1,39 @@
-# Copyright (c) 2012 Simplistix Ltd
+# Copyright (c) 2011-2012 Simplistix Ltd
 # See license.txt for license details.
 
 # This module contains bits and pieces to achieve compatibility across all the
 # versions of python supported.
 
+import manuel
 import sys
+import textwrap
+
+from manuel.codeblock import (
+    CODEBLOCK_START,
+    CODEBLOCK_END,
+    CodeBlock,
+    execute_code_block,
+    )
+
+# a marker as to whether we're on 2.7 and above or not
 
 py_27_plus = sys.version_info[:2] == (2, 7)
+
+# Python 2.5 compatibility stuff
+
+def find_code_blocks(document):
+    for region in document.find_regions(CODEBLOCK_START, CODEBLOCK_END):
+        start_end = CODEBLOCK_START.search(region.source).end()
+        source = textwrap.dedent(region.source[start_end:])
+        source = 'from __future__ import with_statement\n' + source
+        source_location = '%s:%d' % (document.location, region.lineno)
+        code = compile(source, source_location, 'exec', 0, True)
+        document.claim_region(region)
+        region.parsed = CodeBlock(code)
+        
+class Manuel(manuel.Manuel):
+    def __init__(self):
+        manuel.Manuel.__init__(self, [find_code_blocks], [execute_code_block])
 
 # The following is adapted from Python 2.7
 # Copyright 2001-2010 Python Software Foundation. All rights reserved.
