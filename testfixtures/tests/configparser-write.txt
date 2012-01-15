@@ -29,3 +29,10 @@ The generated configuration file will be as follows:
 
    
 .. config parser writes whitespace at the end, be careful when testing!
+
+.. invisible-code-block: python
+   
+  # change out again
+  import os
+  os.chdir(os.path.join(tempdir.path, os.pardir))
+

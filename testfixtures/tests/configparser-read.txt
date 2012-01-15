@@ -31,3 +31,10 @@ The items in the section are now available as follows:
 ...     print '%r:%r' % (name,value)
 'dir':'frob'
 'long':'this value continues\non the next line'
+
+.. invisible-code-block: python
+   
+  # change out again
+  import os
+  os.chdir(os.path.join(tempdir.path, os.pardir))
+
