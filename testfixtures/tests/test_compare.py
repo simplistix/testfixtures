@@ -498,8 +498,3 @@ b
             "[call.call('XXXXXXXXXXXXXXXXXX... (<class 'mock._CallList'>)",
             strict=True,
             )
-
-def test_suite():
-    return TestSuite((
-        makeSuite(TestCompare),
-        ))

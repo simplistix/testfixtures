@@ -269,10 +269,3 @@ class TestShouldRaise(TestCase):
             raise ValueError('bad')
 
         to_test()
-        
-
-    
-def test_suite():
-    return TestSuite((
-        makeSuite(TestShouldRaise),
-        ))

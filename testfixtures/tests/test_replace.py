@@ -343,9 +343,3 @@ class TestReplace(TestCase):
             r.replace('os.path.sep', '=')
             compare(os.path.sep, '=')
         compare(orig, os.path.sep)
-
-
-def test_suite():
-    return TestSuite((
-        makeSuite(TestReplace),
-        ))

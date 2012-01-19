@@ -173,8 +173,3 @@ class TestTime(TestCase):
             @replace('time.time',test_time(year=2001,tzinfo=TestTZInfo()))
             def myfunc():
                 pass
-        
-def test_suite():
-    return TestSuite((
-        makeSuite(TestTime),
-        ))

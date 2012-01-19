@@ -109,8 +109,3 @@ class TestTempDir(TestCase):
             test_method()
             
             self.assertFalse(m.called)
-
-def test_suite():
-    return TestSuite((
-        makeSuite(TestTempDir),
-        ))

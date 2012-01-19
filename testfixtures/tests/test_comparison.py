@@ -653,8 +653,3 @@ class TestC(TestCase):
             C('testfixtures.tests.test_comparison.FussyDefineComparison', attr=1),
             FussyDefineComparison(1)
             )
-        
-def test_suite():
-    return TestSuite((
-        makeSuite(TestC),
-        ))

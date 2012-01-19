@@ -107,9 +107,3 @@ class TestLog_Capture(TestCase):
         test_method()
 
         compare(logger.handlers,start)
-
-    
-def test_suite():
-    return TestSuite((
-        makeSuite(TestLog_Capture),
-        ))

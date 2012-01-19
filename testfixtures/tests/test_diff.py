@@ -48,8 +48,3 @@ class TestDiff(TestCase):
                 actual,
                 '\n%r\n!=\n%r' % (expected, actual)
                 )
-    
-def test_suite():
-    return TestSuite((
-        makeSuite(TestDiff),
-        ))

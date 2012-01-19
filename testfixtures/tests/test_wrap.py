@@ -236,9 +236,3 @@ class TestWrap(TestCase):
             return 'something'
 
         compare(test_function.__name__,'test_function')
-
-
-def test_suite():
-    return TestSuite((
-        makeSuite(TestWrap),
-        ))
