@@ -97,13 +97,18 @@ class TestLog_Capture(TestCase):
         # get original handlers
         original_handlers = logger.handlers
         # put in a stub which will blow up if used
-        logger.handlers = start = [object()]
+        original = logger.handlers
+        try:
+            logger.handlers = start = [object()]
 
-        @log_capture()
-        def test_method(l):
-            logger.info('during')
-            l.check(('root', 'INFO', 'during'))
+            @log_capture()
+            def test_method(l):
+                logger.info('during')
+                l.check(('root', 'INFO', 'during'))
 
-        test_method()
-
-        compare(logger.handlers,start)
+            test_method()
+            
+            compare(logger.handlers, start)
+            
+        finally:
+            logger.handlers = original

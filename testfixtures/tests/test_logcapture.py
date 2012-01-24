@@ -290,14 +290,18 @@ class LogCaptureTests(TestCase):
         # get original handlers
         original_handlers = logger.handlers
         # put in a stub which will blow up if used
-        logger.handlers = start = [object()]
+        try:
+            logger.handlers = start = [object()]
 
-        with LogCapture() as l:
-            logger.info('during')
+            with LogCapture() as l:
+                logger.info('during')
 
-        l.check(('root', 'INFO', 'during'))
+            l.check(('root', 'INFO', 'during'))
+                
+            compare(logger.handlers,start)
 
-        compare(logger.handlers,start)
+        finally:
+            logger.handlers = original_handlers
 
     def test_atexit(self):
         l = LogCapture()
