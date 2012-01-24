@@ -2,6 +2,7 @@
    
   # change to the temp directory
   import os
+  original_dir = os.getcwd()
   os.chdir(tempdir.path)
 
 To construct a configuration file using the :mod:`ConfigParser`
@@ -34,5 +35,5 @@ The generated configuration file will be as follows:
    
   # change out again
   import os
-  os.chdir(os.path.join(tempdir.path, os.pardir))
+  os.chdir(original_dir)
 
