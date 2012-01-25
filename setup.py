@@ -18,6 +18,10 @@ for item in config.get('testenv', 'deps').split():
     test_requires.append(item)
 # Tox doesn't need itself, but we need it for testing.
 test_requires.append('tox')
+# Optional dependencies here:
+test_requires.extend([
+        'zope.component',
+        ])
 
 setup(
     name=name,
