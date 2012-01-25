@@ -220,6 +220,4 @@ class TestReplacer:
         """
         
 def test_suite():
-    return TestSuite((
-        DocTestSuite(optionflags=REPORT_NDIFF|ELLIPSIS),
-        ))
+    return DocTestSuite(optionflags=REPORT_NDIFF|ELLIPSIS)
