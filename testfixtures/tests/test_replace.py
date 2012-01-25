@@ -2,7 +2,15 @@ from __future__ import with_statement
 # Copyright (c) 2008-2012 Simplistix Ltd
 # See license.txt for license details.
 
-from testfixtures import Replacer, ShouldRaise, replace, compare, should_raise, not_there
+from testfixtures import (
+    Replacer,
+    ShouldRaise,
+    TempDirectory,
+    replace,
+    compare,
+    should_raise,
+    not_there,
+    )
 from unittest import TestCase,TestSuite,makeSuite
 
 import os
@@ -343,3 +351,18 @@ class TestReplace(TestCase):
             r.replace('os.path.sep', '=')
             compare(os.path.sep, '=')
         compare(orig, os.path.sep)
+
+    def test_sub_module_import(self):
+        with TempDirectory() as dir:
+            dir.write('module/__init__.py', '')
+            dir.write('module/submodule.py', 'def foo(): return "foo"')
+
+            with Replacer() as r:
+                r.replace('sys.path', [dir.path])
+                def bar(): return "bar"
+                # now test
+                
+                r.replace('module.submodule.foo', bar)
+
+                from module.submodule import foo
+                compare(foo(), "bar")
