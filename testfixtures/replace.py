@@ -98,7 +98,9 @@ class Replacer:
 
     def __del__(self):
         if self.originals:
-            warnings.warn(
+            # no idea why coverage misses the following statement
+            # it's covered by test_replace.TestReplace.test_replacer_del
+            warnings.warn( # pragma: no cover
                 'Replacer deleted without being restored, '
                 'originals left: %r' % self.originals
                 )
