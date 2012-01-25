@@ -22,24 +22,9 @@ class Replacer:
     def _replace(self, container, name, method, value, strict=True):
         if value is not_there:
             if method=='a':
-                try:
-                    delattr(container,name)
-                except AttributeError:
-                    if strict:
-                        raise AssertionError(
-                            'Could not remove attribute %r from %r' % (
-                                name, container
-                                ))
+                delattr(container, name)
             elif method=='i':
-                try:
-                    del container[name]
-                except KeyError:
-                    if strict:
-                        raise AssertionError(
-                            'Could not remove key %r from %r' % (
-                                name, container
-                                ))
-                    
+                del container[name]
         else:
             if method=='a':
                 setattr(container, name, value)
@@ -68,15 +53,17 @@ class Replacer:
             raise ValueError('target must contain at least one dot!')
         if t_obj is not_there and strict:
             raise AttributeError('Original %r not found'%attribute)
+        if t_obj is not_there and replacement is not_there:
+            return not_there
         if (isinstance(t_obj,MethodType)
             and t_obj.im_self is container
             and not isinstance(replacement,MethodType)):
             replacement_to_use = classmethod(replacement)
         else:
             replacement_to_use = replacement
+        self._replace(container, attribute, method, replacement_to_use, strict)
         if target not in self.originals:
             self.originals[target] = t_obj
-        self._replace(container, attribute, method, replacement_to_use, strict)
         if self.replace_returns:
             return replacement
 

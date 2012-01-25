@@ -249,6 +249,20 @@ class TestReplace(TestCase):
 
         test_something()
 
+    def test_replace_delattr_cant_remove(self):
+        with Replacer() as r:
+            with ShouldRaise(TypeError(
+                "can't set attributes of built-in/extension type 'datetime.datetime'"
+                )):
+                r.replace('datetime.datetime.today', not_there)
+
+    def test_replace_delattr_cant_remove_not_strict(self):
+        with Replacer() as r:
+            with ShouldRaise(TypeError(
+                "can't set attributes of built-in/extension type 'datetime.datetime'"
+                )):
+                r.replace('datetime.datetime.today', not_there, strict=False)
+
     def test_replace_dict_remove_key(self):
 
         from sample1 import someDict
