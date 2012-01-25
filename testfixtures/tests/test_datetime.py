@@ -1,3 +1,4 @@
+from __future__ import with_statement
 # Copyright (c) 2008-2011 Simplistix Ltd
 # See license.txt for license details.
 
@@ -343,8 +344,3 @@ class TestDateTime(TestCase):
             self.failIf(inst.__class__ is datetime, inst)
             self.failUnless(isinstance(inst, d), inst)
             self.failUnless(inst.__class__ is d, inst)
-
-def test_suite():
-    return TestSuite((
-        makeSuite(TestDateTime),
-        ))

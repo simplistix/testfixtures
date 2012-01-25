@@ -22,7 +22,7 @@ If you need to turn a simple sequence into a generator, the
 
 >>> from testfixtures import generator
 >>> generator(1,2,3)
-<generator object generator at ...>
+<generator object ...>
 
 Iterating over this generator will return the arguments passed to the
 :func:`generator` function:

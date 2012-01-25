@@ -233,10 +233,31 @@ Providing a comparer can be particularly useful when the objects
 involved are instances of subclasses of python basic data types. 
 For example, suppose you're using a :func:`~collections.namedtuple`:
 
+.. invisible-code-block: python
+
+  # python2.5 doesn't have namedtuple
+  try:
+      from collections import namedtuple
+  except ImportError:
+      def namedtuple(name, *args):
+          class TheRow(tuple): 
+               def __new__(cls, *args):
+                   return super(TheRow, cls).__new__(cls, args)
+               def __repr__(self):
+                   name = self.__class__.__name__
+                   if len(self)==3:
+                       return name+"(x=%s, y=%s, z=%s)" % self
+                   elif len(self)==1:
+                       return name+"(x=%s)" % self
+                   else:
+                       return '<compat error>'
+          TheRow.__name__ = name
+          TheRow.__module__ = '__main__'
+          return TheRow
+
 .. code-block:: python
 
-  from collections import namedtuple  
-  DataRow = namedtuple('DataRow', ('x', 'y', 'z'))
+ DataRow = namedtuple('DataRow', ('x', 'y', 'z'))
 
 .. invisible-code-block: python
 
@@ -346,7 +367,6 @@ concerned, then the scrict mode of :func:`compare` should be used.
 For example, these two instances will normally appear to be equal
 provided the elements within them are the same:
 
->>> from collections import namedtuple  
 >>> TypeA = namedtuple('A', 'x')
 >>> TypeB = namedtuple('B', 'x')
 >>> compare(TypeA(1), TypeB(1))

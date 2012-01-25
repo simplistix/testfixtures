@@ -244,8 +244,3 @@ class TestDate(TestCase):
             self.failIf(inst.__class__ is date, inst)
             self.failUnless(isinstance(inst, d), inst)
             self.failUnless(inst.__class__ is d, inst)
-            
-def test_suite():
-    return TestSuite((
-        makeSuite(TestDate),
-        ))

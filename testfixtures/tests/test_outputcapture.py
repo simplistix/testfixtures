@@ -58,8 +58,3 @@ class TestOutputCapture(TestCase):
             self.assertFalse(sys.stderr is o_err)
         self.assertTrue(sys.stdout is o_out)
         self.assertTrue(sys.stderr is o_err)
-    
-def test_suite():
-    return TestSuite((
-        makeSuite(TestOutputCapture),
-        ))

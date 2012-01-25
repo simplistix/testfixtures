@@ -19,10 +19,10 @@ class Replacer:
         self.originals = {}
         self.replace_returns=replace_returns
 
-    def _replace(self, container, name, method, value):
+    def _replace(self, container, name, method, value, strict=True):
         if value is not_there:
             if method=='a':
-                delattr(container,name)
+                delattr(container, name)
             elif method=='i':
                 del container[name]
         else:
@@ -53,14 +53,17 @@ class Replacer:
             raise ValueError('target must contain at least one dot!')
         if t_obj is not_there and strict:
             raise AttributeError('Original %r not found'%attribute)
+        if t_obj is not_there and replacement is not_there:
+            return not_there
         if (isinstance(t_obj,MethodType)
             and t_obj.im_self is container
             and not isinstance(replacement,MethodType)):
             replacement_to_use = classmethod(replacement)
         else:
             replacement_to_use = replacement
-        self.originals[target] = t_obj
-        self._replace(container, attribute, method, replacement_to_use)
+        self._replace(container, attribute, method, replacement_to_use, strict)
+        if target not in self.originals:
+            self.originals[target] = t_obj
         if self.replace_returns:
             return replacement
 
@@ -71,7 +74,7 @@ class Replacer:
         """
         for target,original in tuple(self.originals.items()):
             container, method, attribute, found = resolve(target)
-            self._replace(container, attribute, method, original)
+            self._replace(container, attribute, method, original, strict=False)
             del self.originals[target]
             
     def __enter__(self):
@@ -82,7 +85,9 @@ class Replacer:
 
     def __del__(self):
         if self.originals:
-            warnings.warn(
+            # no idea why coverage misses the following statement
+            # it's covered by test_replace.TestReplace.test_replacer_del
+            warnings.warn( # pragma: no cover
                 'Replacer deleted without being restored, '
                 'originals left: %r' % self.originals
                 )

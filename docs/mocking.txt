@@ -224,7 +224,7 @@ shown in the following :class:`~unittest.TestCase`:
   
    >>> suite = unittest.TestLoader().loadTestsFromTestCase(Tests)
    >>> unittest.TextTestRunner(verbosity=0,stream=StringIO()).run(suite)
-   <unittest._TextTestResult run=2 errors=0 failures=0>
+   <unittest...TextTestResult run=2 errors=0 failures=0>
 
 
 The :meth:`~testfixtures.Replacer.replace` method also supports
@@ -268,6 +268,8 @@ When it is no longer in effect, the originals are returned:
 
 >>> print someDict
 {'complex_key': [1, 2, 3], 'key': 'value'}
+
+.. _removing_attr_and_item:
 
 Removing attributes and dictionary items
 ----------------------------------------

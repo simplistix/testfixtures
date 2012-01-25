@@ -65,7 +65,7 @@ class Files(Manuel):
         dir = globs[self.name]
         result = region.evaluated=FileResult()
         if block.action=='read':
-            actual=dir.read(block.path)
+            actual=dir.read(block.path, 'r')
             if actual!=block.content:
                 result.passed = False
                 result.path = block.path

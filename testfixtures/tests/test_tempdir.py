@@ -1,3 +1,4 @@
+from __future__ import with_statement
 # Copyright (c) 2008 Simplistix Ltd
 # See license.txt for license details.
 
@@ -108,8 +109,3 @@ class TestTempDir(TestCase):
             test_method()
             
             self.assertFalse(m.called)
-
-def test_suite():
-    return TestSuite((
-        makeSuite(TestTempDir),
-        ))

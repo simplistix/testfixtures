@@ -3,6 +3,22 @@ Changes
 
 .. currentmodule:: testfixtures
 
+2.3.3 (12 December 2011)
+-------------------------
+
+- Fixed a bug where when a target was replaced more than once using a
+  single :class:`Replacer`, :meth:`~Replacer.restore` would not
+  correctly restore the original.
+
+2.3.2 (10 November 2011)
+-------------------------
+
+- Fixed a bug where attributes and keys could not be
+  removed by a :class:`Replacer` as described in
+  :ref:`removing_attr_and_item` if the attribute or key might not be
+  there, such as where a test wants to ensure an ``os.environ``
+  variable is not set.
+
 2.3.1 (8 November 2011)
 -------------------------
 

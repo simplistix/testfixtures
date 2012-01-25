@@ -18,8 +18,3 @@ class TestG(TestCase):
         g = generator(*s)
         self.failUnless(isinstance(g,GeneratorType))
         self.assertEqual(tuple(g),(1,2,3))
-                        
-def test_suite():
-    return TestSuite((
-        makeSuite(TestG),
-        ))

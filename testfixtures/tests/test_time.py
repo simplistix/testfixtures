@@ -1,9 +1,10 @@
-# Copyright (c) 2008-2010 Simplistix Ltd
+from __future__ import with_statement
+# Copyright (c) 2008-2012 Simplistix Ltd
 # See license.txt for license details.
 
 import sample1,sample2
 from os import environ
-from time import strptime, tzset
+from time import strptime
 from testfixtures import test_time, replace, compare, ShouldRaise
 from unittest import TestCase,TestSuite,makeSuite
 from test_datetime import TestTZInfo
@@ -172,28 +173,3 @@ class TestTime(TestCase):
             @replace('time.time',test_time(year=2001,tzinfo=TestTZInfo()))
             def myfunc():
                 pass
-        
-    def test_non_gmt_timezone(self):
-        try:
-            # setup
-            original=environ.get('TZ')
-            environ['TZ']='US/Eastern'
-            tzset()
-
-            # test
-            time = test_time(2001,1,2)
-            compare(time(),978393600.0)
-            
-
-        finally:
-            # restore
-            if original is None:
-                del environ['TZ']
-            else:
-                environ['TZ']=original
-            tzset()
-        
-def test_suite():
-    return TestSuite((
-        makeSuite(TestTime),
-        ))

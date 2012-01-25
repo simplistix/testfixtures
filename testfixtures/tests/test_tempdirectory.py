@@ -1,10 +1,9 @@
 from __future__ import with_statement
-# Copyright (c) 2008-2011 Simplistix Ltd
+# Copyright (c) 2008-2012 Simplistix Ltd
 # See license.txt for license details.
 
 import atexit
 import os
-import warnings
 
 from doctest import DocTestSuite,ELLIPSIS
 from shutil import rmtree
@@ -13,6 +12,8 @@ from testfixtures import TempDirectory, should_raise, compare
 from unittest import TestCase,TestSuite, makeSuite
 
 from logging import getLogger
+
+from .compat import catch_warnings
 
 class DemoTempDirectory:
 
@@ -342,7 +343,7 @@ class TempDirectoryTests(TestCase):
         self.assertTrue(
             TempDirectory.atexit in [t[0] for t in atexit._exithandlers]
             )
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings(record=True) as w:
             d.atexit()
             self.assertTrue(len(w), 1)
             compare(str(w[0].message), (

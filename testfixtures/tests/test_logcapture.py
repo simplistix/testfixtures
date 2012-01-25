@@ -1,15 +1,16 @@
 from __future__ import with_statement
-# Copyright (c) 2008-2011 Simplistix Ltd
+# Copyright (c) 2008-2012 Simplistix Ltd
 # See license.txt for license details.
 
 import atexit
-import warnings
 
 from doctest import DocTestSuite
 from testfixtures import LogCapture, compare
 from unittest import TestSuite, TestCase, makeSuite
 
 from logging import getLogger
+
+from .compat import catch_warnings
 
 root = getLogger()
 one = getLogger('one')
@@ -289,21 +290,25 @@ class LogCaptureTests(TestCase):
         # get original handlers
         original_handlers = logger.handlers
         # put in a stub which will blow up if used
-        logger.handlers = start = [object()]
+        try:
+            logger.handlers = start = [object()]
 
-        with LogCapture() as l:
-            logger.info('during')
+            with LogCapture() as l:
+                logger.info('during')
 
-        l.check(('root', 'INFO', 'during'))
+            l.check(('root', 'INFO', 'during'))
+                
+            compare(logger.handlers,start)
 
-        compare(logger.handlers,start)
+        finally:
+            logger.handlers = original_handlers
 
     def test_atexit(self):
         l = LogCapture()
         self.assertTrue(
             LogCapture.atexit in [t[0] for t in atexit._exithandlers]
             )
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings(record=True) as w:
             l.atexit()
             self.assertTrue(len(w), 1)
             compare(str(w[0].message), (

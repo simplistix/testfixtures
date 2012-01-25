@@ -1,4 +1,4 @@
-# Copyright (c) 2008 Simplistix Ltd
+# Copyright (c) 2008-2012 Simplistix Ltd
 # See license.txt for license details.
 
 from unittest import TestCase,TestSuite,makeSuite
@@ -33,16 +33,18 @@ class TestDiff(TestCase):
         
     def test_no_newlines(self):
         actual = diff('x','y')
-        expected = '''@@ -1,1 +1,1 @@
--x
-+y'''
-        self.assertEqual(
-            expected,
-            actual,
-            '\n%r\n!=\n%r'%(expected,actual)
-            )
-    
-def test_suite():
-    return TestSuite((
-        makeSuite(TestDiff),
-        ))
+        # no rhyme or reason as to which of these comes back :-/
+        try:
+            expected = '@@ -1 +1 @@\n-x\n+y'
+            self.assertEqual(
+                expected,
+                actual,
+                '\n%r\n!=\n%r' % (expected, actual)
+                )
+        except AssertionError:
+            expected = '@@ -1,1 +1,1 @@\n-x\n+y'
+            self.assertEqual(
+                expected,
+                actual,
+                '\n%r\n!=\n%r' % (expected, actual)
+                )

@@ -146,7 +146,9 @@ def test_datetime(*args,**kw):
         date = correct_date_method,
         _date_type = date_type,
         )
-    
+
+test_datetime.__test__ = False
+
 @classmethod
 def correct_date(cls,d):
     return cls._cls(
@@ -178,6 +180,8 @@ def __time_new__(cls, *args, **kw):
     else:
         return float(timegm(cls.instantiate().utctimetuple()))
 
+test_date.__test__ = False
+
 def test_time(*args,**kw):
     if 'tzinfo' in kw or len(args)>7:
         raise TypeError("You don't want to use tzinfo with test_time")
@@ -198,3 +202,4 @@ def test_time(*args,**kw):
         __new__ = __time_new__,
         )
 
+test_time.__test__ = False

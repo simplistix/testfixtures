@@ -1,11 +1,23 @@
-# Copyright (c) 2008-2011 Simplistix Ltd
+from __future__ import with_statement
+# Copyright (c) 2008-2012 Simplistix Ltd
 # See license.txt for license details.
 
-from testfixtures import Replacer, replace, compare, should_raise, not_there
+from testfixtures import (
+    Replacer,
+    ShouldRaise,
+    TempDirectory,
+    replace,
+    compare,
+    should_raise,
+    not_there,
+    )
 from unittest import TestCase,TestSuite,makeSuite
 
-import sample1,sample2
-import warnings
+import os
+import sample1
+import sample2
+
+from .compat import catch_warnings
 
 class TestReplace(TestCase):
 
@@ -204,6 +216,53 @@ class TestReplace(TestCase):
 
         self.failUnless(someDict['key'] is original)
 
+    def test_replace_delattr(self):
+
+        from testfixtures.tests import sample1
+
+        @replace('testfixtures.tests.sample1.someDict', not_there)
+        def test_something(obj):
+            self.failIf(hasattr(sample1, 'someDict'))
+
+        test_something()
+
+        self.assertEqual(sample1.someDict,
+                         {'complex_key': [1, 2, 3], 'key': 'value'})
+
+    def test_replace_delattr_not_there(self):
+
+        @replace('testfixtures.tests.sample1.foo', not_there)
+        def test_something(obj):
+            pass
+
+        with ShouldRaise(AttributeError("Original 'foo' not found")):
+            test_something()
+
+    def test_replace_delattr_not_there_not_strict(self):
+
+        from testfixtures.tests import sample1
+
+        @replace('testfixtures.tests.sample1.foo',
+                 not_there, strict=False)
+        def test_something(obj):
+            self.failIf(hasattr(sample1, 'foo'))
+
+        test_something()
+
+    def test_replace_delattr_cant_remove(self):
+        with Replacer() as r:
+            with ShouldRaise(TypeError(
+                "can't set attributes of built-in/extension type 'datetime.datetime'"
+                )):
+                r.replace('datetime.datetime.today', not_there)
+
+    def test_replace_delattr_cant_remove_not_strict(self):
+        with Replacer() as r:
+            with ShouldRaise(TypeError(
+                "can't set attributes of built-in/extension type 'datetime.datetime'"
+                )):
+                r.replace('datetime.datetime.today', not_there, strict=False)
+
     def test_replace_dict_remove_key(self):
 
         from sample1 import someDict
@@ -211,6 +270,32 @@ class TestReplace(TestCase):
         @replace('testfixtures.tests.sample1.someDict.key',not_there)
         def test_something(obj):
             self.failIf('key' in someDict)
+
+        test_something()
+
+        self.assertEqual(someDict.keys(), ['complex_key','key'])
+
+    def test_replace_dict_remove_key_not_there(self):
+
+        from sample1 import someDict
+
+        @replace('testfixtures.tests.sample1.someDict.badkey', not_there)
+        def test_something(obj):
+            self.failIf('badkey' in someDict)
+
+        with ShouldRaise(AttributeError("Original 'badkey' not found")):
+            test_something()
+
+        self.assertEqual(someDict.keys(), ['complex_key','key'])
+
+    def test_replace_dict_remove_key_not_there_not_strict(self):
+
+        from sample1 import someDict
+
+        @replace('testfixtures.tests.sample1.someDict.badkey',
+                 not_there, strict=False)
+        def test_something(obj):
+            self.failIf('badkey' in someDict)
 
         test_something()
 
@@ -265,14 +350,33 @@ class TestReplace(TestCase):
         r = Replacer()
         r.replace('testfixtures.tests.sample1.left_behind',
                   object(), strict=False)
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings(record=True) as w:
             del r
             self.assertTrue(len(w), 1)
             compare(str(w[0].message),
                     "Replacer deleted without being restored, ""originals left:"
                     " {'testfixtures.tests.sample1.left_behind': <not_there>}")
         
-def test_suite():
-    return TestSuite((
-        makeSuite(TestReplace),
-        ))
+    def test_multiple_replaces(self):
+        orig = os.path.sep
+        with Replacer() as r:
+            r.replace('os.path.sep', '$')
+            compare(os.path.sep, '$')
+            r.replace('os.path.sep', '=')
+            compare(os.path.sep, '=')
+        compare(orig, os.path.sep)
+
+    def test_sub_module_import(self):
+        with TempDirectory() as dir:
+            dir.write('module/__init__.py', '')
+            dir.write('module/submodule.py', 'def foo(): return "foo"')
+
+            with Replacer() as r:
+                r.replace('sys.path', [dir.path])
+                def bar(): return "bar"
+                # now test
+                
+                r.replace('module.submodule.foo', bar)
+
+                from module.submodule import foo
+                compare(foo(), "bar")

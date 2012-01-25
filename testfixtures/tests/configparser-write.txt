@@ -2,6 +2,7 @@
    
   # change to the temp directory
   import os
+  original_dir = os.getcwd()
   os.chdir(tempdir.path)
 
 To construct a configuration file using the :mod:`ConfigParser`
@@ -13,7 +14,6 @@ module, you would do the following:
    config = ConfigParser()
    config.add_section('A Section')
    config.set('A Section', 'dir', 'frob')
-   config.set('A Section', 'long', 'this value continues\non the next line')
    f = open('example.cfg','w')
    config.write(f)
    f.close()
@@ -26,9 +26,14 @@ The generated configuration file will be as follows:
  ::
 
    [A Section]
-   long = this value continues
-   	on the next line
    dir = frob
 
    
 .. config parser writes whitespace at the end, be careful when testing!
+
+.. invisible-code-block: python
+   
+  # change out again
+  import os
+  os.chdir(original_dir)
+
