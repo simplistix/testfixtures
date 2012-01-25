@@ -97,7 +97,8 @@ class ShouldRaise:
     def __exit__(self,type,value,traceback):
         # bug in python :-(
         if type is not None and not isinstance(value,type):
-            value = type(value)
+            # fixed in 2.7 onwards!
+            value = type(value) # pragma: no cover
         self.sr.handle(value)
         return True
 
