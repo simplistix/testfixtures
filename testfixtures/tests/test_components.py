@@ -2,10 +2,16 @@ from __future__ import with_statement
 # Copyright (c) 2011-2012 Simplistix Ltd
 # See license.txt for license details.
 
+from nose.plugins.skip import SkipTest
+
+try:
+    from testfixtures.components import TestComponents
+except ImportError:
+    raise SkipTest('zope.component is not available')
+
 import atexit
 
 from testfixtures import compare
-from testfixtures.components import TestComponents
 from unittest import TestCase
 
 from .compat import catch_warnings
