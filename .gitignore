@@ -7,3 +7,6 @@
 /*.egg-info/
 /parts/
 *.pyc
+/.coverage
+/*.xml
+/.tox
