@@ -653,3 +653,22 @@ class TestC(TestCase):
             C('testfixtures.tests.test_comparison.FussyDefineComparison', attr=1),
             FussyDefineComparison(1)
             )
+
+    def test_cant_resolve(self):
+        try:
+            C('testfixtures.bonkers')
+        except Exception, e:
+            self.failUnless(isinstance(e, AttributeError))
+            self.assertEqual(
+                e.args,
+                ("'testfixtures.bonkers' could not be resolved",)
+                )
+        else:
+            self.fail('No exception raised!')
+
+    def test_no_name(self):
+        class NoName(object): pass
+        NoName.__name__ = ''
+        NoName.__module__ = ''
+        c = C(NoName)
+        self.assertEqual(repr(c), "<C:<class '.'>>")

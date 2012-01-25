@@ -480,6 +480,22 @@ b
             "second:\n[call.aCall()]"
             )
 
+    def test_strict_okay(self):
+        m = object()
+        compare(m, m, strict=True)
+
+    def test_strict_comparer_supplied(self):
+        
+        compare_obj = Mock()
+        compare_obj.return_value = 'not equal'
+        
+        self.checkRaises(
+            object(), object(),
+            "not equal",
+            strict=True,
+            registry={object: compare_obj},
+            )
+
     def test_list_subclass_strict(self):
         m = Mock()
         m.aCall()
