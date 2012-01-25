@@ -424,9 +424,6 @@ class StringComparison:
     def __gt__(self,other):
         return self.re.pattern>other
         
-    def __cmp__(self,other):
-        return cmp(self.re.pattern,other)
-        
 def diff(x,y):
     """
     A shorthand function that uses :mod:`difflib` to return a
