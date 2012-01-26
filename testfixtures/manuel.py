@@ -71,7 +71,7 @@ class Files(Manuel):
                 result.path = block.path
                 result.expected = block.content
                 result.actual = actual
-        elif block.action=='write':
+        if block.action=='write':
             dir.write(block.path,block.content)
 
     def format(self,document):

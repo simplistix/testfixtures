@@ -294,13 +294,14 @@ class LogCaptureTests(TestCase):
             logger.handlers = start = [object()]
 
             with LogCapture() as l:
-                logger.info('during')
+                logger.info('during')  # pragma: no branch
 
             l.check(('root', 'INFO', 'during'))
                 
             compare(logger.handlers,start)
 
         finally:
+            # only executed if the test fails
             logger.handlers = original_handlers
 
     def test_atexit(self):

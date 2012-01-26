@@ -23,14 +23,13 @@ class Replacer:
         if value is not_there:
             if method=='a':
                 delattr(container, name)
-            elif method=='i':
+            if method=='i':
                 del container[name]
         else:
             if method=='a':
                 setattr(container, name, value)
-            elif method=='i':
+            if method=='i':
                 container[name] = value
-            
 
     def replace(self,target,replacement,strict=True):
         """

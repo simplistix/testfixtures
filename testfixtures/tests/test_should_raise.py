@@ -132,9 +132,12 @@ class TestShouldRaise(TestCase):
         
     def test_class_class(self):
         class Test:
-            def __init__(self,x):pass
-        r = should_raise(Test,TypeError)()
-        self.assertEqual(r,None)
+            def __init__(self, x):
+                # The TypeError is raised due to the mis-matched parameters
+                # so the pass never gets executed
+                pass # pragma: no cover
+        r = should_raise(Test, TypeError)()
+        self.assertEqual(r, None)
         
     def test_return(self):
         # return of a should_raise is always None!
