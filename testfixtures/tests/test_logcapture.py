@@ -19,7 +19,7 @@ child = getLogger('one.child')
 
 class DemoLogCapture:
 
-    def test_simple(self):
+    def test_simple(self): # pragma: no branch
         """
         >>> root.info('some logging')
         >>> print log_capture
@@ -36,7 +36,7 @@ class DemoLogCapture:
 
 class TestLogCapture:
 
-    def test_simple(self):
+    def test_simple(self): # pragma: no branch
         """
         >>> root.info('before')
         >>> l = LogCapture()
@@ -48,7 +48,7 @@ class TestLogCapture:
           during
         """
 
-    def test_specific_logger(self):
+    def test_specific_logger(self): # pragma: no branch
         """
         >>> l = LogCapture('one')
         >>> root.info('1')
@@ -63,7 +63,7 @@ class TestLogCapture:
           4
         """
 
-    def test_multiple_loggers(self):
+    def test_multiple_loggers(self): # pragma: no branch
         """
         >>> l = LogCapture(('one.child','two'))
         >>> root.info('1')
@@ -78,7 +78,7 @@ class TestLogCapture:
           4
         """
 
-    def test_simple_manual_install(self):
+    def test_simple_manual_install(self): # pragma: no branch
         """
         >>> l = LogCapture(install=False)
         >>> root.info('before')
@@ -91,7 +91,7 @@ class TestLogCapture:
           during
         """
 
-    def test_uninstall(self):
+    def test_uninstall(self): # pragma: no branch
         """
         Lets start off with a couple of loggers:
         
@@ -160,7 +160,7 @@ class TestLogCapture:
         True
         """
 
-    def test_uninstall_all(self):
+    def test_uninstall_all(self): # pragma: no branch
         """
         For this test, it's better if we don't have any
         LogCaptures around when we start:
@@ -205,7 +205,7 @@ class TestLogCapture:
         True
         """
 
-    def test_two_logcaptures_on_same_logger(self):
+    def test_two_logcaptures_on_same_logger(self): # pragma: no branch
         """
         If you create more than one LogCaptures on a single
         logger, the 2nd one installed will stop the first
@@ -232,7 +232,7 @@ class TestLogCapture:
           2nd message
         """
 
-    def test_uninstall_more_than_once(self):
+    def test_uninstall_more_than_once(self): # pragma: no branch
         """
         For this test, it's better if we don't have any
         LogCaptures around when we start:
@@ -272,7 +272,7 @@ class TestLogCapture:
         >>> log_capture.uninstall_all()
         """
         
-    def test_with_statement(self):
+    def test_with_statement(self): # pragma: no branch
         """
         >>> root.info('before')
         >>> with LogCapture() as l:

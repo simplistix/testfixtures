@@ -8,7 +8,7 @@ from unittest import TestSuite
 
 class TestReplacer:
 
-    def test_function(self):
+    def test_function(self): # pragma: no branch
         """
         >>> import sample1
         >>> sample1.z()
@@ -29,7 +29,7 @@ class TestReplacer:
         'original z'
         """
 
-    def test_class(self):
+    def test_class(self): # pragma: no branch
         """
         >>> import sample1
         >>> sample1.X()
@@ -51,7 +51,7 @@ class TestReplacer:
         <testfixtures.tests.sample1.X instance at ...>
         """
 
-    def test_method(self):
+    def test_method(self): # pragma: no branch
         """
         >>> import sample1
         >>> sample1.X().y()
@@ -72,7 +72,7 @@ class TestReplacer:
         'original y'
         """
 
-    def test_class_method(self):
+    def test_class_method(self): # pragma: no branch
         """
         >>> import sample1
         >>> sample1.X.aMethod()
@@ -93,7 +93,7 @@ class TestReplacer:
         <class testfixtures.tests.sample1.X at ...>
         """
 
-    def test_multiple_replace(self):
+    def test_multiple_replace(self): # pragma: no branch
         """
         >>> import sample1
         >>> sample1.z()
@@ -123,7 +123,7 @@ class TestReplacer:
         'original y'
         """
 
-    def test_gotcha(self):
+    def test_gotcha(self): # pragma: no branch
         """
         Just because you replace an object in one context:
 
@@ -148,7 +148,7 @@ class TestReplacer:
         >>> r.restore()
         """
     
-    def test_remove_called_twice(self):
+    def test_remove_called_twice(self): # pragma: no branch
         """
         >>> import sample1
         
@@ -167,7 +167,7 @@ class TestReplacer:
         'original z'
         """
 
-    def test_with_statement(self):
+    def test_with_statement(self): # pragma: no branch
         """
         >>> import sample1
         >>> sample1.z()
@@ -185,7 +185,7 @@ class TestReplacer:
         'original z'
         """
 
-    def test_not_there(self):
+    def test_not_there(self): # pragma: no branch
         """
         >>> def test_bad():
         ...   return 'moo'
@@ -197,7 +197,7 @@ class TestReplacer:
         AttributeError: Original 'bad' not found
         """
         
-    def test_not_there_ok(self):
+    def test_not_there_ok(self): # pragma: no branch
         """
         >>> import sample1
         >>> sample1.bad()

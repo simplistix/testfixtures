@@ -17,7 +17,7 @@ from .compat import catch_warnings
 
 class DemoTempDirectory:
 
-    def test_simple(self):
+    def test_simple(self): # pragma: no branch
         """
         >>> os.path.exists(temp_dir.path)
         True
@@ -50,7 +50,7 @@ class DemoTempDirectory:
         'stuff'
         """
         
-    def test_subpaths(self):
+    def test_subpaths(self): # pragma: no branch
         """
         You can work with files and directories below the root temp
         dir with following methods:
@@ -99,7 +99,7 @@ class DemoTempDirectory:
         'data'
         """
 
-    def test_return_path(self):
+    def test_return_path(self): # pragma: no branch
         """
         If you want the path created when you use `write`, you
         can do:
@@ -108,7 +108,7 @@ class DemoTempDirectory:
         '...filename'
         """
 
-    def test_ignore(self):
+    def test_ignore(self): # pragma: no branch
         """
         TempDirectories can also be set up to ignore certain files:
         
@@ -118,7 +118,7 @@ class DemoTempDirectory:
         No files or directories found.
         """
         
-    def test_ignore_regex(self):
+    def test_ignore_regex(self): # pragma: no branch
         """
         TempDirectories can also be set up to ignore certain files:
         
@@ -133,7 +133,7 @@ class DemoTempDirectory:
         
 class TestTempDirectory:
 
-    def test_cleanup(self):
+    def test_cleanup(self): # pragma: no branch
         """
         >>> d = TempDirectory()
         >>> p = d.path
@@ -145,7 +145,7 @@ class TestTempDirectory:
         False
         """
 
-    def test_cleanup_all(self):
+    def test_cleanup_all(self): # pragma: no branch
         """
         If you create several TempDirecories during a doctest,
         or if exceptions occur while running them,
@@ -176,7 +176,7 @@ class TestTempDirectory:
         False
         """
 
-    def test_with_statement(self):
+    def test_with_statement(self): # pragma: no branch
         """
         >>> with TempDirectory() as d:
         ...    p = d.path
@@ -192,7 +192,7 @@ class TestTempDirectory:
         False
         """
 
-    def test_listdir_sort(self):
+    def test_listdir_sort(self): # pragma: no branch
        """
         >>> with TempDirectory() as d:
         ...    p = d.write('ga','')
