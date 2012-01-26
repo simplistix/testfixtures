@@ -30,3 +30,5 @@ class ComponentsTests(TestCase):
                 "TestComponents instances not uninstalled by shutdown!"
                 ))
         c.uninstall()
+        # check re-running has no ill effects
+        c.atexit()

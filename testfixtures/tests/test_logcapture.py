@@ -317,6 +317,8 @@ class LogCaptureTests(TestCase):
                 "(None,)"
                 ))
         l.uninstall()
+        # check running it again has no ill effects
+        l.atexit()
         
 # using a set up and teardown function
 # gets rid of the need for the imports in

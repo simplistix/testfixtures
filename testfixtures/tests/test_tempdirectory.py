@@ -351,6 +351,8 @@ class TempDirectoryTests(TestCase):
                 d.path
                 ))
         d.cleanup()
+        # call again to make sure nothing blows up:
+        d.atexit()
         
 # using a set up and teardown function
 # gets rid of the need for the imports in
