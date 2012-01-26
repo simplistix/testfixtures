@@ -182,7 +182,7 @@ class TestReplace(TestCase):
 
         @replace('testfixtures.tests.sample1.bad',o)
         def test_something(r):
-            pass
+            pass # pragma: no cover
         
         should_raise(
             test_something,
@@ -233,7 +233,7 @@ class TestReplace(TestCase):
 
         @replace('testfixtures.tests.sample1.foo', not_there)
         def test_something(obj):
-            pass
+            pass # pragma: no cover
 
         with ShouldRaise(AttributeError("Original 'foo' not found")):
             test_something()
@@ -281,7 +281,7 @@ class TestReplace(TestCase):
 
         @replace('testfixtures.tests.sample1.someDict.badkey', not_there)
         def test_something(obj):
-            self.failIf('badkey' in someDict)
+            self.failIf('badkey' in someDict)  # pragma: no cover
 
         with ShouldRaise(AttributeError("Original 'badkey' not found")):
             test_something()

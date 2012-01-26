@@ -6,7 +6,7 @@ from nose.plugins.skip import SkipTest
 
 try:
     from testfixtures.components import TestComponents
-except ImportError:
+except ImportError:  # pragma: no cover
     raise SkipTest('zope.component is not available')
 
 import atexit

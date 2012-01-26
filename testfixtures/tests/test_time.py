@@ -146,7 +146,7 @@ class TestTime(TestCase):
             )):
             @replace('time.time',test_time(2001,1,2,3,4,5,6,TestTZInfo()))
             def myfunc():
-                pass
+                pass # pragma: no cover
         
     @replace('time.time',test_time(2001,1,2))
     def test_min_number_args(self):
@@ -172,4 +172,4 @@ class TestTime(TestCase):
             )):
             @replace('time.time',test_time(year=2001,tzinfo=TestTZInfo()))
             def myfunc():
-                pass
+                pass # pragma: no cover

@@ -41,7 +41,7 @@ class TestDiff(TestCase):
                 actual,
                 '\n%r\n!=\n%r' % (expected, actual)
                 )
-        except AssertionError:
+        except AssertionError:  # pragma: no cover
             expected = '@@ -1,1 +1,1 @@\n-x\n+y'
             self.assertEqual(
                 expected,

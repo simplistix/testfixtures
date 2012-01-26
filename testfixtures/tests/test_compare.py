@@ -24,7 +24,7 @@ class TestCompare(TestCase):
                 # compare(actual,message)
                 self.assertEqual(actual,message)
             else:
-                if not regex.match(actual):
+                if not regex.match(actual): # pragma: no cover
                     self.fail('%r did not match %r'%(actual,regex.pattern))
         else:
             self.fail('No exception raised!')

@@ -230,9 +230,6 @@ class TestWrap(TestCase):
 
         @wrap(m.before,m.after)
         def test_function():
-            something = 1
-            import sample2
-            m.test()
-            return 'something'
+            pass # pragma: no cover
 
         compare(test_function.__name__,'test_function')

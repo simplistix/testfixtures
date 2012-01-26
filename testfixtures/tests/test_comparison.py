@@ -35,12 +35,12 @@ class FussyDefineComparison(object):
         self.attr = attr
         
     def __eq__(self, other):
-        if not isinstance(other, self.__class__):
+        if not isinstance(other, self.__class__):  # pragma: no cover
             raise TypeError()
-        return False
+        return False  # pragma: no cover
 
     def __ne__(self, other):
-        return not self==other
+        return not self==other  # pragma: no cover
     
 class TestC(TestCase):
     
@@ -550,7 +550,7 @@ class TestC(TestCase):
                 '<X> does not support vars() so cannot do strict comparison',
                 ))
         else:
-            self.fail('No Exception raised!')
+            self.fail('No exception raised!')
 
     def test_no___dict___not_strict_same(self):
         x = X()
@@ -576,7 +576,7 @@ class TestC(TestCase):
                 "  </C> != <X>",
                 )[0])
         else:
-            self.fail('No Exception raised!')
+            self.fail('No exception raised!')
 
     def test_compared_object_defines_eq(self):
         # If an object defines eq, such as Django instances,

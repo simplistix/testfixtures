@@ -84,7 +84,8 @@ class TestTempDir(TestCase):
         finally:
             r.restore()
             if os.path.exists(d):
-                rmtree(d)
+                # only runs if the test fails!
+                rmtree(d) # pragma: no cover
             
     @tempdir()
     def test_cleanup_test_okay_with_deleted_dir(self,d):

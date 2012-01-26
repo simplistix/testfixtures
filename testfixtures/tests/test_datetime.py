@@ -17,9 +17,6 @@ class TestTZInfo(tzinfo):
     def utcoffset(self, dt):
         return timedelta(minutes = 3) + self.dst(dt)
 
-    def tzname(self, dt):
-        return 'TestTZ'
-
     def dst(self, dt):
         return timedelta(minutes = 1)
 
@@ -27,9 +24,6 @@ class TestTZ2Info(tzinfo):
 
     def utcoffset(self, dt):
         return timedelta(minutes = 5)
-
-    def tzname(self, dt):
-        return 'TestTZ'
 
     def dst(self, dt):
         return timedelta(minutes = 0)

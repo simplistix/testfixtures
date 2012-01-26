@@ -221,11 +221,11 @@ class TestShouldRaise(TestCase):
             raise ValueError('foo bar')
         self.assertEqual(C(ValueError('foo bar')),s.raised)
     
-    def test_import_errors(self):
+    def test_import_errors_1(self):
         with ShouldRaise(ImportError('No module named textfixtures.foo.bar')) as s:
             import textfixtures.foo.bar
     
-    def test_import_errors(self):
+    def test_import_errors_2(self):
         with ShouldRaise(ImportError('X')) as s:
             raise ImportError('X')
 
@@ -234,17 +234,15 @@ class TestShouldRaise(TestCase):
         class FileTypeError(Exception):
             def __init__(self,value):
                 self.value = value
-            def __str__(self):
-                return repr(self.value)
 
         with ShouldRaise(FileTypeError('X')) as s:
             raise FileTypeError('X')
 
     def test_assert_keyerror_raised(self):
         # 2.7 compat
-        if py_27_plus:
+        if py_27_plus:  # pragma: no cover
             expected = "KeyError('foo',) raised, AttributeError('foo',) expected"
-        else:
+        else:  # pragma: no cover
             expected = "KeyError(('foo',),) raised, AttributeError('foo',) expected"
             
         class Dodgy(dict):

@@ -49,20 +49,16 @@ class WarningMessage(object):
         for attr in self._WARNING_DETAILS:
             setattr(self, attr, local_values[attr])
         self._category_name = category.__name__ if category else None
-    def __str__(self):
-        return ("{message : %r, category : %r, filename : %r, lineno : %s, "
-                    "line : %r}" % (self.message, self._category_name,
-                                    self.filename, self.lineno, self.line))
 
 class catch_warnings(object):
     def __init__(self, record=True):
-        if not record:
+        if not record: # pragma: no cover
             raise TypeError('This implementation only support record=True')
         self._module = sys.modules['warnings']
         self._entered = False
 
     def __enter__(self):
-        if self._entered:
+        if self._entered:  # pragma: no cover
             raise RuntimeError("Cannot enter %r twice" % self)
         self._entered = True
         self._filters = self._module.filters
@@ -75,7 +71,7 @@ class catch_warnings(object):
         return log
 
     def __exit__(self, *exc_info):
-        if not self._entered:
+        if not self._entered:  # pragma: no cover
             raise RuntimeError("Cannot exit %r without entering first" % self)
         self._module.filters = self._filters
         self._module.showwarning = self._showwarning
