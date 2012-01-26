@@ -239,8 +239,7 @@ class TempDirectory:
         """
         thepath = self._join(dirpath)
         os.makedirs(thepath)
-        if path:
-            return thepath
+        return thepath
     
     def write(self,filepath,data,
               # for backwards compatibility
@@ -272,8 +271,7 @@ class TempDirectory:
         f = open(thepath,'wb')
         f.write(data)
         f.close()
-        if path:
-            return thepath
+        return thepath
 
     def getpath(self,path):
         """
