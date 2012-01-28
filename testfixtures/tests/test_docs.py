@@ -13,8 +13,8 @@ import os
 
 from . import compat
 
-path = os.environ.get('DOCPATH', join(dirname(__file__),pardir,pardir,'docs'))
-tests = glob(join(path,'*.txt'))
+workspace = os.environ.get('WORKSPACE', join(dirname(__file__), pardir, pardir))
+tests = glob(join(workspace,'docs', '*.txt'))
 
 if not tests:
     raise SkipTest('No docs found to test') # pragma: no cover
