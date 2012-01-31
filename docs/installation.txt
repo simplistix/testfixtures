@@ -38,7 +38,5 @@ then you should do one of the following:
 
 .. topic:: Python version requirements
 
-  This package requires Python 2.5 or above.
-
-  When installing with a version of Python lower than 2.6, you may see
-  compilation errors. These can safely be ignored.
+  This package has been tested with Python 2.5, 2.6 and 2.7 on Linux,
+  Mac OS X and Windows.

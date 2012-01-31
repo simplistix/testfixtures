@@ -3,7 +3,21 @@ Development
 
 .. highlight:: bash
 
-Once you've obtained a source checkout, you can follow these
+This package is developed using continuous integration which can be
+found here:
+
+http://jenkins.simplistix.co.uk/view/testfixtures/
+
+The latest development version of the documentation can be found here:
+
+http://jenkins.simplistix.co.uk/job/testfixtures-docs/Documentation/
+
+If you wish to contribute to this project, then you should fork the
+repository found here:
+
+https://github.com/Simplistix/testfixtures/
+
+Once that has been done, you can follow these
 instructions to perform various development tasks:
 
 Setting up the buildout
