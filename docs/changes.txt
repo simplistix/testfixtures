@@ -3,6 +3,25 @@ Changes
 
 .. currentmodule:: testfixtures
 
+2.3.4 (31 January 2012)
+-----------------------
+
+- Fixed compatibility with Python 2.5
+
+- Fixed compatibility with Python 2.7
+
+- Development model moved to continuous integration using Jenkins.
+
+- Introduced `Tox`__ based testing to ensure packaging and
+  dependencies are as expected.
+
+  __ http://tox.testrun.org/latest/
+
+- 100% line and branch coverage with tests.
+
+- Mark :class:`test_datetime`, :class:`test_date` and
+  :class:`test_time` such that nose doesn't mistake them as tests.
+
 2.3.3 (12 December 2011)
 -------------------------
 
