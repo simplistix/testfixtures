@@ -320,6 +320,12 @@ class LogCaptureTests(TestCase):
         l.uninstall()
         # check running it again has no ill effects
         l.atexit()
+
+    def test_numeric_log_level(self):
+        with LogCapture() as log:
+            getLogger().log(42, 'running in the family')
+
+        log.check(('root', 'Level 42', 'running in the family'))
         
 # using a set up and teardown function
 # gets rid of the need for the imports in
