@@ -1,17 +1,26 @@
 Testing logging
 ===============
 
+.. currentmodule:: testfixtures
+
 Python includes an excellent :mod:`logging` package, however many
 people assume that logging calls do not need to be tested. They may 
 also want to test logging calls but find the prospect too daunting.
+To help with this, TestFixtures allows you to easily capture the
+output of calls to Python's logging framework and make sure they were
+as expected. 
+
+.. note:: The :class:`LogCapture` class is useful for checking that
+          your code logs the right messages. If you want to check that
+          the configuration of your handlers is correct, please see
+          the :ref:`section <check-log-config>` below.
 
 Methods of capture
 ------------------
 
-To help with this, TestFixtures allows you to easily capture the
-output of calls to Python's logging framework and make sure they were
-as expected. There are three different techniques, depending on the
-type of test you are writing.
+There are three different techniques for capturing messages logged to
+the Python logging framework, depending on the type of test you are
+writing. They are all described in the sections below.
 
 The context manager
 ~~~~~~~~~~~~~~~~~~~
@@ -143,23 +152,29 @@ The following example is useful for showing these:
   logger = getLogger()
 
   with LogCapture() as l:
-      logger.info('start of block')
+      logger.info('start of block number %i', 1)
       try:
           raise RuntimeError('No code to run!')
       except:
-          logger.error('error occurred',exc_info=True)
+          logger.error('error occurred', exc_info=True)
 
 The check method
 ~~~~~~~~~~~~~~~~
 
 The :obj:`~testfixtures.LogCapture` has a
 :meth:`~testfixtures.LogCapture.check` method that will compare the
-log messages captured with those you expect.
+log messages captured with those you expect. Expected messages are
+expressed as three-element tuples where the first element is the name
+of the logger to which the message  should have been logged, the
+second element is the string representation of the level at which the
+message should have been logged and the third element is the message
+that should have been logged after any parameter interpolation has
+taken place.
 
 If things are as you expected, the method will not raise any exceptions:
 
 >>> result = l.check(
-...     ('root', 'INFO', 'start of block'),
+...     ('root', 'INFO', 'start of block number 1'),
 ...     ('root', 'ERROR', 'error occurred'),
 ...     )
 
@@ -172,13 +187,13 @@ True
 However, if the actual messages logged were different, you'll get an
 :class:`~exceptions.AssertionError` explaining what happened:
 
->>> l.check(('root', 'INFO', 'start of block'))
+>>> l.check(('root', 'INFO', 'start of block number 1'))
 Traceback (most recent call last):
  ...
 AssertionError: Sequence not as expected:
 <BLANKLINE>
 same:
-(('root', 'INFO', 'start of block'),)
+(('root', 'INFO', 'start of block number 1'),)
 <BLANKLINE>
 first:
 ()
@@ -194,7 +209,7 @@ shows what messages it has captured. This can be useful in doc tests:
 
 >>> print l
 root INFO
-  start of block
+  start of block number 1
 root ERROR
   error occurred
 
@@ -227,7 +242,7 @@ appropriate:
 
   from testfixtures import compare, Comparison as C
 
-  compare(C(RuntimeError('No code to run!')) ,l.records[-1].exc_info[1])
+  compare(C(RuntimeError('No code to run!')), l.records[-1].exc_info[1])
 
 Only capturing specific logging
 -------------------------------
@@ -356,3 +371,63 @@ root INFO
 
   >>> LogCapture.uninstall_all()
 
+.. _check-log-config:
+
+Checking the configuration of your log handlers
+-----------------------------------------------
+
+:class:`LogCapture` is good for checking that your code is logging the
+correct messages; just as important is checking that your application
+has correctly configured log handers. This can be done using a unit
+test such as the following:
+
+.. code-block:: python
+
+    from testfixtures import Comparison as C, compare
+    from unittest import TestCase
+    import logging
+    import sys
+
+    class LoggingConfigurationTests(TestCase):
+
+        # We mock out the handlers list for the logger we're
+        # configuring in such a way that we have no handlers
+        # configured at the start of the test and the handlers our
+        # configuration installs are removed at the end of the test.
+
+        def setUp(self):
+            self.logger = logging.getLogger()
+            self.orig_handlers = self.logger.handlers
+            self.logger.handlers = []
+            self.level = self.logger.level
+
+        def tearDown(self):
+            self.logger.handlers = self.orig_handlers
+            self.logger.level = self.level
+        
+        def test_basic_configuration(self):
+            # Our logging configuration code, in this case just a
+            # call to basicConfig:
+            logging.basicConfig(format='%(levelname)s %(message)s')
+
+            # Now we check the configuration is as expected:
+
+            compare(self.logger.level, 1)
+            compare([
+                C('logging.StreamHandler',
+                  stream=sys.stderr,
+                  formatter=C('logging.Formatter',
+                              _fmt='%(levelname)s %(message)s',
+                              strict=False),
+                  level=logging.NOTSET,
+                  strict=False)
+                ], self.logger.handlers)
+        
+
+.. the result:
+
+   >>> import unittest
+   >>> from StringIO import StringIO
+   >>> suite = unittest.TestLoader().loadTestsFromTestCase(LoggingConfigurationTests)
+   >>> unittest.TextTestRunner(verbosity=0, stream=StringIO()).run(suite)
+   <unittest...TextTestResult run=1 errors=0 failures=0>
