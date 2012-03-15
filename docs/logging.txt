@@ -422,12 +422,15 @@ test such as the following:
                   level=logging.NOTSET,
                   strict=False)
                 ], self.logger.handlers)
-        
+      
 
 .. the result:
 
    >>> import unittest
    >>> from StringIO import StringIO
    >>> suite = unittest.TestLoader().loadTestsFromTestCase(LoggingConfigurationTests)
-   >>> unittest.TextTestRunner(verbosity=0, stream=StringIO()).run(suite)
+   >>> stream = StringIO()
+   >>> result = unittest.TextTestRunner(verbosity=0, stream=stream).run(suite)
+   >>> if result.errors or result.failures: print stream.getvalue()
+   >>> result
    <unittest...TextTestResult run=1 errors=0 failures=0>
