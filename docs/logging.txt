@@ -408,11 +408,12 @@ test such as the following:
         def test_basic_configuration(self):
             # Our logging configuration code, in this case just a
             # call to basicConfig:
-            logging.basicConfig(format='%(levelname)s %(message)s')
+            logging.basicConfig(format='%(levelname)s %(message)s',
+                                level=logging.INFO)
 
             # Now we check the configuration is as expected:
 
-            compare(self.logger.level, 1)
+            compare(self.logger.level, 20)
             compare([
                 C('logging.StreamHandler',
                   stream=sys.stderr,
