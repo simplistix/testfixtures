@@ -1,4 +1,4 @@
-# Copyright (c) 2008-2011 Simplistix Ltd
+# Copyright (c) 2008-2012 Simplistix Ltd
 # See license.txt for license details.
 
 import os
@@ -13,8 +13,6 @@ config = RawConfigParser()
 config.read(os.path.join(base_dir, 'tox.ini'))
 test_requires = []
 for item in config.get('testenv', 'deps').split():
-    if item.endswith('==dev'):
-        item = item[:-5]
     test_requires.append(item)
 # Tox doesn't need itself, but we need it for testing.
 test_requires.append('tox')
