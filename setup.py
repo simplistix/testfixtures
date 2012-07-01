@@ -1,7 +1,7 @@
 # Copyright (c) 2008-2012 Simplistix Ltd
 # See license.txt for license details.
 
-import os
+import os, sys
 from ConfigParser import RawConfigParser
 from setuptools import setup, find_packages
 
@@ -20,7 +20,12 @@ test_requires.append('tox')
 test_requires.extend([
         'zope.component',
         ])
-
+# If we're on Python 2.5, we need to pin some libraries
+if sys.version_info[:2] < (2, 6):
+    # BBB Python 2.5 compat
+    test_requires.append('zope.interface>=3.6.0,<4.0dev')
+    test_requires.append('manuel<1.6')
+    
 setup(
     name=name,
     version=file(os.path.join(base_dir,name,'version.txt')).read().strip(),
