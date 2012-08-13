@@ -70,7 +70,7 @@ def compare_dict(x, y):
                 ))
     lines = ['%s not as expected:' % x.__class__.__name__,'']
     if same:
-        lines.extend(['same:',repr(same),''])
+        lines.extend(['same:',repr(sorted(same)),''])
     if x_not_y:
         lines.append('in first but not second:')
         for key in sorted(x_not_y):

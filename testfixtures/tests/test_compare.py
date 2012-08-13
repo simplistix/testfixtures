@@ -238,6 +238,29 @@ class TestCompare(TestCase):
             '\n'
             )
 
+    def test_dict_consistent_ordering(self):
+        self.checkRaises(
+            dict(xa=1, xb=2, ya=1, yb=2, aa=3, ab=4),
+            dict(xa=1, xb=2, za=3, zb=4, aa=5, ab=5),
+            "dict not as expected:\n"
+            "\n"
+            'same:\n'
+            "['xa', 'xb']\n"
+            "\n"
+            "in first but not second:\n"
+            "'ya': 1\n"
+            "'yb': 2\n"
+            '\n'
+            "in second but not first:\n"
+            "'za': 3\n"
+            "'zb': 4\n"
+            '\n'
+            "values differ:\n"
+            "'aa': 3 != 5\n"
+            "'ab': 4 != 5\n"
+            '\n'
+            )
+
     def test_set_same(self):
         self.failUnless(compare(set([1]),set([1])) is identity)
 
