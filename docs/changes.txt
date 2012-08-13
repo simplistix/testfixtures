@@ -3,6 +3,13 @@ Changes
 
 .. currentmodule:: testfixtures
 
+2.3.5 (13 August 2012)
+----------------------
+
+- Fixed a bug in :func:`~testfixtures.comparison.compare_dict` that
+  mean the list of keys that were the same was returned in an unsorted
+  order.
+
 2.3.4 (31 January 2012)
 -----------------------
 
