@@ -59,7 +59,7 @@ def compare_dict(x, y):
     y_not_x = y_keys - x_keys
     same = []
     diffs = []
-    for key in x_keys.intersection(y_keys):
+    for key in sorted(x_keys.intersection(y_keys)):
         if x[key]==y[key]:
             same.append(key)
         else:
@@ -70,7 +70,7 @@ def compare_dict(x, y):
                 ))
     lines = ['%s not as expected:' % x.__class__.__name__,'']
     if same:
-        lines.extend(['same:',repr(sorted(same)),''])
+        lines.extend(['same:',repr(same),''])
     if x_not_y:
         lines.append('in first but not second:')
         for key in sorted(x_not_y):
