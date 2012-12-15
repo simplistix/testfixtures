@@ -25,7 +25,12 @@ if sys.version_info[:2] < (2, 6):
 else:
     # an optional dependency, but we want it present in the buildout
     test_requires.append('zope.component')
-    
+
+# On Windows, the fallback for coverage's C-extensions
+# fail with new versions of coverage
+if 'win' in sys.platform.lower():
+    test_requires.append('coverage<3.5.3')
+
 setup(
     name=name,
     version=file(os.path.join(base_dir,name,'version.txt')).read().strip(),
