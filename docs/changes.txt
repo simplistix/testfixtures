@@ -8,6 +8,14 @@ Changes
 
 - Added compatibility with Python 3.3
 
+- Removed support for the following obscure uses for
+  :class:`should_raise`: 
+
+  .. code-block:: python
+
+    should_raise(x, IndexError)[1]
+    should_raise(x, KeyError)['x']
+  
 2.3.5 (13 August 2012)
 ----------------------
 

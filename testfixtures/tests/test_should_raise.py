@@ -123,14 +123,6 @@ class TestShouldRaise(TestCase):
         self.assertEqual(x.args,(1,))
         self.assertEqual(x.kw,{'y':2})
 
-    def test_index(self):
-        x = []
-        should_raise(x,IndexError)[1]
-        
-    def test_getitem(self):
-        x = {}
-        should_raise(x,KeyError)['x']
-        
     def test_class_class(self):
         class Test:
             def __init__(self, x):
