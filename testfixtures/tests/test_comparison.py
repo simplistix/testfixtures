@@ -164,7 +164,7 @@ class TestC(TestCase):
             r,
             "\n"
             "  <C:testfixtures.tests.test_comparison.WeirdException>\n"
-            "  args:()\n"
+            "  args:(1, 2)\n"
             "  x:1\n"
             "  y:2\n"
             "  </C>"

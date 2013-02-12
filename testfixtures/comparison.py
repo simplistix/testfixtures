@@ -314,8 +314,8 @@ class Comparison:
         if self.v is None:
             return True
         self.failed = {}
-            v = vars(other)
         if isinstance(other, BaseException):
+            v = dict(vars(other))
             v['args'] = other.args
             if PY3 and '_not_found' in v:
                 del v['_not_found']
