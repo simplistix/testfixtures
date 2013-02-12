@@ -9,6 +9,7 @@ from re import compile
 from shutil import rmtree
 from tempfile import mkdtemp
 from testfixtures.comparison import compare
+from testfixtures.compat import basestring
 from testfixtures.utils import wrap
 
 
@@ -142,9 +143,9 @@ class TempDirectory:
         """
         actual = self.actual(path,recursive)
         if not actual:
-            print 'No files or directories found.'
+            print('No files or directories found.')
         for n in actual:
-            print n
+            print(n)
 
     def check(self,*expected):
         """
@@ -241,7 +242,7 @@ class TempDirectory:
         os.makedirs(thepath)
         return thepath
     
-    def write(self,filepath,data,
+    def write(self, filepath, data,
               # for backwards compatibility
               path=True):
         """
@@ -261,14 +262,16 @@ class TempDirectory:
         
         :returns: The full path of the file written.
         """
-        if isinstance(filepath,basestring):
+        if isinstance(filepath, basestring):
             filepath = filepath.split('/')
         if len(filepath)>1:
             dirpath = self._join(filepath[:-1])
             if not os.path.exists(dirpath):
                 os.makedirs(dirpath)
         thepath = self._join(filepath)
-        f = open(thepath,'wb')
+        f = open(thepath, 'wb')
+        if not isinstance(data, bytes):
+            data = bytes(data, 'ascii')
         f.write(data)
         f.close()
         return thepath
@@ -311,6 +314,8 @@ class TempDirectory:
         f = open(self._join(filepath), mode)
         data = f.read()
         f.close()
+        if not isinstance(data, str):
+            data = str(data, 'ascii')
         return data
 
     def __enter__(self):

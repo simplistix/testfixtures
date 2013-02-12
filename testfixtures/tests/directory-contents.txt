@@ -6,12 +6,12 @@ directories:
   import os
 
   def spew(path):
-    with file(os.path.join(path,'root.txt'),'w') as f:
-        f.write('root output')
-    os.mkdir(os.path.join(path,'subdir'))
-    with file(os.path.join(path,'subdir','file.txt'),'w') as f:
-        f.write('subdir output')
-    os.mkdir(os.path.join(path,'subdir','logs'))
+    with open(os.path.join(path, 'root.txt'), 'wb') as f:
+        f.write(b'root output')
+    os.mkdir(os.path.join(path, 'subdir'))
+    with open(os.path.join(path, 'subdir', 'file.txt'), 'wb') as f:
+        f.write(b'subdir output')
+    os.mkdir(os.path.join(path, 'subdir', 'logs'))
 
 This function is used as follows:
 

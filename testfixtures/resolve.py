@@ -19,7 +19,7 @@ def resolve(dotted_name):
         except AttributeError:
             try:
                 __import__(used)
-            except ImportError, e:
+            except ImportError as e:
                 method = 'i'
                 try:
                     found = found[n]

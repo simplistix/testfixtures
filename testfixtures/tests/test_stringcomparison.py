@@ -1,5 +1,6 @@
 from testfixtures import StringComparison as S, compare
 from testfixtures import Comparison as C
+from testfixtures.compat import PY2
 from unittest import TestCase
 
 class Tests(TestCase):
@@ -41,9 +42,10 @@ class Tests(TestCase):
         compare(sorted(('d',c,'e',a,'a1',b,)),
                 [a,'a1',b,c,'d','e',])
 
-    def test_cmp_yes(self):
-        self.failIf(cmp(S('on \d+'), 'on 4040'))
+    if PY2:
+        def test_cmp_yes(self):
+            self.failIf(cmp(S('on \d+'), 'on 4040'))
 
-    def test_cmp_no(self):
-        self.failUnless(cmp(S('on \d+'), 'on xx'))
+        def test_cmp_no(self):
+            self.failUnless(cmp(S('on \d+'), 'on xx'))
 

@@ -33,7 +33,7 @@ the current registry is. This may be influenced by frameworks that use
 baseline to start with:
 
 >>> original = getSiteManager()
->>> print original
+>>> print(original)
 <BaseGlobalComponents base>
 
 Once we've got a :class:`TestComponents` in place, we know what

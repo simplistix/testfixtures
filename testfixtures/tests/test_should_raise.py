@@ -1,9 +1,10 @@
 from __future__ import with_statement
-# Copyright (c) 2008-2010 Simplistix Ltd
+# Copyright (c) 2008-2013 Simplistix Ltd
 # See license.txt for license details.
 
-from testfixtures import should_raise,ShouldRaise,Comparison as C
-from unittest import TestCase,TestSuite,makeSuite
+from testfixtures import Comparison as C, ShouldRaise, should_raise
+from testfixtures.compat import PY3
+from unittest import TestCase
 
 from .compat import py_27_plus
 
@@ -19,7 +20,7 @@ class TestShouldRaise(TestCase):
             pass
         try:
             should_raise(to_test,ValueError())()
-        except AssertionError,e:
+        except AssertionError as e:
             self.assertEqual(
                 e,
                 C(AssertionError('None raised, ValueError() expected'))
@@ -31,8 +32,8 @@ class TestShouldRaise(TestCase):
         def to_test():
             raise ValueError('bar')
         try:
-            should_raise(to_test,ValueError('foo'))()
-        except AssertionError,e:
+            should_raise(to_test, ValueError('foo'))()
+        except AssertionError as e:
             self.assertEqual(
                 e,
                 C(AssertionError("ValueError('bar',) raised, ValueError('foo',) expected"))
@@ -53,7 +54,7 @@ class TestShouldRaise(TestCase):
             pass
         try:
             should_raise(to_test)()
-        except AssertionError,e:
+        except AssertionError as e:
             self.assertEqual(
                 e,
                 C(AssertionError("No exception raised!"))
@@ -183,7 +184,7 @@ class TestShouldRaise(TestCase):
         try:
             with ShouldRaise(ValueError('foo')):
                 raise ValueError('bar')
-        except AssertionError,e:
+        except AssertionError as e:
             self.assertEqual(
                 e,
                 C(AssertionError("ValueError('bar',) raised, ValueError('foo',) expected"))
@@ -199,7 +200,7 @@ class TestShouldRaise(TestCase):
         try:
             with ShouldRaise(ValueError('foo')):
                 pass
-        except AssertionError,e:
+        except AssertionError as e:
             self.assertEqual(
                 e,
                 C(AssertionError("None raised, ValueError('foo',) expected"))
@@ -211,7 +212,7 @@ class TestShouldRaise(TestCase):
         try:
             with ShouldRaise():
                 pass
-        except AssertionError,e:
+        except AssertionError as e:
             self.assertEqual(
                 e,
                 C(AssertionError("No exception raised!"))
@@ -225,7 +226,11 @@ class TestShouldRaise(TestCase):
         self.assertEqual(C(ValueError('foo bar')),s.raised)
     
     def test_import_errors_1(self):
-        with ShouldRaise(ImportError('No module named textfixtures.foo.bar')) as s:
+        if PY3:
+            message = "No module named 'textfixtures'"
+        else:
+            message = 'No module named textfixtures.foo.bar'
+        with ShouldRaise(ImportError(message)) as s:
             import textfixtures.foo.bar
     
     def test_import_errors_2(self):
@@ -255,7 +260,7 @@ class TestShouldRaise(TestCase):
         try:
             with ShouldRaise(AttributeError('foo')):
                 Dodgy().foo
-        except AssertionError,e:
+        except AssertionError as e:
             self.assertEqual(
                 C(AssertionError(expected)),
                 e

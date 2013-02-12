@@ -2,6 +2,7 @@
 # See license.txt for license details.
 
 from functools import partial
+from testfixtures.compat import self_name
 from testfixtures.resolve import resolve, not_there
 from testfixtures.utils import wrap
 from types import MethodType
@@ -55,7 +56,7 @@ class Replacer:
         if t_obj is not_there and replacement is not_there:
             return not_there
         if (isinstance(t_obj,MethodType)
-            and t_obj.im_self is container
+            and getattr(t_obj, self_name) is container
             and not isinstance(replacement,MethodType)):
             replacement_to_use = classmethod(replacement)
         else:

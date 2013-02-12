@@ -28,8 +28,8 @@ Iterating over this generator will return the arguments passed to the
 :func:`generator` function:
 
 >>> for i in _:
-...     print i,
-1 2 3
+...     print(i, end=' ')
+1 2 3 
 
 The ``wrap`` helper
 -------------------
@@ -44,10 +44,10 @@ For example, take the following functions:
 .. code-block:: python
 
   def before():
-      print "before"
+      print("before")
 
   def after():
-      print "after"
+      print("after")
 
 The :func:`wrap` helper can be used to wrap a function with these:
 
@@ -57,7 +57,7 @@ The :func:`wrap` helper can be used to wrap a function with these:
 
   @wrap(before,after)
   def a_function():
-      print "a_function"
+      print("a_function")
 
 When the wrapped function is executed, the output is as follows:
 
@@ -74,7 +74,7 @@ The section argument to :func:`wrap` is optional:
 
   @wrap(before)
   def a_function():
-      print "a_function"
+      print("a_function")
 
 Now, the wrapped function gives the following output when executed:
 
@@ -88,21 +88,21 @@ decorations:
 .. code-block:: python
 
   def before1():
-      print "before 1"
+      print("before 1")
 
   def after1():
-      print "after 1"
+      print("after 1")
 
   def before2():
-      print "before 2"
+      print("before 2")
 
   def after2():
-      print "after 2"
+      print("after 2")
 
   @wrap(before2,after2)
   @wrap(before1,after1)
   def a_function():
-      print "a_function"
+      print("a_function")
 
 The order of execution is illustrated below:
 
@@ -128,8 +128,8 @@ provided it accepts positional arguments for these results:
   @wrap(before2)
   @wrap(before1)
   def a_function(r1,r2):
-      print r1
-      print r2
+      print(r1)
+      print(r2)
 
 Calling the wrapped function illustrates the behaviour:
 

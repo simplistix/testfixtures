@@ -264,29 +264,29 @@ over multiple calls, the values returned by
 A normal call to :meth:`~tdatetime.now` will return the values passed
 to the constructor:
 
->>> print datetime.now()
+>>> print(datetime.now())
 2001-01-01 00:00:00
 
 If we now ask for this time but in the timezone we passed to
 :class:`~testfixtures.test_datetime`, we will get the same hours,
 minutes and seconds but with a ``tzinfo`` attribute set:
 
->>> print datetime.now(ATZInfo())
+>>> print(datetime.now(ATZInfo()))
 2001-01-01 00:00:00-05:00
 
 If we call :meth:`~tdatetime.utcnow`, we will get the time equivalent
 to the values passed to the constructor, but in the UTC timezone:
 
->>> print datetime.utcnow()
+>>> print(datetime.utcnow())
 2001-01-01 05:00:00
 
 The timezone passed in when the :class:`~testfixtures.test_datetime`
 is created has a similar effect on any items set:
 
 >>> datetime.set(2011,5,1,10)
->>> print datetime.now()
+>>> print(datetime.now())
 2011-05-01 10:00:00
->>> print datetime.utcnow()
+>>> print(datetime.utcnow())
 2011-05-01 14:00:00
 
 Likewise, :meth:`~tdatetime.add` behaves the same way:
@@ -295,11 +295,11 @@ Likewise, :meth:`~tdatetime.add` behaves the same way:
 >>> datetime.add(2011,1,1,10)
 >>> datetime.add(2011,5,1,10)
 >>> datetime.add(2011,10,1,10)
->>> print datetime.now()
+>>> print(datetime.now())
 2011-01-01 10:00:00
->>> print datetime.utcnow()
+>>> print(datetime.utcnow())
 2011-05-01 14:00:00
->>> print datetime.now()
+>>> print(datetime.now())
 2011-10-01 10:00:00
 
 Times
@@ -442,7 +442,7 @@ instances of the real :class:`~datetime.datetime` and
 >>> issubclass(tdatetime, datetime)
 True
 >>> tdatetime.now().__class__
-<type 'datetime.datetime'>
+<...'datetime.datetime'>
 
 The above behaviour, however, is generally what you want as other code
 in your application and, more importantly, in other code such as

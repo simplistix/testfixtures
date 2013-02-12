@@ -1,15 +1,15 @@
 from __future__ import with_statement
-# Copyright (c) 2008-2012 Simplistix Ltd
+# Copyright (c) 2008-2013 Simplistix Ltd
 # See license.txt for license details.
 
-import atexit
 import os
 
-from doctest import DocTestSuite,ELLIPSIS
+from doctest import DocTestSuite, ELLIPSIS
+from mock import Mock, call
 from shutil import rmtree
 from tempfile import mkdtemp
-from testfixtures import TempDirectory, should_raise, compare
-from unittest import TestCase,TestSuite, makeSuite
+from testfixtures import TempDirectory, Replacer, should_raise, compare
+from unittest import TestCase, TestSuite, makeSuite
 
 from logging import getLogger
 
@@ -25,12 +25,12 @@ class DemoTempDirectory:
         You can manually create files in the directory:
         
         >>> f = open(os.path.join(temp_dir.path,'something'),'wb')
-        >>> p = f.write('stuff')
+        >>> p = f.write(b'stuff')
         >>> f.close()
 
         TempDirectory also provides a handy method for doing so:
         
-        >>> p = temp_dir.write('.svn','stuff')
+        >>> p = temp_dir.write('.svn', b'stuff')
         
         There's a handy method for listing the contents of the
         directory:
@@ -40,8 +40,9 @@ class DemoTempDirectory:
         something
 
         Likewise, you can read from files in the directory:
-        
-        >>> open(os.path.join(temp_dir.path,'.svn'),'rb').read()
+
+        >>> path = os.path.join(temp_dir.path, '.svn')
+        >>> str(open(path, 'rb').read(), 'ascii')
         'stuff'
 
         Or, you can use the handy method:
@@ -82,8 +83,8 @@ class DemoTempDirectory:
         
         `write` handles subpaths:
 
-        >>> p = temp_dir.write(('another','file.txt'),'data')
-        >>> open(os.path.join(temp_dir.path,'another','file.txt'),'rb').read()
+        >>> p = temp_dir.write(('another','file.txt'), 'data')
+        >>> str(open(p,'rb').read(), 'ascii')
         'data'
 
         You can also write directly into a subdirectory that doesn't
@@ -180,11 +181,11 @@ class TestTempDirectory:
         """
         >>> with TempDirectory() as d:
         ...    p = d.path
-        ...    print os.path.exists(p)
+        ...    print(os.path.exists(p))
         ...    path = d.write('something','stuff')
         ...    os.listdir(p)
         ...    with open(os.path.join(p,'something')) as f:
-        ...        print repr(f.read())
+        ...        print(repr(f.read()))
         True
         ['something']
         'stuff'
@@ -260,7 +261,7 @@ class TempDirectoryTests(TestCase):
             td.cleanup()
             # checks
             self.assertEqual(os.listdir(d),['test'])
-            with file(fp) as f:
+            with open(fp) as f:
                 self.assertEqual(f.read(),'foo')
         finally:
             rmtree(d)
@@ -339,20 +340,33 @@ class TempDirectoryTests(TestCase):
         self.assertEqual(expected3,actual3)
         
     def test_atexit(self):
-        d = TempDirectory()
-        self.assertTrue(
-            TempDirectory.atexit in [t[0] for t in atexit._exithandlers]
-            )
-        with catch_warnings(record=True) as w:
+        m = Mock()
+        with Replacer() as r:
+            # make sure the marker is false, other tests will
+            # probably have set it
+            r.replace('testfixtures.TempDirectory.atexit_setup', False)
+            r.replace('atexit.register', m.register)
+
+            d = TempDirectory()
+
+            expected = [call.register(d.atexit)]
+
+            compare(expected, m.mock_calls)
+
+            with catch_warnings(record=True) as w:
+                d.atexit()
+                self.assertTrue(len(w), 1)
+                compare(str(w[0].message), (
+                    "TempDirectory instances not cleaned up by shutdown:\n" +
+                    d.path
+                    ))
+                
+            d.cleanup()
+
+            compare(set(), TempDirectory.instances)
+            
+            # check re-running has no ill effects
             d.atexit()
-            self.assertTrue(len(w), 1)
-            compare(str(w[0].message), (
-                "TempDirectory instances not cleaned up by shutdown:\n" +
-                d.path
-                ))
-        d.cleanup()
-        # call again to make sure nothing blows up:
-        d.atexit()
         
 # using a set up and teardown function
 # gets rid of the need for the imports in

@@ -1,5 +1,5 @@
 from __future__ import with_statement
-# Copyright (c) 2008-2012 Simplistix Ltd
+# Copyright (c) 2008-2013 Simplistix Ltd
 # See license.txt for license details.
 
 from testfixtures import (
@@ -11,11 +11,12 @@ from testfixtures import (
     should_raise,
     not_there,
     )
-from unittest import TestCase,TestSuite,makeSuite
+from unittest import TestCase
 
 import os
-import sample1
-import sample2
+
+from testfixtures.tests import sample1
+from testfixtures.tests import sample2
 
 from .compat import catch_warnings
 
@@ -26,17 +27,17 @@ class TestReplace(TestCase):
         def test_z():
             return 'replacement z'
 
-        compare(sample1.z(),'original z')
+        compare(sample1.z(), 'original z')
 
         @replace('testfixtures.tests.sample1.z',test_z)
         def test_something():
-            compare(sample1.z(),'replacement z')
+            compare(sample1.z(), 'replacement z')
 
-        compare(sample1.z(),'original z')
+        compare(sample1.z(), 'original z')
 
         test_something()
 
-        compare(sample1.z(),'original z')
+        compare(sample1.z(), 'original z')
         
     def test_class(self):
 
@@ -202,7 +203,7 @@ class TestReplace(TestCase):
 
     def test_replace_dict(self):
 
-        from sample1 import someDict
+        from testfixtures.tests.sample1 import someDict
 
         original = someDict['key']
         replacement = object()
@@ -265,7 +266,7 @@ class TestReplace(TestCase):
 
     def test_replace_dict_remove_key(self):
 
-        from sample1 import someDict
+        from testfixtures.tests.sample1 import someDict
 
         @replace('testfixtures.tests.sample1.someDict.key',not_there)
         def test_something(obj):
@@ -273,11 +274,11 @@ class TestReplace(TestCase):
 
         test_something()
 
-        self.assertEqual(someDict.keys(), ['complex_key','key'])
+        self.assertEqual(sorted(someDict.keys()), ['complex_key','key'])
 
     def test_replace_dict_remove_key_not_there(self):
 
-        from sample1 import someDict
+        from testfixtures.tests.sample1 import someDict
 
         @replace('testfixtures.tests.sample1.someDict.badkey', not_there)
         def test_something(obj):
@@ -286,11 +287,11 @@ class TestReplace(TestCase):
         with ShouldRaise(AttributeError("Original 'badkey' not found")):
             test_something()
 
-        self.assertEqual(someDict.keys(), ['complex_key','key'])
+        self.assertEqual(sorted(someDict.keys()), ['complex_key','key'])
 
     def test_replace_dict_remove_key_not_there_not_strict(self):
 
-        from sample1 import someDict
+        from testfixtures.tests.sample1 import someDict
 
         @replace('testfixtures.tests.sample1.someDict.badkey',
                  not_there, strict=False)
@@ -299,11 +300,11 @@ class TestReplace(TestCase):
 
         test_something()
 
-        self.assertEqual(someDict.keys(), ['complex_key','key'])
+        self.assertEqual(sorted(someDict.keys()), ['complex_key','key'])
 
     def test_replace_dict_not_there(self):
 
-        from sample1 import someDict
+        from testfixtures.tests.sample1 import someDict
 
         replacement = object()
         
@@ -314,11 +315,11 @@ class TestReplace(TestCase):
 
         test_something()
 
-        self.assertEqual(someDict.keys(), ['complex_key','key'])
+        self.assertEqual(sorted(someDict.keys()), ['complex_key','key'])
 
     def test_replace_dict_not_there_empty_string(self):
 
-        from sample1 import someDict
+        from testfixtures.tests.sample1 import someDict
 
         @replace('testfixtures.tests.sample1.someDict.key2', '', strict=False)
         def test_something():
@@ -326,11 +327,11 @@ class TestReplace(TestCase):
 
         test_something()
 
-        self.assertEqual(someDict.keys(), ['complex_key', 'key'])
+        self.assertEqual(sorted(someDict.keys()), ['complex_key', 'key'])
 
     def test_replace_complex(self):
 
-        from sample1 import someDict
+        from testfixtures.tests.sample1 import someDict
 
         original = someDict['complex_key'][1]
         replacement = object()

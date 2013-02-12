@@ -1,9 +1,9 @@
-# Copyright (c) 2008-2011 Simplistix Ltd
+# Copyright (c) 2008-2013 Simplistix Ltd
 # See license.txt for license details.
 
 from calendar import timegm
 from datetime import datetime, timedelta, date
-from new import classobj
+from testfixtures.compat import new_class
 
 @classmethod
 def add(cls,*args,**kw):
@@ -83,7 +83,7 @@ def test_factory(n,type,default,args,kw,tz=None,**to_patch):
     to_patch['__add__']=__add__
     if '__new__' not in to_patch:
         to_patch['__new__'] = __new__
-    class_ = classobj(n,(type,),to_patch)
+    class_ = new_class(n, (type, ), to_patch)
     strict = kw.pop('strict', False)
     if strict:
         class_._cls = class_

@@ -59,7 +59,7 @@ second:
 It also has a string representation that allows you to see what has
 been logged, which is useful for doc tests:
 
->>> print l
+>>> print(l)
 root INFO
   a message
 root ERROR
@@ -120,7 +120,7 @@ check method:
 Alternatively, you can use the string representation of the
 :class:`~testfixtures.LogCapture`: 
 
->>> print l
+>>> print(l)
 root INFO
   a message
 
@@ -207,7 +207,7 @@ Printing
 The :obj:`~testfixtures.LogCapture` has a string representation that
 shows what messages it has captured. This can be useful in doc tests:
 
->>> print l
+>>> print(l)
 root INFO
   start of block number 1
 root ERROR
@@ -217,7 +217,7 @@ This representation can also be used to check that no logging has
 occurred: 
 
 >>> empty = LogCapture()
->>> print empty
+>>> print(empty)
 No logging captured
 
 Inspecting
@@ -232,8 +232,8 @@ available from either the string representation or the
 A common case of this is where you want to check that exception
 information was logged for certain messages:
 
->>> print l.records[-1].exc_info
-(<type 'exceptions.RuntimeError'>, RuntimeError('No code to run!',), <traceback object at ...>)
+>>> print(l.records[-1].exc_info)
+(<... '...RuntimeError'>, RuntimeError('No code to run!',), <traceback object at ...>)
 
 If you're working in a unit test, the following code may be more
 appropriate: 
@@ -261,7 +261,7 @@ If using the context manager, you would do this:
 ...     logger.debug('junk') 
 ...     logger.info('something we care about')
 ...     logger.error('an error')
->>> print l
+>>> print(l)
 root INFO
   something we care about
 root ERROR
@@ -293,7 +293,7 @@ If using the context manager, you would do this:
 ...     getLogger('something').info('junk')
 ...     getLogger('specific').info('what we care about')
 ...     getLogger().info('more junk')
->>> print l
+>>> print(l)
 specific INFO
   what we care about
 
@@ -322,7 +322,7 @@ You would do this with the context manager as follows:
 ...     getLogger('three').info('3')
 ...     getLogger('two').info('2')
 ...     getLogger('one').info('1')
->>> print l
+>>> print(l)
 two INFO
   2
 one INFO
@@ -361,7 +361,7 @@ example:
 >>> getLogger().info('more junk')
 >>> l.install()
 >>> getLogger().info('something else we care about')
->>> print l
+>>> print(l)
 root INFO
   something we care about
 root INFO
@@ -428,10 +428,10 @@ test such as the following:
 .. the result:
 
    >>> import unittest
-   >>> from StringIO import StringIO
+   >>> from testfixtures.compat import StringIO
    >>> suite = unittest.TestLoader().loadTestsFromTestCase(LoggingConfigurationTests)
    >>> stream = StringIO()
    >>> result = unittest.TextTestRunner(verbosity=0, stream=stream).run(suite)
-   >>> if result.errors or result.failures: print stream.getvalue()
+   >>> if result.errors or result.failures: print(stream.getvalue())
    >>> result
    <unittest...TextTestResult run=1 errors=0 failures=0>

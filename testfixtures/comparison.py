@@ -1,13 +1,14 @@
-# Copyright (c) 2008-2011 Simplistix Ltd
+# Copyright (c) 2008-2013 Simplistix Ltd
 # See license.txt for license details.
 
 from difflib import unified_diff
 from pprint import pformat
 from re import compile, MULTILINE
 from testfixtures import identity, not_there
+from testfixtures.compat import ClassType, Unicode, basestring, PY3
 from testfixtures.resolve import resolve
 from testfixtures.utils import generator
-from types import ClassType, GeneratorType
+from types import GeneratorType
 
 def compare_sequence(x, y):
     """
@@ -193,7 +194,7 @@ _registry = {
     list: compare_sequence,
     tuple: compare_sequence,
     str: compare_text,
-    unicode: compare_text,
+    Unicode: compare_text,
     GeneratorType: compare_generator,
     }
 
@@ -287,17 +288,17 @@ class Comparison:
                 attribute_dict = attributes
             else:
                 attribute_dict.update(attributes)
-        if isinstance(object_or_type,basestring):
+        if isinstance(object_or_type, basestring):
             container, method, name, c = resolve(object_or_type)
             if c is not_there:
                 raise AttributeError('%r could not be resolved' % object_or_type)
-        elif isinstance(object_or_type,(ClassType,type)):
+        elif isinstance(object_or_type, (ClassType, type)):
             c = object_or_type
-        elif isinstance(object_or_type,BaseException):
+        elif isinstance(object_or_type, BaseException):
             c = object_or_type.__class__
             if attribute_dict is None:
                 attribute_dict = vars(object_or_type)
-                attribute_dict['args']=object_or_type.args
+                attribute_dict['args'] = object_or_type.args
         else:
             c = object_or_type.__class__
             if attribute_dict is None:
@@ -306,16 +307,18 @@ class Comparison:
         self.v = attribute_dict
         self.strict = strict
         
-    def __eq__(self,other):
+    def __eq__(self, other):
         if self.c is not other.__class__:
             self.failed = True
             return False
         if self.v is None:
             return True
         self.failed = {}
-        if isinstance(other,BaseException):
             v = vars(other)
-            v['args']=other.args
+        if isinstance(other, BaseException):
+            v['args'] = other.args
+            if PY3 and '_not_found' in v:
+                del v['_not_found']
         else:
             try:
                 v = vars(other)
@@ -328,26 +331,27 @@ class Comparison:
                 v = {}
                 for k in self.v.keys():
                     try:
-                        v[k]=getattr(other,k)
+                        v[k]=getattr(other, k)
                     except AttributeError:
                         pass
+        
         e = set(self.v.keys())
         a = set(v.keys())
         for k in e.difference(a):
             try:
                 # class attribute?
-                v[k]=getattr(other,k)
+                v[k]= getattr(other, k)
             except AttributeError:
-                self.failed[k]='%s not in other' % repr(self.v[k])
+                self.failed[k] = '%s not in other' % repr(self.v[k])
             else:
                 a.add(k)
         if self.strict:
             for k in a.difference(e):
-                self.failed[k]='%s not in Comparison' % repr(v[k])
+                self.failed[k] = '%s not in Comparison' % repr(v[k])
         for k in e.intersection(a):
             ev = self.v[k]
             av = v[k]
-            if ev!=av:
+            if ev != av:
                 self.failed[k]='%r != %r' % (ev,av)
         if self.failed:
             return False

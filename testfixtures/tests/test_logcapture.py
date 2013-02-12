@@ -1,11 +1,10 @@
 from __future__ import with_statement
-# Copyright (c) 2008-2012 Simplistix Ltd
+# Copyright (c) 2008-2013 Simplistix Ltd
 # See license.txt for license details.
 
-import atexit
-
 from doctest import DocTestSuite
-from testfixtures import LogCapture, compare
+from mock import Mock, call
+from testfixtures import Replacer, LogCapture, compare
 from unittest import TestSuite, TestCase, makeSuite
 
 from logging import getLogger
@@ -22,14 +21,14 @@ class DemoLogCapture:
     def test_simple(self): # pragma: no branch
         """
         >>> root.info('some logging')
-        >>> print log_capture
+        >>> print(log_capture)
         root INFO
           some logging
         >>> log_capture.clear()
-        >>> print log_capture
+        >>> print(log_capture)
         No logging captured
         >>> root.info('some more logging')
-        >>> print log_capture
+        >>> print(log_capture)
         root INFO
           some more logging
         """
@@ -43,7 +42,7 @@ class TestLogCapture:
         >>> root.info('during')
         >>> l.uninstall()
         >>> root.info('after')
-        >>> print l
+        >>> print(l)
         root INFO
           during
         """
@@ -56,7 +55,7 @@ class TestLogCapture:
         >>> two.info('3')
         >>> child.info('4')
         >>> l.uninstall()
-        >>> print l
+        >>> print(l)
         one INFO
           2
         one.child INFO
@@ -71,7 +70,7 @@ class TestLogCapture:
         >>> two.info('3')
         >>> child.info('4')
         >>> l.uninstall()
-        >>> print l
+        >>> print(l)
         two INFO
           3
         one.child INFO
@@ -86,7 +85,7 @@ class TestLogCapture:
         >>> root.info('during')
         >>> l.uninstall()
         >>> root.info('after')
-        >>> print l
+        >>> print(l)
         root INFO
           during
         """
@@ -120,20 +119,20 @@ class TestLogCapture:
         ...
         ...    root = getLogger()
         ...    root.info('1')
-        ...    print 'root level during test:',root.level
+        ...    print('root level during test:',root.level)
         ...    child = getLogger('child')
-        ...    print 'child level during test:',child.level
+        ...    print('child level during test:',child.level)
         ...    child.info('2')
-        ...    print 'l1 contents:'
-        ...    print l1
-        ...    print 'l2 contents:'
-        ...    print l2
+        ...    print('l1 contents:')
+        ...    print(l1)
+        ...    print('l2 contents:')
+        ...    print(l2)
         ...
         ...    l2.uninstall()
         ...    l1.uninstall()
         ...
-        ...    print 'root level after test:',root.level
-        ...    print 'child level after test:',child.level
+        ...    print('root level after test:',root.level)
+        ...    print('child level after test:',child.level)
         ...
         ... finally:
         ...    root.setLevel(old_root_level)
@@ -213,7 +212,7 @@ class TestLogCapture:
         
         >>> l1 = LogCapture()
         >>> root.info('1st message')
-        >>> print l1
+        >>> print(l1)
         root INFO
           1st message
         >>> l2 = LogCapture()
@@ -221,13 +220,13 @@ class TestLogCapture:
 
         So, l1 missed this message:
         
-        >>> print l1
+        >>> print(l1)
         root INFO
           1st message
 
         ...because l2 kicked it out and recorded the message:
 
-        >>> print l2
+        >>> print(l2)
         root INFO
           2nd message
         """
@@ -248,17 +247,17 @@ class TestLogCapture:
         ...
         ...    l = LogCapture()
         ...
-        ...    print 'root level during test:',root.level
+        ...    print('root level during test:',root.level)
         ...    
         ...    l.uninstall()
         ...
-        ...    print 'root level after uninstall:',root.level
+        ...    print('root level after uninstall:',root.level)
         ...
         ...    root.setLevel(69)
         ...    
         ...    l.uninstall()
         ...
-        ...    print 'root level after another uninstall:',root.level
+        ...    print('root level after another uninstall:',root.level)
         ...
         ... finally:
         ...    root.setLevel(old_level)
@@ -278,7 +277,7 @@ class TestLogCapture:
         >>> with LogCapture() as l:
         ...   root.info('during')
         >>> root.info('after')
-        >>> print l
+        >>> print(l)
         root INFO
           during
         """
@@ -305,21 +304,34 @@ class LogCaptureTests(TestCase):
             logger.handlers = original_handlers
 
     def test_atexit(self):
-        l = LogCapture()
-        self.assertTrue(
-            LogCapture.atexit in [t[0] for t in atexit._exithandlers]
-            )
-        with catch_warnings(record=True) as w:
+        m = Mock()
+        with Replacer() as r:
+            # make sure the marker is false, other tests will
+            # probably have set it
+            r.replace('testfixtures.LogCapture.atexit_setup', False)
+            r.replace('atexit.register', m.register)
+
+            l = LogCapture()
+
+            expected = [call.register(l.atexit)]
+
+            compare(expected, m.mock_calls)
+
+            with catch_warnings(record=True) as w:
+                l.atexit()
+                self.assertTrue(len(w), 1)
+                compare(str(w[0].message), (
+                    "LogCapture instances not uninstalled by shutdown, "
+                    "loggers captured:\n"
+                    "(None,)"
+                    ))
+                
+            l.uninstall()
+
+            compare(set(), LogCapture.instances)
+            
+            # check re-running has no ill effects
             l.atexit()
-            self.assertTrue(len(w), 1)
-            compare(str(w[0].message), (
-                "LogCapture instances not uninstalled by shutdown, "
-                "loggers captured:\n"
-                "(None,)"
-                ))
-        l.uninstall()
-        # check running it again has no ill effects
-        l.atexit()
 
     def test_numeric_log_level(self):
         with LogCapture() as log:

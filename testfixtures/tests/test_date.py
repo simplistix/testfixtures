@@ -1,11 +1,11 @@
-# Copyright (c) 2008-2011 Simplistix Ltd
+# Copyright (c) 2008-2013 Simplistix Ltd
 # See license.txt for license details.
 
-import sample1,sample2
 from datetime import date as d
 from time import strptime
-from testfixtures import test_date,replace,compare,should_raise
-from unittest import TestCase,TestSuite,makeSuite
+from testfixtures import test_date, replace, compare, should_raise
+from testfixtures.tests import sample1, sample2
+from unittest import TestCase
 
 class TestDate(TestCase):
 

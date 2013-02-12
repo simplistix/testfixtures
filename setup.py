@@ -2,7 +2,12 @@
 # See license.txt for license details.
 
 import os, sys
-from ConfigParser import RawConfigParser
+
+if sys.version_info[:2] > (3, 0):
+    from configparser import RawConfigParser
+else:
+    from ConfigParser import RawConfigParser
+    
 from setuptools import setup, find_packages
 
 name = 'testfixtures'
@@ -28,7 +33,7 @@ else:
 
 setup(
     name=name,
-    version=file(os.path.join(base_dir,name,'version.txt')).read().strip(),
+    version=open(os.path.join(base_dir,name,'version.txt')).read().strip(),
     author='Chris Withers',
     author_email='chris@simplistix.co.uk',
     license='MIT',

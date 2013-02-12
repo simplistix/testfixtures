@@ -1,5 +1,5 @@
 from __future__ import with_statement
-# Copyright (c) 2008 Simplistix Ltd
+# Copyright (c) 2008-2013 Simplistix Ltd
 # See license.txt for license details.
 
 from doctest import DocTestSuite, REPORT_NDIFF,ELLIPSIS
@@ -10,7 +10,7 @@ class TestReplacer:
 
     def test_function(self): # pragma: no branch
         """
-        >>> import sample1
+        >>> from testfixtures.tests import sample1
         >>> sample1.z()
         'original z'
         
@@ -31,9 +31,9 @@ class TestReplacer:
 
     def test_class(self): # pragma: no branch
         """
-        >>> import sample1
+        >>> from testfixtures.tests import sample1
         >>> sample1.X()
-        <testfixtures.tests.sample1.X instance at ...>
+        <testfixtures.tests.sample1.X ...>
         
         >>> class XReplacement(sample1.X): pass
         
@@ -41,19 +41,19 @@ class TestReplacer:
         >>> r.replace('testfixtures.tests.sample1.X',XReplacement)
         
         >>> sample1.X()
-        <testfixtures.tests.test_replacer.XReplacement instance at ...>
+        <testfixtures.tests.test_replacer.XReplacement ...>
         >>> sample1.X().y()
         'original y'
         
         >>> r.restore()
         
         >>> sample1.X()
-        <testfixtures.tests.sample1.X instance at ...>
+        <testfixtures.tests.sample1.X ...>
         """
 
     def test_method(self): # pragma: no branch
         """
-        >>> import sample1
+        >>> from testfixtures.tests import sample1
         >>> sample1.X().y()
         'original y'
         
@@ -74,9 +74,9 @@ class TestReplacer:
 
     def test_class_method(self): # pragma: no branch
         """
-        >>> import sample1
+        >>> from testfixtures.tests import sample1
         >>> sample1.X.aMethod()
-        <class testfixtures.tests.sample1.X at ...>
+        <class ...testfixtures.tests.sample1.X...>
         
         >>> def rMethod(cls):
         ...   return (cls,1)
@@ -85,17 +85,17 @@ class TestReplacer:
         >>> r.replace('testfixtures.tests.sample1.X.aMethod',rMethod)
         
         >>> sample1.X.aMethod()
-        (<class testfixtures.tests.sample1.X at ...>, 1)
+        (<class ...testfixtures.tests.sample1.X...>, 1)
         
         >>> r.restore()
         
         >>> sample1.X.aMethod()
-        <class testfixtures.tests.sample1.X at ...>
+        <class ...testfixtures.tests.sample1.X...>
         """
 
     def test_multiple_replace(self): # pragma: no branch
         """
-        >>> import sample1
+        >>> from testfixtures.tests import sample1
         >>> sample1.z()
         'original z'
         >>> sample1.X().y()
@@ -113,7 +113,7 @@ class TestReplacer:
         >>> sample1.z()
         'replacement z'
         >>> sample1.X().y()
-        '<testfixtures.tests.sample1.X instance at ...>'
+        '<testfixtures.tests.sample1.X ...>'
 
         >>> r.restore()
 
@@ -127,7 +127,8 @@ class TestReplacer:
         """
         Just because you replace an object in one context:
 
-        >>> import sample1,sample2
+        >>> from testfixtures.tests import sample1
+        >>> from testfixtures.tests import sample2
         >>> sample1.z()
         'original z'
         
@@ -150,7 +151,7 @@ class TestReplacer:
     
     def test_remove_called_twice(self): # pragma: no branch
         """
-        >>> import sample1
+        >>> from testfixtures.tests import sample1
         
         >>> def test_z():
         ...   return 'replacement z'
@@ -169,7 +170,7 @@ class TestReplacer:
 
     def test_with_statement(self): # pragma: no branch
         """
-        >>> import sample1
+        >>> from testfixtures.tests import sample1
         >>> sample1.z()
         'original z'
         
@@ -199,7 +200,7 @@ class TestReplacer:
         
     def test_not_there_ok(self): # pragma: no branch
         """
-        >>> import sample1
+        >>> from testfixtures.tests import sample1
         >>> sample1.bad()
         Traceback (most recent call last):
         ...

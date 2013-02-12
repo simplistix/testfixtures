@@ -21,12 +21,12 @@ Suppose you wanted to test the following function:
 
   import os
 
-  def foo2bar(dirpath,filename):
-    path = os.path.join(dirpath,filename)
+  def foo2bar(dirpath, filename):
+    path = os.path.join(dirpath, filename)
     with open(path) as input:
         data = input.read()
-    data = data.replace('foo','bar')
-    with open(path,'w') as output:
+    data = data.replace('foo', 'bar')
+    with open(path, 'w') as output:
         output.write(data)
 
 There are several different ways depending on the type of test you are
@@ -41,8 +41,8 @@ context manager:
 
 >>> from testfixtures import TempDirectory
 >>> with TempDirectory() as d:
-...   d.write('test.txt','some foo thing')
-...   foo2bar(d.path,'test.txt')
+...   d.write('test.txt', 'some foo thing')
+...   foo2bar(d.path, 'test.txt')
 ...   d.read('test.txt')
 '...'
 'some bar thing'
@@ -154,33 +154,33 @@ Writing files
 To write to a file in the root of the temporary directory, you pass
 the name of the file and the content you want to write:
 
->>> tempdir.write('myfile.txt','some text')
+>>> tempdir.write('myfile.txt', 'some text')
 '...'
->>> with file(os.path.join(tempdir.path,'myfile.txt')) as f:
-...     print f.read()
+>>> with open(os.path.join(tempdir.path, 'myfile.txt')) as f:
+...     print(f.read())
 some text
 
 The full path of the newly written file is returned:
 
->>> path = tempdir.write('anotherfile.txt','some more text')
->>> with file(path) as f:
-...     print f.read()
+>>> path = tempdir.write('anotherfile.txt', 'some more text')
+>>> with open(path) as f:
+...     print(f.read())
 some more text
 
 You can also write files into a sub-directory of the temporary
 directory, whether or not that directory exists, as follows:
 
->>> path = tempdir.write(('some','folder','afile.txt'),'the text')
->>> with file(path) as f:
-...     print f.read()
+>>> path = tempdir.write(('some', 'folder', 'afile.txt'),'the text')
+>>> with open(path) as f:
+...     print(f.read())
 the text
 
 You can also specify the path to write to as a forward-slash separated
 string:
 
->>> path = tempdir.write('some/folder/bfile.txt','the text')
->>> with file(path) as f:
-...     print f.read()
+>>> path = tempdir.write('some/folder/bfile.txt', 'the text')
+>>> with open(path) as f:
+...     print(f.read())
 the text
 
 Forward slashes should be used regardless of the file system or operating system
@@ -246,12 +246,12 @@ Suppose the code you are testing creates some files:
 .. code-block:: python
 
  def spew(path):
-    with file(os.path.join(path,'root.txt'),'w') as f:
+    with open(os.path.join(path, 'root.txt'), 'w') as f:
         f.write('root output')
-    os.mkdir(os.path.join(path,'subdir'))
-    with file(os.path.join(path,'subdir','file.txt'),'w') as f:
+    os.mkdir(os.path.join(path, 'subdir'))
+    with open(os.path.join(path, 'subdir', 'file.txt'), 'w') as f:
         f.write('subdir output')
-    os.mkdir(os.path.join(path,'subdir','logs'))
+    os.mkdir(os.path.join(path, 'subdir', 'logs'))
 
 We can test this function by passing it the temporary directory's path
 and then using the :meth:`TempDirectory.read` method to

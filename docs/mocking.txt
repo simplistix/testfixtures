@@ -52,7 +52,7 @@ available, the context manager provided by TestFixtures can be used:
   def test_function():
       with Replacer() as r:
           r.replace('testfixtures.tests.sample1.X.y',mock_y)
-          print X().y()
+          print(X().y())
 
 For the duration of the ``with`` block, the replacement is used:
 
@@ -72,7 +72,7 @@ find the decorator suits your needs better:
   
   @replace('testfixtures.tests.sample1.X.y',mock_y)
   def test_function():
-      print X().y()
+      print(X().y())
 
 When using the decorator, the replacement is used for the duration of
 the decorated callable's execution:
@@ -92,7 +92,7 @@ decorator will see this and pass the replacement in it's place:
   @replace('testfixtures.tests.sample1.X.y',Mock())
   def test_function(m):
       m.return_value = 'mock y'
-      print X().y()
+      print(X().y())
       compare(m.call_args_list,[((), {})])
 
 The above still results in the same output:
@@ -144,7 +144,7 @@ than one thing at a time. For the former, this is fairly obvious:
           r.replace('testfixtures.tests.sample1.X.y',Mock())
           r.replace('testfixtures.tests.sample1.X.aMethod',Mock())
           x = X()
-          print x.y(),x.aMethod()
+          print(x.y(),x.aMethod())
 
 .. the result:
   
@@ -159,7 +159,7 @@ For the decorator, it's less obvious but still pretty easy:
   @replace('testfixtures.tests.sample1.X.aMethod',Mock())
   def test_function(mock_aMethod, mock_y):
       x = X()
-      print x.y(),x.aMethod()
+      print(x.y(),x.aMethod())
 
 .. the result:
   
@@ -192,7 +192,6 @@ shown in the following :class:`~unittest.TestCase`:
 .. imports
 
   >>> import unittest,sys
-  >>> from cStringIO import StringIO
 
 .. code-block:: python
 
@@ -222,6 +221,7 @@ shown in the following :class:`~unittest.TestCase`:
 
 .. the result:
   
+   >>> from testfixtures.compat import StringIO
    >>> suite = unittest.TestLoader().loadTestsFromTestCase(Tests)
    >>> unittest.TextTestRunner(verbosity=0,stream=StringIO()).run(suite)
    <unittest...TextTestResult run=2 errors=0 failures=0>
@@ -250,6 +250,7 @@ element in the ``complex_key`` list as follows:
 
 .. code-block:: python
 
+  from pprint import pprint
   from testfixtures import Replacer
   from testfixtures.tests.sample1 import someDict
   
@@ -257,7 +258,7 @@ element in the ``complex_key`` list as follows:
       with Replacer() as r:
           r.replace('testfixtures.tests.sample1.someDict.key','foo')
           r.replace('testfixtures.tests.sample1.someDict.complex_key.1',42)
-          print someDict
+          pprint(someDict)
 
 While the replacement is in effect, the new items are in place:
 
@@ -266,7 +267,7 @@ While the replacement is in effect, the new items are in place:
 
 When it is no longer in effect, the originals are returned:
 
->>> print someDict
+>>> pprint(someDict)
 {'complex_key': [1, 2, 3], 'key': 'value'}
 
 .. _removing_attr_and_item:
@@ -297,7 +298,7 @@ do so as follows:
   def test_function():
       with Replacer() as r:
           r.replace('testfixtures.tests.sample1.someDict.key',not_there)
-          print someDict
+          pprint(someDict)
 
 While the replacement is in effect, ``key`` is gone:
 
@@ -306,7 +307,7 @@ While the replacement is in effect, ``key`` is gone:
 
 When it is no longer in effect, ``key`` is returned:
 
->>> print someDict
+>>> pprint(someDict)
 {'complex_key': [1, 2, 3], 'key': 'value'}
 
 If you want the whole ``someDict`` dictionary to be removed for the
@@ -319,8 +320,8 @@ duration of a test, you would do so as follows:
   
   def test_function():
       with Replacer() as r:
-          r.replace('testfixtures.tests.sample1.someDict',not_there)
-          print hasattr(sample1,'someDict')
+          r.replace('testfixtures.tests.sample1.someDict', not_there)
+          print(hasattr(sample1, 'someDict'))
 
 While the replacement is in effect, ``key`` is gone:
 
@@ -329,7 +330,7 @@ False
 
 When it is no longer in effect, ``key`` is returned:
 
->>> print sample1.someDict
+>>> pprint(sample1.someDict)
 {'complex_key': [1, 2, 3], 'key': 'value'}
 
 
@@ -352,7 +353,7 @@ Gotchas
 
   >>> from testfixtures.tests.sample1 import str_time
   >>> type(float(str_time()))
-  <type 'float'>
+  <... 'float'>
 
   You need to replace :func:`~time.time` where it's used, not where
   it's defined:

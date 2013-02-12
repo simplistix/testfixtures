@@ -1,12 +1,19 @@
 from __future__ import with_statement
 
-# Copyright (c) 2008-2011 Simplistix Ltd
+# Copyright (c) 2008-2013 Simplistix Ltd
 # See license.txt for license details.
 
 from mock import Mock, call
 from re import compile
-from testfixtures import identity,compare,Comparison as C,generator, ShouldRaise
-from unittest import TestCase,TestSuite,makeSuite
+from testfixtures import (
+    Comparison as C,
+    ShouldRaise,
+    compare,
+    identity,
+    generator,
+    )
+from testfixtures.compat import class_type_name, exception_module, PY3, xrange
+from unittest import TestCase
 
 hexaddr = compile('0x[0-9A-Fa-f]+')
 
@@ -15,7 +22,7 @@ class TestCompare(TestCase):
     def checkRaises(self,x,y,message=None,regex=None,**kw):
         try:
             compare(x,y,**kw)
-        except Exception,e:
+        except Exception as e:
             if not isinstance(e,AssertionError):
                 self.fail('Expected AssertionError, got %r'%e)
             actual = hexaddr.sub('...',e.args[0])
@@ -105,13 +112,13 @@ class TestCompare(TestCase):
         e1 = ValueError('some message')
         e2 = ValueError('some other message')
         self.checkRaises(
-            C(e1),e2,"\n"
-            "  <C(failed):exceptions.ValueError>\n"
+            C(e1), e2, ("\n"
+            "  <C(failed):{0}.ValueError>\n"
             "  args:('some message',) != ('some other message',)\n"
             "  </C>"
             " != "
             "ValueError('some other message',)"
-            )
+            ).format(exception_module))
 
     def test_sequence_long(self):
         self.checkRaises(
@@ -386,7 +393,7 @@ class TestCompare(TestCase):
         compare(generator(1,2,3), (1,2,3))
 
     def test_iterable_and_generator(self):
-        expected = compile("xrange\(1, 4\) != <generator object (generator )?at ...>")
+        expected = compile("x?range\(1, 4\) != <generator object (generator )?at ...>")
         self.checkRaises(
             xrange(1,4), generator(1,2,3),
             regex=expected,
@@ -405,15 +412,29 @@ class TestCompare(TestCase):
         class X:pass
         self.failUnless(compare(X,X) is identity)
 
-    def test_old_style_classes_different(self):
-        class X:pass
-        class Y:pass
-        self.checkRaises(
-            X,Y,
-            "<class testfixtures.tests.test_compare.X at ...>"
-            " != "
-            "<class testfixtures.tests.test_compare.Y at ...>"
-            )
+
+    if PY3:
+        def test_old_style_classes_different(self):
+            class X: pass
+            class Y: pass
+            self.checkRaises(
+                X, Y,
+                "<class 'testfixtures.tests.test_compare.TestCompare."
+                "test_old_style_classes_different.<locals>.X'>"
+                " != "
+                "<class 'testfixtures.tests.test_compare.TestCompare."
+                "test_old_style_classes_different.<locals>.Y'>"
+                )
+    else:
+        def test_old_style_classes_different(self):
+            class X: pass
+            class Y: pass
+            self.checkRaises(
+                X, Y,
+                "<class testfixtures.tests.test_compare.X at ...>"
+                " != "
+                "<class testfixtures.tests.test_compare.Y at ...>"
+                )
 
     def test_show_whitespace(self):
         # does nothing! ;-)
@@ -524,7 +545,8 @@ b
         m.aCall()
         self.checkRaises(
             [call.aCall()], m.method_calls,
-            "[call.aCall()] (<type 'list'>)!= [call.aCall()] (<class 'mock._CallList'>)",
+            ("[call.aCall()] (<{0} 'list'>)!= [call.aCall()] "
+             "(<class 'mock._CallList'>)").format(class_type_name),
             strict=True,
             )
 
@@ -533,7 +555,9 @@ b
         m.call('X'*20)
         self.checkRaises(
             [call.call('Y'*20)], m.method_calls,
-            "[call.call('YYYYYYYYYYYYYYYYYY... (<type 'list'>)!= "
-            "[call.call('XXXXXXXXXXXXXXXXXX... (<class 'mock._CallList'>)",
+            ("[call.call('YYYYYYYYYYYYYYYYYY... "
+             "(<{0} 'list'>)!= "
+             "[call.call('XXXXXXXXXXXXXXXXXX... "
+             "(<class 'mock._CallList'>)").format(class_type_name),
             strict=True,
             )

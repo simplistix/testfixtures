@@ -12,6 +12,7 @@ Here's an example configuration file:
 
 .. invisible-code-block: python
    
+  from testfixtures.compat import PY3
   # change to the temp directory
   import os
   original_dir = os.getcwd()
@@ -22,14 +23,17 @@ do the following:
 
 .. code-block:: python
 
-   from ConfigParser import ConfigParser
+   if PY3:
+       from configparser import ConfigParser
+   else:
+       from ConfigParser import ConfigParser
    config = ConfigParser()
    config.read('example.cfg')
 
 The items in the section are now available as follows:
 
->>> for name,value in config.items('A Section'):
-...     print '%r:%r' % (name,value)
+>>> for name, value in config.items('A Section'):
+...     print('{0!r}:{1!r}'.format(name, value))
 'dir':'frob'
 'long':'this value continues\non the next line'
 

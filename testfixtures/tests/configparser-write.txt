@@ -1,5 +1,6 @@
 .. invisible-code-block: python
    
+  from testfixtures.compat import PY3
   # change to the temp directory
   import os
   original_dir = os.getcwd()
@@ -10,7 +11,10 @@ module, you would do the following:
 
 .. code-block:: python
 
-   from ConfigParser import ConfigParser
+   if PY3:
+       from configparser import ConfigParser
+   else:
+       from ConfigParser import ConfigParser
    config = ConfigParser()
    config.add_section('A Section')
    config.set('A Section', 'dir', 'frob')

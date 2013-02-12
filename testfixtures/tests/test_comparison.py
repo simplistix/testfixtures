@@ -1,9 +1,10 @@
-# Copyright (c) 2008-2012 Simplistix Ltd
+# Copyright (c) 2008-2013 Simplistix Ltd
 # See license.txt for license details.
 
-from testfixtures import Comparison as C, compare, tempdir
-from testfixtures.tests.sample1 import TestClassA,a_function
-from unittest import TestCase,TestSuite,makeSuite
+from testfixtures import Comparison as C, TempDirectory, compare
+from testfixtures.compat import PY2, PY3, exception_module
+from testfixtures.tests.sample1 import TestClassA, a_function
+from unittest import TestCase
 
 from .compat import py_27_plus
 
@@ -20,7 +21,7 @@ class AClass:
 class BClass(AClass): pass
 
 class WeirdException(Exception):
-    def __init__(self,x,y):
+    def __init__(self, x, y):
         self.x = x
         self.y = y
         
@@ -110,17 +111,17 @@ class TestC(TestCase):
         # NB: don't use C wrappers on both sides!
         e = ValueError('some message')
         try:
-            self.assertEqual(C(e),C(e))
-        except Exception,e:
+            self.assertEqual(C(e), C(e))
+        except Exception as e:
             self.failUnless(isinstance(e,AssertionError))
             self.assertEqual(
                 e.args,
-                (
-                "<C(failed):exceptions.ValueError>wrong type</C> != \n"
-                "  <C:exceptions.ValueError>\n"
+                ((
+                "<C(failed):{mod}.ValueError>wrong type</C> != \n"
+                "  <C:{mod}.ValueError>\n"
                 "  args:('some message',)\n"
-                "  </C>",
-                ))
+                "  </C>"
+                ).format(mod=exception_module), ))
         else:
             self.fail('No exception raised!')
     
@@ -151,15 +152,16 @@ class TestC(TestCase):
     def test_repr_exception(self):
         self.assertEqual(
             repr(C(ValueError('something'))),
-            "\n"
-            "  <C:exceptions.ValueError>\n"
-            "  args:('something',)\n"
-            "  </C>"
-            )
+            ("\n"
+             "  <C:{0}.ValueError>\n"
+             "  args:('something',)\n"
+             "  </C>"
+             ).format(exception_module))
 
     def test_repr_exception_not_args(self):
+        r = repr(C(WeirdException(1, 2)))
         self.assertEqual(
-            repr(C(WeirdException(1,2))),
+            r,
             "\n"
             "  <C:testfixtures.tests.test_comparison.WeirdException>\n"
             "  args:()\n"
@@ -198,7 +200,7 @@ class TestC(TestCase):
                   x=1,y=2),
                 BClass(1,2)
                 )
-        except Exception,e:
+        except Exception as e:
             self.failUnless(isinstance(e,AssertionError))
             self.assertEqual(
                 e.args,
@@ -215,7 +217,7 @@ class TestC(TestCase):
                   y=5,z='missing'),
                 AClass(1,2)
                 )
-        except Exception,e:
+        except Exception as e:
             self.failUnless(isinstance(e,AssertionError))
             self.assertEqual(
                 e.args,
@@ -238,7 +240,7 @@ class TestC(TestCase):
                   x=1,y=2,z=(3,)),
                 AClass(1,2)
                 )
-        except Exception,e:
+        except Exception as e:
             self.failUnless(isinstance(e,AssertionError))
             self.assertEqual(
                 e.args,
@@ -258,7 +260,7 @@ class TestC(TestCase):
                 C('testfixtures.tests.test_comparison.AClass',y=2),
                 AClass((1,),2)
                 )
-        except Exception,e:
+        except Exception as e:
             self.failUnless(isinstance(e,AssertionError))
             self.assertEqual(
                 e.args,
@@ -278,7 +280,7 @@ class TestC(TestCase):
                   x=1,y=2,z=(3,)),
                 AClass(1,2)
                 )
-        except Exception,e:
+        except Exception as e:
             self.failUnless(isinstance(e,AssertionError))
             self.assertEqual(
                 e.args,
@@ -298,7 +300,7 @@ class TestC(TestCase):
                 C('testfixtures.tests.test_comparison.AClass',x=1,y=(2,)),
                 AClass(1,(3,))
                 )
-        except Exception,e:
+        except Exception as e:
             self.failUnless(isinstance(e,AssertionError))
             self.assertEqual(
                 e.args,
@@ -377,7 +379,7 @@ class TestC(TestCase):
 
         try:
             self.assertEqual(c,AClass(1,3))
-        except Exception,e:
+        except Exception as e:
             self.failUnless(isinstance(e,AssertionError))
             self.assertEqual(
                 e.args,
@@ -394,7 +396,7 @@ class TestC(TestCase):
         
         try:
             self.assertEqual(c,AClass(3,2))
-        except Exception,e:
+        except Exception as e:
             self.failUnless(isinstance(e,AssertionError))
             self.assertEqual(
                 e.args,
@@ -407,20 +409,6 @@ class TestC(TestCase):
         else:
             self.fail('No exception raised!')
 
-
-    @tempdir()
-    def test_repr_file_different(self,d):
-        path = d.write('file','stuff',path=True)
-        f = open(path)
-        f.close()
-        c = C(file,name=path,mode='r',closed=False,strict=False)
-        self.assertNotEqual(f,c)
-        compare(repr(c),
-                "\n"
-                "  <C(failed):__builtin__.file>\n"
-                "  closed:False != True\n"
-                "  </C>",
-                )
 
     def test_first(self):
         self.assertEqual(
@@ -528,15 +516,45 @@ class TestC(TestCase):
             WeirdException(1,2)
             )
         
-    @tempdir()
-    def test_file_same(self,d):
-        path = d.write('file','stuff',path=True)
-        f = open(path)
-        f.close()
-        self.assertEqual(
-            f,
-            C(file,name=path,mode='r',closed=True,strict=False)
-            )
+    def test_repr_file_different(self):
+        with TempDirectory() as d:
+            path = d.write('file', 'stuff', path=True)
+            f = open(path)
+            f.close()
+        if PY3:
+            c = C('io.TextIOWrapper', name=path, mode='r', closed=False, strict=False)
+            self.assertNotEqual(f,c)
+            compare(repr(c),
+                    "\n"
+                    "  <C(failed):_io.TextIOWrapper>\n"
+                    "  closed:False != True\n"
+                    "  </C>",
+                    )
+        else:
+            c = C(file, name=path, mode='r', closed=False, strict=False)
+            self.assertNotEqual(f,c)
+            compare(repr(c),
+                    "\n"
+                    "  <C(failed):__builtin__.file>\n"
+                    "  closed:False != True\n"
+                    "  </C>",
+                    )
+
+    def test_file_same(self):
+        with TempDirectory() as d:
+            path = d.write('file', 'stuff', path=True)
+            f = open(path)
+            f.close()
+        if PY3:
+            self.assertEqual(
+                f,
+                C('io.TextIOWrapper', name=path, mode='r', closed=True, strict=False)
+                )
+        else:
+            self.assertEqual(
+                f,
+                C(file, name=path, mode='r', closed=True, strict=False)
+                )
 
     def test_no___dict___strict(self):
         x = X()
@@ -545,7 +563,7 @@ class TestC(TestCase):
                 C(X,x=1),
                 x
                 )
-        except TypeError,e:
+        except TypeError as e:
             self.assertEqual(e.args,(
                 '<X> does not support vars() so cannot do strict comparison',
                 ))
@@ -565,7 +583,7 @@ class TestC(TestCase):
                 C(X,x=1,y=2,strict=False),
                 x
                 )
-        except AssertionError,e:
+        except AssertionError as e:
             compare(
                 e.args[0],
                 (
@@ -585,9 +603,9 @@ class TestC(TestCase):
         class Annoying:
             def __init__(self):
                 self.eq_called = 0            
-            def __eq__(self,other):
+            def __eq__(self, other):
                 self.eq_called += 1
-                if isinstance(other,Annoying):
+                if isinstance(other, Annoying):
                     return True
                 return False
 
@@ -597,8 +615,13 @@ class TestC(TestCase):
 
         # This order is wrong, as it uses the class's __eq__:
         self.assertFalse(Annoying() == C(Annoying))
-        # although this, which is subtle different, does not:
-        self.assertFalse(Annoying() != C(Annoying))
+        if PY2:
+            # although this, which is subtly different, does not:
+            self.assertFalse(Annoying() != C(Annoying))
+        else:
+            # but on PY3 __eq__ is used as a fallback:
+            self.assertTrue(Annoying() != C(Annoying))
+            
 
         # This is the right ordering:
         self.assertTrue(C(Annoying) == Annoying())
@@ -657,7 +680,7 @@ class TestC(TestCase):
     def test_cant_resolve(self):
         try:
             C('testfixtures.bonkers')
-        except Exception, e:
+        except Exception as e:
             self.failUnless(isinstance(e, AttributeError))
             self.assertEqual(
                 e.args,
@@ -671,4 +694,8 @@ class TestC(TestCase):
         NoName.__name__ = ''
         NoName.__module__ = ''
         c = C(NoName)
-        self.assertEqual(repr(c), "<C:<class '.'>>")
+        if PY3:
+            expected= "<C:<class '.TestC.test_no_name.<locals>.NoName'>>"
+        else:
+            expected = "<C:<class '.'>>"
+        self.assertEqual(repr(c), expected)

@@ -17,7 +17,7 @@ from manuel.codeblock import (
 
 # a marker as to whether we're on 2.7 and above or not
 
-py_27_plus = sys.version_info[:2] == (2, 7)
+py_27_plus = sys.version_info[:2] >=  (2, 7)
 
 # Python 2.5 compatibility stuff
 

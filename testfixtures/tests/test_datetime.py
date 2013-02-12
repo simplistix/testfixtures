@@ -1,8 +1,7 @@
 from __future__ import with_statement
-# Copyright (c) 2008-2011 Simplistix Ltd
+# Copyright (c) 2008-2013 Simplistix Ltd
 # See license.txt for license details.
 
-import sample1,sample2
 from datetime import date
 from datetime import datetime as d
 from datetime import timedelta
@@ -10,7 +9,8 @@ from datetime import tzinfo
 from time import strptime
 from testfixtures import test_datetime,test_date
 from testfixtures import replace, Replacer, compare, ShouldRaise
-from unittest import TestCase,TestSuite,makeSuite
+from testfixtures.tests import sample1, sample2
+from unittest import TestCase
 
 class TestTZInfo(tzinfo):
 

@@ -14,7 +14,7 @@ class ShouldRaiseWrapper:
     def __call__(self,*args,**kw):
         try:
             self.wrapped(*args,**kw)
-        except BaseException,actual:
+        except BaseException as actual:
             self.sr.handle(actual)
         else:
             self.sr.handle(None)
@@ -47,17 +47,17 @@ class _should_raise:
 
     raised = None
 
-    def __init__(self,callable,exception=None):
+    def __init__(self, callable, exception=None):
         self.callable = callable
         self.expected = exception
 
     def handle(self,actual):
         self.raised = actual
         if self.expected:
-                if Comparison(self.expected) != actual:
-                    raise AssertionError(
-                        '%r raised, %r expected' % (actual,self.expected)
-                        )
+            if Comparison(self.expected) != actual:
+                raise AssertionError(
+                    '%r raised, %r expected' % (actual, self.expected)
+                    )
         elif not actual:
             raise AssertionError('No exception raised!')
             

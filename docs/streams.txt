@@ -21,8 +21,8 @@ Here's a simple example:
 
   with OutputCapture() as output:
       # code under test
-      print "Hello!"
-      print >> sys.stderr, "Something bad happened!"
+      print("Hello!")
+      print("Something bad happened!", file=sys.stderr)
 
   output.compare('\n'.join([
       "Hello!",
@@ -33,7 +33,7 @@ To make life easier, both the actual and expected output are stripped
 of leading and trailing whitespace before the comparison is done:
 
 >>> with OutputCapture() as o:
-...    print '  Bar! '
+...    print('  Bar! ')
 ...    o.compare(' Foo!  ')
 Traceback (most recent call last):
 ...
@@ -44,8 +44,8 @@ been written to the stream then you can do so using the `captured`
 property of the :class:`OutputCapture`:
 
 >>> with OutputCapture() as o:
-...    print '  Bar! '
->>> print repr(o.captured)
+...    print('  Bar! ')
+>>> print(repr(o.captured))
 '  Bar! \n'
 
 Finally, you may sometimes want to disable an :class:`OutputCapture`
@@ -58,13 +58,13 @@ To deal with this problem, the :class:`OutputCapture` may be disabled
 and then re-enabled as follows:
 
 >>> with OutputCapture() as o:
-...    print 'Foo'
+...    print('Foo')
 ...    o.disable()
-...    print 'Bar'
+...    print('Bar')
 ...    o.enable()
-...    print 'Baz'
+...    print('Baz')
 Bar
->>> print o.captured
+>>> print(o.captured)
 Foo
 Baz
 <BLANKLINE>

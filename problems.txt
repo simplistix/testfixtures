@@ -1,0 +1,17 @@
+nose_fixes (tests)
+sphinx-pypi-upload
+
+tempdirectory.write
+- add encoding parameter
+- add tests for this
+- python 2.x compat?
+- also tempdirectory.read
+
+shouldraise
+- more info (repr same, but differences found)
+
+remove python 2.5 compat
+- __with_statement__ stuff
+- remember tests.compat module
+- tox.ini
+- setup.py
