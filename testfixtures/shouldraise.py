@@ -1,5 +1,4 @@
-from __future__ import with_statement
-# Copyright (c) 2008-2011 Simplistix Ltd
+# Copyright (c) 2008-2013 Simplistix Ltd
 # See license.txt for license details.
 
 from functools import partial, wraps

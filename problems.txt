@@ -8,10 +8,4 @@ tempdirectory.write
 - also tempdirectory.read
 
 shouldraise
-- more info (repr same, but differences found)
-
-remove python 2.5 compat
-- __with_statement__ stuff
-- remember tests.compat module
-- tox.ini
-- setup.py
+- more info with exceptions (repr same, but differences found)

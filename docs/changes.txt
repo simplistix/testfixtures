@@ -8,6 +8,8 @@ Changes
 
 - Added compatibility with Python 3.3
 
+- Dropped compatibility with Python 2.5
+
 - Removed support for the following obscure uses for
   :class:`should_raise`: 
 

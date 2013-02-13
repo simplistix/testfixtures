@@ -21,15 +21,8 @@ for item in config.get('testenv', 'deps').split():
     test_requires.append(item)
 # Tox doesn't need itself, but we need it for testing.
 test_requires.append('tox')
-# If we're on Python 2.5, we need to pin some libraries
-if sys.version_info[:2] < (2, 6):
-    test_requires.append('manuel<1.6')
-    test_requires.append('zope.component<4.0.0dev')
-    test_requires.append('zope.event<4.0.0dev')
-    test_requires.append('zope.interface>=3.6.0,<4.0dev')
-else:
-    # an optional dependency, but we want it present in the buildout
-    test_requires.append('zope.component')
+# an optional dependency, but we want it present in the buildout
+test_requires.append('zope.component')
 
 setup(
     name=name,

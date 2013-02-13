@@ -1,4 +1,4 @@
-# Copyright (c) 2011-2012 Simplistix Ltd
+# Copyright (c) 2011-2013 Simplistix Ltd
 # See license.txt for license details.
 
 # This module contains bits and pieces to achieve compatibility across all the
@@ -19,14 +19,13 @@ from manuel.codeblock import (
 
 py_27_plus = sys.version_info[:2] >=  (2, 7)
 
-# Python 2.5 compatibility stuff
+# Python 2.6/2.7 compatibility stuff
 
 def find_code_blocks(document):
     for region in document.find_regions(CODEBLOCK_START, CODEBLOCK_END):
         start_end = CODEBLOCK_START.search(region.source).end()
         source = textwrap.dedent(region.source[start_end:])
-        source = ('from __future__ import with_statement\n'
-                  'from __future__ import print_function\n')+ source
+        source = 'from __future__ import print_function\n'+ source
         source_location = '%s:%d' % (document.location, region.lineno)
         code = compile(source, source_location, 'exec', 0, True)
         document.claim_region(region)
