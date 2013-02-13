@@ -1,4 +1,5 @@
 from __future__ import with_statement
+from __future__ import print_function
 # Copyright (c) 2010-2011 Simplistix Ltd
 # See license.txt for license details.
 

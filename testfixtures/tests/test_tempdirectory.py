@@ -13,6 +13,7 @@ from unittest import TestCase, TestSuite, makeSuite
 
 from logging import getLogger
 
+from ..compat import Unicode
 from .compat import catch_warnings
 
 class DemoTempDirectory:
@@ -42,8 +43,8 @@ class DemoTempDirectory:
         Likewise, you can read from files in the directory:
 
         >>> path = os.path.join(temp_dir.path, '.svn')
-        >>> str(open(path, 'rb').read(), 'ascii')
-        'stuff'
+        >>> open(path, 'rb').read().decode('ascii') == Unicode('stuff')
+        True
 
         Or, you can use the handy method:
 
@@ -84,8 +85,8 @@ class DemoTempDirectory:
         `write` handles subpaths:
 
         >>> p = temp_dir.write(('another','file.txt'), 'data')
-        >>> str(open(p,'rb').read(), 'ascii')
-        'data'
+        >>> open(p,'rb').read().decode('ascii') == Unicode('data')
+        True
 
         You can also write directly into a subdirectory that doesn't
         exist:

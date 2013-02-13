@@ -271,7 +271,7 @@ class TempDirectory:
         thepath = self._join(filepath)
         f = open(thepath, 'wb')
         if not isinstance(data, bytes):
-            data = bytes(data, 'ascii')
+            data = data.encode('ascii')
         f.write(data)
         f.close()
         return thepath
@@ -315,7 +315,7 @@ class TempDirectory:
         data = f.read()
         f.close()
         if not isinstance(data, str):
-            data = str(data, 'ascii')
+            data = data.decode('ascii')
         return data
 
     def __enter__(self):

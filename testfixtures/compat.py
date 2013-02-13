@@ -6,8 +6,8 @@ if sys.version_info[:2] > (3, 0):
     PY2 = False
     PY3 = True
     
-    class_type_name = 'class'
     basestring = str
+    class_type_name = 'class'
     ClassType = type
     exception_module = 'builtins'
     new_class = type
@@ -21,6 +21,7 @@ else:
     PY3 = False
     PY2 = True
     
+    basestring = basestring
     class_type_name = 'type'
     from types import ClassType
     exception_module = 'exceptions'
@@ -28,4 +29,5 @@ else:
     self_name = 'im_self'
     from cStringIO import StringIO
     Unicode = unicode
+    xrange = xrange
     

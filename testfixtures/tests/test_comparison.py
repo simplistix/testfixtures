@@ -160,11 +160,18 @@ class TestC(TestCase):
 
     def test_repr_exception_not_args(self):
         r = repr(C(WeirdException(1, 2)))
+        
+        if PY3:
+            # in PY3, even args that aren't set still appear to be there
+            args =  "  args:(1, 2)\n"
+        else:
+            args =  "  args:()\n"
+
         self.assertEqual(
             r,
             "\n"
             "  <C:testfixtures.tests.test_comparison.WeirdException>\n"
-            "  args:(1, 2)\n"
+            + args +
             "  x:1\n"
             "  y:2\n"
             "  </C>"
