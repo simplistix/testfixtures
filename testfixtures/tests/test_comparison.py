@@ -6,7 +6,7 @@ from testfixtures.compat import PY2, PY3, exception_module
 from testfixtures.tests.sample1 import TestClassA, a_function
 from unittest import TestCase
 
-from .compat import py_27_plus
+from .compat import py_27_plus, py_33_plus
 
 class AClass:
 
@@ -161,7 +161,7 @@ class TestC(TestCase):
     def test_repr_exception_not_args(self):
         r = repr(C(WeirdException(1, 2)))
         
-        if PY3:
+        if py_33_plus:
             # in PY3, even args that aren't set still appear to be there
             args =  "  args:(1, 2)\n"
         else:
@@ -701,7 +701,7 @@ class TestC(TestCase):
         NoName.__name__ = ''
         NoName.__module__ = ''
         c = C(NoName)
-        if PY3:
+        if py_33_plus:
             expected= "<C:<class '.TestC.test_no_name.<locals>.NoName'>>"
         else:
             expected = "<C:<class '.'>>"

@@ -12,6 +12,7 @@ from testfixtures import (
     )
 from testfixtures.compat import class_type_name, exception_module, PY3, xrange
 from unittest import TestCase
+from .compat import py_33_plus
 
 hexaddr = compile('0x[0-9A-Fa-f]+')
 
@@ -411,28 +412,31 @@ class TestCompare(TestCase):
         self.failUnless(compare(X,X) is identity)
 
 
-    if PY3:
-        def test_old_style_classes_different(self):
-            class X: pass
-            class Y: pass
-            self.checkRaises(
-                X, Y,
+    def test_old_style_classes_different(self):
+        if py_33_plus:
+            expected = (
+                "<class 'testfixtures.tests.test_compare.TestCompare.X'>"
+                " != "
+                "<class 'testfixtures.tests.test_compare.TestCompare.Y'>"
+                )
+        elif PY3:
+            expected = (
                 "<class 'testfixtures.tests.test_compare.TestCompare."
                 "test_old_style_classes_different.<locals>.X'>"
                 " != "
                 "<class 'testfixtures.tests.test_compare.TestCompare."
                 "test_old_style_classes_different.<locals>.Y'>"
                 )
-    else:
-        def test_old_style_classes_different(self):
-            class X: pass
-            class Y: pass
-            self.checkRaises(
-                X, Y,
+        else:
+            expected = (
                 "<class testfixtures.tests.test_compare.X at ...>"
                 " != "
                 "<class testfixtures.tests.test_compare.Y at ...>"
                 )
+        
+        class X: pass
+        class Y: pass
+        self.checkRaises(X, Y, expected)
 
     def test_show_whitespace(self):
         # does nothing! ;-)

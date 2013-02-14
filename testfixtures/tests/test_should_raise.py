@@ -2,10 +2,9 @@
 # See license.txt for license details.
 
 from testfixtures import Comparison as C, ShouldRaise, should_raise
-from testfixtures.compat import PY3
 from unittest import TestCase
 
-from .compat import py_27_plus
+from .compat import py_27_plus, py_33_plus
 
 class TestShouldRaise(TestCase):
 
@@ -217,7 +216,7 @@ class TestShouldRaise(TestCase):
         self.assertEqual(C(ValueError('foo bar')),s.raised)
     
     def test_import_errors_1(self):
-        if PY3:
+        if py_33_plus:
             message = "No module named 'textfixtures'"
         else:
             message = 'No module named textfixtures.foo.bar'
