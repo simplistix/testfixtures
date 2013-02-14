@@ -29,7 +29,7 @@ def find_code_blocks(document):
         source_location = '%s:%d' % (document.location, region.lineno)
         code = compile(source, source_location, 'exec', 0, True)
         document.claim_region(region)
-        region.parsed = CodeBlock(code)
+        region.parsed = CodeBlock(code, source)
         
 class Manuel(manuel.Manuel):
     def __init__(self):
