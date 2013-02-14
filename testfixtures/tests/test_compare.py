@@ -415,17 +415,17 @@ class TestCompare(TestCase):
     def test_old_style_classes_different(self):
         if py_33_plus:
             expected = (
-                "<class 'testfixtures.tests.test_compare.TestCompare.X'>"
-                " != "
-                "<class 'testfixtures.tests.test_compare.TestCompare.Y'>"
-                )
-        elif PY3:
-            expected = (
                 "<class 'testfixtures.tests.test_compare.TestCompare."
                 "test_old_style_classes_different.<locals>.X'>"
                 " != "
                 "<class 'testfixtures.tests.test_compare.TestCompare."
                 "test_old_style_classes_different.<locals>.Y'>"
+                )
+        elif PY3:
+            expected = (
+                "<class 'testfixtures.tests.test_compare.TestCompare.X'>"
+                " != "
+                "<class 'testfixtures.tests.test_compare.TestCompare.Y'>"
                 )
         else:
             expected = (
