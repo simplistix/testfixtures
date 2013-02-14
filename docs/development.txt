@@ -63,7 +63,7 @@ PyPI and upload the Sphinx documentation to PyPI::
   $ make clean
   $ make html
   $ cd ..
-  $ bin/docpy setup.py sdist upload register upload_sphinx --upload-dir=docs/_build/html
+  $ bin/docpy setup.py sdist upload register upload_docs --upload-dir=docs/_build/html
 
 The ``bin/buildout`` will make sure the correct package information is
 used.
