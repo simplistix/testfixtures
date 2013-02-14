@@ -53,7 +53,7 @@ class WarningMessage(object):
 class catch_warnings(object):
     def __init__(self, record=True):
         if not record: # pragma: no cover
-            raise TypeError('This implementation only support record=True')
+            raise TypeError('This implementation only supports record=True')
         self._module = sys.modules['warnings']
         self._entered = False
 
