@@ -423,9 +423,9 @@ class TestCompare(TestCase):
                 )
         elif PY3:
             expected = (
-                "<class 'testfixtures.tests.test_compare.TestCompare.X'>"
+                "<class 'testfixtures.tests.test_compare.X'>"
                 " != "
-                "<class 'testfixtures.tests.test_compare.TestCompare.Y'>"
+                "<class 'testfixtures.tests.test_compare.Y'>"
                 )
         else:
             expected = (
