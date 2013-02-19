@@ -13,3 +13,10 @@ exclude_lines =
 
   # example code that we don't want to cover with pragma statements
   guppy =
+
+[paths]
+src = 
+  ./testfixtures/
+  C:\Jenkins\workspace\testfixtures-buildout\*\testfixtures
+  /var/lib/jenkins/slave/workspace/testfixtures-buildout/*/testfixtures
+  /Users/Shared/Jenkins/Home/workspace/testfixtures-buildout/*/testfixtures
