@@ -22,9 +22,9 @@ def resolve(dotted_name):
             except ImportError as e:
                 method = 'i'
                 try:
-                    found = found[n]
+                    found = found[n] # pragma: no branch
                 except KeyError:
-                    found = not_there
+                    found = not_there # pragma: no branch
                 except TypeError:
                     try:
                         n = int(n)
@@ -32,7 +32,7 @@ def resolve(dotted_name):
                         method = 'a'
                         found = not_there
                     else:
-                        found = found[n]
+                        found = found[n] # pragma: no branch
             else:
                 found = getattr(found, n)
                 method = 'a'

@@ -356,7 +356,7 @@ class TempDirectoryTests(TestCase):
             with catch_warnings(record=True) as w:
                 d.atexit()
                 self.assertTrue(len(w), 1)
-                compare(str(w[0].message), (
+                compare(str(w[0].message), ( # pragma: no branch
                     "TempDirectory instances not cleaned up by shutdown:\n" +
                     d.path
                     ))
