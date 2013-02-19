@@ -60,12 +60,8 @@ class _should_raise:
         elif not actual:
             raise AssertionError('No exception raised!')
             
-    def __getattr__(self,name):
-        return ShouldRaiseWrapper(self,getattr(self.callable,name))
-
-    # __call__ is special :-S
     def __call__(self,*args,**kw):
-        return ShouldRaiseWrapper(self,partial(self.callable))(*args,**kw)
+        return ShouldRaiseWrapper(self, partial(self.callable))(*args, **kw)
 
 class ShouldRaise:
     """
