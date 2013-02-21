@@ -291,7 +291,7 @@ class TempDirectory:
         """
         return self._join(path)
     
-    def read(self, filepath, mode='rb'):
+    def read(self, filepath):
         """
         Reading the file at the specified path within the temporary
         directory.
@@ -304,14 +304,9 @@ class TempDirectory:
 
                          * A forward-slash separated string.
 
-        :param mode: The mode used to open the file. Set to ``r`` if
-                     you're reading and text file and not concerned
-                     about line endings. Leave the default in other
-                     cases.
-
         :returns: A string containing the data read.
         """
-        f = open(self._join(filepath), mode)
+        f = open(self._join(filepath), 'rb')
         data = f.read()
         f.close()
         if not isinstance(data, str):
