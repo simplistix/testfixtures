@@ -17,6 +17,11 @@ Changes
 
     should_raise(x, IndexError)[1]
     should_raise(x, KeyError)['x']
+
+- Dropped the `mode` parameter to :method:`TempDirectory.read`. 
+
+- :method:`TempDirectory.makedir` and :method:`TempDirectory.write` no
+  longer accept a `path` parameter.
   
 2.3.5 (13 August 2012)
 ----------------------

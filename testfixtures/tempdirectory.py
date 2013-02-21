@@ -222,9 +222,7 @@ class TempDirectory:
                 )
         return os.path.join(self.path,*name)
         
-    def makedir(self,dirpath,
-                # for backwards compatibility
-                path=True):
+    def makedir(self, dirpath):
         """
         Make an empty directory at the specified path within the
         temporary directory. Any intermediate subdirectories that do
@@ -242,9 +240,7 @@ class TempDirectory:
         os.makedirs(thepath)
         return thepath
     
-    def write(self, filepath, data,
-              # for backwards compatibility
-              path=True):
+    def write(self, filepath, data):
         """
         Write the supplied data to a file at the specified path within
         the temporary directory. Any subdirectories specified that do
