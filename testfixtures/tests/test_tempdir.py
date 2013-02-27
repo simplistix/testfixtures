@@ -7,15 +7,15 @@ from mock import Mock
 from shutil import rmtree
 from tempfile import mkdtemp
 from testfixtures import compare,tempdir,should_raise,Replacer,TempDirectory
-from unittest import TestCase,TestSuite,makeSuite
+from unittest import TestCase
 
 class TestTempDir(TestCase):
 
     
     @tempdir()
     def test_simple(self,d):
-        d.write('something','stuff')
-        d.write('.svn','stuff')
+        d.write('something', b'stuff')
+        d.write('.svn', b'stuff')
         d.check(
             '.svn',
             'something',
@@ -25,8 +25,8 @@ class TestTempDir(TestCase):
     @tempdir()
     def test_subdirs(self,d):
         subdir = ['some','thing']
-        d.write(subdir+['something'],'stuff')
-        d.write(subdir+['.svn'],'stuff')
+        d.write(subdir+['something'], b'stuff')
+        d.write(subdir+['.svn'], b'stuff')
         d.check_dir(subdir,
             '.svn',
             'something',
@@ -34,7 +34,7 @@ class TestTempDir(TestCase):
 
     @tempdir()
     def test_not_same(self,d):
-        d.write('something','stuff')
+        d.write('something', b'stuff')
         
         check = should_raise(d.check,AssertionError(
             "Sequence not as expected:\n\nsame:\n()\n\nfirst:\n('.svn', 'something')\n\nsecond:\n('something',)"
@@ -47,11 +47,9 @@ class TestTempDir(TestCase):
         
     @tempdir(ignore=('.svn',))
     def test_ignore(self,d):
-        d.write('something','stuff')
-        d.write('.svn','stuff')
-        d.check(
-            'something',
-            )
+        d.write('something', b'stuff')
+        d.write('.svn', b'stuff')
+        d.check('something', )
 
     def test_cleanup_properly(self):
         r = Replacer()
@@ -67,10 +65,8 @@ class TestTempDir(TestCase):
             
             @tempdir()
             def test_method(d):
-                d.write('something','stuff')
-                d.check(
-                    'something',
-                    )
+                d.write('something', b'stuff')
+                d.check('something', )
 
             self.assertFalse(m.called)
             compare(os.listdir(d),[])

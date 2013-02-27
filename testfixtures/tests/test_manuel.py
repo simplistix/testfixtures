@@ -1,15 +1,14 @@
-# Copyright (c) 2010-2011 Simplistix Ltd
+# Copyright (c) 2010-2013 Simplistix Ltd
 #
 # See license.txt for more details.
 
 import re
 
 from manuel import Document, Region, RegionContainer, Manuel
-from manuel import capture,codeblock
 from mock import Mock
 from testfixtures import compare, Comparison as C, TempDirectory
 from testfixtures.manuel import Files,FileBlock,FileResult
-from unittest import TestCase,makeSuite,TestSuite
+from unittest import TestCase
 
 class TestContainer(RegionContainer):
     def __init__(self,attr,*blocks):
@@ -170,7 +169,7 @@ This is just some normal text!
 
     def test_evaluate_read_same(self):
         dir = TempDirectory()
-        dir.write('foo','content')
+        dir.write('foo', b'content')
         d = TestContainer('parsed',FileBlock('foo','content','read'))
         d.evaluate_with(Files('td'),globs={'td':dir})
         compare([C(FileResult,
@@ -181,7 +180,7 @@ This is just some normal text!
 
     def test_evaluate_read_difference(self):
         dir = TempDirectory()
-        dir.write('foo','actual')
+        dir.write('foo', b'actual')
         d = TestContainer('parsed',FileBlock('foo','expected','read'))
         d.evaluate_with(Files('td'),globs={'td':dir})
         compare([C(FileResult,
@@ -201,7 +200,7 @@ This is just some normal text!
                    actual=None)],
                 [r.evaluated for r in d])
         dir.check('foo')
-        compare(dir.read('foo'),'content')
+        compare(dir.read('foo', 'ascii'), 'content')
 
     def test_formatter_non_fileblock(self):
         d = TestContainer('evaluated',object)

@@ -7,13 +7,20 @@ from doctest import DocTestSuite, ELLIPSIS
 from mock import Mock, call
 from shutil import rmtree
 from tempfile import mkdtemp
-from testfixtures import TempDirectory, Replacer, should_raise, compare
+from testfixtures import (
+    TempDirectory, Replacer, ShouldRaise, should_raise, compare
+    )
 from unittest import TestCase, TestSuite, makeSuite
 
-from logging import getLogger
-
-from ..compat import Unicode
+from ..compat import Unicode, PY3
 from .compat import catch_warnings
+
+if PY3:
+    some_bytes = '\xa3'.encode('utf-8')
+    some_text = '\xa3'
+else:
+    some_bytes = '\xc2\xa3'
+    some_text = '\xc2\xa3'.decode('utf-8')
 
 class DemoTempDirectory:
 
@@ -22,7 +29,7 @@ class DemoTempDirectory:
         If you want the path created when you use `write`, you
         can do:
         
-        >>> temp_dir.write('filename','data',path=True)
+        >>> temp_dir.write('filename', b'data')
         '...filename'
         """
 
@@ -31,7 +38,7 @@ class DemoTempDirectory:
         TempDirectories can also be set up to ignore certain files:
         
         >>> d = TempDirectory(ignore=('.svn',))
-        >>> p = d.write('.svn','stuff')
+        >>> p = d.write('.svn', b'stuff')
         >>> temp_dir.listdir()
         No files or directories found.
         """
@@ -41,10 +48,10 @@ class DemoTempDirectory:
         TempDirectories can also be set up to ignore certain files:
         
         >>> d = TempDirectory(ignore=('^\.svn$','.pyc$'))
-        >>> p = d.write('.svn','stuff')
-        >>> p = d.write('foo.svn','')
-        >>> p = d.write('foo.pyc','')
-        >>> p = d.write('bar.pyc','')
+        >>> p = d.write('.svn', b'stuff')
+        >>> p = d.write('foo.svn', b'')
+        >>> p = d.write('foo.pyc', b'')
+        >>> p = d.write('bar.pyc', b'')
         >>> d.listdir()
         foo.svn
         """
@@ -57,7 +64,7 @@ class TestTempDirectory:
         >>> p = d.path
         >>> os.path.exists(p)
         True
-        >>> p = d.write('something','stuff')
+        >>> p = d.write('something', b'stuff')
         >>> d.cleanup()
         >>> os.path.exists(p)
         False
@@ -99,7 +106,7 @@ class TestTempDirectory:
         >>> with TempDirectory() as d:
         ...    p = d.path
         ...    print(os.path.exists(p))
-        ...    path = d.write('something','stuff')
+        ...    path = d.write('something', b'stuff')
         ...    os.listdir(p)
         ...    with open(os.path.join(p,'something')) as f:
         ...        print(repr(f.read()))
@@ -113,10 +120,10 @@ class TestTempDirectory:
     def test_listdir_sort(self): # pragma: no branch
        """
         >>> with TempDirectory() as d:
-        ...    p = d.write('ga','')
-        ...    p = d.write('foo1','')
-        ...    p = d.write('Foo2','')
-        ...    p = d.write('g.o','')
+        ...    p = d.write('ga', b'')
+        ...    p = d.write('foo1', b'')
+        ...    p = d.write('Foo2', b'')
+        ...    p = d.write('g.o', b'')
         ...    d.listdir()
         Foo2
         foo1
@@ -137,7 +144,7 @@ class TempDirectoryTests(TestCase):
             makedir = should_raise(d.makedir,ValueError(
                     'Attempt to read or write outside the temporary Directory'
                     ))
-            makedir('/some/folder','stuff')
+            makedir('/some/folder')
 
     def test_read_with_slash_at_start(self):
         with TempDirectory() as d:
@@ -151,21 +158,21 @@ class TempDirectoryTests(TestCase):
             listdir = should_raise(d.listdir,ValueError(
                     'Attempt to read or write outside the temporary Directory'
                     ))
-            listdir('/some/folder','stuff')
+            listdir('/some/folder')
 
     def test_check_dir_with_slash_at_start(self):
         with TempDirectory() as d:
             checkdir = should_raise(d.check_dir,ValueError(
                     'Attempt to read or write outside the temporary Directory'
                     ))
-            checkdir('/some/folder','stuff')
+            checkdir('/some/folder')
 
     def test_check_all_with_slash_at_start(self):
         with TempDirectory() as d:
             checkall = should_raise(d.check_all,ValueError(
                     'Attempt to read or write outside the temporary Directory'
                     ))
-            checkall('/some/folder','stuff')
+            checkall('/some/folder')
 
     def test_dont_cleanup_with_path(self):
         d = mkdtemp()
@@ -193,48 +200,48 @@ class TempDirectoryTests(TestCase):
 
     def test_check_sort(self):
         with TempDirectory() as d:
-            d.write('ga','')
-            d.write('foo1','')
-            d.write('Foo2','')
-            d.write('g.o','')
+            d.write('ga', b'')
+            d.write('foo1', b'')
+            d.write('Foo2', b'')
+            d.write('g.o', b'')
             d.check(
                 'Foo2','foo1','g.o','ga'
                 )
 
     def test_check_dir_sort(self):
         with TempDirectory() as d:
-            d.write('foo/ga','')
-            d.write('foo/foo1','')
-            d.write('foo/Foo2','')
-            d.write('foo/g.o','')
+            d.write('foo/ga', b'')
+            d.write('foo/foo1', b'')
+            d.write('foo/Foo2', b'')
+            d.write('foo/g.o', b'')
             d.check_dir('foo',
                 'Foo2','foo1','g.o','ga'
                 )
 
     def test_check_all_sort(self):
         with TempDirectory() as d:
-            d.write('ga','')
-            d.write('foo1','')
-            d.write('Foo2','')
-            d.write('g.o','')
+            d.write('ga', b'')
+            d.write('foo1', b'')
+            d.write('Foo2', b'')
+            d.write('g.o', b'')
             d.check_all('',
                 'Foo2','foo1','g.o','ga'
                 )
         
     def test_check_all_tuple(self):
         with TempDirectory() as d:
-            d.write('a/b/c','')
+            d.write('a/b/c', b'')
             d.check_all(('a','b'),
                 'c'
                 )
         
     def test_recursive_ignore(self):
         with TempDirectory(ignore=['.svn']) as d:
-            d.write('.svn/rubbish','')
-            d.write('a/.svn/rubbish','')
-            d.write('a/b/.svn','')
-            d.write('a/b/c','')
-            d.write('a/d/.svn/rubbish','')
+            d.write('.svn/rubbish', b'')
+            d.write('a/.svn/rubbish', b'')
+            d.write('a/b/.svn', b'')
+            d.write('a/b/c', b'')
+            d.write('a/d/.svn/rubbish', b'')
             d.check_all('',
                 'a/',
                 'a/b/',
@@ -244,8 +251,8 @@ class TempDirectoryTests(TestCase):
 
     def test_path(self):
         with TempDirectory() as d:
-            expected1 = d.makedir('foo',path=True)
-            expected2 = d.write('baz/bob','',path=True)
+            expected1 = d.makedir('foo')
+            expected2 = d.write('baz/bob', b'')
             expected3 = d.getpath('a/b/c')
 
             actual1 = d.getpath('foo')
@@ -284,7 +291,44 @@ class TempDirectoryTests(TestCase):
             
             # check re-running has no ill effects
             d.atexit()
-        
+
+    def test_read_decode(self):
+        with TempDirectory() as d:
+            with open(os.path.join(d.path, 'test.file'), 'wb') as f:
+                f.write(b'\xc2\xa3')
+            compare(d.read('test.file', 'utf8'), some_text)
+            
+    def test_read_no_decode(self):
+        with TempDirectory() as d:
+            with open(os.path.join(d.path, 'test.file'), 'wb') as f:
+                f.write(b'\xc2\xa3')
+            compare(d.read('test.file'), b'\xc2\xa3')
+
+    def test_write_bytes(self):
+        with TempDirectory() as d:
+            d.write('test.file', b'\xc2\xa3')
+            with open(os.path.join(d.path, 'test.file'), 'rb') as f:
+                compare(f.read(), b'\xc2\xa3')
+
+    def test_write_unicode(self):
+        with TempDirectory() as d:
+            d.write('test.file', some_text, 'utf8')
+            with open(os.path.join(d.path, 'test.file'), 'rb') as f:
+                compare(f.read(), b'\xc2\xa3')
+
+    def test_write_unicode_bad(self):
+        if PY3:
+            expected = TypeError(
+                "'str' does not support the buffer interface"
+                )
+        else:
+            expected = UnicodeDecodeError(
+                'ascii', '\xa3', 0, 1, 'ordinal not in range(128)'
+                )
+        with TempDirectory() as d:
+            with ShouldRaise(expected):
+                d.write('test.file', Unicode('\xa3'))
+
 # using a set up and teardown function
 # gets rid of the need for the imports in
 # doc tests

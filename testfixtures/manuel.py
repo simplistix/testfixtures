@@ -65,14 +65,14 @@ class Files(Manuel):
         dir = globs[self.name]
         result = region.evaluated=FileResult()
         if block.action=='read':
-            actual=dir.read(block.path)
+            actual=dir.read(block.path, 'ascii')
             if actual!=block.content:
                 result.passed = False
                 result.path = block.path
                 result.expected = block.content
                 result.actual = actual
         if block.action=='write':
-            dir.write(block.path,block.content)
+            dir.write(block.path, block.content, 'ascii')
 
     def format(self,document):
         for region in document:

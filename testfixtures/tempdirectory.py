@@ -240,13 +240,15 @@ class TempDirectory:
         os.makedirs(thepath)
         return thepath
     
-    def write(self, filepath, data):
+    def write(self, filepath, data, encoding=None):
         """
         Write the supplied data to a file at the specified path within
         the temporary directory. Any subdirectories specified that do
         not exist will also be created.
 
-        The file will always be written in binary mode.
+        The file will always be written in binary mode. The data supplied must
+        either be bytes or an encoding must be supplied to convert the string
+        into bytes.
         
         :param filepath: The path to the file to create, which can be:
         
@@ -255,6 +257,9 @@ class TempDirectory:
                          * A forward-slash separated string.
 
         :param data: A string containing the data to be written.
+        
+        :param encoding: The encoding to be used if data is not bytes. Should
+                         not be passed if data is already bytes.
         
         :returns: The full path of the file written.
         """
@@ -265,14 +270,13 @@ class TempDirectory:
             if not os.path.exists(dirpath):
                 os.makedirs(dirpath)
         thepath = self._join(filepath)
-        f = open(thepath, 'wb')
-        if not isinstance(data, bytes):
-            data = data.encode('ascii')
-        f.write(data)
-        f.close()
+        if encoding is not None:
+            data = data.encode(encoding)
+        with open(thepath, 'wb') as f:
+            f.write(data)
         return thepath
 
-    def getpath(self,path):
+    def getpath(self, path):
         """
         Return the full path on disk that corresponds to the path
         relative to the temporary directory that is passed in.
@@ -287,12 +291,14 @@ class TempDirectory:
         """
         return self._join(path)
     
-    def read(self, filepath):
+    def read(self, filepath, encoding=None):
         """
-        Reading the file at the specified path within the temporary
+        Reads the file at the specified path within the temporary
         directory.
 
-        The file is always read in binary mode.
+        The file is always read in binary mode. Bytes will be returned unless
+        an encoding is supplied, in which case a unicode string of the decoded
+        data will be returned.
 
         :param filepath: The path to the file to read, which can be:
         
@@ -300,13 +306,14 @@ class TempDirectory:
 
                          * A forward-slash separated string.
 
+        :param encoding: The encoding used to decode the data in the file.
+        
         :returns: A string containing the data read.
         """
-        f = open(self._join(filepath), 'rb')
-        data = f.read()
-        f.close()
-        if not isinstance(data, str):
-            data = data.decode('ascii')
+        with open(self._join(filepath), 'rb') as f:
+            data = f.read()
+        if encoding is not None:
+            return data.decode(encoding)
         return data
 
     def __enter__(self):

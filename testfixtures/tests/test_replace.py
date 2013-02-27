@@ -368,8 +368,8 @@ class TestReplace(TestCase):
 
     def test_sub_module_import(self):
         with TempDirectory() as dir:
-            dir.write('module/__init__.py', '')
-            dir.write('module/submodule.py', 'def foo(): return "foo"')
+            dir.write('module/__init__.py', b'')
+            dir.write('module/submodule.py', b'def foo(): return "foo"')
 
             with Replacer() as r:
                 r.replace('sys.path', [dir.path])

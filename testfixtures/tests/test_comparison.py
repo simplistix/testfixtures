@@ -525,7 +525,7 @@ class TestC(TestCase):
         
     def test_repr_file_different(self):
         with TempDirectory() as d:
-            path = d.write('file', 'stuff', path=True)
+            path = d.write('file', b'stuff')
             f = open(path)
             f.close()
         if PY3:
@@ -549,7 +549,7 @@ class TestC(TestCase):
 
     def test_file_same(self):
         with TempDirectory() as d:
-            path = d.write('file', 'stuff', path=True)
+            path = d.write('file', b'stuff')
             f = open(path)
             f.close()
         if PY3:

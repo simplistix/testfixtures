@@ -20,7 +20,8 @@ if not tests:
     raise SkipTest('No docs found to test') # pragma: no cover
 
 def test_suite():
-    m =  doctest.Manuel(optionflags=REPORT_NDIFF|ELLIPSIS)
+    m =  doctest.Manuel(optionflags=REPORT_NDIFF|ELLIPSIS,
+                        checker=compat.DocTestChecker())
     m += compat.Manuel()
     m += capture.Manuel()
     return TestSuite(m, *tests)

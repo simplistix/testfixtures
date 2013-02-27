@@ -23,10 +23,10 @@ Suppose you wanted to test the following function:
 
   def foo2bar(dirpath, filename):
     path = os.path.join(dirpath, filename)
-    with open(path) as input:
+    with open(path, 'rb') as input:
         data = input.read()
-    data = data.replace('foo', 'bar')
-    with open(path, 'w') as output:
+    data = data.replace(b'foo', b'bar')
+    with open(path, 'wb') as output:
         output.write(data)
 
 There are several different ways depending on the type of test you are
@@ -41,11 +41,11 @@ context manager:
 
 >>> from testfixtures import TempDirectory
 >>> with TempDirectory() as d:
-...   d.write('test.txt', 'some foo thing')
+...   d.write('test.txt', b'some foo thing')
 ...   foo2bar(d.path, 'test.txt')
 ...   d.read('test.txt')
 '...'
-'some bar thing'
+b'some bar thing'
 
 
 The decorator
@@ -61,9 +61,9 @@ may find the decorator suits your needs better:
   
   @tempdir()
   def test_function(d):
-      d.write('test.txt','some foo thing')
-      foo2bar(d.path,'test.txt')
-      compare(d.read('test.txt'),'some bar thing')
+      d.write('test.txt', b'some foo thing')
+      foo2bar(d.path, 'test.txt')
+      compare(d.read('test.txt'), b'some bar thing')
 
 .. check the above raises no assertion error:
 
@@ -85,10 +85,10 @@ of the :class:`~unittest.TestCase` or passed to the
 
 You can then use the temporary directory for your testing:
 
->>> d.write('test.txt','some foo thing')
+>>> d.write('test.txt', b'some foo thing')
 '...'
->>> foo2bar(d.path,'test.txt')
->>> d.read('test.txt') == 'some bar thing'
+>>> foo2bar(d.path, 'test.txt')
+>>> d.read('test.txt') == b'some bar thing'
 True
 
 Then, in the ``tearDown`` function
@@ -154,7 +154,7 @@ Writing files
 To write to a file in the root of the temporary directory, you pass
 the name of the file and the content you want to write:
 
->>> tempdir.write('myfile.txt', 'some text')
+>>> tempdir.write('myfile.txt', b'some text')
 '...'
 >>> with open(os.path.join(tempdir.path, 'myfile.txt')) as f:
 ...     print(f.read())
@@ -162,7 +162,7 @@ some text
 
 The full path of the newly written file is returned:
 
->>> path = tempdir.write('anotherfile.txt', 'some more text')
+>>> path = tempdir.write('anotherfile.txt', b'some more text')
 >>> with open(path) as f:
 ...     print(f.read())
 some more text
@@ -170,7 +170,7 @@ some more text
 You can also write files into a sub-directory of the temporary
 directory, whether or not that directory exists, as follows:
 
->>> path = tempdir.write(('some', 'folder', 'afile.txt'),'the text')
+>>> path = tempdir.write(('some', 'folder', 'afile.txt'), b'the text')
 >>> with open(path) as f:
 ...     print(f.read())
 the text
@@ -178,13 +178,15 @@ the text
 You can also specify the path to write to as a forward-slash separated
 string:
 
->>> path = tempdir.write('some/folder/bfile.txt', 'the text')
+>>> path = tempdir.write('some/folder/bfile.txt', b'the text')
 >>> with open(path) as f:
 ...     print(f.read())
 the text
 
-Forward slashes should be used regardless of the file system or operating system
-in use.
+.. note:: 
+
+   Forward slashes should be used regardless of the file system or
+   operating system in use.
 
 Creating directories
 ~~~~~~~~~~~~~~~~~~~~
@@ -198,7 +200,7 @@ you can do so as follows:
 
 >>> tempdir.makedir('output')
 '...'
->>> os.path.isdir(os.path.join(tempdir.path,'output'))
+>>> os.path.isdir(os.path.join(tempdir.path, 'output'))
 True
 
 As with file creation, the full path of the sub-directory that has
@@ -211,24 +213,25 @@ True
 Finally, you can create a nested sub-directory even if the intervening
 parent directories do not exist:
 
->>> os.path.exists(os.path.join(tempdir.path,'some'))
+>>> os.path.exists(os.path.join(tempdir.path, 'some'))
 False
->>> path = tempdir.makedir(('some','sub','dir'))
+>>> path = tempdir.makedir(('some', 'sub', 'dir'))
 >>> os.path.exists(path)
 True
 
 You can also specify the path to write to as a forward-slash separated
 string:
 
->>> os.path.exists(os.path.join(tempdir.path,'another'))
+>>> os.path.exists(os.path.join(tempdir.path, 'another'))
 False
->>> tempdir.makedir('another/sub/dir')
-'...'
+>>> path = tempdir.makedir('another/sub/dir')
 >>> os.path.exists(path)
 True
 
-Forward slashes should be used regardless of the file system or operating system
-in use.
+.. note:: 
+
+   Forward slashes should be used regardless of the file system or
+   operating system in use.
 
 Checking the contents of files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -246,11 +249,11 @@ Suppose the code you are testing creates some files:
 .. code-block:: python
 
  def spew(path):
-    with open(os.path.join(path, 'root.txt'), 'w') as f:
-        f.write('root output')
+    with open(os.path.join(path, 'root.txt'), 'wb') as f:
+        f.write(b'root output')
     os.mkdir(os.path.join(path, 'subdir'))
-    with open(os.path.join(path, 'subdir', 'file.txt'), 'w') as f:
-        f.write('subdir output')
+    with open(os.path.join(path, 'subdir', 'file.txt'), 'wb') as f:
+        f.write(b'subdir output')
     os.mkdir(os.path.join(path, 'subdir', 'logs'))
 
 We can test this function by passing it the temporary directory's path
@@ -259,9 +262,9 @@ check the files were created with the correct content:
 
 >>> spew(tempdir.path)
 >>> tempdir.read('root.txt')
-'root output'
+b'root output'
 >>> tempdir.read(('subdir','file.txt'))
-'subdir output'
+b'subdir output'
 
 The second part of the above test shows how to use the
 :meth:`TempDirectory.read` method to check the contents
@@ -270,10 +273,12 @@ can also be done by specifying the path relative to the root of
 the temporary directory as a forward-slash separated string:
 
 >>> tempdir.read('subdir/file.txt')
-'subdir output'
+b'subdir output'
 
-Forward slashes should be used regardless of the file system or operating system
-in use.
+.. note:: 
+
+  Forward slashes should be used regardless of the file system or
+  operating system in use.
 
 Checking the contents of directories
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -295,7 +300,7 @@ subdir
 >>> tempdir.listdir('subdir')
 file.txt
 logs
->>> tempdir.listdir(('subdir','logs'))
+>>> tempdir.listdir(('subdir', 'logs'))
 No files or directories found.
 
 This example also shows how to check the contents of sub-directories of
@@ -325,7 +330,7 @@ a temporary directory.
 The :meth:`~testfixtures.TempDirectory.check` method is called with
 the expected contents of the temporary directory:
 
->>> tempdir.check('root.txt','subdir')
+>>> tempdir.check('root.txt', 'subdir')
 
 It returns no output if the directory contents match the expected
 contents passed in, but if they do not, an
@@ -350,13 +355,13 @@ To check the contents of a sub-directory of the temporary directory,
 the :meth:`~testfixtures.TempDirectory.check_dir` method is used in a
 similar fashion:
 
->>> tempdir.check_dir('subdir','file.txt','logs')
+>>> tempdir.check_dir('subdir', 'file.txt', 'logs')
 
 Both the :meth:`~testfixtures.TempDirectory.check` and
 :meth:`~testfixtures.TempDirectory.check_dir` methods can be used to
 check whether a directory contains nothing, for example:
 
->>> tempdir.check_dir(('subdir','logs'))
+>>> tempdir.check_dir(('subdir', 'logs'))
 
 The above can also be done by specifying the sub-directory to be
 checked as a forward-slash separated path:
@@ -367,7 +372,7 @@ You may also want to recursively check the contents of a whole subtree
 of the temporary directory. This can be done with the
 :meth:`~testfixtures.TempDirectory.check_all` method:
 
->>> tempdir.check_all('subdir','file.txt','logs/')
+>>> tempdir.check_all('subdir', 'file.txt', 'logs/')
 
 This method can also be used to check the contents of the entire
 temporary directory by passing an empty string as the first parameter:
@@ -394,18 +399,18 @@ directories, which may or may not be present:
  
   from random import choice
 
-  def svn_ish(dirpath,filename):
-    if choice((True,False)):
-      os.mkdir(os.path.join(dirpath,'.svn'))
-    with open(os.path.join(dirpath,filename),'w') as f:
-      f.write('something')
+  def svn_ish(dirpath, filename):
+    if choice((True, False)):
+      os.mkdir(os.path.join(dirpath, '.svn'))
+    with open(os.path.join(dirpath, filename), 'wb') as f:
+      f.write(b'something')
 
 To test this, we can use any of the previously described methods.
 
 When used manually or as a context manager, this would be as follows:
 
 >>> with TempDirectory(ignore=['.svn']) as d:
-...   svn_ish(d.path,'test.txt')
+...   svn_ish(d.path, 'test.txt')
 ...   d.listdir()
 test.txt
 
@@ -417,12 +422,73 @@ The decorator would be as follows:
   
   @tempdir(ignore=['.svn'])
   def test_function(d):
-      svn_ish(d.path,'test.txt')
+      svn_ish(d.path, 'test.txt')
       d.check('test.txt')
 
 .. check the above raises no assertion error:
 
   >>> test_function()
+
+Bytes versus Strings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. new tempdir:
+
+  >>> tempdir = TempDirectory()
+
+You'll notice that all of the examples so far have used raw bytes as
+their data and written to and read from files only in binary mode.
+This keeps all the examples nice and simple and working consistently
+between Python 2 and Python 3.
+One of the big changes between Python 2 and Python 3 was that the
+default string type became unicode instead of binary, and a new type
+for bytes was introduced. This little snippet shows the difference by
+defining two constants for the British Pound symbol:
+
+.. code-block:: python
+
+  import sys
+  PY3 = sys.version_info[:2] >= (3, 0)
+
+  if PY3:
+      some_bytes = '\xa3'.encode('utf-8')
+      some_text = '\xa3'
+  else:
+      some_bytes = '\xc2\xa3'
+      some_text = '\xc2\xa3'.decode('utf-8')
+
+Python 3 is much stricter than Python 2 about the byte versus string
+boundary and :class:`TempDirectory` has been changed to help work
+with this by only reading and writing files in binary mode and
+providing parameters to control decoding and encoding when you want to read and
+write text.
+
+For example, when writing, you can either write bytes directly, as we
+have been in the examples so far:
+
+>>> path = tempdir.write('currencies.txt', some_bytes)
+>>> with open(path, 'rb') as currencies:
+...     currencies.read()
+b'\xc2\xa3'
+
+Or, you can write text, but must specify an encoding to use when
+writing the data to the file:
+
+>>> path = tempdir.write('currencies.txt', some_text, 'utf-8')
+>>> with open(path, 'rb') as currencies:
+...     currencies.read()
+b'\xc2\xa3'
+
+The same is true when reading files. You can either read bytes:
+
+>>> tempdir.read('currencies.txt') == some_bytes
+True
+
+Or, you can read text, but must specify an encoding that will be used
+to decode the data in the file:
+
+>>> tempdir.read('currencies.txt', 'utf-8') == some_text
+True
 
 Working with an existing sandbox
 --------------------------------
@@ -441,7 +507,7 @@ the following with a :class:`~testfixtures.TempDirectory`:
 When working with the context manager, this is done as follows:
 
 >>> with TempDirectory(path=thedir) as d:
-...   d.write('file','data')
+...   d.write('file', b'data')
 ...   d.makedir('directory')
 ...   sorted(os.listdir(thedir))
 '...'
@@ -464,9 +530,9 @@ For the decorator, usage would be as follows:
   
   @tempdir(path=thedir)
   def test_function(d):
-      d.write('file','data')
+      d.write('file', b'data')
       d.makedir('directory')
-      assert sorted(os.listdir(thedir))==['directory','file']
+      assert sorted(os.listdir(thedir))==['directory', 'file']
 
 .. check the above raises no assertion error and that thedir still
    exits:
@@ -568,3 +634,11 @@ technique:
 .. clean up all tempdirs:
 
   >>> TempDirectory.cleanup_all()
+
+A note on encoding
+~~~~~~~~~~~~~~~~~~
+
+As currently implemented, the plugin provided by TestFixtures only works
+with textual file content that can be encoded using the ASCII
+character set. If you hit any limitations caused by this, please raise
+an issue in the tracker on GitHub.

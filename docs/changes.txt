@@ -18,11 +18,15 @@ Changes
     should_raise(x, IndexError)[1]
     should_raise(x, KeyError)['x']
 
-- Dropped the `mode` parameter to :method:`TempDirectory.read`. 
+- Dropped the `mode` parameter to :meth:`TempDirectory.read`. 
 
-- :method:`TempDirectory.makedir` and :method:`TempDirectory.write` no
+- :meth:`TempDirectory.makedir` and :meth:`TempDirectory.write` no
   longer accept a `path` parameter.
   
+- :meth:`TempDirectory.read` and :meth:`TempDirectory.write` now
+  accept an `encoding` parameter to control how non-byte data is
+  decoded and encoded respectively.
+
 2.3.5 (13 August 2012)
 ----------------------
 
