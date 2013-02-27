@@ -22,11 +22,6 @@ API Reference
 
 .. autoclass:: TempDirectory
    :members:
-   :exclude-members: makedir, write
-
-   .. automethod:: makedir(dirpath)
-
-   .. automethod:: write(filepath, data)
 
 .. autofunction:: compare(x, y, registry=None, strict=False, **kw)
 
