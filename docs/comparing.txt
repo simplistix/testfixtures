@@ -12,7 +12,7 @@ problems.
 The compare function
 --------------------
 
-This function can be used as a replacement for
+The :func:`compare` function can be used as a replacement for
 :meth:`~unittest.TestCase.assertEqual`. It raises an
 ``AssertionError`` when its parameters are not equal, which will be
 reported as a test failure:
@@ -22,6 +22,17 @@ reported as a test failure:
 Traceback (most recent call last):
  ...
 AssertionError: 1 != 2
+
+However, it allows you to specify a prefix for the message to be used
+in the event of failure:
+
+>>> compare(1, 2, prefix='wrong number of orders')
+Traceback (most recent call last):
+ ...
+AssertionError: wrong number of orders: 1 != 2
+
+This is recommended as it makes the reason for the failure more
+apparent without having to delve into the code or tests.
 
 The real strengths of this function come when comparing more complex
 data types. A number of common python data types will give more

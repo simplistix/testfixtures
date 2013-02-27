@@ -217,16 +217,22 @@ def compare(x, y, **kw):
     that ends up doing the comparison. See the API documentation below
     for details of these.
     
+    :param prefix: If provided, in the event of an :class:`AssertionError` being
+                   raised, the prefix supplied will be prepended to the message
+                   in the :class:`AssertionError`.
+                   
+    :param strict: If ``True``, objects will only compare equal if
+                   they are of the same type as well as being equal.
+                   Defaults to ``False``.
+                   
     :param registry: If supplied, should be a dictionary mapping
         types to comparer functions for those types. This will be
         used instead of the global comparer registry.
 
-    :param strict: If ``True``, objects will only compare equal if
-                   they are of the same type as well as being equal.
-                   Defaults to ``False``.
     """
     registry = kw.pop('registry', _registry)
     strict = kw.pop('strict', False)
+    prefix = kw.pop('prefix', None)
 
     # short-circuit check
     if strict:
@@ -255,7 +261,10 @@ def compare(x, y, **kw):
     message = comparer(x, y, **kw)
     if message is identity:
         return identity
-        
+
+    if prefix:
+        message = prefix + ': ' + message
+
     raise AssertionError(message)
     
 class Comparison:

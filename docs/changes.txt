@@ -27,6 +27,9 @@ Changes
   accept an `encoding` parameter to control how non-byte data is
   decoded and encoded respectively.
 
+- Added the `prefix` parameter to :func:`compare` to allow failure
+  messages to be made more informative.
+
 2.3.5 (13 August 2012)
 ----------------------
 

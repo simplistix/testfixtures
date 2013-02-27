@@ -563,3 +563,14 @@ b
              "(<class 'mock._CallList'>)").format(class_type_name),
             strict=True,
             )
+        
+    def test_prefix(self):
+        self.checkRaises(1, 2, 'wrong number of orders: 1 != 2',
+                         prefix='wrong number of orders')
+        
+    def test_prefix_multiline(self):
+        self.checkRaises(
+            'x'*5+'\n'+'y'*5,'x'*5+'\n'+'z'*5,
+            "file content: \n@@ -1,2 +1,2 @@\n xxxxx\n-yyyyy\n+zzzzz",
+            prefix='file content'
+            )

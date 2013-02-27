@@ -23,7 +23,7 @@ API Reference
 .. autoclass:: TempDirectory
    :members:
 
-.. autofunction:: compare(x, y, registry=None, strict=False, **kw)
+.. autofunction:: compare(x, y, prefix=None, strict=False, registry=None, **kw)
 
 .. autofunction:: testfixtures.comparison.register
 
