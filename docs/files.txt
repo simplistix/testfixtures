@@ -635,10 +635,12 @@ technique:
 
   >>> TempDirectory.cleanup_all()
 
-A note on encoding
-~~~~~~~~~~~~~~~~~~
+A note on encoding and line endings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 As currently implemented, the plugin provided by TestFixtures only works
 with textual file content that can be encoded using the ASCII
-character set. If you hit any limitations caused by this, please raise
-an issue in the tracker on GitHub.
+character set. This content will always be written with ``'\n'`` line
+seperators and, when read, will always have its line endings
+normalised to ``'\n'``. If you hit any limitations caused by this,
+please raise an issue in the tracker on GitHub.

@@ -1,8 +1,9 @@
 from __future__ import absolute_import
 
-# Copyright (c) 2010-2011 Simplistix Ltd
+# Copyright (c) 2010-2013 Simplistix Ltd
 #
 # See license.txt for more details.
+import os
 import re
 import textwrap
 
@@ -65,7 +66,7 @@ class Files(Manuel):
         dir = globs[self.name]
         result = region.evaluated=FileResult()
         if block.action=='read':
-            actual=dir.read(block.path, 'ascii')
+            actual=dir.read(block.path, 'ascii').replace(os.linesep, '\n')
             if actual!=block.content:
                 result.passed = False
                 result.path = block.path
