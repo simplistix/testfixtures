@@ -43,6 +43,8 @@ class Tests(TestCase):
                 [a,'a1',b,c,'d','e',])
 
     if PY2:
+        # cmp no longer exists in Python 3!
+        
         def test_cmp_yes(self):
             self.failIf(cmp(S('on \d+'), 'on 4040'))
 
