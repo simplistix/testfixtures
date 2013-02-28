@@ -172,11 +172,15 @@ def test_date(*args,**kw):
         _gap_t = delta_type,
         )
 
+ms = 10**6
 def __time_new__(cls, *args, **kw):
     if args or kw:
         return super(cls, cls).__new__(cls, *args, **kw)
     else:
-        return float(timegm(cls.instantiate().utctimetuple()))
+        val = cls.instantiate()
+        t = timegm(val.utctimetuple())
+        t += (float(val.microsecond)/ms)
+        return t
 
 test_date.__test__ = False
 

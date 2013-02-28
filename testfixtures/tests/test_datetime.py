@@ -336,3 +336,17 @@ class TestDateTime(TestCase):
             self.failIf(inst.__class__ is datetime, inst)
             self.failUnless(isinstance(inst, d), inst)
             self.failUnless(inst.__class__ is d, inst)
+
+
+    def test_subsecond_deltas(self):
+        datetime = test_datetime(delta=0.5)
+        compare(datetime.now(), datetime(2001, 1, 1, 0, 0, 0, 0))
+        compare(datetime.now(), datetime(2001, 1, 1, 0, 0, 0, 500000))
+        compare(datetime.now(), datetime(2001, 1, 1, 0, 0, 1, 0))
+
+    def test_ms_delta(self):
+        datetime = test_datetime(delta=100, delta_type='microseconds')
+        compare(datetime.now(), datetime(2001, 1, 1, 0, 0, 0, 0))
+        compare(datetime.now(), datetime(2001, 1, 1, 0, 0, 0, 100))
+        compare(datetime.now(), datetime(2001, 1, 1, 0, 0, 0, 200))
+        

@@ -30,6 +30,8 @@ Changes
 - Added the `prefix` parameter to :func:`compare` to allow failure
   messages to be made more informative.
 
+- Fixed a problem when using sub-second deltas with :func:`test_time`.
+
 2.3.5 (13 August 2012)
 ----------------------
 

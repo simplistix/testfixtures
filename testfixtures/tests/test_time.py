@@ -131,10 +131,10 @@ class TestTime(TestCase):
         with ShouldRaise(TypeError('Cannot add tzinfo to ttime')):
             time.add(2001,1,2,3,4,5,6,TestTZInfo())
         
-    @replace('time.time',test_time(2001,1,2,3,4,5,6))
+    @replace('time.time',test_time(2001, 1, 2, 3, 4, 5, 600000))
     def test_max_number_args(self):
         from time import time
-        compare(time(),978404645.0)
+        compare(time(), 978404645.6)
         
     def test_max_number_tzinfo(self):
         with ShouldRaise(TypeError(
@@ -160,7 +160,7 @@ class TestTime(TestCase):
         ))
     def test_all_kw(self):
         from time import time
-        compare(time(),978404645.0)
+        compare(time(), 978404645.000006)
         
     def test_kw_tzinfo(self):
         with ShouldRaise(TypeError(
@@ -169,3 +169,15 @@ class TestTime(TestCase):
             @replace('time.time',test_time(year=2001,tzinfo=TestTZInfo()))
             def myfunc():
                 pass # pragma: no cover
+
+    def test_subsecond_deltas(self):
+        time = test_time(delta=0.5)
+        compare(time(), 978307200.0)
+        compare(time(), 978307200.5)
+        compare(time(), 978307201.0)
+
+    def test_ms_deltas(self):
+        time = test_time(delta=1000, delta_type='microseconds')
+        compare(time(), 978307200.0)
+        compare(time(), 978307200.001)
+        compare(time(), 978307200.002)
