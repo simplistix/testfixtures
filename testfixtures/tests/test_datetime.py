@@ -5,10 +5,9 @@ from datetime import date
 from datetime import datetime as d
 from datetime import timedelta
 from datetime import tzinfo
-from time import strptime
 from testfixtures import test_datetime,test_date
 from testfixtures import replace, Replacer, compare, ShouldRaise
-from testfixtures.tests import sample1, sample2
+from testfixtures.tests import sample1
 from unittest import TestCase
 
 class TestTZInfo(tzinfo):

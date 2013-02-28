@@ -1,12 +1,9 @@
 # Copyright (c) 2008-2013 Simplistix Ltd
 # See license.txt for license details.
 
-from os import environ
-from time import strptime
 from testfixtures import test_time, replace, compare, ShouldRaise
-from unittest import TestCase,TestSuite,makeSuite
+from unittest import TestCase
 from testfixtures.tests.test_datetime import TestTZInfo
-from testfixtures.tests import sample1, sample2
 
 class TestTime(TestCase):
 
