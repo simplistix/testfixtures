@@ -47,16 +47,8 @@ directory containg setup.py::
 Making a release
 ----------------
 
-The first thing to do when making a release is to check that the ReST
-to be uploaded to PyPI is valid::
-
-  $ bin/docpy setup.py --long-description | bin/rst2 html \
-    --link-stylesheet \
-    --stylesheet=http://www.python.org/styles/styles.css > build/desc.html
-
-Once you're certain everything is as it should be, the following will
-build the distribution, upload it to PyPI, register the metadata with
-PyPI and upload the Sphinx documentation to PyPI::
+The following will build the distribution, upload it to PyPI, register
+the metadata with PyPI and upload the Sphinx documentation to PyPI::
 
   $ bin/buildout -o
   $ cd docs

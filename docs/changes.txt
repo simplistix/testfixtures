@@ -3,14 +3,14 @@ Changes
 
 .. currentmodule:: testfixtures
 
-3.0.0 (XX YYY 2013)
--------------------
+3.0.0 (5 March 2013)
+--------------------
 
-- Added compatibility with Python 3.3
+- Added compatibility with Python 3.2 and 3.3.
 
-- Dropped compatibility with Python 2.5
+- Dropped compatibility with Python 2.5.
 
-- Removed support for the following obscure uses for
+- Removed support for the following obscure uses of
   :class:`should_raise`: 
 
   .. code-block:: python
