@@ -196,28 +196,29 @@ shown in the following :class:`~unittest.TestCase`:
 .. code-block:: python
 
     from testfixtures.tests.sample2 import dump
+    from mock import Mock, call
 
     class Tests(unittest.TestCase):
 
         @replace('testfixtures.tests.sample2.guppy',True)
-        @replace('testfixtures.tests.sample2.hpy',Mock(),strict=False)
-        def test_method(self,hpy):
+        @replace('testfixtures.tests.sample2.hpy', Mock(), strict=False)
+        def test_method(self, hpy):
 
             dump('somepath')
 
-            compare(hpy.call_args_list,[((),{})])
-            hpy_i = hpy.return_value
-            compare(hpy_i.method_calls,[('heap',(),{})])
-            h = hpy_i.heap.return_value
-            compare(h.method_calls,[('stat.dump', ('somepath',),{})])
+            compare([
+                     call(), 
+                     call().heap(), 
+                     call().heap().stat.dump('somepath')
+                   ], hpy.mock_calls)
 
         @replace('testfixtures.tests.sample2.guppy',False)
-        @replace('testfixtures.tests.sample2.hpy',Mock(),strict=False)
+        @replace('testfixtures.tests.sample2.hpy', Mock(), strict=False)
         def test_method_no_heapy(self,hpy):
 
             dump('somepath')
 
-            compare(hpy.call_args_list,[])
+            compare(hpy.mock_calls,[])
 
 .. the result:
   
