@@ -1,6 +1,7 @@
 # Copyright (c) 2008-2013 Simplistix Ltd
 # See license.txt for license details.
 
+from collections import Iterable
 from difflib import unified_diff
 from pprint import pformat
 from re import compile, MULTILINE
@@ -250,7 +251,7 @@ def compare(x, y, **kw):
             comparer = registry.get(type(x), _default_compare)
     else:
         # allow comparison of generators with any sequence
-        if isinstance(x, GeneratorType):
+        if isinstance(x, GeneratorType) and isinstance(y, Iterable):
             y = generator(*y)
 
         for t in registry.keys():

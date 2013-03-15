@@ -574,3 +574,10 @@ b
             "file content: \n@@ -1,2 +1,2 @@\n xxxxx\n-yyyyy\n+zzzzz",
             prefix='file content'
             )
+
+    def test_generator_with_non_generator(self):
+        self.checkRaises(
+            generator(1, 2, 3), None,
+            '<generator object generator at ...> != None',
+            )
+    
