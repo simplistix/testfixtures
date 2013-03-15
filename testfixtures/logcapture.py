@@ -86,6 +86,10 @@ class LogCapture(logging.Handler):
                 logger = logging.getLogger(name)
                 logger.setLevel(self.oldlevels[name])
                 logger.handlers = self.oldhandlers[name]
+                if self in logging._handlers:
+                    del logging._handlers[self]
+                if self in logging._handlerList:
+                    logging._handlerList.remove(self)
             self.instances.remove(self)
 
     @classmethod

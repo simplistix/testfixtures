@@ -1,8 +1,8 @@
-# Copyright (c) 2008-2010 Simplistix Ltd
+# Copyright (c) 2008-2013 Simplistix Ltd
 # See license.txt for license details.
 
 from testfixtures import log_capture,compare,Comparison as C, LogCapture
-from unittest import TestCase,TestSuite,makeSuite
+from unittest import TestCase
 
 from logging import getLogger
 
@@ -95,10 +95,9 @@ class TestLog_Capture(TestCase):
     def test_remove_existing_handlers(self):
         logger = getLogger()
         # get original handlers
-        original_handlers = logger.handlers
-        # put in a stub which will blow up if used
         original = logger.handlers
         try:
+            # put in a stub which will blow up if used
             logger.handlers = start = [object()]
 
             @log_capture()
@@ -112,3 +111,10 @@ class TestLog_Capture(TestCase):
             
         finally:
             logger.handlers = original
+
+    def test_clear_global_state(self):
+        from logging import _handlers, _handlerList
+        capture = LogCapture()
+        capture.uninstall()
+        self.assertFalse(capture in _handlers)
+        self.assertFalse(capture in _handlerList)
