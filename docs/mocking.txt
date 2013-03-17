@@ -181,7 +181,7 @@ not.
    :class: module
 
    .. literalinclude:: ../testfixtures/tests/sample2.py
-      :lines: 11-19
+      :lines: 10-19
 
 To test the behaviour of the code that uses ``hpy`` in both of
 these cases, regardless of whether or not the ``guppy`` package is
