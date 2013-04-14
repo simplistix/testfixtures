@@ -91,7 +91,12 @@ class Replacer:
             _replace_all_refs(org_obj=t_obj, new_obj=replacement)
         else:
             self._replace(container, attribute, method, replacement_to_use)
+
+        # To make the replacement reversible with the 'all' keyword, we need
+        # to maintain a reference to whether the replacement was a 'all'
+        # replacement or not and a reference to the original object.
         self.originals[target] = (all, t_obj, replacement,)
+
         if self.replace_returns:
             return replacement
 
@@ -123,6 +128,7 @@ class Replacer:
                 'Replacer deleted without being restored, '
                 'originals left: %r' % self.originals
                 )
+
 
 def replace(target, replacement, strict=True):
     """
@@ -159,7 +165,6 @@ def _replace_all_refs(org_obj, new_obj):
     
     Use looks like:
     
-    >>> import pyjack
     >>> x = ('org', 1, 2, 3)
     >>> y = x
     >>> z = ('new', -1, -2, -3)
