@@ -581,3 +581,11 @@ b
             '<generator object generator at ...> != None',
             )
     
+    def test_generator_with_buggy_generator(self):
+        def bad_gen():
+            yield 1
+            # raising a TypeError here is important :-/
+            raise TypeError('foo')
+        
+        with ShouldRaise(TypeError('foo')):
+            compare(generator(1, 2, 3), bad_gen())

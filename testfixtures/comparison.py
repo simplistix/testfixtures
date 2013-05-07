@@ -252,7 +252,7 @@ def compare(x, y, **kw):
     else:
         # allow comparison of generators with any sequence
         if isinstance(x, GeneratorType) and isinstance(y, Iterable):
-            y = generator(*y)
+            y = generator(*tuple(y))
 
         for t in registry.keys():
             if isinstance(x, t) and isinstance(y, t):
