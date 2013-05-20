@@ -81,20 +81,20 @@ class TestReplace(TestCase):
     def test_class_method(self):
 
         def rMethod(cls):
-            return (cls,1)
+            return (cls, 1)
 
         compare(sample1.X().aMethod(),sample1.X)
 
-        @replace('testfixtures.tests.sample1.X.aMethod',rMethod)
+        @replace('testfixtures.tests.sample1.X.aMethod', rMethod)
         def test_something(r):
-            compare(r,rMethod)
-            compare(sample1.X().aMethod(),(sample1.X,1))
+            compare(r, rMethod)
+            compare(sample1.X().aMethod(), (sample1.X, 1))
 
-        compare(sample1.X().aMethod(),sample1.X)
+        compare(sample1.X().aMethod(), sample1.X)
         
         test_something()
         
-        compare(sample1.X().aMethod(),sample1.X)
+        compare(sample1.X().aMethod(), sample1.X)
 
     def test_multiple_replace(self):
 
@@ -380,3 +380,11 @@ class TestReplace(TestCase):
 
                 from module.submodule import foo
                 compare(foo(), "bar")
+                
+    def test_staticmethod(self):
+        compare(sample1.X.bMethod(), 2)
+        with Replacer() as r:
+            r.replace('testfixtures.tests.sample1.X.bMethod', lambda: 1)
+            compare(sample1.X.bMethod(), 1)
+        compare(sample1.X.bMethod(), 2)
+

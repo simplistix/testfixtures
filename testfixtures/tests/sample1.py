@@ -36,6 +36,10 @@ class X:
     def aMethod(cls):
         return cls
 
+    @staticmethod
+    def bMethod():
+        return 2
+
 def z():
     return "original z"
 
