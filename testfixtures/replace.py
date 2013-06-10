@@ -57,11 +57,11 @@ class Replacer:
             return not_there
         replacement_to_use = replacement
         if isinstance(container, (type, ClassType)):
-            if isinstance(t_obj, classmethod):
-               if not isinstance(replacement, classmethod):
+            if (isinstance(t_obj, classmethod) and not
+                isinstance(replacement, classmethod)):
                    replacement_to_use = classmethod(replacement)
-            elif isinstance(t_obj, staticmethod):
-               if not isinstance(replacement, staticmethod):
+            elif (isinstance(t_obj, staticmethod) and not 
+                  isinstance(replacement, staticmethod)):
                    replacement_to_use = staticmethod(replacement)
 
         self._replace(container, attribute, method, replacement_to_use, strict)
