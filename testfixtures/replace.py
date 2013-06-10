@@ -56,13 +56,14 @@ class Replacer:
         if t_obj is not_there and replacement is not_there:
             return not_there
         replacement_to_use = replacement
-        if isinstance(container, (type, ClassType)) and callable(t_obj):
-            if isinstance(t_obj, MethodType) and t_obj.__self__ is container:
-                if not isinstance(replacement, classmethod):
-                    replacement_to_use = classmethod(replacement)
-            elif (isinstance(t_obj, FunctionType)  and not
-                  isinstance(replacement, staticmethod)):
-                replacement_to_use = staticmethod(replacement)
+        if isinstance(container, (type, ClassType)):
+            if isinstance(t_obj, classmethod):
+               if not isinstance(replacement, classmethod):
+                   replacement_to_use = classmethod(replacement)
+            elif isinstance(t_obj, staticmethod):
+               if not isinstance(replacement, staticmethod):
+                   replacement_to_use = staticmethod(replacement)
+
         self._replace(container, attribute, method, replacement_to_use, strict)
         if target not in self.originals:
             self.originals[target] = t_obj
@@ -76,9 +77,6 @@ class Replacer:
         """
         for target,original in tuple(self.originals.items()):
             container, method, attribute, found = resolve(target)
-            if (isinstance(container, (type, ClassType)) and
-                isinstance(original, FunctionType)):
-                original = staticmethod(original)
             self._replace(container, attribute, method, original, strict=False)
             del self.originals[target]
             

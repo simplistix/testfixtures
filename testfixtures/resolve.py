@@ -1,4 +1,4 @@
-# Copyright (c) 2008-2011 Simplistix Ltd
+# Copyright (c) 2008-2013 Simplistix Ltd
 # See license.txt for license details.
 
 from testfixtures import not_there
@@ -14,27 +14,31 @@ def resolve(dotted_name):
         container = found
         used += '.' + n
         try:
-            found = getattr(found, n)
+            found = found.__dict__[n]
             method = 'a'
-        except AttributeError:
+        except (AttributeError, KeyError):
             try:
-                __import__(used)
-            except ImportError as e:
-                method = 'i'
-                try:
-                    found = found[n] # pragma: no branch
-                except KeyError:
-                    found = not_there # pragma: no branch
-                except TypeError:
-                    try:
-                        n = int(n)
-                    except ValueError:
-                        method = 'a'
-                        found = not_there
-                    else:
-                        found = found[n] # pragma: no branch
-            else:
-                found = getattr(found, n)
+                found = getattr(found, n)            
                 method = 'a'
+            except AttributeError:
+                try:
+                    __import__(used)
+                except ImportError:
+                    method = 'i'
+                    try:
+                        found = found[n] # pragma: no branch
+                    except KeyError:
+                        found = not_there # pragma: no branch
+                    except TypeError:
+                        try:
+                            n = int(n)
+                        except ValueError:
+                            method = 'a'
+                            found = not_there
+                        else:
+                            found = found[n] # pragma: no branch
+                else:
+                    found = getattr(found, n)
+                    method = 'a'
     return container, method, n, found
     
