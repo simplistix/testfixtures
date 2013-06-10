@@ -19,7 +19,7 @@ def resolve(dotted_name):
         except (AttributeError, KeyError):
             try:
                 found = getattr(found, n)            
-                method = 'a'
+                method = 'a' # pragma: no branch
             except AttributeError:
                 try:
                     __import__(used)
@@ -39,6 +39,6 @@ def resolve(dotted_name):
                             found = found[n] # pragma: no branch
                 else:
                     found = getattr(found, n)
-                    method = 'a'
+                    method = 'a' # pragma: no branch
     return container, method, n, found
     
