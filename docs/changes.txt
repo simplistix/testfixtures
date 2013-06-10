@@ -3,6 +3,20 @@ Changes
 
 .. currentmodule:: testfixtures
 
+3.0.1 (10 June 2013)
+--------------------
+
+- Some documentation tweaks and clarifications.
+
+- Fixed a bug which masked exceptions when using :func:`compare` with
+  a broken generator.
+
+- Fixed a bug when comparing a generator with a non-generator.
+
+- Ensure :class:`LogCapture` cleans up global state it may effect.
+
+- Fixed replacement of static methods using a :class:`Replacer`.
+
 3.0.0 (5 March 2013)
 --------------------
 
