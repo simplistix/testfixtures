@@ -5,7 +5,6 @@ from functools import partial
 from testfixtures.compat import ClassType
 from testfixtures.resolve import resolve, not_there
 from testfixtures.utils import wrap
-from types import FunctionType, MethodType
 
 import warnings
 
