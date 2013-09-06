@@ -82,6 +82,10 @@ class ShouldRaise:
                         should be raised.  
     """
 
+    #: The exception captured by the context manager.
+    #: Can be used to inspect specific attributes of the exception.
+    raised = None
+    
     def __init__(self,exception=None):
         self.exception = exception
 

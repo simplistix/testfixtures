@@ -30,7 +30,7 @@ raised:
 >>> with ShouldRaise(ValueError('Not good!')):
 ...     the_thrower()
 
-If the exception raise doesn't match the one expected,
+If the exception raised doesn't match the one expected,
 :class:`ShouldRaise` will raise an :class:`AssertionError`
 causing the tests in which it occurs to fail:
 
@@ -68,7 +68,19 @@ AssertionError: No exception raised!
 :class:`ShouldRaise` has been implemented such that it can be
 successfully used to test if code raises both :class:`SystemExit` and
 :class:`KeyboardInterrupt` exceptions.
- 
+
+To help with :class:`SystemExit` and other exceptions that are
+tricky to construct yourself, :class:`ShouldRaise` instances have a
+:attr:`~ShouldRaise.raised` attribute. This will contain the actual
+exception raised and can be used to inspect parts of it:
+
+>>> import sys
+>>> from testfixtures import ShouldRaise
+>>> with ShouldRaise() as s:
+...     sys.exit(42)
+>>> s.raised.code
+42
+
 The :func:`should_raise` decorator
 -----------------------------------------
 
