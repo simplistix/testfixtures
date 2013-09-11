@@ -1,4 +1,4 @@
-# Copyright (c) 2009-2012 Simplistix Ltd
+# Copyright (c) 2009-2013 Simplistix Ltd
 #
 # See license.txt for more details.
 
@@ -9,14 +9,12 @@ from manuel.testing import TestSuite
 from nose.plugins.skip import SkipTest
 from os.path import dirname, join, pardir
 
-import os
-
 from . import compat
 
-workspace = os.environ.get('WORKSPACE', join(dirname(__file__), pardir, pardir))
-tests = glob(join(workspace,'docs', '*.txt'))
+tests = glob(join(join(dirname(__file__), pardir, pardir), 'docs', '*.txt'))
 
 if not tests:
+    # tox can't find docs and installing an sdist doesn't install the docs
     raise SkipTest('No docs found to test') # pragma: no cover
 
 def test_suite():
