@@ -12,6 +12,8 @@ from unittest import TestCase
 
 class TestTZInfo(tzinfo):
 
+    __test__ = False
+
     def utcoffset(self, dt):
         return timedelta(minutes = 3) + self.dst(dt)
 
@@ -19,6 +21,8 @@ class TestTZInfo(tzinfo):
         return timedelta(minutes = 1)
 
 class TestTZ2Info(tzinfo):
+
+    __test__ = False
 
     def utcoffset(self, dt):
         return timedelta(minutes = 5)
