@@ -1,5 +1,4 @@
 from testfixtures import StringComparison as S, compare
-from testfixtures import Comparison as C
 from testfixtures.compat import PY2
 from unittest import TestCase
 
