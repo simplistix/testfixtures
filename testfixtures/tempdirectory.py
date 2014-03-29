@@ -1,4 +1,4 @@
-# Copyright (c) 2008-2011 Simplistix Ltd
+# Copyright (c) 2008-2014 Simplistix Ltd
 # See license.txt for license details.
 
 import atexit
@@ -6,12 +6,12 @@ import os
 import warnings
 
 from re import compile
-from shutil import rmtree
 from tempfile import mkdtemp
 from testfixtures.comparison import compare
 from testfixtures.compat import basestring
 from testfixtures.utils import wrap
 
+from .rmtree import rmtree
 
 class TempDirectory:
     """

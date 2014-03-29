@@ -5,7 +5,6 @@ import os
 
 from doctest import DocTestSuite, ELLIPSIS
 from mock import Mock, call
-from shutil import rmtree
 from tempfile import mkdtemp
 from testfixtures import (
     TempDirectory, Replacer, ShouldRaise, should_raise, compare
@@ -14,6 +13,8 @@ from unittest import TestCase, TestSuite, makeSuite
 
 from ..compat import Unicode, PY3
 from .compat import catch_warnings
+
+from ..rmtree import rmtree
 
 if PY3:
     some_bytes = '\xa3'.encode('utf-8')

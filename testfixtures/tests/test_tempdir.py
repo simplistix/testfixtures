@@ -1,13 +1,14 @@
-# Copyright (c) 2008-2013 Simplistix Ltd
+# Copyright (c) 2008-2014 Simplistix Ltd
 # See license.txt for license details.
 
 import os
 
 from mock import Mock
-from shutil import rmtree
 from tempfile import mkdtemp
 from testfixtures import compare,tempdir,should_raise,Replacer,TempDirectory
 from unittest import TestCase
+
+from ..rmtree import rmtree
 
 class TestTempDir(TestCase):
 
