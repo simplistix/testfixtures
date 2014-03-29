@@ -53,7 +53,7 @@ else:
 def rmtree(path):
     try:
         _rmtree(path)
-    except OSError, e:
+    except OSError as e:
         # Unix returns ENOENT, Windows returns ESRCH.
         if e.errno not in (errno.ENOENT, errno.ESRCH):
             raise
