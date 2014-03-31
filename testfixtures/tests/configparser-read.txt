@@ -32,7 +32,7 @@ do the following:
 
 The items in the section are now available as follows:
 
->>> for name, value in config.items('A Section'):
+>>> for name, value in sorted(config.items('A Section')):
 ...     print('{0!r}:{1!r}'.format(name, value))
 'dir':'frob'
 'long':'this value continues\non the next line'
