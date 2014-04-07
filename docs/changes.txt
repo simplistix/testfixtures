@@ -3,6 +3,15 @@ Changes
 
 .. currentmodule:: testfixtures
 
+3.0.2 (7 April 2014)
+--------------------
+
+- Document :attr:`ShouldRaise.raised` and make it part of the official
+  API. 
+
+- Fix rare failures when cleaning up :class:`TempDirectory` instances
+  on Windows.
+
 3.0.1 (10 June 2013)
 --------------------
 
