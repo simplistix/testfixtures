@@ -11,7 +11,7 @@ class singleton(object):
 identity = singleton('identity')
 not_there = singleton('not_there')
 
-from testfixtures.comparison import Comparison, StringComparison, compare, diff
+from testfixtures.comparison import Comparison, StringComparison, RoundComparison, compare, diff
 from testfixtures.tdatetime import test_datetime, test_date, test_time
 from testfixtures.logcapture import LogCapture, log_capture
 from testfixtures.outputcapture import OutputCapture

@@ -437,6 +437,29 @@ class StringComparison:
         
     def __gt__(self,other):
         return self.re.pattern>other
+
+class RoundComparison:
+    """
+    An object that can be used in comparisons of expected and actual
+    numerics to a specified precision.
+
+    :param value: numeric to be compared.
+
+    :param precision: Number of decimal places to round to in order
+                      to perform the comparison.
+    """
+    def __init__(self, value, precision):
+        self.rounded = round(value, precision)
+        self.precision = precision
+
+    def __eq__(self,other):
+        return self.rounded == round(other, self.precision)
+
+    def __ne__(self,other):
+        return not self == other
+
+    def __repr__(self):
+        return ('<R:%%.%df>' % self.precision) % self.rounded
         
 def diff(x,y):
     """
