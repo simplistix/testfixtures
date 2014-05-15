@@ -35,11 +35,11 @@ class Tests(TestCase):
         self.assertTrue((1, 2, R(0.123456, 5)) == (1, 2, 0.123457))
 
     def test_not_numeric_rhs(self):
-        with ShouldRaise(TypeError("a float is required")):
+        with ShouldRaise(TypeError):
             'abc' == R(0.123456, 5)
 
     def test_not_numeric_lhs(self):
-        with ShouldRaise(TypeError("a float is required")):
+        with ShouldRaise(TypeError):
             R(0.123456, 5)  ==  'abc'
 
     def test_repr(self):
