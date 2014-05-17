@@ -1,9 +1,9 @@
-# Copyright (c) 2008-2013 Simplistix Ltd
+# Copyright (c) 2008-2014 Simplistix Ltd
 # See license.txt for license details.
 
 from datetime import date as d
 from time import strptime
-from testfixtures import test_date, replace, compare, should_raise
+from testfixtures import ShouldRaise, test_date, replace, compare
 from testfixtures.tests import sample1, sample2
 from unittest import TestCase
 
@@ -77,8 +77,8 @@ class TestDate(TestCase):
             compare(date.today(),d(2001,1,1))
             compare(sample1.str_today_1(),'2001-01-02')
 
-        s = should_raise(test_something,AssertionError)
-        s()
+        with ShouldRaise(AssertionError) as s:
+            test_something()
         # This convoluted check is because we can't stub
         # out the date, since we're testing stubbing out
         # the date ;-)
@@ -89,7 +89,7 @@ class TestDate(TestCase):
         compare(dt2,'2001-01-02')
 
         # What you need to do is replace the imported type:
-        @replace('testfixtures.tests.sample1.date',test_date())
+        @replace('testfixtures.tests.sample1.date', test_date())
         def test_something():
             compare(sample1.str_today_1(),'2001-01-01')
 
@@ -104,8 +104,8 @@ class TestDate(TestCase):
         def test_something():
             compare(sample1.str_today_2(),'2001-01-01')
 
-        s = should_raise(test_something,AssertionError)
-        s()
+        with ShouldRaise(AssertionError) as s:
+            test_something()
         # This convoluted check is because we can't stub
         # out the date, since we're testing stubbing out
         # the date ;-)

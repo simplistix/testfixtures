@@ -1,4 +1,4 @@
-# Copyright (c) 2008-2013 Simplistix Ltd
+# Copyright (c) 2008-2014 Simplistix Ltd
 # See license.txt for license details.
 
 from testfixtures import Comparison as C, ShouldRaise, should_raise
@@ -11,13 +11,13 @@ class TestShouldRaise(TestCase):
     def test_no_params(self):
         def to_test():
             raise ValueError('wrong value supplied')
-        should_raise(to_test,ValueError('wrong value supplied'))()
+        should_raise(ValueError('wrong value supplied'))(to_test)()
     
     def test_no_exception(self):
         def to_test():
             pass
         try:
-            should_raise(to_test,ValueError())()
+            should_raise(ValueError())(to_test)()
         except AssertionError as e:
             self.assertEqual(
                 e,
@@ -30,7 +30,7 @@ class TestShouldRaise(TestCase):
         def to_test():
             raise ValueError('bar')
         try:
-            should_raise(to_test, ValueError('foo'))()
+            should_raise(ValueError('foo'))(to_test)()
         except AssertionError as e:
             self.assertEqual(
                 e,
@@ -42,7 +42,7 @@ class TestShouldRaise(TestCase):
     def test_only_exception_class(self):
         def to_test():
             raise ValueError('bar')
-        should_raise(to_test,ValueError)()
+        should_raise(ValueError)(to_test)()
     
     def test_no_supplied_or_raised(self):
         # effectvely we're saying "something should be raised!"
@@ -51,7 +51,7 @@ class TestShouldRaise(TestCase):
         def to_test():
             pass
         try:
-            should_raise(to_test)()
+            should_raise()(to_test)()
         except AssertionError as e:
             self.assertEqual(
                 e,
@@ -62,35 +62,23 @@ class TestShouldRaise(TestCase):
     
     def test_args(self):
         def to_test(*args):
-            raise ValueError('%s'%repr(args))
-        should_raise(
-            to_test,
-            ValueError('(1,)')
-            )(1)
+            raise ValueError('%s' % repr(args))
+        should_raise(ValueError('(1,)'))(to_test)(1)
     
     def test_kw_to_args(self):
         def to_test(x):
             raise ValueError('%s'%x)
-        should_raise(
-            to_test,
-            ValueError('1')
-            )(x=1)
+        should_raise(ValueError('1'))(to_test)(x=1)
 
     def test_kw(self):
         def to_test(**kw):
             raise ValueError('%r'%kw)
-        should_raise(
-            to_test,
-            ValueError("{'x': 1}")
-            )(x=1)
+        should_raise(ValueError("{'x': 1}"))(to_test)(x=1)
 
     def test_both(self):
-        def to_test(*args,**kw):
-            raise ValueError('%r %r'%(args,kw))
-        should_raise(
-            to_test,
-            ValueError("(1,) {'x': 2}")
-            )(1,x=2)
+        def to_test(*args, **kw):
+            raise ValueError('%r %r' % (args, kw))
+        should_raise(ValueError("(1,) {'x': 2}"))(to_test)(1, x=2)
 
     def test_method_args(self):
         class X:
@@ -98,8 +86,8 @@ class TestShouldRaise(TestCase):
                 self.args = args
                 raise ValueError()
         x = X()
-        should_raise(x.to_test,ValueError)(1,2,3)
-        self.assertEqual(x.args,(1,2,3))
+        should_raise(ValueError)(x.to_test)(1, 2, 3)
+        self.assertEqual(x.args, (1, 2, 3))
     
     def test_method_kw(self):
         class X:
@@ -107,8 +95,8 @@ class TestShouldRaise(TestCase):
                 self.kw = kw
                 raise ValueError()
         x = X()
-        should_raise(x.to_test,ValueError)(x=1,y=2)
-        self.assertEqual(x.kw,{'x':1,'y':2})
+        should_raise(ValueError)(x.to_test)(x=1, y=2)
+        self.assertEqual(x.kw, {'x':1, 'y':2})
 
     def test_method_both(self):
         class X:
@@ -117,9 +105,9 @@ class TestShouldRaise(TestCase):
                 self.kw = kw
                 raise ValueError()
         x = X()
-        should_raise(x.to_test,ValueError)(1,y=2)
-        self.assertEqual(x.args,(1,))
-        self.assertEqual(x.kw,{'y':2})
+        should_raise(ValueError)(x.to_test)(1, y=2)
+        self.assertEqual(x.args, (1, ))
+        self.assertEqual(x.kw, {'y':2})
 
     def test_class_class(self):
         class Test:
@@ -127,40 +115,20 @@ class TestShouldRaise(TestCase):
                 # The TypeError is raised due to the mis-matched parameters
                 # so the pass never gets executed
                 pass # pragma: no cover
-        r = should_raise(Test, TypeError)()
-        self.assertEqual(r, None)
+        should_raise(TypeError)(Test)()
         
-    def test_return(self):
-        # return of a should_raise is always None!
-        def to_test():
-            raise ValueError('wrong value supplied')
-        s = should_raise(to_test)
-        r = s()
-        self.assertEqual(s.raised,C(ValueError('wrong value supplied')))
-        self.failUnless(r is None)
-        
-    def test_exception_return(self):
-        def to_test(*args):
-            raise ValueError('%s'%repr(args))
-        r = should_raise(to_test,ValueError('(1,)'))(1)
-        self.assertEqual(r,None)
-    
     def test_raised(self):
-        def to_test():
+        with ShouldRaise() as s:
             raise ValueError('wrong value supplied')
-        s = should_raise(to_test)
-        s()
-        self.assertEqual(s.raised,C(ValueError('wrong value supplied')))
+        self.assertEqual(s.raised, C(ValueError('wrong value supplied')))
         
     def test_catch_baseexception_1(self):
-        def to_test():
+        with ShouldRaise(SystemExit):
             raise SystemExit()
-        should_raise(to_test,SystemExit)()
     
     def test_catch_baseexception_2(self):
-        def to_test():
+        with ShouldRaise(KeyboardInterrupt):
             raise KeyboardInterrupt()
-        should_raise(to_test,KeyboardInterrupt)()
 
     def test_with_exception_class_supplied(self):
         with ShouldRaise(ValueError):

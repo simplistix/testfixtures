@@ -5,7 +5,7 @@ import os
 
 from mock import Mock
 from tempfile import mkdtemp
-from testfixtures import compare,tempdir,should_raise,Replacer,TempDirectory
+from testfixtures import Replacer, ShouldRaise, TempDirectory, compare, tempdir
 from unittest import TestCase
 
 from ..rmtree import rmtree
@@ -36,15 +36,12 @@ class TestTempDir(TestCase):
     @tempdir()
     def test_not_same(self,d):
         d.write('something', b'stuff')
-        
-        check = should_raise(d.check,AssertionError(
-            "Sequence not as expected:\n\nsame:\n()\n\nfirst:\n('.svn', 'something')\n\nsecond:\n('something',)"
-            ))
 
-        check(
-            '.svn',
-            'something',
-            )
+        with ShouldRaise(AssertionError(
+            "Sequence not as expected:\n\nsame:\n()\n\nfirst:\n('.svn', 'something')\n\nsecond:\n('something',)"
+            )):
+
+            d.check('.svn', 'something')
         
     @tempdir(ignore=('.svn',))
     def test_ignore(self,d):

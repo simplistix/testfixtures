@@ -1,4 +1,4 @@
-# Copyright (c) 2008-2013 Simplistix Ltd
+# Copyright (c) 2008-2014 Simplistix Ltd
 # See license.txt for license details.
 
 from testfixtures import (
@@ -7,7 +7,6 @@ from testfixtures import (
     TempDirectory,
     replace,
     compare,
-    should_raise,
     not_there,
     )
 from unittest import TestCase
@@ -160,7 +159,8 @@ class TestReplace(TestCase):
 
         compare(sample1.z(),'original z')
 
-        should_raise(test_something)()
+        with ShouldRaise():
+            test_something()
 
         compare(sample1.z(),'original z')
 
@@ -183,11 +183,9 @@ class TestReplace(TestCase):
         @replace('testfixtures.tests.sample1.bad',o)
         def test_something(r):
             pass # pragma: no cover
-        
-        should_raise(
-            test_something,
-            AttributeError("Original 'bad' not found")
-            )()
+
+        with ShouldRaise(AttributeError("Original 'bad' not found")):
+            test_something()
 
     def test_not_there_ok(self):
 

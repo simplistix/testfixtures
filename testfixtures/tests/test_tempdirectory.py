@@ -1,4 +1,4 @@
-# Copyright (c) 2008-2013 Simplistix Ltd
+# Copyright (c) 2008-2014 Simplistix Ltd
 # See license.txt for license details.
 
 import os
@@ -6,9 +6,7 @@ import os
 from doctest import DocTestSuite, ELLIPSIS
 from mock import Mock, call
 from tempfile import mkdtemp
-from testfixtures import (
-    TempDirectory, Replacer, ShouldRaise, should_raise, compare
-    )
+from testfixtures import TempDirectory, Replacer, ShouldRaise, compare
 from unittest import TestCase, TestSuite, makeSuite
 
 from ..compat import Unicode, PY3
@@ -135,45 +133,45 @@ class TempDirectoryTests(TestCase):
 
     def test_write_with_slash_at_start(self):
         with TempDirectory() as d:
-            write = should_raise(d.write,ValueError(
+            with ShouldRaise(ValueError(
                     'Attempt to read or write outside the temporary Directory'
-                    ))
-            write('/some/folder','stuff')
+                    )):
+                d.write('/some/folder','stuff')
 
     def test_makedir_with_slash_at_start(self):
         with TempDirectory() as d:
-            makedir = should_raise(d.makedir,ValueError(
+            with ShouldRaise(ValueError(
                     'Attempt to read or write outside the temporary Directory'
-                    ))
-            makedir('/some/folder')
+                    )):
+                d.makedir('/some/folder')
 
     def test_read_with_slash_at_start(self):
         with TempDirectory() as d:
-            read = should_raise(d.read,ValueError(
+            with ShouldRaise(ValueError(
                     'Attempt to read or write outside the temporary Directory'
-                    ))
-            read('/some/folder')
+                    )):
+                d.read('/some/folder')
 
     def test_listdir_with_slash_at_start(self):
         with TempDirectory() as d:
-            listdir = should_raise(d.listdir,ValueError(
+            with ShouldRaise(ValueError(
                     'Attempt to read or write outside the temporary Directory'
-                    ))
-            listdir('/some/folder')
+                    )):
+                d.listdir('/some/folder')
 
     def test_check_dir_with_slash_at_start(self):
         with TempDirectory() as d:
-            checkdir = should_raise(d.check_dir,ValueError(
+            with ShouldRaise(ValueError(
                     'Attempt to read or write outside the temporary Directory'
-                    ))
-            checkdir('/some/folder')
+                    )):
+                d.check_dir('/some/folder')
 
     def test_check_all_with_slash_at_start(self):
         with TempDirectory() as d:
-            checkall = should_raise(d.check_all,ValueError(
+            with ShouldRaise(ValueError(
                     'Attempt to read or write outside the temporary Directory'
-                    ))
-            checkall('/some/folder')
+                    )):
+                d.check_all('/some/folder')
 
     def test_dont_cleanup_with_path(self):
         d = mkdtemp()

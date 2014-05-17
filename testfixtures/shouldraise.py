@@ -1,43 +1,8 @@
 # Copyright (c) 2008-2014 Simplistix Ltd
 # See license.txt for license details.
 
-from functools import partial, wraps
+from functools import wraps
 from testfixtures import Comparison
-
-class ShouldRaiseWrapper:
-
-    def __init__(self,sr,wrapped):
-        self.sr = sr
-        self.wrapped = wrapped
-
-    def __call__(self,*args,**kw):
-        try:
-            self.wrapped(*args,**kw)
-        except BaseException as actual:
-            self.sr.handle(actual)
-        else:
-            self.sr.handle(None)
-            
-class _should_raise:
-
-    raised = None
-
-    def __init__(self, callable, exception=None):
-        self.callable = callable
-        self.expected = exception
-
-    def handle(self,actual):
-        self.raised = actual
-        if self.expected:
-            if Comparison(self.expected) != actual:
-                raise AssertionError(
-                    '%r raised, %r expected' % (actual, self.expected)
-                    )
-        elif not actual:
-            raise AssertionError('No exception raised!')
-            
-    def __call__(self,*args,**kw):
-        return ShouldRaiseWrapper(self, partial(self.callable))(*args, **kw)
 
 param_docs = """
 
@@ -69,15 +34,22 @@ class ShouldRaise:
         self.exception = exception
 
     def __enter__(self):
-        self.sr = _should_raise(None,self.exception)
-        return self.sr
+        return self
     
-    def __exit__(self,type,value,traceback):
+    def __exit__(self, type, actual, traceback):
         # bug in python :-(
-        if type is not None and not isinstance(value,type):
+        if type is not None and not isinstance(actual, type):
             # fixed in 2.7 onwards!
-            value = type(value) # pragma: no cover
-        self.sr.handle(value)
+            actual = type(actual) # pragma: no cover
+        
+        self.raised = actual
+        if self.expected:
+            if Comparison(self.expected) != actual:
+                raise AssertionError(
+                    '%r raised, %r expected' % (actual, self.expected)
+                    )
+        elif not actual:
+            raise AssertionError('No exception raised!')
         return True
 
 class should_raise(object):
@@ -88,18 +60,10 @@ class should_raise(object):
     raised.
     """ + param_docs
         
-    # backwards compatibility for the old should_raise
-    # wrapper stuff
-    def __new__(cls,target_or_exception, exception=None):
-        if exception is not None or callable(target_or_exception):
-            return _should_raise(target_or_exception, exception)
-        else:
-            return super(should_raise,cls).__new__(cls)
-        
     def __init__(self, exception=None):
-        self.exception=exception
+        self.exception = exception
 
-    def __call__(self,target):
+    def __call__(self, target):
 
         @wraps(target)
         def _should_raise_wrapper(*args, **kw):
