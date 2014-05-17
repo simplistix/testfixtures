@@ -19,30 +19,6 @@ class ShouldRaiseWrapper:
             self.sr.handle(None)
             
 class _should_raise:
-    """
-    A wrapper to use when you want to assert that an exception is
-    raised.
-
-    .. note::
-
-      Consider using the :class:`ShouldRaise` context manager
-      instead.
-
-    :param callable: the object to be wrapped.
-
-    :param exception: This can be one of the following:
-    
-                      * `None`, indicating that an exception must be
-                        raised, but the type is unimportant.
-                        
-                      * An exception class, indicating that the type
-                        of the exception is important but not the
-                        parameters it is created with.
-                        
-                      * An exception instance, indicating that an
-                        exception exactly matching the one supplied
-                        should be raised.  
-    """
 
     raised = None
 
