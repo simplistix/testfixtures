@@ -220,11 +220,11 @@ class TestShouldRaise(TestCase):
             message = "No module named 'textfixtures'"
         else:
             message = 'No module named textfixtures.foo.bar'
-        with ShouldRaise(ImportError(message)) as s:
+        with ShouldRaise(ImportError(message)):
             import textfixtures.foo.bar
     
     def test_import_errors_2(self):
-        with ShouldRaise(ImportError('X')) as s:
+        with ShouldRaise(ImportError('X')):
             raise ImportError('X')
 
     def test_custom_exception(self):
@@ -233,7 +233,7 @@ class TestShouldRaise(TestCase):
             def __init__(self,value):
                 self.value = value
 
-        with ShouldRaise(FileTypeError('X')) as s:
+        with ShouldRaise(FileTypeError('X')):
             raise FileTypeError('X')
 
     def test_assert_keyerror_raised(self):
