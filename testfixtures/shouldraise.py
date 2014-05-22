@@ -29,7 +29,7 @@ class ShouldRaise:
     """
     This context manager is used to assert that an exception is raised
     within the context it is managing.
-    """ + param_docs
+    """
 
     #: The exception captured by the context manager.
     #: Can be used to inspect specific attributes of the exception.
@@ -63,13 +63,15 @@ class ShouldRaise:
 
         return True
 
-class should_raise(object):
+ShouldRaise.__doc__ += param_docs
+
+class should_raise:
     """
     A decorator to assert that the decorated function will raised
     an exception. An exception class or exception instance may be
     passed to check more specifically exactly what exception will be
     raised.
-    """ + param_docs
+    """
         
     def __init__(self, exception=None, unless=None):
         self.exception = exception
@@ -84,3 +86,4 @@ class should_raise(object):
                 
         return _should_raise_wrapper
             
+should_raise.__doc__ += param_docs
