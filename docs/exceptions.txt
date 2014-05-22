@@ -107,3 +107,33 @@ manager described in the documentation above.
   hinder test development. With the context manager, you can make
   assertions about only the exact lines of code that you expect to
   raise the exception.
+
+Exceptions that are conditionally raised
+----------------------------------------
+
+Some exceptions are only raised in certain versions of Python. For
+example, in Python 2, ``bytes()`` will turn both bytes and strings into
+bytes, while in Python 3, it will raise an exception when presented
+with a string. If you wish to make assertions that this behaviour is
+expected, you can use the ``unless`` option to :class:`ShouldRaise`
+as follows:
+
+.. code-block:: python
+
+  import sys
+  from testfixtures import ShouldRaise
+
+  PY2 = sys.version_info[:2] <  (3, 0)
+
+  with ShouldRaise(TypeError, unless=PY2):
+      bytes(u'something')
+
+.. note:: 
+
+  Do **not** abuse this functionality to make sloppy assertions. It is
+  always better have two different tests that cover a case when an
+  exception should be raised and a case where an exception should not
+  be raised rather than using it above functionality. It is *only*
+  provided to help in cases where something in the environment that
+  cannot be mocked out or controlled influences whether or not an
+  exception is raised.

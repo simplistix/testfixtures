@@ -233,3 +233,40 @@ class TestShouldRaise(TestCase):
             raise ValueError('bad')
 
         to_test()
+
+    def test_unless_false_okay(self):
+        with ShouldRaise(unless=False):
+            raise AttributeError()
+
+    def test_unless_false_bad(self):
+        try:
+            with ShouldRaise(unless=False):
+                pass
+        except AssertionError as e:
+            self.assertEqual(e, C(AssertionError("No exception raised!")))
+        else:
+            self.fail('No exception raised!')
+
+    def test_unless_true_okay(self):
+        with ShouldRaise(unless=True):
+            pass
+
+    def test_unless_true_not_okay(self):
+        try:
+            with ShouldRaise(unless=True):
+                raise AttributeError('foo')
+        except AssertionError as e:
+            self.assertEqual(e, C(AssertionError(
+                        "AttributeError('foo',) raised, no exception expected"
+                        )))
+        else:
+            self.fail('No exception raised!')
+            
+    def test_unless_decorator_usage(self):
+
+        @should_raise(unless=True)
+        def to_test():
+            pass
+
+        to_test()
+

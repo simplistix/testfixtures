@@ -17,7 +17,12 @@ param_docs = """
                         
                       * An exception instance, indicating that an
                         exception exactly matching the one supplied
-                        should be raised.  
+                        should be raised.
+
+    :param unless: Can be passed a boolean that, when ``True`` indicates that
+                   no exception is expected. This is useful when checking
+                   that exceptions are only raised on certain versions of
+                   Python.
 """
 
 class ShouldRaise:
@@ -30,8 +35,9 @@ class ShouldRaise:
     #: Can be used to inspect specific attributes of the exception.
     raised = None
     
-    def __init__(self,exception=None):
+    def __init__(self, exception=None, unless=False):
         self.exception = exception
+        self.expected = not unless
 
     def __enter__(self):
         return self
@@ -43,13 +49,18 @@ class ShouldRaise:
             actual = type(actual) # pragma: no cover
         
         self.raised = actual
+
         if self.expected:
-            if Comparison(self.expected) != actual:
-                raise AssertionError(
-                    '%r raised, %r expected' % (actual, self.expected)
-                    )
-        elif not actual:
-            raise AssertionError('No exception raised!')
+            if self.exception:
+                if Comparison(self.exception) != actual:
+                    raise AssertionError(
+                        '%r raised, %r expected' % (actual, self.exception)
+                        )
+            elif not actual:
+                raise AssertionError('No exception raised!')
+        elif actual:
+            raise AssertionError('%r raised, no exception expected' % actual)
+
         return True
 
 class should_raise(object):
@@ -60,14 +71,15 @@ class should_raise(object):
     raised.
     """ + param_docs
         
-    def __init__(self, exception=None):
+    def __init__(self, exception=None, unless=None):
         self.exception = exception
+        self.unless = unless
 
     def __call__(self, target):
 
         @wraps(target)
         def _should_raise_wrapper(*args, **kw):
-            with ShouldRaise(self.exception):
+            with ShouldRaise(self.exception, self.unless):
                 target(*args,**kw)
                 
         return _should_raise_wrapper
