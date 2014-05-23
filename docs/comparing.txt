@@ -584,6 +584,28 @@ There are a few things to be careful of when using comparisons:
   >>> C(SomeClass)==C(SomeClass)
   False
 
+Round Comparison objects
+-------------------------
+
+When comparing numerics you often want to be able to compare to a 
+given precision to allow for rounding issues which make precise
+equality impossible.
+
+For these situations, you can use :class:`RoundComparison` objects
+wherever you would use floats or Decimals, and they will compare equal to
+any float or Decimal that matches when both sides are rounded to the
+specified precision.
+
+Here's an example:
+
+.. code-block:: python
+
+  from testfixtures import compare, RoundComparison as R
+
+  compare(R(1234.5678, 2), 1234.5681)
+
+.. note:: 
+
 String Comparison objects
 -------------------------
 
@@ -622,24 +644,3 @@ As an example:
 -line2
 +lineA
  line3
-
-Round Comparison objects
--------------------------
-
-When comparing numerics you often want to be able to compare to a 
-given precision to allow for rounding issues which make precise
-equality impossible.
-
-For these situations, you can use :class:`RoundComparison` objects
-wherever you would use floats or Decimals, and they will compare equal to
-any float or Decimal that matches when both sides are rounded to the
-specified precision.
-
-Here's an example:
-
-.. code-block:: python
-
-  from testfixtures import compare, RoundComparison as R
-
-  compare(R(1234.5678, 2), 1234.5681)
-
