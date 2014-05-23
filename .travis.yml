@@ -7,7 +7,7 @@ python:
   - "2.6"
 
 # command to install dependencies
-install: "pip install -r mock manual zope.component"
+install: "pip install mock manual zope.component"
 
 # command to run tests, e.g. python setup.py test
 script: nosetests
