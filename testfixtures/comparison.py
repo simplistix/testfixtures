@@ -452,10 +452,13 @@ class RoundComparison:
         self.rounded = round(value, precision)
         self.precision = precision
 
-    def __eq__(self,other):
-        return self.rounded == round(other, self.precision)
+    def __eq__(self, other):
+        other_rounded = round(other, self.precision)
+        if type(self.rounded) is not type(other_rounded):
+            raise TypeError('Cannot compare %r with %r' % (self, type(other)))
+        return self.rounded == other_rounded
 
-    def __ne__(self,other):
+    def __ne__(self, other):
         return not self == other
 
     def __repr__(self):

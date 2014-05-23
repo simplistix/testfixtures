@@ -606,6 +606,12 @@ Here's an example:
 
 .. note:: 
 
+  You should always pass the same type of object to the
+  :class:`RoundComparison` object as you intend compare it with. If
+  the type of the rounded expected value is not the same as the type of
+  the rounded value being compared against it, a :class:`TypeError`
+  will be raised.
+
 String Comparison objects
 -------------------------
 
