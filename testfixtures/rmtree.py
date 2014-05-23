@@ -1,6 +1,6 @@
 # lamosity needed to make things reliable on Windows :-(
 # (borrowed from Python's test_support.py)
-import os, sys, shutil
+import os, sys, shutil, errno
 
 if sys.platform.startswith("win"):
     def _waitfor(func, pathname, waitall=False):
