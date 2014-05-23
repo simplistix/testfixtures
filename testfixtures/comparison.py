@@ -1,4 +1,4 @@
-# Copyright (c) 2008-2013 Simplistix Ltd
+# Copyright (c) 2008-2014 Simplistix Ltd
 # See license.txt for license details.
 
 from collections import Iterable
@@ -239,9 +239,9 @@ def compare(x, y, **kw):
     if strict:
         comparer = _default_compare_strict
         if (type(x) is type(y)) and x==y:
-            return identity
+            return
     elif x==y:
-        return identity
+        return
     else:
         comparer = _default_compare
         
@@ -261,7 +261,7 @@ def compare(x, y, **kw):
         
     message = comparer(x, y, **kw)
     if message is identity:
-        return identity
+        return
 
     if prefix:
         message = prefix + ': ' + message

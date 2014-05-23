@@ -279,11 +279,6 @@ API Reference
 
 .. autoclass:: testfixtures.manuel.Files
 
-.. data:: identity
-
-   A singleton used to identify comparisons of objects that are found
-   to be identical.
-
 .. data:: not_there
 
    A singleton used to represent the absence of a particular attribute.

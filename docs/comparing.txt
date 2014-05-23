@@ -144,7 +144,6 @@ actually being generators and without having to manually cast the
 value to something comparable, such as a tuple:
 
 >>> compare(generator(1, 2, 3), xrange(1, 4))
-<identity>
 
 .. warning::
 
@@ -341,7 +340,6 @@ Traceback (most recent call last):
  ...
 AssertionError: DataRow(x=1, y=2, z=3) != DataRow(x=1, y=2, z=4)
 >>> compare(DataRow(1, 2, 3), DataRow(1, 2, 4), all=False)
-<identity>
 
 .. invisible-code-block: python
 
@@ -385,7 +383,6 @@ provided the elements within them are the same:
 >>> TypeA = namedtuple('A', 'x')
 >>> TypeB = namedtuple('B', 'x')
 >>> compare(TypeA(1), TypeB(1))
-<identity>
 
 If this type difference is important, then the `strict` parameter
 should be used:

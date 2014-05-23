@@ -115,7 +115,6 @@ At any point, you can check what has been logged using the
 check method:
 
 >>> l.check(('root', 'INFO', 'a message'))
-<...>
 
 Alternatively, you can use the string representation of the
 :class:`~testfixtures.LogCapture`: 
@@ -178,11 +177,6 @@ If things are as you expected, the method will not raise any exceptions:
 ...     ('root', 'ERROR', 'error occurred'),
 ...     )
 
-It will return the :obj:`~testfixtures.identity` object:
-
->>> from testfixtures import identity
->>> result is identity
-True
 
 However, if the actual messages logged were different, you'll get an
 :class:`~exceptions.AssertionError` explaining what happened:

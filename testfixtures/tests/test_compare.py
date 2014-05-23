@@ -1,4 +1,4 @@
-# Copyright (c) 2008-2013 Simplistix Ltd
+# Copyright (c) 2008-2014 Simplistix Ltd
 # See license.txt for license details.
 
 from mock import Mock, call
@@ -7,7 +7,6 @@ from testfixtures import (
     Comparison as C,
     ShouldRaise,
     compare,
-    identity,
     generator,
     )
 from testfixtures.compat import class_type_name, exception_module, PY3, xrange
@@ -37,7 +36,7 @@ class TestCompare(TestCase):
             
     def test_object_same(self):
         o = object()
-        self.failUnless(compare(o,o) is identity)
+        compare(o, o)
 
     def test_object_diff(self):
         o1 = object()
@@ -51,13 +50,13 @@ class TestCompare(TestCase):
         self.checkRaises('x',1,"'x' != 1")
 
     def test_number_same(self):
-        self.failUnless(compare(1,1) is identity)
+        compare(1, 1)
 
     def test_number_different(self):
         self.checkRaises(1,2,'1 != 2')
 
     def test_string_same(self):
-        self.failUnless(compare('x','x') is identity)
+        compare('x', 'x')
 
     def test_string_diff_short(self):
         self.checkRaises(
@@ -79,12 +78,12 @@ class TestCompare(TestCase):
 
     def test_exception_same_object(self):
         e = ValueError('some message')
-        self.failUnless(compare(e,e) is identity)
+        compare(e, e)
 
     def test_exception_same_c_wrapper(self):
         e1 = ValueError('some message')
         e2 = ValueError('some message')
-        self.failUnless(compare(C(e1),e2) is identity)
+        compare(C(e1), e2)
 
     def test_exception_different_object(self):
         e1 = ValueError('some message')
@@ -97,7 +96,7 @@ class TestCompare(TestCase):
     def test_exception_different_object_c_wrapper(self):
         e1 = ValueError('some message')
         e2 = ValueError('some message')
-        self.failUnless(compare(C(e1),e2) is identity)
+        compare(C(e1), e2)
 
     def test_exception_diff(self):
         e1 = ValueError('some message')
@@ -148,7 +147,7 @@ class TestCompare(TestCase):
             )
 
     def test_list_same(self):
-        self.failUnless(compare([1,2,3],[1,2,3]) is identity)
+        compare([1,2,3], [1,2,3])
 
     def test_list_different(self):
         self.checkRaises(
@@ -193,7 +192,7 @@ class TestCompare(TestCase):
             )
 
     def test_dict_same(self):
-        self.failUnless(compare(dict(x=1),dict(x=1)) is identity)
+        compare(dict(x=1), dict(x=1))
 
     def test_dict_first_missing_keys(self):
         self.checkRaises(
@@ -268,7 +267,7 @@ class TestCompare(TestCase):
             )
 
     def test_set_same(self):
-        self.failUnless(compare(set([1]),set([1])) is identity)
+        compare(set([1]), set([1]))
 
     def test_set_first_missing_keys(self):
         self.checkRaises(
@@ -304,7 +303,7 @@ class TestCompare(TestCase):
             )
 
     def test_tuple_same(self):
-        self.failUnless(compare((1,2,3),(1,2,3)) is identity)
+        compare((1,2,3), (1,2,3))
 
     def test_tuple_different(self):
         self.checkRaises(
@@ -343,7 +342,7 @@ class TestCompare(TestCase):
             )
 
     def test_generator_same(self):
-        self.failUnless(compare(generator(1,2,3),generator(1,2,3)) is identity)
+        compare(generator(1,2,3), generator(1,2,3))
 
     def test_generator_different(self):
         self.checkRaises(
@@ -408,8 +407,8 @@ class TestCompare(TestCase):
             )
 
     def test_old_style_classes_same(self):
-        class X:pass
-        self.failUnless(compare(X,X) is identity)
+        class X: pass
+        compare(X, X)
 
 
     def test_old_style_classes_different(self):
