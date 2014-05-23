@@ -459,7 +459,7 @@ class RoundComparison:
         return not self == other
 
     def __repr__(self):
-        return ('<R:%%.%df>' % self.precision) % self.rounded
+        return '<R:%s to %i digits>' % (self.rounded, self.precision)
         
 def diff(x,y):
     """

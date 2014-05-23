@@ -48,13 +48,20 @@ class Tests(TestCase):
             R(0.123456, 5)  ==  'abc'
 
     def test_repr(self):
-        compare('<R:0.12346>',
+        compare('<R:0.12346 to 5 digits>',
                 repr(R(0.123456, 5)))
 
     def test_str(self):
-        compare('<R:0.12346>',
+        compare('<R:0.12346 to 5 digits>',
                 repr(R(0.123456, 5)))
     
+    def test_str_negative(self):
+        if PY3:
+            expected = '<R:123500 to -2 digits>'
+        else:
+            expected = '<R:123500.0 to -2 digits>'
+        compare(expected, repr(R(123456, -2)))
+
     def test_equal_yes_decimal_to_float_rhs(self):
         self.assertTrue(Decimal("0.123457") == R(0.123456, 5))
 
