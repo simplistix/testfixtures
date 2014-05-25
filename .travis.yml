@@ -10,4 +10,4 @@ python:
 install: "pip install -e .[test]"
 
 # command to run tests, e.g. python setup.py test
-script: bin/nosetests
+script: nosetests
