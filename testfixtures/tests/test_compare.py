@@ -1,6 +1,7 @@
 # Copyright (c) 2008-2014 Simplistix Ltd
 # See license.txt for license details.
 
+from collections import namedtuple
 from mock import Mock, call
 from re import compile
 from testfixtures import (
@@ -508,6 +509,13 @@ b
         compare_dict.assert_called_with(
             {1:1}, {2:2}, foo='bar'
             )
+    
+    def test_register_more_specific(self):
+        class_ = namedtuple('Test', 'x')
+        with ShouldRaise(AssertionError('compare class_')):
+            compare(class_(1), class_(2),
+                    registry={tuple: Mock(return_value='compare tuple'),
+                              class_: Mock(return_value='compare class_')})
 
     def test_list_subclass(self):
         m = Mock()

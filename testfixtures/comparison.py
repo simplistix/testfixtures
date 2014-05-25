@@ -205,20 +205,35 @@ def register(type, comparer):
     this function is called until the end of the current process.
     """
     _registry[type] = comparer
-    
+
+def _mro(obj):
+    class_ = getattr(obj, '__class__', None)
+    if class_ is None:
+        # must be an old-style class object in Python 2!
+        return (obj, )
+    mro = getattr(class_, '__mro__', None)
+    if mro is None:
+        # instance of old-style class in Python 2!
+        return (class_, )
+    return mro
+
+def _shared_mro(x, y):
+    y_mro = set(_mro(y))
+    for class_ in _mro(x):
+        if class_ in y_mro:
+            yield class_
+
 def _lookup_comparer(x, y, registry, strict):
-    comparer = None
     if strict:
-        comparer = _default_compare_strict
         if type(x) is type(y):
-            comparer = registry.get(type(x), _default_compare)
+            return registry.get(type(x), _default_compare)
+        return _default_compare_strict
     else:
-        comparer = _default_compare
-        for t in registry.keys():
-            if isinstance(x, t) and isinstance(y, t):
-                comparer = registry[t]
-                break
-    return comparer
+        for class_ in _shared_mro(x, y):
+            comparer = registry.get(class_)
+            if comparer:
+                return comparer
+        return _default_compare
 
 def compare(x, y, **kw):
     """
@@ -271,7 +286,7 @@ def compare(x, y, **kw):
 
     raise AssertionError(message)
     
-class Comparison:
+class Comparison(object):
     """
     These are used when you need to compare objects
     that do not natively support comparison. 
