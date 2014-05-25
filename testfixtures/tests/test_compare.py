@@ -546,7 +546,7 @@ b
         m.aCall()
         self.checkRaises(
             [call.aCall()], m.method_calls,
-            ("[call.aCall()] (<{0} 'list'>)!= [call.aCall()] "
+            ("[call.aCall()] (<{0} 'list'>) != [call.aCall()] "
              "(<class 'mock._CallList'>)").format(class_type_name),
             strict=True,
             )
@@ -557,7 +557,7 @@ b
         self.checkRaises(
             [call.call('Y'*20)], m.method_calls,
             ("[call.call('YYYYYYYYYYYYYYYYYY... "
-             "(<{0} 'list'>)!= "
+             "(<{0} 'list'>) != "
              "[call.call('XXXXXXXXXXXXXXXXXX... "
              "(<class 'mock._CallList'>)").format(class_type_name),
             strict=True,

@@ -177,17 +177,19 @@ def compare_text(x, y,
 def _default_compare(x, y):
     return '%r != %r' % (x, y)
 
+def _short_repr(obj):
+    repr_ = repr(obj)
+    if len(repr_) > 30:
+        repr_ = repr_[:30] + '...'
+    return repr_
+    
 def _default_compare_strict(x, y):
-    r = {}
-    l = locals()
-    for vn in 'x', 'y':
-        v = l[vn]
-        r['t'+vn] = type(v)
-        rv = repr(v)
-        if len(rv)>30:
-            rv = rv[:30]+'...'
-        r[vn] = rv
-    return '%(x)s (%(tx)r)!= %(y)s (%(ty)r)' % r
+    source = locals()
+    to_render = {}
+    for name in 'x', 'y':
+        obj = source[name]
+        to_render[name] = '{0} ({1!r})'.format(_short_repr(obj), type(obj))
+    return '{x} != {y}'.format(**to_render)
 
 _registry = {
     dict: compare_dict,
