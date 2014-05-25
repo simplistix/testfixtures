@@ -3,6 +3,22 @@ Changes
 
 .. currentmodule:: testfixtures
 
+3.1.0 (25 May 2014)
+-------------------
+
+- Added :class:`RoundComparison` helper for comparing numerics to a
+  specific precision.
+
+- Added ``unless`` parameter to :class:`ShouldRaise` to cover
+  some very specific edge cases.
+
+- Fix missing imports that showed up :class:`TempDirectory` had to do
+  the "convoluted folder delete" dance on Windows.
+
+Thanks to Jon Thompson for the :class:`RoundComparison` implementation.
+
+Thanks to Matthias Lehmann for the import error reports.
+
 3.0.2 (7 April 2014)
 --------------------
 
