@@ -45,7 +45,7 @@ the logging wasn't as you expected:
 ...     )
 Traceback (most recent call last):
  ...
-AssertionError: Sequence not as expected:
+AssertionError: sequence not as expected:
 <BLANKLINE>
 same:
 (('root', 'INFO', 'a message'),)
@@ -184,7 +184,7 @@ However, if the actual messages logged were different, you'll get an
 >>> l.check(('root', 'INFO', 'start of block number 1'))
 Traceback (most recent call last):
  ...
-AssertionError: Sequence not as expected:
+AssertionError: sequence not as expected:
 <BLANKLINE>
 same:
 (('root', 'INFO', 'start of block number 1'),)

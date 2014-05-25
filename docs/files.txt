@@ -340,7 +340,7 @@ unit test failure:
 >>> tempdir.check('subdir')
 Traceback (most recent call last):
 ...
-AssertionError: Sequence not as expected:
+AssertionError: sequence not as expected:
 <BLANKLINE>
 same:
 ()

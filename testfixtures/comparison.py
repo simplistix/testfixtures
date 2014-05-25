@@ -24,7 +24,7 @@ def compare_sequence(x, y):
             break
         i+=1
     return (
-        'Sequence not as expected:\n\n'
+        'sequence not as expected:\n\n'
         'same:\n%s\n\n'
         'first:\n%s\n\n'
         'second:\n%s')%(

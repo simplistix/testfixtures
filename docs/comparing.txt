@@ -91,7 +91,7 @@ where the differences lie:
 >>> compare([1, 2, 3], [1, 2, 4])
 Traceback (most recent call last):
  ...
-AssertionError: Sequence not as expected:
+AssertionError: sequence not as expected:
 <BLANKLINE>
 same:
 [1, 2]
@@ -120,7 +120,7 @@ generator to represent the expected results:
 >>> compare(generator(1, 2, 3), my_gen(2))
 Traceback (most recent call last):
  ...
-AssertionError: Sequence not as expected:
+AssertionError: sequence not as expected:
 <BLANKLINE>
 same:
 (1, 2)
@@ -290,7 +290,7 @@ as follows:
 >>> compare(DataRow(1, 2, 3), DataRow(1, 2, 4))
 Traceback (most recent call last):
  ...
-AssertionError: Sequence not as expected:
+AssertionError: sequence not as expected:
 <BLANKLINE>
 same:
 (1, 2)
