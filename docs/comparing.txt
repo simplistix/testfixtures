@@ -79,8 +79,6 @@ in second but not first:
 <BLANKLINE>
 values differ:
 'a': 4 != 5
-<BLANKLINE>
-<BLANKLINE>
 
 lists and tuples
 ~~~~~~~~~~~~~~~~

@@ -182,7 +182,7 @@ class TestCompare(TestCase):
             "second:\n[3]"
             )
 
-    def test_list_second_shorted(self):
+    def test_list_second_shorter(self):
         self.checkRaises(
             [1,2,3],[1,2],
             "sequence not as expected:\n\n"
@@ -200,8 +200,7 @@ class TestCompare(TestCase):
             "dict not as expected:\n"
             "\n"
             "in second but not first:\n"
-            "'z': 3\n"
-            '\n'
+            "'z': 3"
             )
 
     def test_dict_second_missing_keys(self):
@@ -210,8 +209,7 @@ class TestCompare(TestCase):
             "dict not as expected:\n"
             "\n"
             "in first but not second:\n"
-            "'z': 3\n"
-            '\n'
+            "'z': 3"
             )
 
     def test_dict_values_different(self):
@@ -220,8 +218,7 @@ class TestCompare(TestCase):
             "dict not as expected:\n"
             "\n"
             "values differ:\n"
-            "'x': 1 != 2\n"
-            '\n'
+            "'x': 1 != 2"
             )
     
     def test_dict_full_diff(self):
@@ -239,8 +236,7 @@ class TestCompare(TestCase):
             "'z': 3\n"
             '\n'
             "values differ:\n"
-            "'a': 4 != 5\n"
-            '\n'
+            "'a': 4 != 5"
             )
 
     def test_dict_consistent_ordering(self):
@@ -262,8 +258,7 @@ class TestCompare(TestCase):
             '\n'
             "values differ:\n"
             "'aa': 3 != 5\n"
-            "'ab': 4 != 5\n"
-            '\n'
+            "'ab': 4 != 5"
             )
 
     def test_set_same(self):

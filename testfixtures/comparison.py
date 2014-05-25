@@ -70,30 +70,27 @@ def compare_dict(x, y):
                 pformat(x[key]),
                 pformat(y[key]),
                 ))
-    lines = ['%s not as expected:' % x.__class__.__name__,'']
+    lines = ['%s not as expected:' % x.__class__.__name__]
     if same:
-        lines.extend(['same:',repr(same),''])
+        lines.extend(('', 'same:', repr(same)))
     if x_not_y:
-        lines.append('in first but not second:')
+        lines.extend(('', 'in first but not second:'))
         for key in sorted(x_not_y):
             lines.append('%r: %s' % (
                 key,
                 pformat(x[key])
                 ))
-        lines.append('')
     if y_not_x:
-        lines.append('in second but not first:')
+        lines.extend(('', 'in second but not first:'))
         for key in sorted(y_not_x):
             lines.append('%r: %s' % (
                 key,
                 pformat(y[key])
                 ))
-        lines.append('')
     if diffs:
-        lines.append('values differ:')
+        lines.extend(('', 'values differ:'))
         lines.extend(diffs)
-        lines.append('')
-    return '\n'.join(lines)+'\n'
+    return '\n'.join(lines)
 
 def compare_set(x, y):
     """
