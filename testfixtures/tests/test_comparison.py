@@ -5,8 +5,9 @@ from testfixtures import Comparison as C, TempDirectory, compare
 from testfixtures.compat import PY2, PY3, exception_module
 from testfixtures.tests.sample1 import TestClassA, a_function
 from unittest import TestCase
+import sys
 
-from .compat import py_27_plus, py_33_plus
+from .compat import py_33_plus
 
 class AClass:
 
@@ -161,7 +162,7 @@ class TestC(TestCase):
     def test_repr_exception_not_args(self):
         r = repr(C(WeirdException(1, 2)))
         
-        if py_33_plus:
+        if sys.version_info >=  (3, 2, 3):
             # in PY3, even args that aren't set still appear to be there
             args =  "  args:(1, 2)\n"
         else:
