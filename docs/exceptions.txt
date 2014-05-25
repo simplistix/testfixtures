@@ -126,7 +126,7 @@ as follows:
   PY2 = sys.version_info[:2] <  (3, 0)
 
   with ShouldRaise(TypeError, unless=PY2):
-      bytes(u'something')
+      bytes('something')
 
 .. note:: 
 
