@@ -162,7 +162,7 @@ class TestC(TestCase):
     def test_repr_exception_not_args(self):
         r = repr(C(WeirdException(1, 2)))
         
-        if sys.version_info >=  (3, 2, 3):
+        if sys.version_info >=  (3, 2, 4):
             # in PY3, even args that aren't set still appear to be there
             args =  "  args:(1, 2)\n"
         else:
