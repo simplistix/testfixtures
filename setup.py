@@ -1,4 +1,4 @@
-# Copyright (c) 2008-2013 Simplistix Ltd
+# Copyright (c) 2008-2014 Simplistix Ltd
 # See license.txt for license details.
 
 import os, sys
@@ -43,5 +43,6 @@ setup(
     include_package_data=True,
     extras_require=dict(
         test=test_requires,
+        build=['sphinx', 'pkginfo', 'setuptools-git']
         )
     )

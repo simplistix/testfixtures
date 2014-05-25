@@ -1,4 +1,0 @@
-$PYTHON_EXE  bootstrap.py
-bin/buildout
-bin/nosetests --with-xunit --with-cov --cov=testfixtures
-bin/docpy setup.py sdist

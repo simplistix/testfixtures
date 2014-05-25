@@ -20,18 +20,20 @@ https://github.com/Simplistix/testfixtures/
 Once that has been done, you can follow these
 instructions to perform various development tasks:
 
-Setting up the buildout
+Setting up a virtualenv
 -----------------------
 
-All development requires that you run the buildout::
+The recommended way to set up a development environment is to turn
+your checkout into a virtualenv and then install the package in
+editable form as follows::
 
-  $ python bootstrap.py
-  $ bin/buildout
+  $ virtualenv .
+  $ bin/pip install -e .[test,build]
 
 Running the tests
 -----------------
 
-Once you have a buildout, the tests can be run as follows::
+Once you've set up a virtualenv, the tests can be run as follows::
 
   $ bin/nosetests
 
@@ -39,7 +41,7 @@ Building the documentation
 --------------------------
 
 The Sphinx documentation is built by doing the following from the
-directory containg setup.py::
+directory containing setup.py::
 
   $ cd docs
   $ make html
@@ -50,14 +52,14 @@ Making a release
 The following will build the distribution, upload it to PyPI, register
 the metadata with PyPI and upload the Sphinx documentation to PyPI::
 
-  $ bin/buildout -o
+  $ bin/pip install -e .[test,build]
   $ cd docs
   $ make clean
   $ make html
   $ cd ..
-  $ bin/docpy setup.py sdist upload register upload_docs --upload-dir=docs/_build/html
+  $ bin/python setup.py sdist upload register upload_docs --upload-dir=docs/_build/html
 
-The ``bin/buildout`` will make sure the correct package information is
+Running pip again will make sure the correct package information is
 used.
 
 This should all be done on a unix box so that a `.tgz` source

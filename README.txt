@@ -11,5 +11,5 @@ If working offline, please consult the documentation source in the
 Licensing
 =========
 
-Copyright (c) 2008-2011 Simplistix Ltd
+Copyright (c) 2008-2014 Simplistix Ltd
 See docs/license.txt for details.
