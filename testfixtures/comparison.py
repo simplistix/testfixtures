@@ -206,6 +206,20 @@ def register(type, comparer):
     """
     _registry[type] = comparer
     
+def _lookup_comparer(x, y, registry, strict):
+    comparer = None
+    if strict:
+        comparer = _default_compare_strict
+        if type(x) is type(y):
+            comparer = registry.get(type(x), _default_compare)
+    else:
+        comparer = _default_compare
+        for t in registry.keys():
+            if isinstance(x, t) and isinstance(y, t):
+                comparer = registry[t]
+                break
+    return comparer
+
 def compare(x, y, **kw):
     """
     Compare the two supplied arguments and raise an
@@ -236,27 +250,17 @@ def compare(x, y, **kw):
 
     # short-circuit check
     if strict:
-        comparer = _default_compare_strict
         if (type(x) is type(y)) and x==y:
             return
     elif x==y:
         return
     else:
-        comparer = _default_compare
-        
-    # extensive, extendable, comparison and error reporting
-    if strict:
-        if type(x) is type(y):
-            comparer = registry.get(type(x), _default_compare)
-    else:
         # allow comparison of generators with any sequence
         if isinstance(x, GeneratorType) and isinstance(y, Iterable):
             y = generator(*tuple(y))
-
-        for t in registry.keys():
-            if isinstance(x, t) and isinstance(y, t):
-                comparer = registry[t]
-                break
+        
+    # extensive, extendable comparison and error reporting
+    comparer = _lookup_comparer(x, y, registry, strict)
         
     message = comparer(x, y, **kw)
     if message is identity:
