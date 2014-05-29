@@ -12,7 +12,7 @@ this.
 Dates
 ~~~~~
 
-TextFixtures provides the :func:`~testfixtures.test_date` function
+TestFixtures provides the :func:`~testfixtures.test_date` function
 that returns a subclass of :class:`datetime.date` with a
 :meth:`~datetime.date.today` method that will return a
 consistent sequence of dates each time it is called.
