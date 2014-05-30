@@ -9,29 +9,34 @@ from testfixtures import (
     ShouldRaise,
     compare,
     generator,
+    singleton,
     )
+from testfixtures.comparison import Result
 from testfixtures.compat import class_type_name, exception_module, PY3, xrange
 from unittest import TestCase
 from .compat import py_33_plus
 
 hexaddr = compile('0x[0-9A-Fa-f]+')
 
+def hexsub(raw):
+    return hexaddr.sub('...', raw)
+    
 class TestCompare(TestCase):
 
-    def checkRaises(self,x,y,message=None,regex=None,**kw):
+    def checkRaises(self, x, y, message=None, regex=None, **kw):
         try:
-            compare(x,y,**kw)
+            compare(x, y, **kw)
         except Exception as e:
-            if not isinstance(e,AssertionError):
-                self.fail('Expected AssertionError, got %r'%e)
-            actual = hexaddr.sub('...',e.args[0])
+            if not isinstance(e, AssertionError):
+                self.fail('Expected AssertionError, got %r' % e)
+            actual = hexsub(e.args[0])
             if message is not None:
                 # handy for debugging, but can't be relied on for tests!
-                # compare(actual,message)
-                self.assertEqual(actual,message)
+                #compare(actual, message, show_whitespace=True)
+                self.assertEqual(actual, message)
             else:
                 if not regex.match(actual): # pragma: no cover
-                    self.fail('%r did not match %r'%(actual,regex.pattern))
+                    self.fail('%r did not match %r' % (actual, regex.pattern))
         else:
             self.fail('No exception raised!')
             
@@ -144,7 +149,12 @@ class TestCompare(TestCase):
             "['quite a long string 9',\n"
             " 'quite a long string 10',\n"
             " 'quite a long string 11',\n"
-            " 'quite a long string 12']"
+            " 'quite a long string 12']\n"
+            "\n"
+            "While comparing [4]: \n"
+            "'quite a long string 5'\n"
+            "!=\n"
+            "'quite a long string 9'"
             )
 
     def test_list_same(self):
@@ -376,6 +386,22 @@ class TestCompare(TestCase):
             "second:\n()"
             )
 
+    def test_nested_generator_different(self):
+        self.checkRaises(
+            generator(1, 2, generator(3), 4),
+            generator(1, 2, generator(3), 5),
+            "sequence not as expected:\n"
+            "\n"
+            "same:\n"
+            "(1, 2)\n"
+            "\n"
+            "first:\n"
+            "(<generator object generator at ...>, 4)\n"
+            "\n"
+            "second:\n"
+            "(<generator object generator at ...>, 5)"
+            )
+
     def test_sequence_and_generator(self):
         expected = compile("\(1, 2, 3\) != <generator object (generator )?at ...>")
         self.checkRaises(
@@ -501,7 +527,7 @@ b
 
     def test_supply_registry(self):
         compare_dict = Mock()
-        compare_dict.return_value = 'not equal'
+        compare_dict.return_value = Result(message='not equal')
         with ShouldRaise(AssertionError('not equal')):
             compare({1:1}, {2:2},
                     foo='bar',
@@ -514,12 +540,15 @@ b
         class_ = namedtuple('Test', 'x')
         with ShouldRaise(AssertionError('compare class_')):
             compare(class_(1), class_(2),
-                    registry={tuple: Mock(return_value='compare tuple'),
-                              class_: Mock(return_value='compare class_')})
+                    registry={
+                    tuple: Mock(return_value=Result(message='compare tuple')),
+                    class_: Mock(return_value=Result(message='compare class_'))
+                    })
 
     def test_list_subclass(self):
         m = Mock()
         m.aCall()
+        # Mock().method_calls is a list subclass
         self.checkRaises(
             [call.bCall()], m.method_calls,
             "sequence not as expected:\n\n"
@@ -535,13 +564,31 @@ b
     def test_strict_comparer_supplied(self):
         
         compare_obj = Mock()
-        compare_obj.return_value = 'not equal'
+        compare_obj.return_value = Result(message='not equal')
         
         self.checkRaises(
             object(), object(),
             "not equal",
             strict=True,
             registry={object: compare_obj},
+            )
+
+    def test_strict_default_comparer(self):
+        class MyList(list): pass
+        # default comparer used!
+        self.checkRaises(
+            MyList((1, 2, 3)), MyList((1, 2, 4)),
+            "sequence not as expected:\n"
+            "\n"
+            "same:\n"
+            "[1, 2]\n"
+            "\n"
+            "first:\n"
+            "[3]\n"
+            "\n"
+            "second:\n"
+            "[4]",
+            strict=True,
             )
 
     def test_list_subclass_strict(self):
@@ -591,3 +638,187 @@ b
         
         with ShouldRaise(TypeError('foo')):
             compare(generator(1, 2, 3), bad_gen())
+            
+    def test_nested_dict_tuple_values_different(self):
+        self.checkRaises(
+            dict(x=(1, 2, 3)), dict(x=(1, 2, 4)),
+            "dict not as expected:\n"
+            "\n"
+            "values differ:\n"
+            "'x': (1, 2, 3) != (1, 2, 4)\n"
+            '\n'
+            "While comparing ['x']: sequence not as expected:\n"
+            "\n"
+            "same:\n"
+            "(1, 2)\n"
+            "\n"
+            "first:\n"
+            "(3,)\n"
+            "\n"
+            "second:\n"
+            "(4,)"
+            )
+    
+    def test_nested_dict_different(self):
+        self.checkRaises(
+            dict(x=dict(y=1)), dict(x=dict(y=2)),
+            "dict not as expected:\n"
+            "\n"
+            "values differ:\n"
+            "'x': {'y': 1} != {'y': 2}\n"
+            '\n'
+            "While comparing ['x']: dict not as expected:\n"
+            "\n"
+            "values differ:\n"
+            "'y': 1 != 2"
+            )
+    
+    def test_tuple_list_different(self):
+        self.checkRaises(
+            (1, [2, 3, 5]), (1, [2, 4, 5]),
+            "sequence not as expected:\n"
+            "\n"
+            "same:\n"
+            "(1,)\n"
+            "\n"
+            "first:\n"
+            "([2, 3, 5],)\n"
+            "\n"
+            "second:\n"
+            "([2, 4, 5],)\n"
+            "\n"
+            "While comparing [1]: sequence not as expected:\n"
+            "\n"
+            "same:\n"
+            "[2]\n"
+            "\n"
+            "first:\n"
+            "[3, 5]\n"
+            "\n"
+            "second:\n"
+            "[4, 5]"
+            )
+
+    def test_tuple_long_strings_different(self):
+        self.checkRaises(
+            (1, 2, "foo\nbar\nbaz\n", 4),
+            (1, 2, "foo\nbob\nbaz\n", 4),
+            "sequence not as expected:\n"
+            "\n"
+            "same:\n"
+            "(1, 2)\n"
+            "\n"
+            "first:\n"
+            "('foo\\nbar\\nbaz\\n', 4)\n"
+            "\n"
+            "second:\n"
+            "('foo\\nbob\\nbaz\\n', 4)\n"
+            "\n"
+            "While comparing [2]: \n"
+            "@@ -1,4 +1,4 @@\n"
+            " foo\n"
+            "-bar\n"
+            "+bob\n"
+            " baz\n ",
+            # check that show_whitespace bubbles down
+            #show_whitespace=True
+            )
+
+    def test_dict_multiple_differences(self):
+        self.checkRaises(
+            dict(x=(1,2,3), y=(4, 5, 6,)),
+            dict(x=(1,2,4), y=(4, 5, 7,)),
+            "dict not as expected:\n"
+            "\n"
+            "values differ:\n"
+            "'x': (1, 2, 3) != (1, 2, 4)\n"
+            "'y': (4, 5, 6) != (4, 5, 7)\n"
+            "\n"
+            "While comparing ['x']: sequence not as expected:\n"
+            "\n"
+            "same:\n"
+            "(1, 2)\n"
+            "\n"
+            "first:\n"
+            "(3,)\n"
+            "\n"
+            "second:\n"
+            "(4,)"
+            )
+
+    def test_deep_breadcrumbs(self):
+        obj1 = singleton('obj1')
+        obj2 = singleton('obj2')
+        gen1 = generator(obj1, obj2)
+        gen2 = generator(obj1, )
+        # dict -> list -> tuple -> generator
+        self.checkRaises(
+            dict(x=[1, ('a', 'b', gen1), 3], y=[3, 4]),
+            dict(x=[1, ('a', 'b', gen2), 3], y=[3, 4]), (
+                "dict not as expected:\n"
+                "\n"
+                "same:\n"
+                "['y']\n"
+                "\n"
+                "values differ:\n"
+                "'x': [1, ('a', 'b', {gen1}), 3] != [1, ('a', 'b', {gen2}), 3]\n"
+                "\n"
+                "While comparing ['x']: sequence not as expected:\n"
+                "\n"
+                "same:\n"
+                "[1]\n"
+                "\n"
+                "first:\n"
+                "[('a', 'b', {gen1}), 3]\n"
+                "\n"
+                "second:\n"
+                "[('a', 'b', {gen2}), 3]\n"
+                "\n"
+                "While comparing ['x'][1]: sequence not as expected:\n"
+                "\n"
+                "same:\n"
+                "('a', 'b')\n"
+                "\n"
+                "first:\n"
+                "({gen1},)\n"
+                "\n"
+                "second:\n"
+                "({gen2},)\n"
+                "\n"
+                "While comparing ['x'][1][2]: sequence not as expected:\n"
+                "\n"
+                "same:\n"
+                "(<obj1>,)\n"
+                "\n"
+                "first:\n"
+                "(<obj2>,)\n"
+                "\n"
+                "second:\n"
+                "()"
+                ).format(gen1=hexsub(repr(gen1)),
+                         gen2=hexsub(repr(gen2)))
+            )
+
+    def test_nested_strict_only_type_difference(self):
+        # difference further down!
+        class MyTuple(tuple): pass
+
+        compare([MyTuple((1, 2, 3))], [(1, 2, 3)], strict=True)
+    
+
+    def test_strict_nested_different(self):
+        # default comparer used!
+        self.checkRaises(
+            (1, 2, [1, 2]), (1, 2, (1, 3)),
+            "sequence not as expected:\n"
+            "\n"
+            "same:\n"
+            "(1, 2)\n"
+            "\n"
+            "first:\n"
+            "([1, 2],)\n"
+            "\n"
+            "second:\n"
+            "((1, 3),)",
+            strict=True,
+            )

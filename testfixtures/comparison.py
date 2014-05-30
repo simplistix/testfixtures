@@ -1,15 +1,26 @@
 # Copyright (c) 2008-2014 Simplistix Ltd
 # See license.txt for license details.
 
-from collections import Iterable
+from collections import Iterable, namedtuple
 from difflib import unified_diff
 from pprint import pformat
 from re import compile, MULTILINE
-from testfixtures import identity, not_there
-from testfixtures.compat import ClassType, Unicode, basestring, PY3
+from testfixtures import not_there
+from testfixtures.compat import (
+    ClassType, Unicode, basestring, PY3, mock_call, unittest_call
+    )
 from testfixtures.resolve import resolve
 from testfixtures.utils import generator
 from types import GeneratorType
+
+ToCompare = namedtuple('ToCompare', 'x y breadcrumb')
+
+class Result:
+    
+    def __init__(self, equal=False, message=None, to_compare=None):
+        self.equal = equal
+        self.message = message
+        self.to_compare = to_compare
 
 def compare_sequence(x, y):
     """
@@ -19,18 +30,23 @@ def compare_sequence(x, y):
     l_x = len(x)
     l_y = len(y)
     i = 0
+    to_compare = None
     while i<l_x and i<l_y:
-        if x[i]!=y[i]:
+        if x[i] != y[i]:
+            to_compare=ToCompare(x[i], y[i], '[%i]' % i)
             break
         i+=1
-    return (
-        'sequence not as expected:\n\n'
-        'same:\n%s\n\n'
-        'first:\n%s\n\n'
-        'second:\n%s')%(
-        pformat(x[:i]),
-        pformat(x[i:]),
-        pformat(y[i:]),
+    return Result(
+        message = (
+            'sequence not as expected:\n\n'
+            'same:\n%s\n\n'
+            'first:\n%s\n\n'
+            'second:\n%s' ) % (
+            pformat(x[:i]),
+            pformat(x[i:]),
+            pformat(y[i:]),
+            ),
+        to_compare=to_compare
         )
 
 def compare_generator(x, y):
@@ -46,7 +62,7 @@ def compare_generator(x, y):
     y = tuple(y)
 
     if x==y:
-        return identity
+        return Result(equal=True)
 
     return compare_sequence(x, y)
 
@@ -61,10 +77,13 @@ def compare_dict(x, y):
     y_not_x = y_keys - x_keys
     same = []
     diffs = []
+    to_compare = None
     for key in sorted(x_keys.intersection(y_keys)):
-        if x[key]==y[key]:
+        if x[key] == y[key]:
             same.append(key)
         else:
+            if to_compare is None:
+                to_compare = ToCompare(x[key], y[key], '[%r]' % key)
             diffs.append('%r: %s != %s' % (
                 key,
                 pformat(x[key]),
@@ -90,7 +109,7 @@ def compare_dict(x, y):
     if diffs:
         lines.extend(('', 'values differ:'))
         lines.extend(diffs)
-    return '\n'.join(lines)
+    return Result(message='\n'.join(lines), to_compare=to_compare)
 
 def compare_set(x, y):
     """
@@ -112,7 +131,7 @@ def compare_set(x, y):
             pformat(sorted(y_not_x)),
             '',
             ))
-    return '\n'.join(lines)+'\n'
+    return Result(message='\n'.join(lines)+'\n')
 
 trailing_whitespace_re = compile('\s+$',MULTILINE)
 
@@ -158,8 +177,8 @@ def compare_text(x, y,
         x = strip_blank_lines(x)
         y = strip_blank_lines(y)
     if x==y:
-        return identity
-    if len(x)>10 or len(y)>10:
+        return Result(equal=True)
+    if len(x) > 10 or len(y) > 10:
         if '\n' in x or '\n' in y:
             if show_whitespace:
                 x = split_repr(x)
@@ -169,10 +188,7 @@ def compare_text(x, y,
             message = '\n%r\n!=\n%r' % (x, y)
     else:
         message = '%r != %r' % (x, y)
-    return message
-
-def _default_compare(x, y):
-    return '%r != %r' % (x, y)
+    return Result(message = message)
 
 def _short_repr(obj):
     repr_ = repr(obj)
@@ -180,13 +196,16 @@ def _short_repr(obj):
         repr_ = repr_[:30] + '...'
     return repr_
     
-def _default_compare_strict(x, y):
+def _default_compare(x, y):
+    return Result(message='%r != %r' % (x, y))
+
+def _strict_compare(x, y):
     source = locals()
     to_render = {}
     for name in 'x', 'y':
         obj = source[name]
         to_render[name] = '{0} ({1!r})'.format(_short_repr(obj), type(obj))
-    return '{x} != {y}'.format(**to_render)
+    return Result(message='{x} != {y}'.format(**to_render))
 
 _registry = {
     dict: compare_dict,
@@ -196,6 +215,8 @@ _registry = {
     str: compare_text,
     Unicode: compare_text,
     GeneratorType: compare_generator,
+    mock_call.__class__: _default_compare,
+    unittest_call.__class__: _default_compare,
     }
 
 def register(type, comparer):
@@ -223,17 +244,12 @@ def _shared_mro(x, y):
         if class_ in y_mro:
             yield class_
 
-def _lookup_comparer(x, y, registry, strict):
-    if strict:
-        if type(x) is type(y):
-            return registry.get(type(x), _default_compare)
-        return _default_compare_strict
-    else:
-        for class_ in _shared_mro(x, y):
-            comparer = registry.get(class_)
-            if comparer:
-                return comparer
-        return _default_compare
+def _lookup_comparer(x, y, registry):
+    for class_ in _shared_mro(x, y):
+        comparer = registry.get(class_)
+        if comparer:
+            return comparer
+    return _default_compare
 
 def compare(x, y, **kw):
     """
@@ -250,36 +266,60 @@ def compare(x, y, **kw):
                    raised, the prefix supplied will be prepended to the message
                    in the :class:`AssertionError`.
                    
+    :param recursive: If ``True``, when a difference is found in a nested data
+                      structure, attempt to highlight the location of the
+                      difference. Defaults to ``True``.
+                   
     :param strict: If ``True``, objects will only compare equal if
                    they are of the same type as well as being equal.
-                   Defaults to ``False``.
+                   Defaults to ``False``. If comparing recursively, only the
+                   initial objects passed to the comparison will be checked for type.
                    
     :param registry: If supplied, should be a dictionary mapping
-        types to comparer functions for those types. This will be
-        used instead of the global comparer registry.
-
+                     types to comparer functions for those types. This will be
+                     used instead of the global comparer registry.
     """
-    registry = kw.pop('registry', _registry)
-    strict = kw.pop('strict', False)
     prefix = kw.pop('prefix', None)
+    recursive = kw.pop('recursive', True)
+    strict = kw.pop('strict', False)
+    registry = kw.pop('registry', _registry)
 
-    # short-circuit check
-    if strict:
-        if (type(x) is type(y)) and x==y:
-            return
-    elif x==y:
+    if strict and type(x) is not type(y):
+        raise AssertionError(_strict_compare(x, y).message)
+
+    if x==y:
         return
-    else:
-        # allow comparison of generators with any sequence
-        if isinstance(x, GeneratorType) and isinstance(y, Iterable):
-            y = generator(*tuple(y))
+
+    # allow comparison of generators with any sequence
+    if isinstance(x, GeneratorType) and isinstance(y, Iterable):
+        y = generator(*tuple(y))
         
-    # extensive, extendable comparison and error reporting
-    comparer = _lookup_comparer(x, y, registry, strict)
+    # extensive, extendable and recursive comparison and error reporting
+    message = ''
+    breadcrumbs = []
+    while True:
+        comparer = _lookup_comparer(x, y, registry)
+        result = comparer(x, y, **kw)
+        if result.equal:
+            if not breadcrumbs:
+                return
+            break
+
+        if breadcrumbs:
+            if comparer is _default_compare:
+                break
+            message += '\n\nWhile comparing %s: ' % ''.join(breadcrumbs)
         
-    message = comparer(x, y, **kw)
-    if message is identity:
-        return
+        message += result.message
+
+        if not recursive:
+            break
+        
+        if result.to_compare:
+            x, y, breadcrumb = result.to_compare
+            breadcrumbs.append(breadcrumb)
+        else:
+            break
 
     if prefix:
         message = prefix + ': ' + message

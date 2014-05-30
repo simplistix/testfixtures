@@ -1,4 +1,4 @@
-# Copyright (c) 2008-2011 Simplistix Ltd
+# Copyright (c) 2008-2014 Simplistix Ltd
 # See license.txt for license details.
 
 class singleton(object):
@@ -8,7 +8,6 @@ class singleton(object):
         return '<%s>' % self.name
     __str__ = __repr__
     
-identity = singleton('identity')
 not_there = singleton('not_there')
 
 from testfixtures.comparison import Comparison, StringComparison, RoundComparison, compare, diff
