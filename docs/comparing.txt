@@ -323,7 +323,8 @@ could be implemented as follows:
 
   from testfixtures.comparison import Result
 
-  def compare_DataRow(x, y, all=True):
+  def compare_DataRow(x, y, context):
+      all = context.get_option('all', True)
       cx, cy = x[:2], y[:2]
       if not all and (cx==cy):
           return Result(equal=True)

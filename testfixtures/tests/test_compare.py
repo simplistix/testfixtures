@@ -393,13 +393,13 @@ class TestCompare(TestCase):
             "sequence not as expected:\n"
             "\n"
             "same:\n"
-            "(1, 2)\n"
+            "(1, 2, <generator object generator at ...>)\n"
             "\n"
             "first:\n"
-            "(<generator object generator at ...>, 4)\n"
+            "(4,)\n"
             "\n"
             "second:\n"
-            "(<generator object generator at ...>, 5)"
+            "(5,)"
             )
 
     def test_sequence_and_generator(self):
@@ -489,7 +489,7 @@ class TestCompare(TestCase):
         
     def test_ignore_trailing_whitespace_non_string(self):
         with ShouldRaise(TypeError(
-            "_default_compare() got an unexpected keyword argument 'trailing_whitespace'"
+            "options passed to compare were unused by any comparer: trailing_whitespace"
             )):
             compare(1,'',trailing_whitespace=False)
 
@@ -521,20 +521,20 @@ b
         
     def test_ignore_blank_lines_non_string(self):
         with ShouldRaise(TypeError(
-            "_default_compare() got an unexpected keyword argument 'blanklines'"
+            "options passed to compare were unused by any comparer: blanklines"
             )):
             compare(1,'',blanklines=False)
 
     def test_supply_registry(self):
-        compare_dict = Mock()
-        compare_dict.return_value = Result(message='not equal')
+        def compare_dict(x, y, context):
+            self.assertEqual(x, {1:1})
+            self.assertEqual(y, {2:2})
+            self.assertEqual(context.get_option('foo'), 'bar')
+            return Result(message='not equal')
         with ShouldRaise(AssertionError('not equal')):
             compare({1:1}, {2:2},
                     foo='bar',
                     registry={dict: compare_dict})
-        compare_dict.assert_called_with(
-            {1:1}, {2:2}, foo='bar'
-            )
     
     def test_register_more_specific(self):
         class_ = namedtuple('Test', 'x')
@@ -716,12 +716,13 @@ b
             "\n"
             "While comparing [2]: \n"
             "@@ -1,4 +1,4 @@\n"
-            " foo\n"
-            "-bar\n"
-            "+bob\n"
-            " baz\n ",
             # check that show_whitespace bubbles down
-            #show_whitespace=True
+            " 'foo\\n'\n"
+            "-'bar\\n'\n"
+            "+'bob\\n'\n"
+            " 'baz\\n'\n"
+            " ''",
+            show_whitespace=True
             )
 
     def test_dict_multiple_differences(self):
@@ -743,7 +744,18 @@ b
             "(3,)\n"
             "\n"
             "second:\n"
-            "(4,)"
+            "(4,)\n"
+            "\n"
+            "While comparing ['y']: sequence not as expected:\n"
+            "\n"
+            "same:\n"
+            "(4, 5)\n"
+            "\n"
+            "first:\n"
+            "(6,)\n"
+            "\n"
+            "second:\n"
+            "(7,)"
             )
 
     def test_deep_breadcrumbs(self):

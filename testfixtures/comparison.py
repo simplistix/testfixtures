@@ -22,7 +22,7 @@ class Result:
         self.message = message
         self.to_compare = to_compare
 
-def compare_sequence(x, y):
+def compare_sequence(x, y, context):
     """
     Returns a textual description of the differences between the two
     supplied sequences.
@@ -30,10 +30,8 @@ def compare_sequence(x, y):
     l_x = len(x)
     l_y = len(y)
     i = 0
-    to_compare = None
     while i<l_x and i<l_y:
-        if x[i] != y[i]:
-            to_compare=ToCompare(x[i], y[i], '[%i]' % i)
+        if context.different(x[i], y[i], '[%i]' % i):
             break
         i+=1
     return Result(
@@ -46,10 +44,9 @@ def compare_sequence(x, y):
             pformat(x[i:]),
             pformat(y[i:]),
             ),
-        to_compare=to_compare
         )
 
-def compare_generator(x, y):
+def compare_generator(x, y, context):
     """
     Returns a textual description of the differences between the two
     supplied generators.
@@ -64,9 +61,9 @@ def compare_generator(x, y):
     if x==y:
         return Result(equal=True)
 
-    return compare_sequence(x, y)
+    return compare_sequence(x, y, context)
 
-def compare_dict(x, y):
+def compare_dict(x, y, context):
     """
     Returns a textual description of the differences between the two
     supplied dictionaries.
@@ -77,18 +74,15 @@ def compare_dict(x, y):
     y_not_x = y_keys - x_keys
     same = []
     diffs = []
-    to_compare = None
     for key in sorted(x_keys.intersection(y_keys)):
-        if x[key] == y[key]:
-            same.append(key)
-        else:
-            if to_compare is None:
-                to_compare = ToCompare(x[key], y[key], '[%r]' % key)
+        if context.different(x[key], y[key], '[%r]' % key):
             diffs.append('%r: %s != %s' % (
                 key,
                 pformat(x[key]),
                 pformat(y[key]),
                 ))
+        else:
+            same.append(key)
     lines = ['%s not as expected:' % x.__class__.__name__]
     if same:
         lines.extend(('', 'same:', repr(same)))
@@ -109,9 +103,9 @@ def compare_dict(x, y):
     if diffs:
         lines.extend(('', 'values differ:'))
         lines.extend(diffs)
-    return Result(message='\n'.join(lines), to_compare=to_compare)
+    return Result(message='\n'.join(lines))
 
-def compare_set(x, y):
+def compare_set(x, y, context):
     """
     Returns a textual description of the differences between the two
     supplied sets.
@@ -149,10 +143,7 @@ def split_repr(text):
     parts[-1] = repr(parts[-1])
     return '\n'.join(parts)
 
-def compare_text(x, y,
-                 blanklines=True,
-                 trailing_whitespace=True,
-                 show_whitespace=False):
+def compare_text(x, y, context):
     """
     Returns an informative string describing the differences between the two
     supplied strings. The way in which this comparison is performed
@@ -170,6 +161,10 @@ def compare_text(x, y,
                             multi-line strings will be replaced with their
                             representations.
     """
+    blanklines = context.get_option('blanklines', True)
+    trailing_whitespace = context.get_option('trailing_whitespace', True)
+    show_whitespace = context.get_option('show_whitespace', False)
+    
     if not trailing_whitespace:
         x = trailing_whitespace_re.sub('', x)
         y = trailing_whitespace_re.sub('', y)
@@ -196,7 +191,7 @@ def _short_repr(obj):
         repr_ = repr_[:30] + '...'
     return repr_
     
-def _default_compare(x, y):
+def simple_compare(x, y, context):
     return Result(message='%r != %r' % (x, y))
 
 def _strict_compare(x, y):
@@ -215,8 +210,8 @@ _registry = {
     str: compare_text,
     Unicode: compare_text,
     GeneratorType: compare_generator,
-    mock_call.__class__: _default_compare,
-    unittest_call.__class__: _default_compare,
+    mock_call.__class__: simple_compare,
+    unittest_call.__class__: simple_compare,
     }
 
 def register(type, comparer):
@@ -244,12 +239,64 @@ def _shared_mro(x, y):
         if class_ in y_mro:
             yield class_
 
-def _lookup_comparer(x, y, registry):
-    for class_ in _shared_mro(x, y):
-        comparer = registry.get(class_)
-        if comparer:
-            return comparer
-    return _default_compare
+class CompareContext(object):
+
+    def __init__(self, registry, strict, recursive, options):
+        self.registry = registry
+        self.strict = strict
+        self.recursive = recursive
+        self.options = options
+        self.unused_options = set(options)
+        self.message = ''
+        self.breadcrumbs = []
+
+    def _lookup(self, x, y):
+        for class_ in _shared_mro(x, y):
+            comparer = self.registry.get(class_)
+            if comparer:
+                return comparer
+        return simple_compare
+
+    def get_option(self, name, default=None):
+        self.unused_options.discard(name)
+        return self.options.get(name, default)
+
+    def _seperator(self):
+        return '\n\nWhile comparing %s: ' % ''.join(self.breadcrumbs[1:])
+
+    def different(self, x, y, breadcrumb):
+        recursed = bool(self.breadcrumbs)
+        self.breadcrumbs.append(breadcrumb)
+        existing_message = self.message
+        self.message = ''
+        current_message = ''
+        try:
+
+            if x == y:
+                return False
+            
+            comparer = self._lookup(x, y)
+            result = comparer(x, y, self)
+            different = not result.equal
+            specific_comparer = comparer is not simple_compare
+            
+            if different:
+                
+                if specific_comparer and recursed:
+                    current_message = self._seperator()
+
+                if specific_comparer or not recursed:
+                    current_message += result.message
+
+                    if self.recursive:
+                        current_message += self.message
+
+            return different
+        
+        finally:
+            self.message = existing_message + current_message
+            self.breadcrumbs.pop()
+        
 
 def compare(x, y, **kw):
     """
@@ -287,44 +334,31 @@ def compare(x, y, **kw):
     if strict and type(x) is not type(y):
         raise AssertionError(_strict_compare(x, y).message)
 
-    if x==y:
-        return
-
     # allow comparison of generators with any sequence
     if isinstance(x, GeneratorType) and isinstance(y, Iterable):
         y = generator(*tuple(y))
         
     # extensive, extendable and recursive comparison and error reporting
-    message = ''
-    breadcrumbs = []
-    while True:
-        comparer = _lookup_comparer(x, y, registry)
-        result = comparer(x, y, **kw)
-        if result.equal:
-            if not breadcrumbs:
-                return
-            break
+    context = CompareContext(registry, strict, recursive, kw)
 
-        if breadcrumbs:
-            if comparer is _default_compare:
-                break
-            message += '\n\nWhile comparing %s: ' % ''.join(breadcrumbs)
-        
-        message += result.message
+    different = context.different(x, y, not_there)
 
-        if not recursive:
-            break
-        
-        if result.to_compare:
-            x, y, breadcrumb = result.to_compare
-            breadcrumbs.append(breadcrumb)
-        else:
-            break
+    if context.unused_options:
+        raise TypeError(
+            'options passed to compare were unused by any comparer: ' +
+            (', '.join(context.unused_options))
+            )
 
+    if not different:
+        return
+
+    message = context.message
+    
     if prefix:
         message = prefix + ': ' + message
 
     raise AssertionError(message)
+
     
 class Comparison(object):
     """
