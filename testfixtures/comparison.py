@@ -11,6 +11,24 @@ from testfixtures.compat import (
     )
 from testfixtures.resolve import resolve
 from types import GeneratorType
+    
+def compare_simple(x, y, context):
+    """
+    Returns a very simple textual difference between the two supplied objects.
+    """
+    return Result(message='%r != %r' % (x, y))
+
+def compare_with_type(x, y, context):
+    """
+    Return a textual description of the difference between two objects including
+    information about their types.
+    """
+    source = locals()
+    to_render = {}
+    for name in 'x', 'y':
+        obj = source[name]
+        to_render[name] = '{0} ({1!r})'.format(_short_repr(obj), type(obj))
+    return Result(message='{x} != {y}'.format(**to_render))
 
 ToCompare = namedtuple('ToCompare', 'x y breadcrumb')
 
@@ -193,17 +211,6 @@ def _short_repr(obj):
     if len(repr_) > 30:
         repr_ = repr_[:30] + '...'
     return repr_
-    
-def simple_compare(x, y, context):
-    return Result(message='%r != %r' % (x, y))
-
-def _strict_compare(x, y):
-    source = locals()
-    to_render = {}
-    for name in 'x', 'y':
-        obj = source[name]
-        to_render[name] = '{0} ({1!r})'.format(_short_repr(obj), type(obj))
-    return Result(message='{x} != {y}'.format(**to_render))
 
 _registry = {
     dict: compare_dict,
@@ -213,8 +220,8 @@ _registry = {
     str: compare_text,
     Unicode: compare_text,
     GeneratorType: compare_generator,
-    mock_call.__class__: simple_compare,
-    unittest_call.__class__: simple_compare,
+    mock_call.__class__: compare_simple,
+    unittest_call.__class__: compare_simple,
     }
 
 def register(type, comparer):
@@ -253,6 +260,10 @@ class CompareContext(object):
         self.message = ''
         self.breadcrumbs = []
 
+    def get_option(self, name, default=None):
+        self.unused_options.discard(name)
+        return self.options.get(name, default)
+
     def _lookup(self, x, y):
         for class_ in _shared_mro(x, y):
             comparer = self.registry.get(class_)
@@ -261,11 +272,7 @@ class CompareContext(object):
         # fallback for iterables
         if isinstance(x, Iterable) and isinstance(y, Iterable):
             return compare_generator
-        return simple_compare
-
-    def get_option(self, name, default=None):
-        self.unused_options.discard(name)
-        return self.options.get(name, default)
+        return compare_simple
 
     def _seperator(self):
         return '\n\nWhile comparing %s: ' % ''.join(self.breadcrumbs[1:])
@@ -284,8 +291,7 @@ class CompareContext(object):
             comparer = self._lookup(x, y)
             result = comparer(x, y, self)
             different = not result.equal
-            specific_comparer = comparer is not simple_compare
-
+            specific_comparer = comparer is not compare_simple
             
             if different:
                 
@@ -338,11 +344,11 @@ def compare(x, y, **kw):
     strict = kw.pop('strict', False)
     registry = kw.pop('registry', _registry)
 
-    if strict and type(x) is not type(y):
-        raise AssertionError(_strict_compare(x, y).message)
-
     # extensive, extendable and recursive comparison and error reporting
     context = CompareContext(registry, strict, recursive, kw)
+
+    if strict and type(x) is not type(y):
+        raise AssertionError(compare_with_type(x, y, context).message)
 
     different = context.different(x, y, not_there)
 
