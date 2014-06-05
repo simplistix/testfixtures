@@ -1,6 +1,12 @@
 # Copyright (c) 2008-2013 Simplistix Ltd
 # See license.txt for license details.
 
+# Monkey patch std lib so tests will work in python 3.4
+import sys
+if sys.version_info >= (3, 4, 0):
+    from unittest import util
+    util._MAX_LENGTH = 1337
+
 from testfixtures import Comparison as C, TempDirectory, compare
 from testfixtures.compat import PY2, PY3, exception_module
 from testfixtures.tests.sample1 import TestClassA, a_function
