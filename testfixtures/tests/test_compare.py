@@ -11,7 +11,6 @@ from testfixtures import (
     generator,
     singleton,
     )
-from testfixtures.comparison import Result
 from testfixtures.compat import class_type_name, exception_module, PY3, xrange
 from unittest import TestCase
 from .compat import py_33_plus
@@ -578,7 +577,7 @@ b
             self.assertEqual(x, {1:1})
             self.assertEqual(y, {2:2})
             self.assertEqual(context.get_option('foo'), 'bar')
-            return Result(message='not equal')
+            return 'not equal'
         with ShouldRaise(AssertionError('not equal')):
             compare({1:1}, {2:2},
                     foo='bar',
@@ -589,8 +588,8 @@ b
         with ShouldRaise(AssertionError('compare class_')):
             compare(class_(1), class_(2),
                     registry={
-                    tuple: Mock(return_value=Result(message='compare tuple')),
-                    class_: Mock(return_value=Result(message='compare class_'))
+                    tuple: Mock(return_value='compare tuple'),
+                    class_: Mock(return_value='compare class_')
                     })
 
     def test_list_subclass(self):
@@ -612,7 +611,7 @@ b
     def test_strict_comparer_supplied(self):
         
         compare_obj = Mock()
-        compare_obj.return_value = Result(message='not equal')
+        compare_obj.return_value = 'not equal'
         
         self.checkRaises(
             object(), object(),

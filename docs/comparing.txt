@@ -307,14 +307,12 @@ could be implemented as follows:
 
 .. code-block:: python
 
-  from testfixtures.comparison import Result
-
   def compare_DataRow(x, y, context):
       all = context.get_option('all', True)
       cx, cy = x[:2], y[:2]
       if not all and (cx==cy):
-          return Result(equal=True)
-      return Result(message='%r != %r' % (x, y))
+          return
+      return'%r != %r' % (x, y)
 
 To use this, you'd do the following:
 

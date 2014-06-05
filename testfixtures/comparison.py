@@ -1,7 +1,7 @@
 # Copyright (c) 2008-2014 Simplistix Ltd
 # See license.txt for license details.
 
-from collections import Iterable, namedtuple
+from collections import Iterable
 from difflib import unified_diff
 from pprint import pformat
 from re import compile, MULTILINE
@@ -16,7 +16,7 @@ def compare_simple(x, y, context):
     """
     Returns a very simple textual difference between the two supplied objects.
     """
-    return Result(message='%r != %r' % (x, y))
+    return '%r != %r' % (x, y)
 
 def compare_with_type(x, y, context):
     """
@@ -28,16 +28,7 @@ def compare_with_type(x, y, context):
     for name in 'x', 'y':
         obj = source[name]
         to_render[name] = '{0} ({1!r})'.format(_short_repr(obj), type(obj))
-    return Result(message='{x} != {y}'.format(**to_render))
-
-ToCompare = namedtuple('ToCompare', 'x y breadcrumb')
-
-class Result:
-    
-    def __init__(self, equal=False, message=None, to_compare=None):
-        self.equal = equal
-        self.message = message
-        self.to_compare = to_compare
+    return '{x} != {y}'.format(**to_render)
 
 def compare_sequence(x, y, context):
     """
@@ -53,10 +44,9 @@ def compare_sequence(x, y, context):
         i+=1
         
     if l_x == l_y and i ==l_x:
-        return Result(equal=True)
+        return 
     
-    return Result(
-        message = (
+    return (
             'sequence not as expected:\n\n'
             'same:\n%s\n\n'
             'first:\n%s\n\n'
@@ -64,8 +54,7 @@ def compare_sequence(x, y, context):
             pformat(x[:i]),
             pformat(x[i:]),
             pformat(y[i:]),
-            ),
-        )
+            )
 
 def compare_generator(x, y, context):
     """
@@ -80,7 +69,7 @@ def compare_generator(x, y, context):
     y = tuple(y)
 
     if x==y:
-        return Result(equal=True)
+        return
 
     return compare_sequence(x, y, context)
 
@@ -124,7 +113,7 @@ def compare_dict(x, y, context):
     if diffs:
         lines.extend(('', 'values differ:'))
         lines.extend(diffs)
-    return Result(message='\n'.join(lines))
+    return '\n'.join(lines)
 
 def compare_set(x, y, context):
     """
@@ -146,7 +135,7 @@ def compare_set(x, y, context):
             pformat(sorted(y_not_x)),
             '',
             ))
-    return Result(message='\n'.join(lines)+'\n')
+    return '\n'.join(lines)+'\n'
 
 trailing_whitespace_re = compile('\s+$',MULTILINE)
 
@@ -193,7 +182,7 @@ def compare_text(x, y, context):
         x = strip_blank_lines(x)
         y = strip_blank_lines(y)
     if x==y:
-        return Result(equal=True)
+        return
     if len(x) > 10 or len(y) > 10:
         if '\n' in x or '\n' in y:
             if show_whitespace:
@@ -204,7 +193,7 @@ def compare_text(x, y, context):
             message = '\n%r\n!=\n%r' % (x, y)
     else:
         message = '%r != %r' % (x, y)
-    return Result(message = message)
+    return message
 
 def _short_repr(obj):
     repr_ = repr(obj)
@@ -290,21 +279,20 @@ class CompareContext(object):
             
             comparer = self._lookup(x, y)
             result = comparer(x, y, self)
-            different = not result.equal
             specific_comparer = comparer is not compare_simple
             
-            if different:
+            if result:
                 
                 if specific_comparer and recursed:
                     current_message = self._seperator()
 
                 if specific_comparer or not recursed:
-                    current_message += result.message
+                    current_message += result
 
                     if self.recursive:
                         current_message += self.message
 
-            return different
+            return result
         
         finally:
             self.message = existing_message + current_message
@@ -348,7 +336,7 @@ def compare(x, y, **kw):
     context = CompareContext(registry, strict, recursive, kw)
 
     if strict and type(x) is not type(y):
-        raise AssertionError(compare_with_type(x, y, context).message)
+        raise AssertionError(compare_with_type(x, y, context))
 
     different = context.different(x, y, not_there)
 
