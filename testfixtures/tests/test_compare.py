@@ -402,30 +402,78 @@ class TestCompare(TestCase):
             "(5,)"
             )
 
+    def test_nested_generator_tuple_left(self):
+        compare(
+            generator(1, 2, (3, ), 4),
+            generator(1, 2, generator(3), 4),
+            )
+
+    def test_nested_generator_tuple_right(self):
+        compare(
+            generator(1, 2, generator(3), 4),
+            generator(1, 2, (3, ), 4),
+            )
+
     def test_sequence_and_generator(self):
-        expected = compile("\(1, 2, 3\) != <generator object (generator )?at ...>")
+        compare((1,2,3), generator(1,2,3))
+
+    def test_sequence_and_generator_strict(self):
+        expected = compile(
+            "\(1, 2, 3\) \(<class 'tuple'>\) != "
+            "<generator object (generator )?at... \(<class 'generator'>\)"
+            )
         self.checkRaises(
-            (1,2,3),generator(1,2,3),
+            (1,2,3), generator(1,2,3),
             regex=expected,
+            strict=True,
             )
 
     def test_generator_and_sequence(self):
         compare(generator(1,2,3), (1,2,3))
 
+    def test_iterable_with_iterable_same(self):
+        compare(xrange(1, 4), xrange(1, 4))
+        
+    def test_iterable_with_iterable_different(self):
+        self.checkRaises(
+            xrange(1, 4), xrange(1, 3),
+            "sequence not as expected:\n"
+            "\n"
+            "same:\n"
+            "(1, 2)\n"
+            "\n"
+            "first:\n"
+            "(3,)\n"
+            "\n"
+            "second:\n"
+            "()"
+            )
+        
     def test_iterable_and_generator(self):
-        expected = compile("x?range\(1, 4\) != <generator object (generator )?at ...>")
+        compare(xrange(1, 4), generator(1,2,3))
+
+    def test_iterable_and_generator_strict(self):
+        expected = compile(
+            "x?range\(1, 4\) \(<class 'range'>\) != "
+            "<generator object (generator )?at... \(<class 'generator'>\)"
+            )
         self.checkRaises(
             xrange(1,4), generator(1,2,3),
             regex=expected,
+            strict=True,
             )
 
     def test_generator_and_iterable(self):
         compare(generator(1,2,3), xrange(1,4))
 
     def test_tuple_and_list(self):
+        compare((1,2,3), [1,2,3])
+
+    def test_tuple_and_list_strict(self):
         self.checkRaises(
-            (1,2,3),[1,2,3],
-            "(1, 2, 3) != [1, 2, 3]"
+            (1,2,3), [1,2,3],
+            "(1, 2, 3) (<class 'tuple'>) != [1, 2, 3] (<class 'list'>)",
+            strict=True
             )
 
     def test_old_style_classes_same(self):
@@ -831,6 +879,17 @@ b
             "([1, 2],)\n"
             "\n"
             "second:\n"
-            "((1, 3),)",
+            "((1, 3),)"
+            "\n\n"
+            "While comparing [2]: sequence not as expected:\n"
+            "\n"
+            "same:\n"
+            "(1,)\n"
+            "\n"
+            "first:\n"
+            "(2,)\n"
+            "\n"
+            "second:\n"
+            "(3,)",
             strict=True,
             )

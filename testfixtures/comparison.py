@@ -10,7 +10,6 @@ from testfixtures.compat import (
     ClassType, Unicode, basestring, PY3, mock_call, unittest_call
     )
 from testfixtures.resolve import resolve
-from testfixtures.utils import generator
 from types import GeneratorType
 
 ToCompare = namedtuple('ToCompare', 'x y breadcrumb')
@@ -34,6 +33,10 @@ def compare_sequence(x, y, context):
         if context.different(x[i], y[i], '[%i]' % i):
             break
         i+=1
+        
+    if l_x == l_y and i ==l_x:
+        return Result(equal=True)
+    
     return Result(
         message = (
             'sequence not as expected:\n\n'
@@ -255,6 +258,9 @@ class CompareContext(object):
             comparer = self.registry.get(class_)
             if comparer:
                 return comparer
+        # fallback for iterables
+        if isinstance(x, Iterable) and isinstance(y, Iterable):
+            return compare_generator
         return simple_compare
 
     def get_option(self, name, default=None):
@@ -279,6 +285,7 @@ class CompareContext(object):
             result = comparer(x, y, self)
             different = not result.equal
             specific_comparer = comparer is not simple_compare
+
             
             if different:
                 
@@ -334,10 +341,6 @@ def compare(x, y, **kw):
     if strict and type(x) is not type(y):
         raise AssertionError(_strict_compare(x, y).message)
 
-    # allow comparison of generators with any sequence
-    if isinstance(x, GeneratorType) and isinstance(y, Iterable):
-        y = generator(*tuple(y))
-        
     # extensive, extendable and recursive comparison and error reporting
     context = CompareContext(registry, strict, recursive, kw)
 

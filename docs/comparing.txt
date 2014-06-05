@@ -129,20 +129,6 @@ first:
 second:
 ()
 
-.. invisible-code-block: python
-   
-  from testfixtures.compat import xrange
-
-.. _comparison-generators:
-
-If only the first item passed to :func:`compare` is a generator, the
-second item will be cast into a generator. This is very useful for
-making assertions about return values that are iterable without
-actually being generators and without having to manually cast the
-value to something comparable, such as a tuple:
-
->>> compare(generator(1, 2, 3), xrange(1, 4))
-
 .. warning::
 
   If you wish to assert that a function returns a generator, say, for
