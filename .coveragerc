@@ -17,6 +17,6 @@ exclude_lines =
 [paths]
 src = 
   ./testfixtures/
-  C:\Jenkins\workspace\testfixtures-buildout\*\testfixtures
-  /var/lib/jenkins/slave/workspace/testfixtures-buildout/*/testfixtures
-  /Users/Shared/Jenkins/Home/workspace/testfixtures-buildout/*/testfixtures
+  C:\Jenkins\workspace\testfixtures-virtualenv\*\testfixtures
+  /var/lib/jenkins/slave/workspace/testfixtures-virtualenv/*/testfixtures
+  /Users/Shared/Jenkins/Home/workspace/testfixtures-virtualenv/*/testfixtures
