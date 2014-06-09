@@ -73,11 +73,35 @@ def compare_generator(x, y, context):
 
     return compare_sequence(x, y, context)
 
+def compare_tuple(x, y, context):
+    """
+    Returns a textual difference between two tuples or
+    :class:`collections.namedtuple` instances.
+
+    The presence of the ``_fields`` attribute on the tuple is used to
+    decide whether or not a tuple is a :class:`~collections.namedtuple`.
+    """
+    x_fields = getattr(x, '_fields', None)
+    y_fields = getattr(y, '_fields', None)
+    if x_fields and y_fields:
+        if x_fields == y_fields:
+            return _compare_mapping(dict(zip(x_fields, x)),
+                                    dict(zip(y_fields, y)),
+                                    context,
+                                    x)
+        else:
+            return compare_with_type(x, y, context)
+    return compare_sequence(x, y, context)
+
 def compare_dict(x, y, context):
     """
     Returns a textual description of the differences between the two
     supplied dictionaries.
     """
+    return _compare_mapping(x, y, context, x)
+
+def _compare_mapping(x, y, context, obj_for_class):
+    
     x_keys = set(x.keys())
     y_keys = set(y.keys())
     x_not_y = x_keys - y_keys
@@ -93,7 +117,7 @@ def compare_dict(x, y, context):
                 ))
         else:
             same.append(key)
-    lines = ['%s not as expected:' % x.__class__.__name__]
+    lines = ['%s not as expected:' % obj_for_class.__class__.__name__]
     if same:
         lines.extend(('', 'same:', repr(same)))
     if x_not_y:
@@ -205,7 +229,7 @@ _registry = {
     dict: compare_dict,
     set: compare_set,
     list: compare_sequence,
-    tuple: compare_sequence,
+    tuple: compare_tuple,
     str: compare_text,
     Unicode: compare_text,
     GeneratorType: compare_generator,

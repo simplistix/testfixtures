@@ -892,3 +892,27 @@ b
             "(3,)",
             strict=True,
             )
+
+    def test_namedtuple_equal(self):
+        class_ = namedtuple('Foo', 'x')
+        compare(class_(1), class_(1))
+
+    def test_namedtuple_same_type(self):
+        class_ = namedtuple('Foo', 'x y')
+        self.checkRaises(
+            class_(1, 2), class_(1, 3),
+            "Foo not as expected:\n\n"
+            "same:\n"
+            "['x']\n\n"
+            "values differ:\n"
+            "'y': 2 != 3"
+            )
+
+    def test_namedtuple_different_type(self):
+        class_a = namedtuple('Foo', 'x y')
+        class_b = namedtuple('Bar', 'x y z')
+        self.checkRaises(
+            class_a(1, 2), class_b(1, 2, 3),
+            "Foo(x=1, y=2) (<class 'testfixtures.tests.test_compare.Foo'>) != "
+            "Bar(x=1, y=2, z=3) (<class 'testfixtures.tests.test_compare.Bar'>)"
+            )
