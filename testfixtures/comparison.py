@@ -264,10 +264,10 @@ def _shared_mro(x, y):
 
 class CompareContext(object):
 
-    def __init__(self, registry, strict, recursive, options):
-        self.registry = registry
-        self.strict = strict
-        self.recursive = recursive
+    def __init__(self, options):
+        self.recursive = options.pop('recursive', True)
+        self.strict = options.pop('strict', False)
+        self.registry = options.pop('registry', _registry)
         self.options = options
         self.unused_options = set(options)
         self.message = ''
@@ -278,13 +278,19 @@ class CompareContext(object):
         return self.options.get(name, default)
 
     def _lookup(self, x, y):
+        
+        if self.strict and type(x) is not type(y):
+            return compare_with_type
+        
         for class_ in _shared_mro(x, y):
             comparer = self.registry.get(class_)
             if comparer:
                 return comparer
+            
         # fallback for iterables
         if isinstance(x, Iterable) and isinstance(y, Iterable):
             return compare_generator
+        
         return compare_simple
 
     def _seperator(self):
@@ -306,10 +312,7 @@ class CompareContext(object):
                 if x == y:
                     return False
             
-            if self.strict and type(x) is not type(y):
-                comparer = compare_with_type
-            else:
-                comparer = self._lookup(x, y)
+            comparer = self._lookup(x, y)
 
             result = comparer(x, y, self)
             specific_comparer = comparer is not compare_simple
@@ -360,26 +363,19 @@ def compare(x, y, **kw):
                      used instead of the global comparer registry.
     """
     prefix = kw.pop('prefix', None)
-    recursive = kw.pop('recursive', True)
-    strict = kw.pop('strict', False)
-    registry = kw.pop('registry', _registry)
-
-    # extensive, extendable and recursive comparison and error reporting
-    context = CompareContext(registry, strict, recursive, kw)
-
+    context = CompareContext(kw)
     different = context.different(x, y, not_there)
-
+    
     if context.unused_options:
         raise TypeError(
             'options passed to compare were unused by any comparer: ' +
             (', '.join(context.unused_options))
             )
-
+    
     if not different:
         return
-
-    message = context.message
     
+    message = context.message
     if prefix:
         message = prefix + ': ' + message
 
