@@ -859,14 +859,28 @@ b
             )
 
     def test_nested_strict_only_type_difference(self):
-        # difference further down!
-        class MyTuple(tuple): pass
-
-        compare([MyTuple((1, 2, 3))], [(1, 2, 3)], strict=True)
-    
+        MyTuple = namedtuple('MyTuple', 'x y z')
+        self.checkRaises(
+            [MyTuple(1, 2, 3)], [(1, 2, 3)],
+            "sequence not as expected:\n"
+            "\n"
+            "same:\n"
+            "[]\n"
+            "\n"
+            "first:\n"
+            "[MyTuple(x=1, y=2, z=3)]\n"
+            "\n"
+            "second:\n"
+            "[(1, 2, 3)]\n"
+            "\n"
+            "While comparing [0]: MyTuple(x=1, y=2, z=3) "
+            "(<class 'testfixtures.tests.test_compare.MyTuple'>) "
+            "!= (1, 2, 3) "
+            "(<class 'tuple'>)",
+            strict=True
+            )
 
     def test_strict_nested_different(self):
-        # default comparer used!
         self.checkRaises(
             (1, 2, [1, 2]), (1, 2, (1, 3)),
             "sequence not as expected:\n"
@@ -880,16 +894,8 @@ b
             "second:\n"
             "((1, 3),)"
             "\n\n"
-            "While comparing [2]: sequence not as expected:\n"
-            "\n"
-            "same:\n"
-            "(1,)\n"
-            "\n"
-            "first:\n"
-            "(2,)\n"
-            "\n"
-            "second:\n"
-            "(3,)",
+            "While comparing [2]: "
+            "[1, 2] (<class 'list'>) != (1, 3) (<class 'tuple'>)",
             strict=True,
             )
 

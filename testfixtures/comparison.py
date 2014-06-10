@@ -291,6 +291,7 @@ class CompareContext(object):
         return '\n\nWhile comparing %s: ' % ''.join(self.breadcrumbs[1:])
 
     def different(self, x, y, breadcrumb):
+        
         recursed = bool(self.breadcrumbs)
         self.breadcrumbs.append(breadcrumb)
         existing_message = self.message
@@ -298,10 +299,18 @@ class CompareContext(object):
         current_message = ''
         try:
 
-            if x == y:
-                return False
+            if self.strict:
+                if x is y:
+                    return False
+            else:
+                if x == y:
+                    return False
             
-            comparer = self._lookup(x, y)
+            if self.strict and type(x) is not type(y):
+                comparer = compare_with_type
+            else:
+                comparer = self._lookup(x, y)
+
             result = comparer(x, y, self)
             specific_comparer = comparer is not compare_simple
             
@@ -358,9 +367,6 @@ def compare(x, y, **kw):
 
     # extensive, extendable and recursive comparison and error reporting
     context = CompareContext(registry, strict, recursive, kw)
-
-    if strict and type(x) is not type(y):
-        raise AssertionError(compare_with_type(x, y, context))
 
     different = context.different(x, y, not_there)
 
