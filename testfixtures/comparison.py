@@ -353,8 +353,7 @@ def compare(x, y, **kw):
                    
     :param strict: If ``True``, objects will only compare equal if
                    they are of the same type as well as being equal.
-                   Defaults to ``False``. If comparing recursively, only the
-                   initial objects passed to the comparison will be checked for type.
+                   Defaults to ``False``.
                    
     :param registry: If supplied, should be a dictionary mapping
                      types to comparer functions for those types. This will be
