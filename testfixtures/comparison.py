@@ -265,9 +265,15 @@ def _shared_mro(x, y):
 class CompareContext(object):
 
     def __init__(self, options):
+        comparers = options.pop('comparers', None)
+        if comparers:
+            self.registry = dict(_registry)
+            self.registry.update(comparers)
+        else:
+            self.registry = _registry
+            
         self.recursive = options.pop('recursive', True)
         self.strict = options.pop('strict', False)
-        self.registry = options.pop('registry', _registry)
         self.options = options
         self.unused_options = set(options)
         self.message = ''
@@ -278,7 +284,6 @@ class CompareContext(object):
         return self.options.get(name, default)
 
     def _lookup(self, x, y):
-        
         if self.strict and type(x) is not type(y):
             return compare_with_type
         

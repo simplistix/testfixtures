@@ -339,7 +339,7 @@ registry to the compare function, which will be used instead of the
 global registry:
 
 >>> compare(DataRow(1, 2, 3), DataRow(1, 2, 4),
-...         registry={DataRow:compare_DataRow})
+...         comparers={DataRow:compare_DataRow})
 Traceback (most recent call last):
  ...
 AssertionError: DataRow(x=1, y=2, z=3) != DataRow(x=1, y=2, z=4)

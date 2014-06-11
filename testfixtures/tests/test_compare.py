@@ -6,12 +6,14 @@ from mock import Mock, call
 from re import compile
 from testfixtures import (
     Comparison as C,
+    Replacer,
     ShouldRaise,
     compare,
     generator,
     singleton,
     )
 from testfixtures.compat import class_type_name, exception_module, PY3, xrange
+from testfixtures.comparison import register, compare_sequence
 from unittest import TestCase
 from .compat import py_33_plus
 
@@ -572,7 +574,7 @@ b
             )):
             compare(1,'',blanklines=False)
 
-    def test_supply_registry(self):
+    def test_supply_comparer(self):
         def compare_dict(x, y, context):
             self.assertEqual(x, {1:1})
             self.assertEqual(y, {2:2})
@@ -581,17 +583,46 @@ b
         with ShouldRaise(AssertionError('not equal')):
             compare({1:1}, {2:2},
                     foo='bar',
-                    registry={dict: compare_dict})
+                    comparers={dict: compare_dict})
     
     def test_register_more_specific(self):
         class_ = namedtuple('Test', 'x')
         with ShouldRaise(AssertionError('compare class_')):
             compare(class_(1), class_(2),
-                    registry={
+                    comparers={
                     tuple: Mock(return_value='compare tuple'),
                     class_: Mock(return_value='compare class_')
                     })
 
+    def test_extra_comparers_leave_existing(self):
+        class MyObject(object):
+            def __init__(self, name):
+                self.name = name
+            def __repr__(self):
+                return 'MyObject instance'
+        def compare_my_object(x, y, context):
+            return '%s != %s' % (x.name, y.name)
+        with Replacer() as r:
+            r.replace('testfixtures.comparison._registry', {
+                    list: compare_sequence,
+                    })
+            self.checkRaises(
+                [1, MyObject('foo')], [1, MyObject('bar')],
+                "sequence not as expected:\n"
+                "\n"
+                "same:\n"
+                "[1]\n"
+                "\n"
+                "first:\n"
+                "[MyObject instance]\n"
+                "\n"
+                "second:\n"
+                "[MyObject instance]\n"
+                "\n"
+                "While comparing [1]: foo != bar",
+                comparers={MyObject: compare_my_object}
+                )
+            
     def test_list_subclass(self):
         m = Mock()
         m.aCall()
@@ -617,7 +648,7 @@ b
             object(), object(),
             "not equal",
             strict=True,
-            registry={object: compare_obj},
+            comparers={object: compare_obj},
             )
 
     def test_strict_default_comparer(self):
