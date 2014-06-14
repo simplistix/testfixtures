@@ -158,7 +158,7 @@ Thanks to Matthias Lehmann for the import error reports.
 -------------------------
 
 - add back functionality to allow comparison of generators with
-  non-generators. See the :ref:`docs <comparison-generators>` for details.
+  non-generators.
 
 2.0.0 (23 September 2011)
 -------------------------

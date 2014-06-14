@@ -35,4 +35,12 @@ else:
     from cStringIO import StringIO
     xrange = xrange
 
-    
+try:
+    from mock import call as mock_call
+except ImportError:
+    class mock_call: pass
+
+try:
+    from unittest.mock import call as unittest_call
+except ImportError:
+    class unittest_call: pass

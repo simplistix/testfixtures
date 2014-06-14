@@ -157,7 +157,7 @@ class TempDirectory:
         :param expected: A sequence of strings containing the names
                          expected in the directory.
         """
-        compare(expected,tuple(self.actual()))
+        compare(expected, tuple(self.actual()), recursive=False)
 
     def check_dir(self,dir,*expected):
         """
@@ -183,7 +183,7 @@ class TempDirectory:
         :param expected: A sequence of strings containing the names
                          expected in the directory.
         """
-        compare(expected,tuple(self.actual(dir)))
+        compare(expected, tuple(self.actual(dir)), recursive=False)
 
     def check_all(self,dir,*expected):
         """
@@ -211,7 +211,8 @@ class TempDirectory:
                          be forward-slash separated and relative to
                          the root of the temporary directory.
         """
-        compare(expected,tuple(self.actual(dir,recursive=True)))
+        compare(expected, tuple(self.actual(dir, recursive=True)),
+                recursive=False)
 
     def _join(self,name):
         if isinstance(name,basestring):

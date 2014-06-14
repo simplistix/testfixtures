@@ -119,7 +119,8 @@ class LogCapture(logging.Handler):
         """
         return compare(
             expected,
-            tuple(self.actual())
+            tuple(self.actual()),
+            recursive=False
             )
 
     def __enter__(self):

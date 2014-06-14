@@ -26,13 +26,19 @@ API Reference
 .. autoclass:: TempDirectory
    :members:
 
-.. autofunction:: compare(x, y, prefix=None, strict=False, registry=None, **kw)
+.. autofunction:: compare(x, y, prefix=None, strict=False, comparers=None, **kw)
 
 .. autofunction:: testfixtures.comparison.register
+
+.. autofunction:: testfixtures.comparison.compare_simple
+
+.. autofunction:: testfixtures.comparison.compare_with_type
 
 .. autofunction:: testfixtures.comparison.compare_sequence
 
 .. autofunction:: testfixtures.comparison.compare_generator
+
+.. autofunction:: testfixtures.comparison.compare_tuple
 
 .. autofunction:: testfixtures.comparison.compare_dict
 
@@ -278,11 +284,6 @@ API Reference
    :members:
 
 .. autoclass:: testfixtures.manuel.Files
-
-.. data:: identity
-
-   A singleton used to identify comparisons of objects that are found
-   to be identical.
 
 .. data:: not_there
 
