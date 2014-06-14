@@ -13,7 +13,7 @@ from testfixtures import (
     singleton,
     )
 from testfixtures.compat import class_type_name, exception_module, PY3, xrange
-from testfixtures.comparison import register, compare_sequence
+from testfixtures.comparison import compare_sequence
 from unittest import TestCase
 from .compat import py_33_plus
 
@@ -204,6 +204,10 @@ class TestCompare(TestCase):
             )
 
     def test_dict_same(self):
+        compare(dict(x=1), dict(x=1))
+
+    def test_dict_same_from_comparer(self):
+        
         compare(dict(x=1), dict(x=1))
 
     def test_dict_first_missing_keys(self):
@@ -622,7 +626,7 @@ b
                 "While comparing [1]: foo != bar",
                 comparers={MyObject: compare_my_object}
                 )
-            
+     
     def test_list_subclass(self):
         m = Mock()
         m.aCall()

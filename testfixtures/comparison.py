@@ -119,6 +119,9 @@ def _compare_mapping(x, y, context, obj_for_class):
             same.append(key)
     lines = ['%s not as expected:' % obj_for_class.__class__.__name__]
     if same:
+        set_same = set(same)
+        if set_same == x_keys == y_keys:
+            return
         lines.extend(('', 'same:', repr(same)))
     if x_not_y:
         lines.extend(('', 'in first but not second:'))
