@@ -63,7 +63,7 @@ dicts
 Comparing dictionaries that aren't the same will attempt to
 highlight where the differences lie:
 
->>> compare(dict(x=1, y=2, a=4),dict(x=1, z=3, a=5))
+>>> compare(dict(x=1, y=2, a=4), dict(x=1, z=3, a=5))
 Traceback (most recent call last):
  ...
 AssertionError: dict not as expected:
@@ -99,6 +99,26 @@ first:
 <BLANKLINE>
 second:
 [4]
+
+namedtuples
+~~~~~~~~~~~
+
+When two :func:`~collections.namedtuple` instances are compared, if
+they are of the same type, the description given will highlight which
+elements were the same and which were different:
+
+>>> from collections import namedtuple
+>>> TestTuple = namedtuple('TestTuple', 'x y z')
+>>> compare(TestTuple(1, 2, 3), TestTuple(1, 4, 3))
+Traceback (most recent call last):
+ ...
+AssertionError: TestTuple not as expected:
+<BLANKLINE>
+same:
+['x', 'z']
+<BLANKLINE>
+values differ:
+'y': 2 != 4
 
 generators
 ~~~~~~~~~~
@@ -212,7 +232,51 @@ following:
   compare('line1\nline2', 'line1 \t\nline2   \n',
           trailing_whitespace=False)
 
-providing your own comparers
+Recursive comparison
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Where :func:`compare` is able to provide a descriptive comparison for
+a particular type, it will then recurse to do the same for the
+elements contained within objects of that type. 
+For example, when comparing a list of dictionaries, the description
+will not only tell you where in the list the difference occurred, but
+also what the differences were within the dictionaries that weren't
+equal:
+
+>>> compare([{'one': 1}, {'two': 2, 'text':'foo\nbar\nbaz'}],
+...         [{'one': 1}, {'two': 2, 'text':'foo\nbob\nbaz'}])
+Traceback (most recent call last):
+ ...
+AssertionError: sequence not as expected:
+<BLANKLINE>
+same:
+[{'one': 1}]
+<BLANKLINE>
+first:
+[{'text': 'foo\nbar\nbaz', 'two': 2}]
+<BLANKLINE>
+second:
+[{'text': 'foo\nbob\nbaz', 'two': 2}]
+<BLANKLINE>
+While comparing [1]: dict not as expected:
+<BLANKLINE>
+same:
+['two']
+<BLANKLINE>
+values differ:
+'text': 'foo\nbar\nbaz' != 'foo\nbob\nbaz'
+<BLANKLINE>
+While comparing [1]['text']: 
+@@ -1,3 +1,3 @@
+ foo
+-bar
++bob
+ baz
+
+This also applies to any comparers you have provided, as can be seen
+in the next section.
+
+Providing your own comparers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When using :meth:`compare` frequently for your own complex objects,
@@ -227,106 +291,82 @@ don't compare as equal.
     basic types, take a look at :ref:`comparison-objects` as this may
     well be an easier solution.
 
-Providing a comparer can be particularly useful when the objects
-involved are instances of subclasses of python basic data types. 
-For example, suppose you're using a :func:`~collections.namedtuple`:
-
 .. invisible-code-block: python
 
-  # python2.5 doesn't have namedtuple
-  try:
-      from collections import namedtuple
-  except ImportError:
-      def namedtuple(name, *args):
-          class TheRow(tuple): 
-               def __new__(cls, *args):
-                   return super(TheRow, cls).__new__(cls, args)
-               def __repr__(self):
-                   name = self.__class__.__name__
-                   if len(self)==3:
-                       return name+"(x=%s, y=%s, z=%s)" % self
-                   elif len(self)==1:
-                       return name+"(x=%s)" % self
-                   else:
-                       return '<compat error>'
-          TheRow.__name__ = name
-          TheRow.__module__ = '__main__'
-          return TheRow
+  from testfixtures.comparison import _registry, compare_sequence
+  from testfixtures import Replacer
+  r = Replacer()
+  r.replace('testfixtures.comparison._registry', {
+      list: compare_sequence
+      })
+
+As an example, suppose you have a class whose instances have a
+timestamp and a name as attributes, but you'd like to ignore the
+timestamp when comparing:
 
 .. code-block:: python
 
- DataRow = namedtuple('DataRow', ('x', 'y', 'z'))
+  from datetime import datetime
+  
+  class MyObject(object):
+      def __init__(self, name):
+          self.timestamp = datetime.now()
+          self.name = name
+
+To compare lots of these, you would first write a comparer:
+
+.. code-block:: python
+
+  def compare_my_object(x, y, context):
+      if x.name == y.name:
+          return
+      return 'MyObject named %r != MyObject named %r' % (
+          x.name, y.name
+          )
+
+Then you'd register that comparer for your type:
+
+.. code-block:: python
+
+  from testfixtures.comparison import register
+  register(MyObject, compare_my_object)
 
 .. invisible-code-block: python
 
-  from testfixtures.comparison import _registry
-  from testfixtures import Replacer
-  r = Replacer()
-  r.replace('testfixtures.comparison._registry', {})
+  import testfixtures.comparison
+  assert testfixtures.comparison._registry == {
+      MyObject: compare_my_object, list: compare_sequence,
+      }
 
-If this tuple contained many elements, you may want to use the
-:func:`~testfixtures.comparison.compare_sequence` function to show
-differences when two of these objects are not equal. This can be done
-as follows:
+Now, it'll get used when comparing objects of that type,
+even if they're contained within other objects:
 
->>> from testfixtures.comparison import register, compare_sequence
->>> register(DataRow, compare_sequence)
->>> compare(DataRow(1, 2, 3), DataRow(1, 2, 4))
+>>> compare([1, MyObject('foo')], [1, MyObject('bar')])
 Traceback (most recent call last):
  ...
 AssertionError: sequence not as expected:
 <BLANKLINE>
 same:
-(1, 2)
+[1]
 <BLANKLINE>
 first:
-(3,)
+[<MyObject ...>]
 <BLANKLINE>
 second:
-(4,)
+[<MyObject ...>]
+<BLANKLINE>
+While comparing [1]: MyObject named 'foo' != MyObject named 'bar'
+
+From this example, you can also see that a comparer can indicate that
+two objects are equal, for :func:`compare`'s purposes, by returning
+``None``:
+
+>>> MyObject('foo') == MyObject('foo')
+False
+>>> compare(MyObject('foo'), MyObject('foo'))
 
 .. invisible-code-block: python
 
-  import testfixtures.comparison
-  assert testfixtures.comparison._registry == {DataRow: compare_sequence}
-
-A full list of the available comparers included can be found below the
-API documentation for :func:`compare`. If you wish to provide your own
-comparer, it should be a function that takes two positional arguments,
-the two objects to be compare, and, if necessary, keyword arguments to
-configure the comparison, which will be passed through from the
-:func:`compare` call. Comparers may do some processing and then decide
-that, for the purposes of the test, the two objects are equal. In this
-case, the comparer should return
-:data:`~testfixtures.identity` to indicate that no exception
-should be raised.
-
-For example, suppose you want to optionally compare only two of the
-three elements of the :func:`~collections.namedtuple` above; this
-could be implemented as follows:
-
-.. code-block:: python
-
-  def compare_DataRow(x, y, context):
-      all = context.get_option('all', True)
-      cx, cy = x[:2], y[:2]
-      if not all and (cx==cy):
-          return
-      return'%r != %r' % (x, y)
-
-To use this, you'd do the following:
-
->>> from testfixtures.comparison import register
->>> register(DataRow, compare_DataRow)
->>> compare(DataRow(1, 2, 3), DataRow(1, 2, 4))
-Traceback (most recent call last):
- ...
-AssertionError: DataRow(x=1, y=2, z=3) != DataRow(x=1, y=2, z=4)
->>> compare(DataRow(1, 2, 3), DataRow(1, 2, 4), all=False)
-
-.. invisible-code-block: python
-
-  assert testfixtures.comparison._registry == {DataRow: compare_DataRow}
   r.restore()
 
   # set up for the next test
@@ -334,21 +374,148 @@ AssertionError: DataRow(x=1, y=2, z=3) != DataRow(x=1, y=2, z=4)
   r.replace('testfixtures.comparison._registry', {})
 
 Now, it may be that you only want to use a comparer or set of
-comparers for a particular test. If that's the case, you can pass in a
-registry to the compare function, which will be used instead of the
-global registry:
+comparers for a particular test. If that's the case, you can pass
+:func:`compare` a ``comparers`` parameter consisting of a
+dictionary that maps types to comparers. These will be added to the
+global registry for the duration of the call:
 
->>> compare(DataRow(1, 2, 3), DataRow(1, 2, 4),
-...         comparers={DataRow:compare_DataRow})
+>>> compare(MyObject('foo'), MyObject('bar'),
+...         comparers={MyObject: compare_my_object})
 Traceback (most recent call last):
  ...
-AssertionError: DataRow(x=1, y=2, z=3) != DataRow(x=1, y=2, z=4)
-
+AssertionError: MyObject named 'foo' != MyObject named 'bar'
 
 .. invisible-code-block: python
 
   import testfixtures.comparison
   assert testfixtures.comparison._registry == {}
+  r.restore()
+
+A full list of the available comparers included can be found below the
+API documentation for :func:`compare`. These make good candidates for
+registering for your own classes, if they provide the necessary
+behaviour, and their source is also good to read when wondering how to
+implement your own comparers.
+
+You may be wondering what the ``context`` object passed to the
+comparer is for; it allows you to hand off comparison of parts of the
+two objects currently being compared back to the :func:`compare`
+machinery, it also allows you to pass options to your comparison
+function. 
+
+For example, you may have an object that has a couple of dictionaries
+as attributes:
+
+.. code-block:: python
+
+  from datetime import datetime
+  
+  class Request(object):
+      def __init__(self, uri, headers, body):
+          self.uri = uri
+          self.headers = headers
+          self.body = body
+
+When your tests encounter instances of these that are not as expected,
+you want feedback about which bits of the request or response weren't
+as expected. This can be achieved by implementing a comparer as
+follows:
+
+.. code-block:: python
+
+   def compare_request(x, y, context):
+       uri_different = x.uri != y.uri
+       headers_different = context.different(x.headers, y.headers, '.headers')
+       body_different = context.different(x.body, y.body, '.body')
+       if uri_different or headers_different or body_different:
+           return 'Request for %r != Request for %r' % (
+               x.uri, y.uri
+           )
+
+.. note:: 
+
+  A comparer should always return some text when it considers
+  the two objects it is comparing to be different.
+
+Now, this comparer can either be registered globally or passed to each
+:func:`compare` call and will give detailed feedback about how the
+requests were different:
+
+>>> compare(Request('/foo', {'method': 'POST'}, {'my_field': 'value_1'}),
+...         Request('/foo', {'method': 'GET'}, {'my_field': 'value_2'}),
+...         comparers={Request: compare_request})
+Traceback (most recent call last):
+ ...
+AssertionError: Request for '/foo' != Request for '/foo'
+<BLANKLINE>
+While comparing .headers: dict not as expected:
+<BLANKLINE>
+values differ:
+'method': 'POST' != 'GET'
+<BLANKLINE>
+While comparing .headers['method']: 'POST' != 'GET'
+<BLANKLINE>
+While comparing .body: dict not as expected:
+<BLANKLINE>
+values differ:
+'my_field': 'value_1' != 'value_2'
+<BLANKLINE>
+While comparing .body['my_field']: 'value_1' != 'value_2'
+
+As an example of passing options through to a comparer, suppose you
+wanted to compare all decimals in a nested data structure by rounding
+them to a number of decimal places that varies from test to test. The
+comparer could be implemented and registered as follows:
+
+.. invisible-code-block: python
+
+  from testfixtures.comparison import _registry
+  r = Replacer()
+  r.replace('testfixtures.comparison._registry', dict(_registry))
+
+.. code-block:: python
+
+  from decimal import Decimal
+  from testfixtures.comparison import register
+
+  def compare_decimal(x, y, context):
+       precision = context.get_option('precision', 2)
+       if round(x, precision) != round(y, precision):
+           return '%r != %r when rounded to %i decimal places' % (
+               x, y, precision
+           )
+
+  register(Decimal, compare_decimal)
+
+Now, this comparer will be used for comparing all decimals and the
+precision used will be that passed to :func:`compare`:
+
+>>> expected_order = {'price': Decimal('1.234'), 'quantity': 5}
+>>> actual_order = {'price': Decimal('1.236'), 'quantity': 5}
+>>> compare(expected_order, actual_order, precision=1)
+>>> compare(expected_order, actual_order, precision=3)
+Traceback (most recent call last):
+ ...
+AssertionError: dict not as expected:
+<BLANKLINE>
+same:
+['quantity']
+<BLANKLINE>
+values differ:
+'price': Decimal('1.234') != Decimal('1.236')
+<BLANKLINE>
+While comparing ['price']: Decimal('1.234') != Decimal('1.236') when rounded to 3 decimal places
+
+If no precision is passed, the default of ``2`` will be used:
+
+>>> compare(Decimal('2.006'), Decimal('2.009'))
+>>> compare(Decimal('2.001'), Decimal('2.009'))
+Traceback (most recent call last):
+ ...
+AssertionError: Decimal('2.001') != Decimal('2.009') when rounded to 2 decimal places
+
+.. invisible-code-block: python
+
   r.restore()
 
 .. _strict-comparison:

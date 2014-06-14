@@ -76,10 +76,10 @@ def compare_generator(x, y, context):
 def compare_tuple(x, y, context):
     """
     Returns a textual difference between two tuples or
-    :class:`collections.namedtuple` instances.
+    :func:`collections.namedtuple` instances.
 
-    The presence of the ``_fields`` attribute on the tuple is used to
-    decide whether or not a tuple is a :class:`~collections.namedtuple`.
+    The presence of a ``_fields`` attribute on a tuple is used to
+    decide whether or not it is a :func:`~collections.namedtuple`.
     """
     x_fields = getattr(x, '_fields', None)
     y_fields = getattr(y, '_fields', None)
@@ -347,7 +347,7 @@ def compare(x, y, **kw):
     The :class:`AssertionError` raised will attempt to provide
     descriptions of the differences found.
 
-    Any keywords parameters supplied will be passed to the function
+    Any keywords parameters supplied will be passed to the functions
     that ends up doing the comparison. See the API documentation below
     for details of these.
     
@@ -363,9 +363,10 @@ def compare(x, y, **kw):
                    they are of the same type as well as being equal.
                    Defaults to ``False``.
                    
-    :param registry: If supplied, should be a dictionary mapping
-                     types to comparer functions for those types. This will be
-                     used instead of the global comparer registry.
+    :param comparers: If supplied, should be a dictionary mapping
+                      types to comparer functions for those types. These will be
+                      added to the global comparer registry for the duration
+                      of this call.
     """
     prefix = kw.pop('prefix', None)
     context = CompareContext(kw)
