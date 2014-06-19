@@ -17,7 +17,7 @@ repository found here:
 
 https://github.com/Simplistix/testfixtures/
 
-Once that has been done, you can follow these
+Once that has been done and you have a checkout, you can follow these
 instructions to perform various development tasks:
 
 Setting up a virtualenv

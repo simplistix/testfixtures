@@ -1,5 +1,5 @@
-Mocking out dates and times
-===========================
+Mocking dates and times
+=======================
 
 .. currentmodule:: testfixtures
 

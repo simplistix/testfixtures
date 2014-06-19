@@ -9,7 +9,7 @@ If you're wondering why "yet another mock object library", testing is
 often described as an art form and as such some styles of library will
 suite some people while others will suite other styles. This library
 contains common test fixtures the author found himself
-repeating from package to packages and so decided to extract them into
+repeating from package to package and so decided to extract them into
 their own library and give them some tests of their own!
 
 The areas of testing this package can help with are listed below:

@@ -373,7 +373,7 @@ False
   r = Replacer()
   r.replace('testfixtures.comparison._registry', {})
 
-Now, it may be that you only want to use a comparer or set of
+It may be that you only want to use a comparer or set of
 comparers for a particular test. If that's the case, you can pass
 :func:`compare` a ``comparers`` parameter consisting of a
 dictionary that maps types to comparers. These will be added to the
@@ -437,7 +437,7 @@ follows:
   A comparer should always return some text when it considers
   the two objects it is comparing to be different.
 
-Now, this comparer can either be registered globally or passed to each
+This comparer can either be registered globally or passed to each
 :func:`compare` call and will give detailed feedback about how the
 requests were different:
 

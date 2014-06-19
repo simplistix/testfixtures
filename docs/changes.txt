@@ -3,6 +3,26 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.0.0 (XX June 2014)
+--------------------
+
+- Moved from buildout to virtualenv for development.
+
+- The ``identity`` singleton is no longer needed and has been
+  removed.
+
+- :func:`compare` will now work recursively on data structures for
+  which it has registered comparers, giving more detailed feedback on
+  nested data structures. Strict comparison will also be applied
+  recursively.
+
+- Re-work the interfaces for using custom comparers with
+  :func:`compare`.
+
+- Better feedback when comparing :func:`collections.namedtuple` instances.
+
+Thanks to Yevgen Kovalienia for the typo fix in :doc:`datetime`.
+
 3.1.0 (25 May 2014)
 -------------------
 
