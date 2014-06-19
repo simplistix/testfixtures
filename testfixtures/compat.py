@@ -38,9 +38,11 @@ else:
 try:
     from mock import call as mock_call
 except ImportError:
-    class mock_call: pass
+    class MockCall: pass
+    mock_call = MockCall()
 
 try:
-    from unittest.mock import call as unittest_call
+    from unittest.mock import call as unittest_mock_call
 except ImportError:
-    class unittest_call: pass
+    class UnittestMockCall: pass
+    unittest_mock_call = UnittestMockCall()

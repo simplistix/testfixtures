@@ -15,7 +15,7 @@ from testfixtures import (
 from testfixtures.compat import class_type_name, exception_module, PY3, xrange
 from testfixtures.comparison import compare_sequence
 from unittest import TestCase
-from .compat import py_33_plus
+from .compat import py_33_plus, py_2
 
 hexaddr = compile('0x[0-9A-Fa-f]+')
 
@@ -424,8 +424,9 @@ class TestCompare(TestCase):
 
     def test_sequence_and_generator_strict(self):
         expected = compile(
-            "\(1, 2, 3\) \(<class 'tuple'>\) != "
-            "<generator object (generator )?at... \(<class 'generator'>\)"
+            "\(1, 2, 3\) \(<(class|type) 'tuple'>\) != "
+            "<generator object (generator )?at... "
+            "\(<(class|type) 'generator'>\)"
             )
         self.checkRaises(
             (1,2,3), generator(1,2,3),
@@ -459,8 +460,9 @@ class TestCompare(TestCase):
 
     def test_iterable_and_generator_strict(self):
         expected = compile(
-            "x?range\(1, 4\) \(<class 'range'>\) != "
-            "<generator object (generator )?at... \(<class 'generator'>\)"
+            "x?range\(1, 4\) \(<(class|type) 'x?range'>\) != "
+            "<generator object (generator )?at... "
+            "\(<(class|type) 'generator'>\)"
             )
         self.checkRaises(
             xrange(1,4), generator(1,2,3),
@@ -475,9 +477,16 @@ class TestCompare(TestCase):
         compare((1,2,3), [1,2,3])
 
     def test_tuple_and_list_strict(self):
+        if py_2:
+            expected = ("(1, 2, 3) (<type 'tuple'>) != "
+                        "[1, 2, 3] (<type 'list'>)")
+        else:
+            expected = ("(1, 2, 3) (<class 'tuple'>) != "
+                        "[1, 2, 3] (<class 'list'>)")
+            
         self.checkRaises(
             (1,2,3), [1,2,3],
-            "(1, 2, 3) (<class 'tuple'>) != [1, 2, 3] (<class 'list'>)",
+            expected,
             strict=True
             )
 
@@ -895,8 +904,10 @@ b
 
     def test_nested_strict_only_type_difference(self):
         MyTuple = namedtuple('MyTuple', 'x y z')
+        type_repr = repr(MyTuple)
+        tuple_repr = repr(tuple)
         self.checkRaises(
-            [MyTuple(1, 2, 3)], [(1, 2, 3)],
+            [MyTuple(1, 2, 3)], [(1, 2, 3)], (
             "sequence not as expected:\n"
             "\n"
             "same:\n"
@@ -909,13 +920,18 @@ b
             "[(1, 2, 3)]\n"
             "\n"
             "While comparing [0]: MyTuple(x=1, y=2, z=3) "
-            "(<class 'testfixtures.tests.test_compare.MyTuple'>) "
+            "(%s) "
             "!= (1, 2, 3) "
-            "(<class 'tuple'>)",
+            "(%s)") % (type_repr, tuple_repr),
             strict=True
             )
 
     def test_strict_nested_different(self):
+        if py_2:
+            expected = "[1, 2] (<type 'list'>) != (1, 3) (<type 'tuple'>)"
+        else:
+            expected = "[1, 2] (<class 'list'>) != (1, 3) (<class 'tuple'>)"
+            
         self.checkRaises(
             (1, 2, [1, 2]), (1, 2, (1, 3)),
             "sequence not as expected:\n"
@@ -929,8 +945,7 @@ b
             "second:\n"
             "((1, 3),)"
             "\n\n"
-            "While comparing [2]: "
-            "[1, 2] (<class 'list'>) != (1, 3) (<class 'tuple'>)",
+            "While comparing [2]: " + expected,
             strict=True,
             )
 

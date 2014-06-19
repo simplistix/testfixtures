@@ -7,7 +7,7 @@ from pprint import pformat
 from re import compile, MULTILINE
 from testfixtures import not_there
 from testfixtures.compat import (
-    ClassType, Unicode, basestring, PY3, mock_call, unittest_call
+    ClassType, Unicode, basestring, PY3, mock_call, unittest_mock_call
     )
 from testfixtures.resolve import resolve
 from types import GeneratorType
@@ -237,7 +237,7 @@ _registry = {
     Unicode: compare_text,
     GeneratorType: compare_generator,
     mock_call.__class__: compare_simple,
-    unittest_call.__class__: compare_simple,
+    unittest_mock_call.__class__: compare_simple,
     }
 
 def register(type, comparer):
