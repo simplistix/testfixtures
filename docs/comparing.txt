@@ -612,6 +612,13 @@ False
   y:2 not in Comparison
   </C>
 
+.. note:: 
+
+   :meth:`~unittest.TestCase.assertEqual` has regressed in Python 3.4
+   and will now truncate the text shown in assertions with no way to
+   configure this behaviour. Use :func:`compare` instead, which will
+   give you other desirable behaviour as well as showing you the full
+   output of failed comparisons.
 
 Types of comparison
 ~~~~~~~~~~~~~~~~~~~

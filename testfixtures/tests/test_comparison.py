@@ -7,7 +7,7 @@ from testfixtures.tests.sample1 import TestClassA, a_function
 from unittest import TestCase
 import sys
 
-from .compat import py_33_plus
+from .compat import py_33_plus, py_34_plus
 
 class AClass:
 
@@ -210,15 +210,28 @@ class TestC(TestCase):
                 )
         except Exception as e:
             self.failUnless(isinstance(e,AssertionError))
-            self.assertEqual(
-                e.args,
-                (
-                "<C(failed):testfixtures.tests.test_comparison.AClass>wrong type</C> != <BClass>",
-                ))
+            self.assertEqual(e.args, ((
+                "<C(failed):testfixtures.tests.test_comparison.AClass>"
+                "wrong type</C> != <BClass>"
+                ), ))
         else:
             self.fail('No exception raised!')
 
     def test_repr_failed_all_reasons_in_one(self):
+        if py_34_plus:
+            expected = (
+                "\n  <C(failed):testfixtures.tests.test_com[79 chars] </C>"
+                " != <AClass>",
+                )
+        else:
+            expected = (
+                "\n"
+                "  <C(failed):testfixtures.tests.test_comparison.AClass>\n"
+                "  x:1 not in Comparison\n"
+                "  y:5 != 2\n"
+                "  z:'missing' not in other\n"
+                "  </C> != <AClass>",
+                )
         try:
             self.assertEqual(
                 C('testfixtures.tests.test_comparison.AClass',
@@ -227,77 +240,83 @@ class TestC(TestCase):
                 )
         except Exception as e:
             self.failUnless(isinstance(e,AssertionError))
-            self.assertEqual(
-                e.args,
-                (
-                "\n"
-                "  <C(failed):testfixtures.tests.test_comparison.AClass>\n"
-                "  x:1 not in Comparison\n"
-                "  y:5 != 2\n"
-                "  z:'missing' not in other\n"
-                "  </C> != <AClass>",
-                ))
+            self.assertEqual(e.args, expected)
         else:
             self.fail('No exception raised!')
 
     def test_repr_failed_not_in_other(self):
-        # use single element tuple to check %
-        try:
-            self.assertEqual(
-                C('testfixtures.tests.test_comparison.AClass',
-                  x=1,y=2,z=(3,)),
-                AClass(1,2)
+        if py_34_plus:
+            expected = (
+                "\n  <C(failed):testfixtures.tests.test_com[39 chars] </C>"
+                " != <AClass>",
                 )
-        except Exception as e:
-            self.failUnless(isinstance(e,AssertionError))
-            self.assertEqual(
-                e.args,
-                (
+        else:
+            expected = (
                 "\n"
                 "  <C(failed):testfixtures.tests.test_comparison.AClass>\n"
                 "  z:(3,) not in other\n"
                 "  </C> != <AClass>",
-                ))
+                )
+        # use single element tuple to check %
+        try:
+            self.assertEqual(
+                C('testfixtures.tests.test_comparison.AClass',
+                  x=1, y=2, z=(3,)),
+                AClass(1, 2)
+                )
+        except Exception as e:
+            self.failUnless(isinstance(e,AssertionError))
+            self.assertEqual(e.args, expected)
         else:
             self.fail('No exception raised!')
 
     def test_repr_failed_not_in_self_strict(self):
         # use single element tuple to check %
-        try:
-            self.assertEqual(
-                C('testfixtures.tests.test_comparison.AClass',y=2),
-                AClass((1,),2)
+        if py_34_plus:
+            expected = (
+                "\n  <C(failed):testfixtures.tests.test_com[44 chars] </C>"
+                " != <AClass>",
                 )
-        except Exception as e:
-            self.failUnless(isinstance(e,AssertionError))
-            self.assertEqual(
-                e.args,
-                (
+        else:
+            expected = (
                 "\n"
                 "  <C(failed):testfixtures.tests.test_comparison.AClass>\n"
                 "  x:(1,) not in Comparison\n"
                 "  </C> != <AClass>",
-                ))
+                )
+        try:
+            self.assertEqual(
+                C('testfixtures.tests.test_comparison.AClass', y=2),
+                AClass((1, ), 2)
+                )
+        except Exception as e:
+            self.failUnless(isinstance(e,AssertionError))
+            self.assertEqual(e.args, expected)
         else:
             self.fail('No exception raised!')
 
     def test_repr_failed_not_in_self_not_strict(self):
-        try:
-            self.assertEqual(
-                C('testfixtures.tests.test_comparison.AClass',
-                  x=1,y=2,z=(3,)),
-                AClass(1,2)
+        if py_34_plus:
+            expected = (
+                "\n  <C(failed):testfixtures.tests.test_com[39 chars] </C>"
+                " != <AClass>",
                 )
-        except Exception as e:
-            self.failUnless(isinstance(e,AssertionError))
-            self.assertEqual(
-                e.args,
-                (
+        else:
+            expected = (
                 "\n"
                 "  <C(failed):testfixtures.tests.test_comparison.AClass>\n"
                 "  z:(3,) not in other\n"
                 "  </C> != <AClass>",
-                ))
+                )
+        try:
+            self.assertEqual(
+                C('testfixtures.tests.test_comparison.AClass',
+                  x=1, y=2, z=(3, )),
+                AClass(1, 2)
+                )
+        except Exception as e:
+            self.failUnless(isinstance(e,AssertionError))
+            self.assertEqual(e.args, expected)
         else:
             self.fail('No exception raised!')
 
@@ -584,6 +603,19 @@ class TestC(TestCase):
         self.assertEqual(C(X,x=1,strict=False),x)
 
     def test_no___dict___not_strict_different(self):
+        if py_34_plus:
+            expected = (
+                "\n  <C(failed):testfixtures.tests.test_com[42 chars] </C>"
+                " != <X>",
+                )
+        else:
+            expected = (
+                "\n"
+                "  <C(failed):testfixtures.tests.test_comparison.X>\n"
+                "  x:1 != 2\n"
+                "  y:2 not in other\n"
+                "  </C> != <X>",
+                )
         x = X()
         x.x=2
         try:
@@ -592,15 +624,7 @@ class TestC(TestCase):
                 x
                 )
         except AssertionError as e:
-            compare(
-                e.args[0],
-                (
-                "\n"
-                "  <C(failed):testfixtures.tests.test_comparison.X>\n"
-                "  x:1 != 2\n"
-                "  y:2 not in other\n"
-                "  </C> != <X>",
-                )[0])
+            compare(e.args, expected)
         else:
             self.fail('No exception raised!')
 

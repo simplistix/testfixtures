@@ -26,5 +26,5 @@ then you should do one of the following:
 
 .. topic:: Python version requirements
 
-  This package has been tested with Python 2.6, 2.7, 3.2 and 3.3 on Linux,
+  This package has been tested with Python 2.6, 2.7, 3.2 to 3.4 on Linux,
   Mac OS X and Windows.

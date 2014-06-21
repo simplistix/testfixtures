@@ -22,6 +22,7 @@ from manuel.codeblock import (
 from ..compat import PY2 as py_2
 py_27_plus = sys.version_info[:2] >=  (2, 7)
 py_33_plus = sys.version_info[:2] >=  (3, 3)
+py_34_plus = sys.version_info[:2] >=  (3, 4)
 
 # Python 2.6/2.7 compatibility stuff
 
