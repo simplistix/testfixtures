@@ -34,9 +34,16 @@ setup(
     long_description=open(os.path.join(base_dir,'docs','description.txt')).read(),
     url='http://www.simplistix.co.uk/software/python/testfixtures',
     classifiers=[
-    'Development Status :: 5 - Production/Stable',
-    'Intended Audience :: Developers',
-    'License :: OSI Approved :: MIT License',
+        'Development Status :: 5 - Production/Stable',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
     ],    
     packages=find_packages(),
     zip_safe=False,
@@ -44,5 +51,5 @@ setup(
     extras_require=dict(
         test=test_requires,
         build=['sphinx', 'pkginfo', 'setuptools-git']
-        )
     )
+)
