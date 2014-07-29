@@ -3,7 +3,7 @@ Changes
 
 .. currentmodule:: testfixtures
 
-4.0.0 (XX June 2014)
+4.0.0 (22 July 2014)
 --------------------
 
 - Moved from buildout to virtualenv for development.
@@ -19,7 +19,10 @@ Changes
 - Re-work the interfaces for using custom comparers with
   :func:`compare`.
 
-- Better feedback when comparing :func:`collections.namedtuple` instances.
+- Better feedback when comparing :func:`collections.namedtuple`
+  instances.
+
+- Official support for Python 3.4.
 
 Thanks to Yevgen Kovalienia for the typo fix in :doc:`datetime`.
 
