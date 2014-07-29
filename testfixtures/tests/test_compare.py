@@ -540,6 +540,26 @@ class TestCompare(TestCase):
             show_whitespace=True
             )
 
+    def test_show_whitespace_equal(self):
+        compare('x', 'x', show_whitespace=True)
+
+    def test_show_whitespace_not_used_because_of_other_difference(self):
+        self.checkRaises(
+            (1, 'a'),
+            (2, 'b'),
+            "sequence not as expected:\n"
+            "\n"
+            "same:\n"
+            "()\n"
+            "\n"
+            "first:\n"
+            "(1, 'a')\n"
+            "\n"
+            "second:\n"
+            "(2, 'b')",
+            show_whitespace=False
+            )
+
     def test_include_trailing_whitespace(self):
         self.checkRaises(
             ' x \n',' x  \n',
@@ -550,10 +570,11 @@ class TestCompare(TestCase):
         compare(' x \t\n',' x\t  \n',trailing_whitespace=False)
         
     def test_ignore_trailing_whitespace_non_string(self):
-        with ShouldRaise(TypeError(
-            "options passed to compare were unused by any comparer: trailing_whitespace"
-            )):
-            compare(1,'',trailing_whitespace=False)
+        self.checkRaises(
+            1, '',
+            "1 != ''",
+            trailing_whitespace=False
+            )
 
     def test_ignore_trailing_whitespace_but_respect_leading_whitespace(self):
         # NB: careful: this strips off the last newline too
@@ -582,10 +603,11 @@ b
         
         
     def test_ignore_blank_lines_non_string(self):
-        with ShouldRaise(TypeError(
-            "options passed to compare were unused by any comparer: blanklines"
-            )):
-            compare(1,'',blanklines=False)
+        self.checkRaises(
+            1, '',
+            "1 != ''",
+            blanklines=False
+            )
 
     def test_supply_comparer(self):
         def compare_dict(x, y, context):

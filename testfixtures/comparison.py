@@ -278,12 +278,10 @@ class CompareContext(object):
         self.recursive = options.pop('recursive', True)
         self.strict = options.pop('strict', False)
         self.options = options
-        self.unused_options = set(options)
         self.message = ''
         self.breadcrumbs = []
 
     def get_option(self, name, default=None):
-        self.unused_options.discard(name)
         return self.options.get(name, default)
 
     def _lookup(self, x, y):
@@ -373,15 +371,8 @@ def compare(x, y, **kw):
     """
     prefix = kw.pop('prefix', None)
     context = CompareContext(kw)
-    different = context.different(x, y, not_there)
     
-    if context.unused_options:
-        raise TypeError(
-            'options passed to compare were unused by any comparer: ' +
-            (', '.join(context.unused_options))
-            )
-    
-    if not different:
+    if not context.different(x, y, not_there):
         return
     
     message = context.message
