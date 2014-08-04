@@ -311,17 +311,17 @@ class CompareContext(object):
         current_message = ''
         try:
 
-            if self.strict:
-                if x is y:
-                    return False
-            else:
-                if x == y:
-                    return False
+            if not self.strict and x == y:
+                return False
             
             comparer = self._lookup(x, y)
 
             result = comparer(x, y, self)
             specific_comparer = comparer is not compare_simple
+
+            if self.strict:
+                if type(x) is type(x) and x==y and not specific_comparer:
+                    return False
             
             if result:
                 

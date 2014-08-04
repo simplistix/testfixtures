@@ -490,6 +490,10 @@ class TestCompare(TestCase):
             strict=True
             )
 
+    def test_float_subclass_strict(self):
+        class TestFloat(float): pass
+        compare(TestFloat(0.75), TestFloat(0.75), strict=True)
+
     def test_old_style_classes_same(self):
         class X: pass
         compare(X, X)
