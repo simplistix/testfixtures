@@ -3,6 +3,15 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.0.1 (4 August 2014)
+---------------------
+
+- Fix bugs when string compared equal and options to :func:`compare`
+  were used.
+
+- Fix bug when strictly comparing two nested structures containing
+  identical objects.
+
 4.0.0 (22 July 2014)
 --------------------
 
