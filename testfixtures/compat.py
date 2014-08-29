@@ -9,6 +9,8 @@ if sys.version_info[:2] > (3, 0):
     Bytes = bytes
     Unicode = str
     basestring = str
+    BytesLiteral = lambda x: x.encode('latin1')
+    UnicodeLiteral = lambda x: x
 
     class_type_name = 'class'
     ClassType = type
@@ -26,6 +28,8 @@ else:
     Bytes = str
     Unicode = unicode
     basestring = basestring
+    BytesLiteral = lambda x: x
+    UnicodeLiteral = lambda x: x.decode('latin1')
     
     class_type_name = 'type'
     from types import ClassType
