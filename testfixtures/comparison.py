@@ -294,7 +294,8 @@ class CompareContext(object):
                 return comparer
             
         # fallback for iterables
-        if isinstance(x, Iterable) and isinstance(y, Iterable):
+        if ((isinstance(x, Iterable) and isinstance(y, Iterable)) and not
+            (isinstance(x, basestring) or isinstance(y, basestring))):
             return compare_generator
         
         return compare_simple

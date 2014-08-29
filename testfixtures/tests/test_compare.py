@@ -12,7 +12,10 @@ from testfixtures import (
     generator,
     singleton,
     )
-from testfixtures.compat import class_type_name, exception_module, PY3, xrange
+from testfixtures.compat import (
+    class_type_name, exception_module, PY3, xrange,
+    BytesLiteral, UnicodeLiteral
+    )
 from testfixtures.comparison import compare_sequence
 from unittest import TestCase
 from .compat import py_33_plus, py_2
@@ -64,6 +67,16 @@ class TestCompare(TestCase):
 
     def test_string_same(self):
         compare('x', 'x')
+
+    def test_unicode_string_different(self):
+        if py_2:
+            expected = "u'a' != 'b'"
+        else:
+            expected = "'a' != b'b'"
+        self.checkRaises(
+            UnicodeLiteral('a'), BytesLiteral('b'),
+            expected
+            )
 
     def test_string_diff_short(self):
         self.checkRaises(
