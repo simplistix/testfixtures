@@ -109,7 +109,7 @@ def _compare_mapping(x, y, context, obj_for_class):
     same = []
     diffs = []
     for key in sorted(x_keys.intersection(y_keys)):
-        if context.different(x[key], y[key], '[%r]' % key):
+        if context.different(x[key], y[key], '[%r]' % (key,)):
             diffs.append('%r: %s != %s' % (
                 key,
                 pformat(x[key]),

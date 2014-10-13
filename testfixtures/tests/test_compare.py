@@ -219,10 +219,6 @@ class TestCompare(TestCase):
     def test_dict_same(self):
         compare(dict(x=1), dict(x=1))
 
-    def test_dict_same_from_comparer(self):
-        
-        compare(dict(x=1), dict(x=1))
-
     def test_dict_first_missing_keys(self):
         self.checkRaises(
             dict(),dict(z=3),
@@ -249,7 +245,20 @@ class TestCompare(TestCase):
             "values differ:\n"
             "'x': 1 != 2"
             )
-    
+
+    def test_dict_tuple_keys_same_value(self):
+        compare({(1, 2): None}, {(1, 2): None})
+
+    def test_dict_tuple_keys_different_value(self):
+        self.checkRaises(
+            {(1, 2): 3},
+            {(1, 2): 42},
+            "dict not as expected:\n"
+            "\n"
+            "values differ:\n"
+            "(1, 2): 3 != 42"
+            )
+
     def test_dict_full_diff(self):
         self.checkRaises(
             dict(x=1,y=2,a=4),dict(x=1,z=3,a=5),
@@ -356,7 +365,7 @@ class TestCompare(TestCase):
             "second:\n(3,)"
             )
 
-    def test_tuple_second_shorted(self):
+    def test_tuple_second_shorter(self):
         self.checkRaises(
             (1,2,3),(1,2),
             "sequence not as expected:\n\n"
