@@ -33,6 +33,7 @@ class LogCapture(logging.Handler):
         self.level = level
         self.oldlevels = {}
         self.oldhandlers = {}
+        self.olddisabled = {}
         self.clear()
         if install:
             self.install()
@@ -65,8 +66,10 @@ class LogCapture(logging.Handler):
             logger = logging.getLogger(name)
             self.oldlevels[name] = logger.level
             self.oldhandlers[name] = logger.handlers
+            self.olddisabled[name] = logger.disabled
             logger.setLevel(self.level)
             logger.handlers = [self]
+            logger.disabled = False
         self.instances.add(self)
         if not self.__class__.atexit_setup:
             atexit.register(self.atexit)
@@ -86,6 +89,7 @@ class LogCapture(logging.Handler):
                 logger = logging.getLogger(name)
                 logger.setLevel(self.oldlevels[name])
                 logger.handlers = self.oldhandlers[name]
+                logger.disabled = self.olddisabled[name]
                 if self in logging._handlers:
                     del logging._handlers[self]
                 if self in logging._handlerList:

@@ -338,6 +338,16 @@ class LogCaptureTests(TestCase):
             getLogger().log(42, 'running in the family')
 
         log.check(('root', 'Level 42', 'running in the family'))
+
+    def test_enable_disabled_logger(self):
+        logger = getLogger('disabled')
+        logger.disabled=True
+        with LogCapture('disabled') as log:
+            logger.info('a log message')
+        log.check(('disabled', 'INFO', 'a log message'))
+        compare(logger.disabled, True)
+        
+
         
 # using a set up and teardown function
 # gets rid of the need for the imports in
