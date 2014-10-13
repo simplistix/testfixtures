@@ -348,6 +348,16 @@ class LogCaptureTests(TestCase):
         compare(logger.disabled, True)
         
 
+    def test_no_propogate(self):
+        logger = getLogger('child')
+        # paranoid check
+        compare(logger.propagate, True)
+        with LogCapture() as global_log:
+            with LogCapture('child', propagate=False) as child_log:
+                logger.info('a log message')
+                child_log.check(('child', 'INFO', 'a log message'))
+        global_log.check()
+        compare(logger.propagate, True)
         
 # using a set up and teardown function
 # gets rid of the need for the imports in

@@ -1,6 +1,7 @@
-# Copyright (c) 2008-2011 Simplistix Ltd
+# Copyright (c) 2008-2014 Simplistix Ltd
 # See license.txt for license details.
 
+from collections import defaultdict
 import atexit
 import logging
 import warnings
@@ -19,21 +20,25 @@ class LogCapture(logging.Handler):
                   
     :param install: If `True`, the :class:`LogCapture` will be
                     installed as part of its instantiation.
+                  
+    :param propagate: Specified, any captured loggers will have their
+                      `propagate` attribute set to the specified value. This can
+                      be used to prevent propagation from a child logger to a
+                      parent logger that has configured handlers..
     """
     
     instances = set()
     atexit_setup = False
     installed = False
     
-    def __init__(self, names=None, install=True, level=1):
+    def __init__(self, names=None, install=True, level=1, propagate=None):
         logging.Handler.__init__(self)
         if not isinstance(names,tuple):
             names = (names,)
         self.names = names
         self.level = level
-        self.oldlevels = {}
-        self.oldhandlers = {}
-        self.olddisabled = {}
+        self.propagate = propagate
+        self.old = defaultdict(dict)
         self.clear()
         if install:
             self.install()
@@ -64,12 +69,15 @@ class LogCapture(logging.Handler):
         """
         for name in self.names:
             logger = logging.getLogger(name)
-            self.oldlevels[name] = logger.level
-            self.oldhandlers[name] = logger.handlers
-            self.olddisabled[name] = logger.disabled
+            self.old['levels'][name] = logger.level
+            self.old['handlers'][name] = logger.handlers
+            self.old['disabled'][name] = logger.disabled
+            self.old['progagate'][name] = logger.propagate
             logger.setLevel(self.level)
             logger.handlers = [self]
             logger.disabled = False
+            if self.propagate is not None:
+                logger.propagate = self.propagate
         self.instances.add(self)
         if not self.__class__.atexit_setup:
             atexit.register(self.atexit)
@@ -87,9 +95,10 @@ class LogCapture(logging.Handler):
         if self in self.instances:
             for name in self.names:
                 logger = logging.getLogger(name)
-                logger.setLevel(self.oldlevels[name])
-                logger.handlers = self.oldhandlers[name]
-                logger.disabled = self.olddisabled[name]
+                logger.setLevel(self.old['levels'][name])
+                logger.handlers = self.old['handlers'][name]
+                logger.disabled = self.old['disabled'][name]
+                logger.propagate = self.old['progagate'][name]
                 if self in logging._handlers:
                     del logging._handlers[self]
                 if self in logging._handlerList:
