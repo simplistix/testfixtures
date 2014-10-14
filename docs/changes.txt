@@ -3,6 +3,18 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.1.0 (14 October 2014)
+-------------------------
+
+- Fix :func:`compare` bug when :class:`dict` instances with
+  :class:`tuple` keys were not equal.
+
+- Allow logger propagation to be controlled by :class:`LogCapture`.
+
+- Enabled disabled loggers if a :class:`LogCapture` is attached to them.
+
+Thanks to Daniel Fortunov for the :func:`compare` fix.
+
 4.0.2 (10 September 2014)
 -------------------------
 

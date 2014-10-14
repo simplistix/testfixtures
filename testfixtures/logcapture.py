@@ -21,10 +21,10 @@ class LogCapture(logging.Handler):
     :param install: If `True`, the :class:`LogCapture` will be
                     installed as part of its instantiation.
                   
-    :param propagate: Specified, any captured loggers will have their
-                      `propagate` attribute set to the specified value. This can
+    :param propagate: If specified, any captured loggers will have their
+                      `propagate` attribute set to the supplied value. This can
                       be used to prevent propagation from a child logger to a
-                      parent logger that has configured handlers..
+                      parent logger that has configured handlers.
     """
     
     instances = set()
