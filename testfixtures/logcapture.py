@@ -156,10 +156,10 @@ def log_capture(*names, **kw):
     :param names: An optional sequence of names specifying the loggers
                   to be captured. If not specified, the root logger
                   will be captured.
+
+    Keyword parameters other than ``install`` may also be supplied and will be
+    passed on to the :class:`LogCapture` constructor.
     """
-    level = kw.pop('level',1)
-    propagate = kw.pop('propagate', None)
-    l = LogCaptureForDecorator(names or None, install=False, level=level,
-                               propagate=propagate)
-    return wrap(l.install,l.uninstall)
+    l = LogCaptureForDecorator(names or None, install=False, **kw)
+    return wrap(l.install, l.uninstall)
 
