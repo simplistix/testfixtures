@@ -118,3 +118,19 @@ class TestLog_Capture(TestCase):
         capture.uninstall()
         self.assertFalse(capture in _handlers)
         self.assertFalse(capture in _handlerList)
+
+    def test_no_propogate(self):
+        logger = getLogger('child')
+        # paranoid check
+        compare(logger.propagate, True)
+
+        @log_capture('child', propagate=False)
+        def test_method(l):
+            logger.info('a log message')
+            l.check(('child', 'INFO', 'a log message'))
+
+        with LogCapture() as global_log:
+            test_method()
+
+        global_log.check()
+        compare(logger.propagate, True)

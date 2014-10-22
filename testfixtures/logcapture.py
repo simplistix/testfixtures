@@ -158,6 +158,8 @@ def log_capture(*names, **kw):
                   will be captured.
     """
     level = kw.pop('level',1)
-    l = LogCaptureForDecorator(names or None, install=False, level=level)
+    propagate = kw.pop('propagate', None)
+    l = LogCaptureForDecorator(names or None, install=False, level=level,
+                               propagate=propagate)
     return wrap(l.install,l.uninstall)
 
