@@ -14,8 +14,8 @@ class LogCapture(logging.Handler):
     These are used to capture entries logged to the Python logging
     framework and make assertions about what was logged.
 
-    :param names: A sequence of strings containing the dotted names of
-                  loggers to capture. By default, the root logger is
+    :param names: A string (or tuple of strings) containing the dotted name(s)
+                  of loggers to capture. By default, the root logger is
                   captured.
                   
     :param install: If `True`, the :class:`LogCapture` will be
