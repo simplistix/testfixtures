@@ -52,10 +52,20 @@ class ShouldRaise:
 
         if self.expected:
             if self.exception:
-                if Comparison(self.exception) != actual:
-                    raise AssertionError(
-                        '%r raised, %r expected' % (actual, self.exception)
-                        )
+                comparison = Comparison(self.exception)
+                if comparison != actual:
+                    repr_actual = repr(actual)
+                    repr_expected = repr(self.exception)
+                    message = '%s raised, %s expected' % (
+                        repr_actual, repr_expected
+                    )
+                    if repr_actual == repr_expected:
+                        print(str(comparison).split('\n'))
+                        extra = [', attributes differ:']
+                        extra.extend(str(comparison).split('\n')[2:-1])
+                        message += '\n'.join(extra)
+                    raise AssertionError(message)
+
             elif not actual:
                 raise AssertionError('No exception raised!')
         elif actual:
