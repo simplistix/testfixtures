@@ -3,6 +3,14 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.1.1 (30 October 2014)
+-------------------------
+
+- Fix bug that prevented logger propagation to be controlled by the
+  :class:`log_capture` decorator.
+
+Thanks to John Kristensen for the fix.
+
 4.1.0 (14 October 2014)
 -------------------------
 
