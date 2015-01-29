@@ -1020,3 +1020,9 @@ b
             "Foo(x=1, y=2) (<class 'testfixtures.tests.test_compare.Foo'>) != "
             "Bar(x=1, y=2, z=3) (<class 'testfixtures.tests.test_compare.Bar'>)"
             )
+
+    def test_dict_with_list(self):
+        self.checkRaises(
+            {1: 'one', 2: 'two'}, [1, 2],
+            "{1: 'one', 2: 'two'} != [1, 2]"
+        )

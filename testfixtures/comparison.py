@@ -265,6 +265,8 @@ def _shared_mro(x, y):
         if class_ in y_mro:
             yield class_
 
+_unsafe_iterables = basestring, dict
+
 class CompareContext(object):
 
     def __init__(self, options):
@@ -295,7 +297,7 @@ class CompareContext(object):
             
         # fallback for iterables
         if ((isinstance(x, Iterable) and isinstance(y, Iterable)) and not
-            (isinstance(x, basestring) or isinstance(y, basestring))):
+            (isinstance(x, _unsafe_iterables) or isinstance(y, _unsafe_iterables))):
             return compare_generator
         
         return compare_simple
