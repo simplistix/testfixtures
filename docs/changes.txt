@@ -3,6 +3,12 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.1.2 (30 January 2015)
+-----------------------
+
+- Fix bug that could result in a :class:`dict` comparing equal to a
+  :class:`list`.
+
 4.1.1 (30 October 2014)
 -------------------------
 
