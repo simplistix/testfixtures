@@ -6,8 +6,15 @@ Changes
 4.1.2 (30 January 2015)
 -----------------------
 
+- Clarify documentation for ``name`` parameter to :class:`LogCapture`.
+
+- :class:`ShouldRaise` now shows different output when two exceptions have
+  the same representation but stiff differ.
+
 - Fix bug that could result in a :class:`dict` comparing equal to a
   :class:`list`.
+
+Thanks to Daniel Fortunov for the documentation clarification.
 
 4.1.1 (30 October 2014)
 -------------------------
