@@ -9,7 +9,7 @@ Changes
 - Clarify documentation for ``name`` parameter to :class:`LogCapture`.
 
 - :class:`ShouldRaise` now shows different output when two exceptions have
-  the same representation but stiff differ.
+  the same representation but still differ.
 
 - Fix bug that could result in a :class:`dict` comparing equal to a
   :class:`list`.
