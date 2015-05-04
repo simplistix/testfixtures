@@ -46,6 +46,13 @@ directory containing setup.py::
   $ cd docs
   $ make html
 
+To check that the description that will be used on PyPI renders properly,
+do the following::
+
+  $ python setup.py --long-description | rst2html.py > desc.html
+
+The resulting ``desc.html`` should be checked by opening in a browser.
+
 Making a release
 ----------------
 
