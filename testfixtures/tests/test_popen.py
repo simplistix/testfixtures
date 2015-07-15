@@ -5,6 +5,8 @@ from mock import call
 from testfixtures import ShouldRaise, compare
 
 from ..popen import MockPopen
+from testfixtures.compat import PY2
+
 
 class Tests(TestCase):
 
@@ -21,8 +23,8 @@ class Tests(TestCase):
         out, err = process.communicate()
 
         # test the rest
-        compare(out, '')
-        compare(err, '')
+        compare(out, b'')
+        compare(err, b'')
         compare(process.returncode, 0)
         # test call list
         compare([
@@ -33,7 +35,7 @@ class Tests(TestCase):
     def test_command_max_args(self):
 
         Popen = MockPopen()
-        Popen.setCommand('a command', 'out', 'err', 1, 345)
+        Popen.setCommand('a command', b'out', b'err', 1, 345)
         
         process = Popen('a command', stdout=PIPE, stderr=PIPE)
         compare(process.pid, 345)
@@ -42,8 +44,8 @@ class Tests(TestCase):
         out, err = process.communicate()
 
         # test the rest
-        compare(out, 'out')
-        compare(err, 'err')
+        compare(out, b'out')
+        compare(err, b'err')
         compare(process.returncode, 1)
         # test call list
         compare([
@@ -79,11 +81,11 @@ class Tests(TestCase):
     def test_read_from_stdout(self):
         # setup
         Popen = MockPopen()
-        Popen.setCommand('a command', stdout='foo')
+        Popen.setCommand('a command', stdout=b'foo')
         # usage
         process = Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
         self.assertTrue(isinstance(process.stdout.fileno(), int))
-        compare(process.stdout.read(), 'foo')
+        compare(process.stdout.read(), b'foo')
         # test call list
         compare([
                 call.Popen('a command', shell=True, stderr=-1, stdout=-1),
@@ -92,11 +94,11 @@ class Tests(TestCase):
     def test_read_from_stderr(self):
         # setup
         Popen = MockPopen()
-        Popen.setCommand('a command', stderr='foo')
+        Popen.setCommand('a command', stderr=b'foo')
         # usage
         process = Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
         self.assertTrue(isinstance(process.stdout.fileno(), int))
-        compare(process.stderr.read(), 'foo')
+        compare(process.stderr.read(), b'foo')
         # test call list
         compare([
                 call.Popen('a command', shell=True, stderr=-1, stdout=-1),
@@ -121,14 +123,14 @@ class Tests(TestCase):
     
     def test_multiple_uses(self):
         Popen = MockPopen()
-        Popen.setCommand('a command', 'a')
-        Popen.setCommand('b command', 'b')
+        Popen.setCommand('a command', b'a')
+        Popen.setCommand('b command', b'b')
         process = Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
         out, err = process.communicate('foo')
-        compare(out, 'a')
+        compare(out, b'a')
         process = Popen(['b', 'command'], stdout=PIPE, stderr=PIPE, shell=True)
         out, err = process.communicate('foo')
-        compare(out, 'b')
+        compare(out, b'b')
         compare([
                 call.Popen('a command', shell=True, stderr=-1, stdout=-1),
                 call.Popen_instance.communicate('foo'),
@@ -282,12 +284,20 @@ class Tests(TestCase):
         Popen = MockPopen()
         Popen.setCommand('bar')
         process = Popen('bar')
-        with ShouldRaise(TypeError('kill() takes exactly 1 argument (2 given)')):
+        if PY2:
+            text = 'kill() takes exactly 1 argument (2 given)'
+        else:
+            text = 'kill() takes 1 positional argument but 2 were given'
+        with ShouldRaise(TypeError(text)):
             process.kill('moo')
 
     def test_invalid_poll(self):
         Popen = MockPopen()
         Popen.setCommand('bar')
         process = Popen('bar')
-        with ShouldRaise(TypeError('poll() takes exactly 1 argument (2 given)')):
+        if PY2:
+            text = 'poll() takes exactly 1 argument (2 given)'
+        else:
+            text = 'poll() takes 1 positional argument but 2 were given'
+        with ShouldRaise(TypeError(text)):
             process.poll('moo')

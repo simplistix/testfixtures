@@ -33,6 +33,8 @@ For more detailed examples, see ``tests/test_popen.py``
 from mock import Mock
 from subprocess import Popen as Popen
 from tempfile import TemporaryFile
+from testfixtures.compat import basestring
+
 
 class MockPopen(object):
 
@@ -49,7 +51,7 @@ class MockPopen(object):
         inst.kill.side_effect = self.kill
         inst.poll.side_effect = self.poll
         
-    def setCommand(self, command, stdout='', stderr='', returncode=0, pid=1234,
+    def setCommand(self, command, stdout=b'', stderr=b'', returncode=0, pid=1234,
                    poll_count=3):
         self.commands[command] = (stdout, stderr, returncode, pid, poll_count)
 
