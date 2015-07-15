@@ -7,7 +7,7 @@ Example usage:
 
     # test setup
     Popen = MockPopen()
-    Popen.setCommand('svn ls -R foo', stdout='ff', stderr='ee', returncode=0)
+    Popen.set_command('svn ls -R foo', stdout='ff', stderr='ee', returncode=0)
     self.r.replace('blah', Popen)
 
     # code under test
@@ -51,7 +51,7 @@ class MockPopen(object):
         inst.kill.side_effect = self.kill
         inst.poll.side_effect = self.poll
         
-    def setCommand(self, command, stdout=b'', stderr=b'', returncode=0, pid=1234,
+    def set_command(self, command, stdout=b'', stderr=b'', returncode=0, pid=1234,
                    poll_count=3):
         self.commands[command] = (stdout, stderr, returncode, pid, poll_count)
 

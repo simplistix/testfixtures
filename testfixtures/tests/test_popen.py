@@ -13,7 +13,7 @@ class Tests(TestCase):
     def test_command_min_args(self):
         # setup
         Popen = MockPopen()
-        Popen.setCommand('a command')
+        Popen.set_command('a command')
         # usage
         process = Popen('a command', stdout=PIPE, stderr=PIPE)
         # process started, no return code
@@ -35,7 +35,7 @@ class Tests(TestCase):
     def test_command_max_args(self):
 
         Popen = MockPopen()
-        Popen.setCommand('a command', b'out', b'err', 1, 345)
+        Popen.set_command('a command', b'out', b'err', 1, 345)
         
         process = Popen('a command', stdout=PIPE, stderr=PIPE)
         compare(process.pid, 345)
@@ -55,7 +55,7 @@ class Tests(TestCase):
 
     def test_command_is_sequence(self):
         Popen = MockPopen()
-        Popen.setCommand('a command')
+        Popen.set_command('a command')
         
         process = Popen(['a', 'command'], stdout=PIPE, stderr=PIPE)
         
@@ -68,7 +68,7 @@ class Tests(TestCase):
     def test_communicate_with_input(self):
         # setup
         Popen = MockPopen()
-        Popen.setCommand('a command')
+        Popen.set_command('a command')
         # usage
         process = Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
         out, err = process.communicate('foo')
@@ -81,7 +81,7 @@ class Tests(TestCase):
     def test_read_from_stdout(self):
         # setup
         Popen = MockPopen()
-        Popen.setCommand('a command', stdout=b'foo')
+        Popen.set_command('a command', stdout=b'foo')
         # usage
         process = Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
         self.assertTrue(isinstance(process.stdout.fileno(), int))
@@ -94,7 +94,7 @@ class Tests(TestCase):
     def test_read_from_stderr(self):
         # setup
         Popen = MockPopen()
-        Popen.setCommand('a command', stderr=b'foo')
+        Popen.set_command('a command', stderr=b'foo')
         # usage
         process = Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
         self.assertTrue(isinstance(process.stdout.fileno(), int))
@@ -107,7 +107,7 @@ class Tests(TestCase):
     def test_wait(self):
         # setup
         Popen = MockPopen()
-        Popen.setCommand('a command')
+        Popen.set_command('a command')
         # usage
         process = Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
         compare(process.pid, 1234)
@@ -123,8 +123,8 @@ class Tests(TestCase):
     
     def test_multiple_uses(self):
         Popen = MockPopen()
-        Popen.setCommand('a command', b'a')
-        Popen.setCommand('b command', b'b')
+        Popen.set_command('a command', b'a')
+        Popen.set_command('b command', b'b')
         process = Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
         out, err = process.communicate('foo')
         compare(out, b'a')
@@ -141,7 +141,7 @@ class Tests(TestCase):
     def test_send_signal(self):
         # setup
         Popen = MockPopen()
-        Popen.setCommand('a command')
+        Popen.set_command('a command')
         # usage
         process = Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
         process.send_signal(0)
@@ -154,7 +154,7 @@ class Tests(TestCase):
     def test_terminate(self):
         # setup
         Popen = MockPopen()
-        Popen.setCommand('a command')
+        Popen.set_command('a command')
         # usage
         process = Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
         process.terminate()
@@ -167,7 +167,7 @@ class Tests(TestCase):
     def test_kill(self):
         # setup
         Popen = MockPopen()
-        Popen.setCommand('a command')
+        Popen.set_command('a command')
         # usage
         process = Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
         process.kill()
@@ -180,7 +180,7 @@ class Tests(TestCase):
     def test_poll_no_setup(self):
         # setup
         Popen = MockPopen()
-        Popen.setCommand('a command')
+        Popen.set_command('a command')
         # usage
         process = Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
         compare(process.poll(), None)
@@ -199,7 +199,7 @@ class Tests(TestCase):
     def test_poll_setup(self):
         # setup
         Popen = MockPopen()
-        Popen.setCommand('a command', poll_count=1)
+        Popen.set_command('a command', poll_count=1)
         # usage
         process = Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
         compare(process.poll(), None)
@@ -218,7 +218,7 @@ class Tests(TestCase):
     def test_poll_until_result(self):
         # setup
         Popen = MockPopen()
-        Popen.setCommand('a command', returncode=3)
+        Popen.set_command('a command', returncode=3)
         # example usage
         process = Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
         while process.poll() is None:
@@ -240,49 +240,49 @@ class Tests(TestCase):
 
     def test_invalid_method_or_attr(self):
         Popen = MockPopen()
-        Popen.setCommand('command')
+        Popen.set_command('command')
         process = Popen('command')
         with ShouldRaise(AttributeError("Mock object has no attribute 'foo'")):
             process.foo()
 
     def test_invalid_attribute(self):
         Popen = MockPopen()
-        Popen.setCommand('command')
+        Popen.set_command('command')
         process = Popen('command')
         with ShouldRaise(AttributeError("Mock object has no attribute 'foo'")):
             process.foo
             
     def test_invalid_communicate_call(self):
         Popen = MockPopen()
-        Popen.setCommand('bar')
+        Popen.set_command('bar')
         process = Popen('bar')
         with ShouldRaise(TypeError("communicate() got an unexpected keyword argument 'foo'")):
             process.communicate(foo='bar')
             
     def test_invalid_wait_call(self):
         Popen = MockPopen()
-        Popen.setCommand('bar')
+        Popen.set_command('bar')
         process = Popen('bar')
         with ShouldRaise(TypeError("wait() got an unexpected keyword argument 'foo'")):
             process.wait(foo='bar')
 
     def test_invalid_send_signal(self):
         Popen = MockPopen()
-        Popen.setCommand('bar')
+        Popen.set_command('bar')
         process = Popen('bar')
         with ShouldRaise(TypeError("send_signal() got an unexpected keyword argument 'foo'")):
             process.send_signal(foo='bar')
 
     def test_invalid_terminate(self):
         Popen = MockPopen()
-        Popen.setCommand('bar')
+        Popen.set_command('bar')
         process = Popen('bar')
         with ShouldRaise(TypeError("terminate() got an unexpected keyword argument 'foo'")):
             process.terminate(foo='bar')
 
     def test_invalid_kill(self):
         Popen = MockPopen()
-        Popen.setCommand('bar')
+        Popen.set_command('bar')
         process = Popen('bar')
         if PY2:
             text = 'kill() takes exactly 1 argument (2 given)'
@@ -293,7 +293,7 @@ class Tests(TestCase):
 
     def test_invalid_poll(self):
         Popen = MockPopen()
-        Popen.setCommand('bar')
+        Popen.set_command('bar')
         process = Popen('bar')
         if PY2:
             text = 'poll() takes exactly 1 argument (2 given)'
