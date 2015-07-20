@@ -22,7 +22,7 @@ reasons, component registries are known as `Site Managers` in
 __ http://pypi.python.org/pypi/zope.component
 
 TestFixtures provides the a :class:`~components.TestComponents` helper
-which provdes just such a sterile registry. It should be instantiated
+which provides just such a sterile registry. It should be instantiated
 in your :class:`TestCase`'s :meth:`setUp` method. It's
 :meth:`uninstall` method should be called in the test's
 :meth:`tearDown` method.
