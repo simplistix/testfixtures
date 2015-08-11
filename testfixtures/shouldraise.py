@@ -25,7 +25,7 @@ param_docs = """
                    Python.
 """
 
-class ShouldRaise:
+class ShouldRaise(object):
     __doc__ = """
     This context manager is used to assert that an exception is raised
     within the context it is managing.
