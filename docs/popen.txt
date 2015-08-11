@@ -1,0 +1,108 @@
+Testing use of the subprocess package
+=====================================
+
+When using the :mod:`subprocess` package there are two approaches to testing:
+
+* Have your tests exercise the real processes being instantiated and used.
+
+* Mock out use of the :mod:`subprocess` package and provide expected output
+  while recording interactions with the package to make sure they are as
+  expected.
+
+While the first of these should be preferred, it means that you need to have all
+the external software available everywhere you wish to run tests. Your tests
+will also need to make sure any dependencies of that software on
+an external environment are met. If that external software takes a long time to
+run, your tests will also take a long time to run.
+
+These challenges can often make the second approach more practical and can
+be the more pragmatic approach when coupled with a mock that accurately
+simulates the behaviour of a subprocess. :class:`~testfixtures.popen.MockPopen`
+is an attempt to provide just such a mock.
+
+.. note:: To use :class:`~testfixtures.popen.MockPopen`, you must have the
+          :mod:`mock` package installed.
+
+
+Example usage
+-------------
+
+As an example, suppose you have code such as the following that you need to
+test:
+
+.. literalinclude:: ../testfixtures/tests/test_popen.py
+   :lines: 307-314
+
+A test that exercises this code using :class:`~testfixtures.popen.MockPopen`
+could be written as follows:
+
+.. literalinclude:: ../testfixtures/tests/test_popen.py
+   :lines: 316-339
+
+
+Passing input to processes
+--------------------------
+
+If your testing requires passing input to the subprocess, you can do so by
+checking for the input passed to :meth:`~subprocess.Popen.communicate` method
+when you check the calls on the mock as shown in this example:
+
+.. literalinclude:: ../testfixtures/tests/test_popen.py
+   :lines: 68-79
+
+.. note:: Accessing ``.stdin`` isn't current supported by this mock.
+
+
+Reading from ``stdout`` and ``stderr``
+--------------------------------------
+
+The ``.stdout`` and ``.stderr`` attributes of the mock returned by
+:class:`~testfixtures.popen.MockPopen` will be file-like objects as with
+the real :class:`~subprocess.Popen` and can be read as shown in this example:
+
+.. literalinclude:: ../testfixtures/tests/test_popen.py
+   :lines: 107-118
+
+.. warning::
+
+    While these streams behave a lot like the streams of a real
+    :class:`~subprocess.Popen` object, they do not exhibit the deadlocking
+    behaviour that can occur when the two streams are read as in the example
+    above. Be very careful when reading ``.stdout`` and ``.stderr`` and
+    consider using :class:`~subprocess.Popen.communicate` instead.
+
+Specifying the return code
+--------------------------
+
+Often code will need to behave differently depending on the return code of the
+launched process. Specifying a simulated response code, along with testing for
+the correct usage of :meth:`~subprocess.Popen.wait`, can be seen in the
+following example:
+
+.. literalinclude:: ../testfixtures/tests/test_popen.py
+   :lines: 121-135
+
+Checking for signal sending
+---------------------------
+
+Calls to ``.send_signal()``, ``.terminate()`` and  ``.kill()`` are all recorded
+by the mock returned by :class:`~testfixtures.popen.MockPopen`
+but otherwise do nothing as shown in the following example, which doesn't
+make sense for a real test of sub-process usage but does show how the mock
+behaves:
+
+.. literalinclude:: ../testfixtures/tests/test_popen.py
+   :lines: 194-209
+
+Polling a process
+-----------------
+
+The :meth:`~subprocess.Popen.poll` method is often used as part of a loop
+in order to do other work while waiting for a sub-process to complete.
+The mock returned by :class:`~testfixtures.popen.MockPopen` supports this
+by allowing the ``.poll()`` method to be called a number of times before
+the ``returncode`` is set using the ``poll_count`` parameter as shown in
+the following example:
+
+.. literalinclude:: ../testfixtures/tests/test_popen.py
+   :lines: 249-266

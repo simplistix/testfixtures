@@ -1,35 +1,5 @@
-"""
-A mock for Popen that records what was called and when and behaves as it's instructed
-
-Example usage:
-
-.. code-block:: python
-
-    # test setup
-    Popen = MockPopen()
-    Popen.set_command('svn ls -R foo', stdout='ff', stderr='ee', returncode=0)
-    self.r.replace('blah', Popen)
-
-    # code under test
-    def my_func():
-        process = Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
-        out, err = process.communicate()
-        if process.returncode:
-            raise RuntimeError('something bad happened')
-        return out
-
-    # testing of results
-    compare(my_func(), 'ff')
-    # testing calls were in the right order and with the correct params:
-    compare([
-         call.Popen('svn ls -R foo', shell=True, stderr=-1, stdout=-1)
-         call.Popen_instance.communicate()
-         ], Popen.mock.method_calls)
-
-.. note:: Accessing ``.stdin`` isn't current supported by this mock.
-
-For more detailed examples, see ``tests/test_popen.py``
-"""
+# Copyright (c) 2015 Simplistix Ltd
+# See license.txt for license details.
 from mock import Mock
 from subprocess import Popen as Popen
 from tempfile import TemporaryFile
@@ -37,6 +7,12 @@ from testfixtures.compat import basestring
 
 
 class MockPopen(object):
+    """
+    A specialised mock for testing use of :class:`subprocess.Popen`.
+    An instance of this class can be used in place of the
+    :class:`subprocess.Popen` and is often inserted where it's needed using
+    :func:`mock.patch` or a :class:`Replacer`.
+    """
 
     def __init__(self):
         self.commands = {}
@@ -51,8 +27,30 @@ class MockPopen(object):
         inst.kill.side_effect = self.kill
         inst.poll.side_effect = self.poll
         
-    def set_command(self, command, stdout=b'', stderr=b'', returncode=0, pid=1234,
-                   poll_count=3):
+    def set_command(self, command, stdout=b'', stderr=b'', returncode=0,
+                    pid=1234, poll_count=3):
+        """
+        Set the behaviour of this mock when it is used to simulate the
+        specified command.
+
+        :param command: A string representing the command to be simulated.
+        :param stdout:
+            A string representing the simulated content written by the process
+            to the stdout pipe.
+        :param stderr:
+            A string representing the simulated content written by the process
+            to the stderr pipe.
+        :param returncode:
+            An integer representing the return code of the simulated process.
+        :param pid:
+            An integer representing the process identifier of the simulated
+            process. This is useful if you have code the prints out the pids
+            of running processes.
+        :param poll_count:
+            Specifies the number of times :meth:`MockPopen.poll` can be
+            called before :attr:`MockPopen.returncode` is set and returned
+            by :meth:`MockPopen.poll`.
+        """
         self.commands[command] = (stdout, stderr, returncode, pid, poll_count)
 
     def __call__(self, *args, **kw):
@@ -87,14 +85,17 @@ class MockPopen(object):
         return self.mock.Popen_instance
 
     def wait(self):
+        "Simulate calls to :meth:`subprocess.Popen.wait`"
         self.mock.Popen_instance.returncode = self.returncode
         return self.returncode
 
     def communicate(self, input=None):
+        "Simulate calls to :meth:`subprocess.Popen.communicate`"
         self.wait()
         return self.stdout, self.stderr
 
     def poll(self):
+        "Simulate calls to :meth:`subprocess.Popen.poll`"
         while self.poll_count and self.mock.Popen_instance.returncode is None:
             self.poll_count -= 1
             return None
@@ -106,9 +107,14 @@ class MockPopen(object):
 
     # These are here to check parameter types
     def send_signal(self, signal):
+        "Simulate calls to :meth:`subprocess.Popen.send_signal`"
         pass
+
     def terminate(self):
+        "Simulate calls to :meth:`subprocess.Popen.terminate`"
         pass
+
     def kill(self):
+        "Simulate calls to :meth:`subprocess.Popen.kill`"
         pass
 
