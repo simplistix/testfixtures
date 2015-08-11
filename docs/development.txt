@@ -43,6 +43,7 @@ Building the documentation
 The Sphinx documentation is built by doing the following from the
 directory containing setup.py::
 
+  $ source bin/activate
   $ cd docs
   $ make html
 
@@ -60,6 +61,7 @@ The following will build the distribution, upload it to PyPI, register
 the metadata with PyPI and upload the Sphinx documentation to PyPI::
 
   $ bin/pip install -e .[test,build]
+  $ source bin/activate
   $ cd docs
   $ make clean
   $ make html
