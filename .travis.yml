@@ -1,5 +1,8 @@
 language: python
 
+# for container-y googdness:
+sudo: false
+
 python:
   - "3.4"
   - "3.3"
