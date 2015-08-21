@@ -155,6 +155,8 @@ class TempDirectory:
 
     def check(self, *expected):
         """
+        .. deprecated:: 4.3.0
+
         Compare the contents of the temporary directory with the
         expected contents supplied.
 
@@ -167,6 +169,8 @@ class TempDirectory:
 
     def check_dir(self,dir,*expected):
         """
+        .. deprecated:: 4.3.0
+
         Compare the contents of the specified subdirectory of the
         temporary directory with the expected contents supplied.
 
@@ -193,6 +197,8 @@ class TempDirectory:
 
     def check_all(self,dir,*expected):
         """
+        .. deprecated:: 4.3.0
+
         Recursively compare the contents of the specified directory
         with the expected contents supplied.
 
