@@ -324,20 +324,17 @@ subdir/
 subdir/file.txt
 subdir/logs/
 
-For unit tests, three methods are providing for checking the contents of
-a temporary directory. 
+For unit tests, :meth:`~testfixtures.TempDirectory.check`method is provided
+for checking the contents of a temporary directory:
 
-The :meth:`~testfixtures.TempDirectory.check` method is called with
-the expected contents of the temporary directory:
-
->>> tempdir.check('root.txt', 'subdir')
+>>> tempdir.compare(['root.txt', 'subdir'], recursive=False)
 
 It returns no output if the directory contents match the expected
 contents passed in, but if they do not, an
 :class:`~exceptions.AssertionError` is raised, which will show up as a
 unit test failure:
 
->>> tempdir.check('subdir')
+>>> tempdir.compare(['subdir'], recursive=False)
 Traceback (most recent call last):
 ...
 AssertionError: sequence not as expected:
@@ -352,36 +349,35 @@ second:
 ('root.txt', 'subdir')
 
 To check the contents of a sub-directory of the temporary directory,
-the :meth:`~testfixtures.TempDirectory.check_dir` method is used in a
-similar fashion:
+use the ``path`` parameter of the :meth:`~testfixtures.TempDirectory.compare`
+method:
 
->>> tempdir.check_dir('subdir', 'file.txt', 'logs')
+>>> tempdir.compare(path='subdir', expected=['file.txt', 'logs/'])
 
-Both the :meth:`~testfixtures.TempDirectory.check` and
-:meth:`~testfixtures.TempDirectory.check_dir` methods can be used to
+The :meth:`~testfixtures.TempDirectory.compare` method can be used to
 check whether a directory contains nothing, for example:
 
->>> tempdir.check_dir(('subdir', 'logs'))
+>>> tempdir.compare(path=('subdir', 'logs'), expected=())
 
 The above can also be done by specifying the sub-directory to be
 checked as a forward-slash separated path:
 
->>> tempdir.check_dir('subdir/logs')
+>>> tempdir.compare(path='subdir/logs', expected=())
 
-You may also want to recursively check the contents of a whole subtree
-of the temporary directory. This can be done with the
-:meth:`~testfixtures.TempDirectory.check_all` method:
+You can also want to recursively compare the contents of a whole subtree
+of the temporary directory:
 
->>> tempdir.check_all('subdir', 'file.txt', 'logs/')
+>>> tempdir.compare(expected=('file.txt', 'logs/'), path='subdir')
 
 This method can also be used to check the contents of the entire
-temporary directory by passing an empty string as the first parameter:
+temporary directory:
 
->>> tempdir.check_all('',
+>>> tempdir.compare([
 ...     'root.txt',
 ...     'subdir/',
 ...     'subdir/file.txt',
-...     'subdir/logs/')
+...     'subdir/logs/'
+... ])
 
 In some circumstances, you may want to ignore certain files or
 sub-directories when checking contents. To make this easy, the
@@ -423,7 +419,7 @@ The decorator would be as follows:
   @tempdir(ignore=['.svn'])
   def test_function(d):
       svn_ish(d.path, 'test.txt')
-      d.check('test.txt')
+      d.compare(['test.txt'])
 
 .. check the above raises no assertion error:
 

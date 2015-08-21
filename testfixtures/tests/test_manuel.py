@@ -199,7 +199,7 @@ This is just some normal text!
                    expected=None,
                    actual=None)],
                 [r.evaluated for r in d])
-        dir.check('foo')
+        dir.compare(['foo'])
         compare(dir.read('foo', 'ascii'), 'content')
 
     def test_formatter_non_fileblock(self):

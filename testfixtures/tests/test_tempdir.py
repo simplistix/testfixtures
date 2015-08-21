@@ -17,10 +17,10 @@ class TestTempDir(TestCase):
     def test_simple(self,d):
         d.write('something', b'stuff')
         d.write('.svn', b'stuff')
-        d.check(
+        d.compare((
             '.svn',
             'something',
-            )
+            ))
                 
 
     @tempdir()
@@ -28,10 +28,10 @@ class TestTempDir(TestCase):
         subdir = ['some','thing']
         d.write(subdir+['something'], b'stuff')
         d.write(subdir+['.svn'], b'stuff')
-        d.check_dir(subdir,
+        d.compare(path=subdir, expected=(
             '.svn',
             'something',
-            )
+            ))
 
     @tempdir()
     def test_not_same(self,d):
@@ -41,13 +41,13 @@ class TestTempDir(TestCase):
             "sequence not as expected:\n\nsame:\n()\n\nfirst:\n('.svn', 'something')\n\nsecond:\n('something',)"
             )):
 
-            d.check('.svn', 'something')
+            d.compare(['.svn', 'something'])
         
     @tempdir(ignore=('.svn',))
     def test_ignore(self,d):
         d.write('something', b'stuff')
         d.write('.svn', b'stuff')
-        d.check('something', )
+        d.compare(['something'])
 
     def test_cleanup_properly(self):
         r = Replacer()
@@ -64,7 +64,7 @@ class TestTempDir(TestCase):
             @tempdir()
             def test_method(d):
                 d.write('something', b'stuff')
-                d.check('something', )
+                d.compare(['something'])
 
             self.assertFalse(m.called)
             compare(os.listdir(d),[])

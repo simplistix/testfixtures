@@ -159,19 +159,12 @@ class TempDirectoryTests(TestCase):
                     )):
                 d.listdir('/some/folder')
 
-    def test_check_dir_with_slash_at_start(self):
+    def test_compare_with_slash_at_start(self):
         with TempDirectory() as d:
             with ShouldRaise(ValueError(
                     'Attempt to read or write outside the temporary Directory'
                     )):
-                d.check_dir('/some/folder')
-
-    def test_check_all_with_slash_at_start(self):
-        with TempDirectory() as d:
-            with ShouldRaise(ValueError(
-                    'Attempt to read or write outside the temporary Directory'
-                    )):
-                d.check_all('/some/folder')
+                d.compare((), path='/some/folder')
 
     def test_dont_cleanup_with_path(self):
         d = mkdtemp()
@@ -197,42 +190,35 @@ class TempDirectoryTests(TestCase):
         self.failIf(os.path.exists(d))
 
 
-    def test_check_sort(self):
+    def test_deprecated_check(self):
         with TempDirectory() as d:
-            d.write('ga', b'')
-            d.write('foo1', b'')
-            d.write('Foo2', b'')
-            d.write('g.o', b'')
-            d.check(
-                'Foo2','foo1','g.o','ga'
-                )
+            d.write('x', b'')
+            d.check('x')
 
-    def test_check_dir_sort(self):
+    def test_deprecated_check_dir(self):
         with TempDirectory() as d:
-            d.write('foo/ga', b'')
-            d.write('foo/foo1', b'')
-            d.write('foo/Foo2', b'')
-            d.write('foo/g.o', b'')
-            d.check_dir('foo',
-                'Foo2','foo1','g.o','ga'
-                )
+            d.write('foo/x', b'')
+            d.check_dir('foo', 'x')
 
-    def test_check_all_sort(self):
-        with TempDirectory() as d:
-            d.write('ga', b'')
-            d.write('foo1', b'')
-            d.write('Foo2', b'')
-            d.write('g.o', b'')
-            d.check_all('',
-                'Foo2','foo1','g.o','ga'
-                )
-        
-    def test_check_all_tuple(self):
+    def test_deprecated_check_all(self):
         with TempDirectory() as d:
             d.write('a/b/c', b'')
-            d.check_all(('a','b'),
-                'c'
-                )
+            d.check_all('', 'a/', 'a/b/', 'a/b/c')
+            d.check_all('a', 'b/', 'b/c')
+
+    def test_compare_sort(self):
+        with TempDirectory() as d:
+            d.write('ga', b'')
+            d.write('foo1', b'')
+            d.write('Foo2', b'')
+            d.write('g.o', b'')
+            d.compare(['Foo2','foo1','g.o','ga'])
+        
+    def test_compare_path_tuple(self):
+        with TempDirectory() as d:
+            d.write('a/b/c', b'')
+            d.compare(path=('a','b'),
+                      expected=['c'])
         
     def test_recursive_ignore(self):
         with TempDirectory(ignore=['.svn']) as d:
@@ -241,12 +227,12 @@ class TempDirectoryTests(TestCase):
             d.write('a/b/.svn', b'')
             d.write('a/b/c', b'')
             d.write('a/d/.svn/rubbish', b'')
-            d.check_all('',
+            d.compare([
                 'a/',
                 'a/b/',
                 'a/b/c',
                 'a/d/',
-                )
+                ])
 
     def test_path(self):
         with TempDirectory() as d:

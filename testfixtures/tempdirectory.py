@@ -147,7 +147,13 @@ class TempDirectory:
         for n in actual:
             print(n)
 
-    def check(self,*expected):
+    def compare(self, expected, path=None, files_only=False,
+                recursive=True):
+        compare(expected,
+                tuple(self.actual(path, recursive=recursive)),
+                recursive=False)
+
+    def check(self, *expected):
         """
         Compare the contents of the temporary directory with the
         expected contents supplied.

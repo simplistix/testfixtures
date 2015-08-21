@@ -29,4 +29,4 @@ This will create the following files and directories::
 .. invisible-code-block: python
 
   # check the listing was as expected
-  tempdir.check_all('', *expected_listing.strip().split('\n'))
+  tempdir.compare(expected_listing.strip().split('\n'))
