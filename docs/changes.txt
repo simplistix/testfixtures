@@ -10,7 +10,7 @@ Changes
   code that uses :class:`subprocess.Popen`.
 
 - :class:`ShouldRaise` now subclasses :class:`object`, so that subclasses of it
-  may use meth:`super()`.
+  may use :meth:`super()`.
 
 - Drop official support for Python 3.2.
 
