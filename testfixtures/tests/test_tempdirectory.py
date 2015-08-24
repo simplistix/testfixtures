@@ -234,6 +234,11 @@ class TempDirectoryTests(TestCase):
                 'a/d/',
                 ])
 
+    def test_files_only(self):
+        with TempDirectory() as d:
+            d.write('a/b/c', b'')
+            d.compare(['a/b/c'], files_only=True)
+
     def test_path(self):
         with TempDirectory() as d:
             expected1 = d.makedir('foo')

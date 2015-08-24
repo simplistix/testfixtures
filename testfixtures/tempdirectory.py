@@ -89,23 +89,23 @@ class TempDirectory:
         for i in tuple(cls.instances):
             i.cleanup()
 
-    def actual(self,path=None,recursive=False):
-        if path:
-            path = self._join(path)
-        else:
-            path = self.path
+    def actual(self, path=None, recursive=False, files_only=False):
+        path = self._join(path) if path else self.path
+
         result = []
         if recursive:
-            for dirpath,dirnames,filenames in os.walk(path):
+            for dirpath, dirnames, filenames in os.walk(path):
                 dirpath = '/'.join(dirpath[len(path)+1:].split(os.sep))
                 if dirpath:
                     dirpath += '/'
-                    result.append(dirpath)
+                    if not files_only:
+                        result.append(dirpath)
                 for name in sorted(filenames):
                     result.append(dirpath+name)
         else:
             for n in os.listdir(path):
                 result.append(n)
+
         filtered = []
         for path in sorted(result):
             ignore = False
@@ -147,10 +147,9 @@ class TempDirectory:
         for n in actual:
             print(n)
 
-    def compare(self, expected, path=None, files_only=False,
-                recursive=True):
+    def compare(self, expected, path=None, files_only=False, recursive=True):
         compare(expected,
-                tuple(self.actual(path, recursive=recursive)),
+                tuple(self.actual(path, recursive, files_only)),
                 recursive=False)
 
     def check(self, *expected):
