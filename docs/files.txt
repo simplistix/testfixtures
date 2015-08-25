@@ -137,9 +137,9 @@ directory to pass to code under test. This can be done with the
 If you want to compute a deeper path, you can either pass either a
 tuple or a forward slash-separated path:
 
->>> tempdir.getpath(('foo','baz')).rsplit(os.sep,2)[-2:]
+>>> tempdir.getpath(('foo', 'baz')).rsplit(os.sep, 2)[-2:]
 ['foo', 'baz']
->>> tempdir.getpath('foo/baz') .rsplit(os.sep,2)[-2:]
+>>> tempdir.getpath('foo/baz') .rsplit(os.sep, 2)[-2:]
 ['foo', 'baz']
 
 .. note:: 
@@ -263,7 +263,7 @@ check the files were created with the correct content:
 >>> spew(tempdir.path)
 >>> tempdir.read('root.txt')
 b'root output'
->>> tempdir.read(('subdir','file.txt'))
+>>> tempdir.read(('subdir', 'file.txt'))
 b'subdir output'
 
 The second part of the above test shows how to use the
@@ -283,16 +283,124 @@ b'subdir output'
 Checking the contents of directories
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:class:`TempDirectory` objects have several methods
-for checking the names of files and directories they contain, which
-one you use depends on whether you're unit testing or testing
-docuemntation. In  all cases, the methods provided sort the list of
-actual files alphanumerically so that the ordering will always remain
-constant.
+It's good practice to test that your code is only writing files you expect it
+to and to check they are being written to the path you expect.
+:meth:`TempDirectory.compare` is the method to use to do this.
 
-As an example, to check that the :func:`spew` function above created no
-extraneous files, we could use the
-:meth:`~testfixtures.TempDirectory.listdir` method as follows:
+As an example, we could check that the :func:`spew` function above created no
+extraneous files as follows:
+
+>>> tempdir.compare([
+...     'root.txt',
+...     'subdir/',
+...     'subdir/file.txt',
+...     'subdir/logs/',
+... ])
+
+If we only wanted to check the sub-directory, we would specify the path to
+start from, relative to the root of the temporary directory:
+
+>>> tempdir.compare([
+...     'file.txt',
+...     'logs/',
+... ], path='subdir')
+
+If, like git, we only cared about files, we could do the comparison as follows:
+
+>>> tempdir.compare([
+...     'root.txt',
+...     'subdir/file.txt',
+... ], files_only=True)
+
+And finally, if we only cared about files at a particular level, we could
+turn off the recursive comparison as follows:
+
+>>> tempdir.compare([
+...     'root.txt',
+...     'subdir',
+... ], recursive=False)
+
+The :meth:`~testfixtures.TempDirectory.compare` method can also be used to
+check whether a directory contains nothing, for example:
+
+>>> tempdir.compare(path=('subdir', 'logs'), expected=())
+
+The above can also be done by specifying the sub-directory to be
+checked as a forward-slash separated path:
+
+>>> tempdir.compare(path='subdir/logs', expected=())
+
+If the actual directory contents do not match the expected contents passed in,
+an :class:`~exceptions.AssertionError` is raised, which will show up as a
+unit test failure:
+
+>>> tempdir.compare(['subdir'], recursive=False)
+Traceback (most recent call last):
+...
+AssertionError: sequence not as expected:
+<BLANKLINE>
+same:
+()
+<BLANKLINE>
+first:
+('subdir',)
+<BLANKLINE>
+second:
+('root.txt', 'subdir')
+
+In some circumstances, you may want to ignore certain files or
+sub-directories when checking contents. To make this easy, the
+:class:`~testfixtures.TempDirectory` constructor takes an optional
+`ignore` parameter which, if provided, should contain a sequence of
+regular expressions. If any of the regular expressions return a match
+when used to search through the results of any of the the methods
+covered in this section, that result will be ignored.
+
+For example, suppose we are testing some revision control code, but
+don't really care about the revision control system's metadata
+directories, which may or may not be present:
+
+.. code-block:: python
+
+  from random import choice
+
+  def svn_ish(dirpath, filename):
+    if choice((True, False)):
+      os.mkdir(os.path.join(dirpath, '.svn'))
+    with open(os.path.join(dirpath, filename), 'wb') as f:
+      f.write(b'something')
+
+To test this, we can use any of the previously described methods.
+
+When used manually or as a context manager, this would be as follows:
+
+>>> with TempDirectory(ignore=['.svn']) as d:
+...   svn_ish(d.path, 'test.txt')
+...   d.compare(['test.txt'])
+
+The decorator would be as follows:
+
+.. code-block:: python
+
+  from testfixtures import tempdir,compare
+
+  @tempdir(ignore=['.svn'])
+  def test_function(d):
+      svn_ish(d.path, 'test.txt')
+      d.compare(['test.txt'])
+
+.. check the above raises no assertion error:
+
+  >>> test_function()
+
+
+.. set things up again:
+
+  >>> tempdir = TempDirectory()
+  >>> spew(tempdir.path)
+
+If you are working with doctests, the
+:meth:`~testfixtures.TempDirectory.listdir` method can be used instead:
 
 >>> tempdir.listdir()
 root.txt
@@ -303,7 +411,7 @@ logs
 >>> tempdir.listdir(('subdir', 'logs'))
 No files or directories found.
 
-This example also shows how to check the contents of sub-directories of
+The above example also shows how to check the contents of sub-directories of
 the temporary directory and also shows what is printed when a
 directory contains nothing. The
 :meth:`~testfixtures.TempDirectory.listdir` method can also take a 
@@ -323,107 +431,6 @@ root.txt
 subdir/
 subdir/file.txt
 subdir/logs/
-
-For unit tests, :meth:`~testfixtures.TempDirectory.check`method is provided
-for checking the contents of a temporary directory:
-
->>> tempdir.compare(['root.txt', 'subdir'], recursive=False)
-
-It returns no output if the directory contents match the expected
-contents passed in, but if they do not, an
-:class:`~exceptions.AssertionError` is raised, which will show up as a
-unit test failure:
-
->>> tempdir.compare(['subdir'], recursive=False)
-Traceback (most recent call last):
-...
-AssertionError: sequence not as expected:
-<BLANKLINE>
-same:
-()
-<BLANKLINE>
-first:
-('subdir',)
-<BLANKLINE>
-second:
-('root.txt', 'subdir')
-
-To check the contents of a sub-directory of the temporary directory,
-use the ``path`` parameter of the :meth:`~testfixtures.TempDirectory.compare`
-method:
-
->>> tempdir.compare(path='subdir', expected=['file.txt', 'logs/'])
-
-The :meth:`~testfixtures.TempDirectory.compare` method can be used to
-check whether a directory contains nothing, for example:
-
->>> tempdir.compare(path=('subdir', 'logs'), expected=())
-
-The above can also be done by specifying the sub-directory to be
-checked as a forward-slash separated path:
-
->>> tempdir.compare(path='subdir/logs', expected=())
-
-You can also want to recursively compare the contents of a whole subtree
-of the temporary directory:
-
->>> tempdir.compare(expected=('file.txt', 'logs/'), path='subdir')
-
-This method can also be used to check the contents of the entire
-temporary directory:
-
->>> tempdir.compare([
-...     'root.txt',
-...     'subdir/',
-...     'subdir/file.txt',
-...     'subdir/logs/'
-... ])
-
-In some circumstances, you may want to ignore certain files or
-sub-directories when checking contents. To make this easy, the
-:class:`~testfixtures.TempDirectory` constructor takes an optional
-`ignore` parameter which, if provided, should contain a sequence of
-regular expressions. If any of the regular expressions return a match
-when used to search through the results of any of the the methods
-covered in this section, that result will be ignored.
-
-For example, suppose we are testing some revision control code, but
-don't really care about the revison control system's metadata
-directories, which may or may not be present:
-
-.. code-block:: python
- 
-  from random import choice
-
-  def svn_ish(dirpath, filename):
-    if choice((True, False)):
-      os.mkdir(os.path.join(dirpath, '.svn'))
-    with open(os.path.join(dirpath, filename), 'wb') as f:
-      f.write(b'something')
-
-To test this, we can use any of the previously described methods.
-
-When used manually or as a context manager, this would be as follows:
-
->>> with TempDirectory(ignore=['.svn']) as d:
-...   svn_ish(d.path, 'test.txt')
-...   d.listdir()
-test.txt
-
-The decorator would be as follows:
-
-.. code-block:: python
-
-  from testfixtures import tempdir,compare
-  
-  @tempdir(ignore=['.svn'])
-  def test_function(d):
-      svn_ish(d.path, 'test.txt')
-      d.compare(['test.txt'])
-
-.. check the above raises no assertion error:
-
-  >>> test_function()
 
 Bytes versus Strings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

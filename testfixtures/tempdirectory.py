@@ -148,6 +148,33 @@ class TempDirectory:
             print(n)
 
     def compare(self, expected, path=None, files_only=False, recursive=True):
+        """
+        Compare the expected contents with the actual contents of the temporary
+        directory.
+
+        :param expected: A sequence of strings containing the paths
+                         expected in the directory. These paths should
+                         be forward-slash separated and relative to
+                         the root of the temporary directory.
+
+        :param path: The path to use as the root for the comparison,
+                     relative to the root of the temporary directory.
+                     This can either be:
+
+                     * A tuple of strings, making up the relative path.
+
+                     * A forward-slash separated string.
+
+                     If it is not provided, the root of the temporary
+                     directory will be used.
+
+        :param files_only: If specified, directories will be excluded from
+                           the list of actual paths used in the comparison.
+
+        :param recursive: If passed as ``False``, only the direct contents of
+                          the directory specified by ``path`` will be included
+                          in the actual contents used for comparison.
+        """
         compare(expected,
                 tuple(self.actual(path, recursive, files_only)),
                 recursive=False)
