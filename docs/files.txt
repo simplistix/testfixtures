@@ -57,7 +57,7 @@ may find the decorator suits your needs better:
 
 .. code-block:: python
 
-  from testfixtures import tempdir,compare
+  from testfixtures import tempdir, compare
   
   @tempdir()
   def test_function(d):
@@ -382,7 +382,7 @@ The decorator would be as follows:
 
 .. code-block:: python
 
-  from testfixtures import tempdir,compare
+  from testfixtures import tempdir, compare
 
   @tempdir(ignore=['.svn'])
   def test_function(d):
@@ -529,7 +529,7 @@ For the decorator, usage would be as follows:
 
 .. code-block:: python
 
-  from testfixtures import tempdir,compare
+  from testfixtures import tempdir, compare
   
   @tempdir(path=thedir)
   def test_function(d):
