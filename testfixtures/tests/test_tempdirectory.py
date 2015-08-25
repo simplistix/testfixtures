@@ -166,6 +166,11 @@ class TempDirectoryTests(TestCase):
                     )):
                 d.compare((), path='/some/folder')
 
+    def test_read_with_slash_at_start_ok(self):
+        with TempDirectory() as d:
+            path = d.write('foo', b'bar')
+            compare(d.read(path), b'bar')
+
     def test_dont_cleanup_with_path(self):
         d = mkdtemp()
         fp = os.path.join(d,'test')

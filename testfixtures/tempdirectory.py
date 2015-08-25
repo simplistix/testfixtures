@@ -225,15 +225,19 @@ class TempDirectory:
         compare(expected, tuple(self.actual(dir, recursive=True)),
                 recursive=False)
 
-    def _join(self,name):
-        if isinstance(name,basestring):
+    def _join(self, name):
+        # make things platform independent
+        if isinstance(name, basestring):
             name = name.split('/')
-        if not name[0]:
+        relative = os.sep.join(name)
+        if relative.startswith('/'):
+            if relative.startswith(self.path):
+                return relative
             raise ValueError(
                 'Attempt to read or write outside the temporary Directory'
                 )
-        return os.path.join(self.path,*name)
-        
+        return os.path.join(self.path, relative)
+
     def makedir(self, dirpath):
         """
         Make an empty directory at the specified path within the
