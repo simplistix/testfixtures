@@ -16,4 +16,4 @@ install: "pip install -e .[test]"
 script: nosetests
 
 after_success:
-  - coveralls
+  - coveralls debug
