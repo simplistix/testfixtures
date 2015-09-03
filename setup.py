@@ -50,6 +50,8 @@ setup(
     include_package_data=True,
     extras_require=dict(
         test=test_requires,
-        build=['sphinx', 'pkginfo', 'setuptools-git', 'wheel', 'twine']
+        build=[
+            'coveralls', 'sphinx', 'pkginfo', 'setuptools-git', 'wheel', 'twine'
+        ]
     )
 )
