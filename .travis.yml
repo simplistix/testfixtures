@@ -16,4 +16,5 @@ install: "pip install -Ue .[test]"
 script: nosetests --with-cov --cov=testfixtures
 
 after_success:
+  - coverage combine
   - coveralls
