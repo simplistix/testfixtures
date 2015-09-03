@@ -21,8 +21,10 @@ for item in config.get('testenv', 'deps').split():
     test_requires.append(item)
 # Tox doesn't need itself, but we need it for testing.
 test_requires.append('tox')
-# an optional dependency, but we want it present in the buildout
+# an optional dependency, but we want it present dev 
 test_requires.append('zope.component')
+# coveralls needed for travis
+test_requires.append('coveralls')
 
 setup(
     name=name,
@@ -50,8 +52,6 @@ setup(
     include_package_data=True,
     extras_require=dict(
         test=test_requires,
-        build=[
-            'coveralls', 'sphinx', 'pkginfo', 'setuptools-git', 'wheel', 'twine'
-        ]
+        build=['sphinx', 'pkginfo', 'setuptools-git', 'wheel', 'twine']
     )
 )
