@@ -6,11 +6,11 @@ Development
 This package is developed using continuous integration which can be
 found here:
 
-http://jenkins.simplistix.co.uk/view/testfixtures/
+https://travis-ci.org/Simplistix/testfixtures
 
 The latest development version of the documentation can be found here:
 
-http://jenkins.simplistix.co.uk/job/testfixtures-docs/Documentation/
+http://testfixtures.readthedocs.org/en/latest/
 
 If you wish to contribute to this project, then you should fork the
 repository found here:
@@ -61,15 +61,15 @@ The following will build the distribution, upload it to PyPI, register
 the metadata with PyPI and upload the Sphinx documentation to PyPI::
 
   $ bin/pip install -e .[test,build]
-  $ source bin/activate
-  $ cd docs
-  $ make clean
-  $ make html
-  $ cd ..
-  $ bin/python setup.py sdist upload register upload_docs --upload-dir=docs/_build/html
+  $ python setup.py sdist bdist_wheel
+  $ twine upload dist/testfixtures-<version>*
 
 Running pip again will make sure the correct package information is
 used.
 
 This should all be done on a unix box so that a `.tgz` source
 distribution is produced.
+
+Once the above is done, make sure to go to
+https://readthedocs.org/projects/testfixtures/versions/
+and make sure the new release is marked as an Active Version.
