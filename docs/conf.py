@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys, os, pkginfo, datetime
 
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 pkg_info = pkginfo.Develop(os.path.join(os.path.dirname(__file__),'..'))
 
 extensions = [
@@ -21,7 +22,10 @@ unused_docs = ['description']
 pygments_style = 'sphinx'
 
 # Options for HTML output
-html_theme = 'classic'
+if on_rtd:
+    html_theme = 'default'
+else:
+    html_theme = 'classic'
 htmlhelp_basename = project+'doc'
 
 # Options for LaTeX output
