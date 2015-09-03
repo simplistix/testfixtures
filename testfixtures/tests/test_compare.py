@@ -24,7 +24,9 @@ hexaddr = compile('0x[0-9A-Fa-f]+')
 
 def hexsub(raw):
     return hexaddr.sub('...', raw)
-    
+
+call_list_repr = repr(Mock().mock_calls.__class__)
+
 class TestCompare(TestCase):
 
     def checkRaises(self, x, y, message=None, regex=None, **kw):
@@ -736,7 +738,7 @@ b
         self.checkRaises(
             [call.aCall()], m.method_calls,
             ("[call.aCall()] (<{0} 'list'>) != [call.aCall()] "
-             "(<class 'mock._CallList'>)").format(class_type_name),
+             "({1})").format(class_type_name, call_list_repr),
             strict=True,
             )
 
@@ -748,7 +750,7 @@ b
             ("[call.call('YYYYYYYYYYYYYYYYYY... "
              "(<{0} 'list'>) != "
              "[call.call('XXXXXXXXXXXXXXXXXX... "
-             "(<class 'mock._CallList'>)").format(class_type_name),
+             "({1})").format(class_type_name, call_list_repr),
             strict=True,
             )
         
