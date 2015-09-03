@@ -21,7 +21,7 @@ unused_docs = ['description']
 pygments_style = 'sphinx'
 
 # Options for HTML output
-html_theme = 'default'
+html_theme = 'classic'
 htmlhelp_basename = project+'doc'
 
 # Options for LaTeX output
