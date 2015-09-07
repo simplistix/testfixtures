@@ -22,6 +22,15 @@ class TestOutputCapture(TestCase):
             print('now', file=sys.stderr)
         o.compare("hello\nout\nthere\nnow\n")
 
+    def test_separate_capture(self):
+        with OutputCapture(separate=True) as o:
+            print('hello', file=sys.stdout)
+            print('out', file=sys.stderr)
+            print('there', file=sys.stdout)
+            print('now', file=sys.stderr)
+        o.compare(stdout="hello\nthere\n",
+                  stderr="out\nnow\n")
+
     def test_original_restore(self):
         o_out, o_err = sys.stdout, sys.stderr
         with OutputCapture() as o:

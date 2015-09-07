@@ -48,6 +48,23 @@ property of the :class:`OutputCapture`:
 >>> print(repr(o.captured))
 '  Bar! \n'
 
+If you need to explicitly check whether output went to ``stdout`` or ``stderr``,
+`separate` mode can be used:
+
+.. code-block:: python
+
+  from testfixtures import OutputCapture
+  import sys
+
+  with OutputCapture(separate=True) as output:
+      print("Hello!")
+      print("Something bad happened!", file=sys.stderr)
+
+  output.compare(
+      stdout="Hello!",
+      stderr="Something bad happened!",
+      )
+
 Finally, you may sometimes want to disable an :class:`OutputCapture`
 without removing it from your code. This often happens when you want
 to insert a debugger call while an :class:`OutputCapture` is active;
