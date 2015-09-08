@@ -118,7 +118,6 @@ class Tests(TestCase):
                 call.Popen('a command', shell=True, stderr=PIPE, stdout=PIPE),
                 ], Popen.mock.method_calls)
 
-
     def test_wait_and_return_code(self):
         # setup
         Popen = MockPopen()
@@ -338,39 +337,3 @@ class Tests(TestCase):
             text = 'poll() takes 1 positional argument but 2 were given'
         with ShouldRaise(TypeError(text)):
             process.poll('moo')
-
-# docs for tests below here
-
-from subprocess import Popen
-
-def my_func():
-    process = Popen('svn ls -R foo', stdout=PIPE, stderr=PIPE, shell=True)
-    out, err = process.communicate()
-    if process.returncode:
-        raise RuntimeError('something bad happened')
-    return out
-
-dotted_path = 'testfixtures.tests.test_popen.Popen'
-
-from testfixtures import Replacer, compare
-from testfixtures.popen import MockPopen
-
-class TestMyFunc(TestCase):
-
-    def test_example(self):
-        # set up
-        Popen = MockPopen()
-        Popen.set_command('svn ls -R foo',
-                          stdout=b'o', stderr=b'e', returncode=0)
-
-        # testing of results
-        with Replacer() as r:
-            r.replace(dotted_path, Popen)
-            compare(my_func(), b'o')
-
-        # testing calls were in the right order and with the correct parameters:
-        compare([
-             call.Popen('svn ls -R foo',
-                        shell=True, stderr=PIPE, stdout=PIPE),
-             call.Popen_instance.communicate()
-             ], Popen.mock.method_calls)

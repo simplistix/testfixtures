@@ -30,14 +30,14 @@ Example usage
 As an example, suppose you have code such as the following that you need to
 test:
 
-.. literalinclude:: ../testfixtures/tests/test_popen.py
-   :lines: 307-314
+.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+   :lines: 4-11
 
 A test that exercises this code using :class:`~testfixtures.popen.MockPopen`
 could be written as follows:
 
-.. literalinclude:: ../testfixtures/tests/test_popen.py
-   :lines: 316-339
+.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+   :lines: 15-39
 
 
 Passing input to processes
@@ -47,8 +47,8 @@ If your testing requires passing input to the subprocess, you can do so by
 checking for the input passed to :meth:`~subprocess.Popen.communicate` method
 when you check the calls on the mock as shown in this example:
 
-.. literalinclude:: ../testfixtures/tests/test_popen.py
-   :lines: 68-79
+.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+   :lines: 41-52
 
 .. note:: Accessing ``.stdin`` isn't current supported by this mock.
 
@@ -60,8 +60,8 @@ The ``.stdout`` and ``.stderr`` attributes of the mock returned by
 :class:`~testfixtures.popen.MockPopen` will be file-like objects as with
 the real :class:`~subprocess.Popen` and can be read as shown in this example:
 
-.. literalinclude:: ../testfixtures/tests/test_popen.py
-   :lines: 107-118
+.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+   :lines: 54-65
 
 .. warning::
 
@@ -79,8 +79,8 @@ launched process. Specifying a simulated response code, along with testing for
 the correct usage of :meth:`~subprocess.Popen.wait`, can be seen in the
 following example:
 
-.. literalinclude:: ../testfixtures/tests/test_popen.py
-   :lines: 121-135
+.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+   :lines: 67-81
 
 Checking for signal sending
 ---------------------------
@@ -91,8 +91,8 @@ but otherwise do nothing as shown in the following example, which doesn't
 make sense for a real test of sub-process usage but does show how the mock
 behaves:
 
-.. literalinclude:: ../testfixtures/tests/test_popen.py
-   :lines: 194-209
+.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+   :lines: 83-94
 
 Polling a process
 -----------------
@@ -104,5 +104,5 @@ by allowing the ``.poll()`` method to be called a number of times before
 the ``returncode`` is set using the ``poll_count`` parameter as shown in
 the following example:
 
-.. literalinclude:: ../testfixtures/tests/test_popen.py
-   :lines: 249-266
+.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+   :lines: 96-113
