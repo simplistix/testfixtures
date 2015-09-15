@@ -3,6 +3,21 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.3.0 (15 September 2015)
+------------------------
+
+- Add :meth:`TempDirectory.compare` with a cleaner, more explicit API that
+  allows comparison of only the files in a temporary directory.
+
+- Deprecate :meth:`TempDirectory.check`, :meth:`TempDirectory.check_dir`
+  and :meth:`TempDirectory.check_all`
+
+- Relax absolute-path rules so that if it's inside the :class:`TempDirectory`,
+  it's allowed.
+
+- Allow :class:`OutputCapture` to separately check output to ``stdout`` and
+  ``stderr``.
+
 4.2.0 (11 August 2015)
 ----------------------
 
