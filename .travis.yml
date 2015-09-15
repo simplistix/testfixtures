@@ -29,5 +29,4 @@ deploy:
     repo: Simplistix/testfixtures
     python: "3.4"
   skip_cleanup: true
-  docs_dir: "docs/_build/html"
   distributions: "sdist bdist_wheel"
