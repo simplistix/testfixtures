@@ -3,6 +3,14 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.3.3 (15 September 2015)
+-------------------------
+
+- Add wheel distribution to release.
+
+- Attempt to fix up various niggles from the move to Travis CI for doing
+  releases.
+
 4.3.2 (15 September 2015)
 -------------------------
 
