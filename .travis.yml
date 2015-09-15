@@ -27,3 +27,4 @@ deploy:
   on:
     tags: true
     repo: Simplistix/testfixtures
+  distributions: "sdist bdist_wheel"
