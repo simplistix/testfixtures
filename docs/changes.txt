@@ -3,6 +3,11 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.3.2 (15 September 2015)
+-------------------------
+
+- Fix broken 4.3.1 tag.
+
 4.3.1 (15 September 2015)
 -------------------------
 
