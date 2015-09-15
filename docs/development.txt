@@ -57,8 +57,8 @@ The resulting ``desc.html`` should be checked by opening in a browser.
 Making a release
 ----------------
 
-To make a release, just tag it and push to
-https://github.com/Simplistix/testfixtures
+To make a release, just update ``versions.txt``, update the change log, tag it
+and push to https://github.com/Simplistix/testfixtures
 and Travis CI should take care of the rest.
 
 Once Travis CI is done, make sure to go to
