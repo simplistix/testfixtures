@@ -27,4 +27,5 @@ deploy:
   on:
     tags: true
     repo: Simplistix/testfixtures
+    python: "3.4"
   distributions: "sdist bdist_wheel"
