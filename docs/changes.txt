@@ -4,7 +4,7 @@ Changes
 .. currentmodule:: testfixtures
 
 4.3.0 (15 September 2015)
-------------------------
+-------------------------
 
 - Add :meth:`TempDirectory.compare` with a cleaner, more explicit API that
   allows comparison of only the files in a temporary directory.
