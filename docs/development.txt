@@ -57,19 +57,10 @@ The resulting ``desc.html`` should be checked by opening in a browser.
 Making a release
 ----------------
 
-The following will build the distribution, upload it to PyPI, register
-the metadata with PyPI and upload the Sphinx documentation to PyPI::
+To make a release, just tag it and push to
+https://github.com/Simplistix/testfixtures
+and Travis CI should take care of the rest.
 
-  $ bin/pip install -e .[test,build]
-  $ python setup.py sdist bdist_wheel
-  $ twine upload dist/testfixtures-<version>*
-
-Running pip again will make sure the correct package information is
-used.
-
-This should all be done on a unix box so that a `.tgz` source
-distribution is produced.
-
-Once the above is done, make sure to go to
+Once Travis CI is done, make sure to go to
 https://readthedocs.org/projects/testfixtures/versions/
 and make sure the new release is marked as an Active Version.
