@@ -10,7 +10,7 @@ python:
   - "2.6"
 
 # command to install dependencies
-install: "pip install -Ue .[test]"
+install: "pip install -Ue .[test,build]"
 
 # command to run tests, e.g. python setup.py test
 script: nosetests --with-cov --cov=testfixtures

@@ -3,6 +3,11 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.3.1 (15 September 2015)
+-------------------------
+
+- Fix build problems introduced by moving the build process to Travis CI.
+
 4.3.0 (15 September 2015)
 -------------------------
 
