@@ -11,12 +11,16 @@ from testfixtures.compat import (
     )
 from testfixtures.resolve import resolve
 from types import GeneratorType
-    
+
+
 def compare_simple(x, y, context):
     """
     Returns a very simple textual difference between the two supplied objects.
     """
-    return '%r != %r' % (x, y)
+    return '%r%s != %s%r' % (x,
+                             context.maybe_include(' (expected)'),
+                             context.maybe_include('(actual) '),
+                             y)
 
 def compare_with_type(x, y, context):
     """
@@ -28,7 +32,9 @@ def compare_with_type(x, y, context):
     for name in 'x', 'y':
         obj = source[name]
         to_render[name] = '{0} ({1!r})'.format(_short_repr(obj), type(obj))
-    return '{x} != {y}'.format(**to_render)
+    to_render['x_label'] = context.maybe_include(' (expected)')
+    to_render['y_label'] = context.maybe_include('(actual) ')
+    return '{x}{x_label} != {y_label}{y}'.format(**to_render)
 
 def compare_sequence(x, y, context):
     """
@@ -49,10 +55,12 @@ def compare_sequence(x, y, context):
     return (
             'sequence not as expected:\n\n'
             'same:\n%s\n\n'
-            'first:\n%s\n\n'
-            'second:\n%s' ) % (
+            '%s:\n%s\n\n'
+            '%s:\n%s' ) % (
             pformat(x[:i]),
+            context.maybe_include('expected') or 'first',
             pformat(x[i:]),
+            context.maybe_include('actual') or 'second',
             pformat(y[i:]),
             )
 
@@ -110,9 +118,11 @@ def _compare_mapping(x, y, context, obj_for_class):
     diffs = []
     for key in sorted(x_keys.intersection(y_keys)):
         if context.different(x[key], y[key], '[%r]' % (key,)):
-            diffs.append('%r: %s != %s' % (
+            diffs.append('%r: %s%s != %s%s' % (
                 key,
                 pformat(x[key]),
+                context.maybe_include(' (expected)'),
+                context.maybe_include('(actual) '),
                 pformat(y[key]),
                 ))
         else:
@@ -123,15 +133,17 @@ def _compare_mapping(x, y, context, obj_for_class):
         if set_same == x_keys == y_keys:
             return
         lines.extend(('', 'same:', repr(same)))
+    x_label = context.maybe_include('expected') or 'first'
+    y_label = context.maybe_include('actual') or 'second'
     if x_not_y:
-        lines.extend(('', 'in first but not second:'))
+        lines.extend(('', 'in %s but not %s:' % (x_label, y_label)))
         for key in sorted(x_not_y):
             lines.append('%r: %s' % (
                 key,
                 pformat(x[key])
                 ))
     if y_not_x:
-        lines.extend(('', 'in second but not first:'))
+        lines.extend(('', 'in %s but not %s:' % (y_label, x_label)))
         for key in sorted(y_not_x):
             lines.append('%r: %s' % (
                 key,
@@ -150,15 +162,17 @@ def compare_set(x, y, context):
     x_not_y = x - y
     y_not_x = y - x
     lines = ['%s not as expected:' % x.__class__.__name__,'']
+    x_label = context.maybe_include('expected') or 'first'
+    y_label = context.maybe_include('actual') or 'second'
     if x_not_y:
         lines.extend((
-            'in first but not second:',
+            'in %s but not %s:' % (x_label, y_label),
             pformat(sorted(x_not_y)),
             '',
             ))
     if y_not_x:
         lines.extend((
-            'in second but not first:',
+            'in %s but not %s:' % (y_label, x_label),
             pformat(sorted(y_not_x)),
             '',
             ))
@@ -215,11 +229,19 @@ def compare_text(x, y, context):
             if show_whitespace:
                 x = split_repr(x)
                 y = split_repr(y)
-            message = '\n' + diff(x, y)
+            message = '\n' + diff(x, y,
+                                  context.maybe_include('expected'),
+                                  context.maybe_include('actual'),)
         else:
-            message = '\n%r\n!=\n%r' % (x, y)
+            message = '\n%r%s\n!=\n%s%r' % (x,
+                                            context.maybe_include('\n(expected)'),
+                                            context.maybe_include('(actual)\n'),
+                                            y)
     else:
-        message = '%r != %r' % (x, y)
+        message = '%r%s != %s%r' % (x,
+                                    context.maybe_include(' (expected)'),
+                                    context.maybe_include('(actual) '),
+                                    y)
     return message
 
 def _short_repr(obj):
@@ -267,9 +289,11 @@ def _shared_mro(x, y):
 
 _unsafe_iterables = basestring, dict
 
+
 class CompareContext(object):
 
-    def __init__(self, options):
+    def __init__(self, expected_actual, options):
+        self._expected_actual = expected_actual
         comparers = options.pop('comparers', None)
         if comparers:
             self.registry = dict(_registry)
@@ -285,6 +309,11 @@ class CompareContext(object):
 
     def get_option(self, name, default=None):
         return self.options.get(name, default)
+
+    def maybe_include(self, s):
+        if self._expected_actual:
+            return s
+        return ''
 
     def _lookup(self, x, y):
         if self.strict and type(x) is not type(y):
@@ -344,14 +373,19 @@ class CompareContext(object):
             self.breadcrumbs.pop()
         
 
-def compare(x, y, **kw):
+def compare(x=not_there, y=not_there, expected=not_there, actual=not_there, **kw):
     """
-    Compare the two supplied arguments and raise an
+    Compare two supplied arguments and raise an
     :class:`AssertionError` if they are not the same.
     The :class:`AssertionError` raised will attempt to provide
     descriptions of the differences found.
 
-    Any keywords parameters supplied will be passed to the functions
+    Using the expected and actual keyword arguments to indicate which is the
+    expected and which is the actual value will make for more informative error
+    messages. (You can also specify x as a positional argument together with
+    either expected or actual as a keyword argument.)
+
+    Any extra keywords parameters supplied will be passed to the functions
     that ends up doing the comparison. See the API documentation below
     for details of these.
     
@@ -373,8 +407,9 @@ def compare(x, y, **kw):
                       of this call.
     """
     prefix = kw.pop('prefix', None)
-    context = CompareContext(kw)
-    
+    (x, y, expected_actual) = _get_expected_actual(x, y, expected, actual)
+    context = CompareContext(expected_actual, kw)
+
     if not context.different(x, y, not_there):
         return
     
@@ -384,7 +419,45 @@ def compare(x, y, **kw):
 
     raise AssertionError(message)
 
-    
+
+def _get_expected_actual(x, y, expected, actual):
+    """
+    Helper method for compare() to work out if it is being invoked with unnamed
+    positional arguments x and y, or if expected/actual kwargs have been
+    specified allowing us to provide more helpful error messages.
+
+    Returns a tuple (x, y, actual_expected) where actual_expected is a bool
+    indicating if x and y are named the actual and expected values,
+    respectively.
+
+    not_there is a singleton value used as the default for all four arguments
+    to compare() to differentiate them from an explicitly passed None value.
+
+    Here are the possible inputs and corresponding outputs:
+        (x=a, y=b, expected=not_there, actual=not_there) -> (a, b, False)
+        (x=not_there, y=not_there, expected=a, actual=b) -> (a, b, True)
+        (x=a, y=not_there, expected=a, actual=not_there) -> (b, a, True)
+        (x=a, y=not_there, expected=not_there, actual=b) -> (a, b, True)
+        Anything else -> ValueError
+    """
+    count = sum((0 if x is not_there else 1 for x in (x, y, expected, actual)))
+    if count != 2:
+        raise ValueError('Exactly 2 of the arguments (x, y, expected, actual) '
+                         'must be specified.')
+
+    if x is not_there and y is not not_there:
+        raise ValueError('Must specify x and y together, '
+                         'or x with one of expected/actual.')
+
+    if expected is not_there and actual is not_there:
+        return x, y, False
+    if x is not_there and y is not_there:
+        return expected, actual, True
+    if actual is not_there:
+        return expected, x, True
+    return x, actual, True
+
+
 class Comparison(object):
     """
     These are used when you need to compare objects
@@ -433,7 +506,7 @@ class Comparison(object):
         self.c = c
         self.v = attribute_dict
         self.strict = strict
-        
+
     def __eq__(self, other):
         if self.c is not other.__class__:
             self.failed = True
@@ -531,7 +604,7 @@ class StringComparison:
                          expression that will be used whenever this
                          :class:`StringComparison` is compared with
                          any :class:`basestring` instance.
-    
+
     """
     def __init__(self,regex_source):
         self.re = compile(regex_source)
@@ -551,9 +624,10 @@ class StringComparison:
 
     def __lt__(self,other):
         return self.re.pattern<other
-        
+
     def __gt__(self,other):
         return self.re.pattern>other
+
 
 class RoundComparison:
     """
@@ -580,8 +654,9 @@ class RoundComparison:
 
     def __repr__(self):
         return '<R:%s to %i digits>' % (self.rounded, self.precision)
-        
-def diff(x,y):
+
+
+def diff(x, y, x_label='', y_label=''):
     """
     A shorthand function that uses :mod:`difflib` to return a
     string representing the differences between the two string
@@ -589,12 +664,15 @@ def diff(x,y):
 
     Most useful when comparing multi-line strings.
     """
+    skip_lines = 0 if (x_label or y_label) else 2
     return '\n'.join(
         tuple(unified_diff(
             x.split('\n'),
             y.split('\n'),
+            x_label,
+            y_label,
             lineterm='')
-              )[2:]
+              )[skip_lines:]
         )
 
 
