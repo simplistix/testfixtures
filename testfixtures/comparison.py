@@ -302,7 +302,7 @@ class CompareContext(object):
         
         return compare_simple
 
-    def _seperator(self):
+    def _separator(self):
         return '\n\nWhile comparing %s: ' % ''.join(self.breadcrumbs[1:])
 
     def different(self, x, y, breadcrumb):
@@ -329,7 +329,7 @@ class CompareContext(object):
             if result:
                 
                 if specific_comparer and recursed:
-                    current_message = self._seperator()
+                    current_message = self._separator()
 
                 if specific_comparer or not recursed:
                     current_message += result
