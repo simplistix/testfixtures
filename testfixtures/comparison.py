@@ -280,6 +280,8 @@ _unsafe_iterables = basestring, dict
 
 class CompareContext(object):
 
+    x_label = y_label = None
+
     def __init__(self, options):
         comparers = options.pop('comparers', None)
         if comparers:
@@ -290,11 +292,35 @@ class CompareContext(object):
             
         self.recursive = options.pop('recursive', True)
         self.strict = options.pop('strict', False)
-        self.x_label = options.pop('x_label', None)
-        self.y_label = options.pop('y_label', None)
+
+        if 'expected' in options or 'actual' in options:
+            self.x_label = 'expected'
+            self.y_label = 'actual'
+        self.x_label = options.pop('x_label', self.x_label)
+        self.y_label = options.pop('y_label', self.y_label)
+
         self.options = options
         self.message = ''
         self.breadcrumbs = []
+
+    def extract_args(self, args):
+
+        possible = []
+        expected = self.options.pop('expected', not_there)
+        if expected is not not_there:
+            possible.append(expected)
+        possible.extend(args)
+        actual = self.options.pop('actual', not_there)
+        if actual is not not_there:
+            possible.append(actual)
+
+        if len(possible) != 2:
+            raise TypeError(
+                'Exactly two objects needed, you supplied: ' +
+                repr(possible)
+            )
+
+        return possible
 
     def get_option(self, name, default=None):
         return self.options.get(name, default)
@@ -364,15 +390,16 @@ class CompareContext(object):
             self.breadcrumbs.pop()
         
 
-def compare(x, y, **kw):
+def compare(*args, **kw):
     """
-    Compare the two supplied arguments and raise an
-    :class:`AssertionError` if they are not the same.
+    Compare the two arguments passed either positionally for using
+    explicit ``expected`` and ``actual`` keyword paramaters. An
+    :class:`AssertionError` will be raised if they are not the same.
     The :class:`AssertionError` raised will attempt to provide
     descriptions of the differences found.
 
-    Any keywords parameters supplied will be passed to the functions
-    that ends up doing the comparison. See the API documentation below
+    Any other keyword parameters supplied will be passed to the functions
+    that end up doing the comparison. See the API documentation below
     for details of these.
     
     :param prefix: If provided, in the event of an :class:`AssertionError` being
@@ -394,6 +421,8 @@ def compare(x, y, **kw):
     """
     prefix = kw.pop('prefix', None)
     context = CompareContext(kw)
+
+    x, y = context.extract_args(args)
     
     if not context.different(x, y, not_there):
         return

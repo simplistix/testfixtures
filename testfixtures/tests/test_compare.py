@@ -27,11 +27,17 @@ def hexsub(raw):
 
 call_list_repr = repr(Mock().mock_calls.__class__)
 
+marker = object()
+
 class TestCompare(TestCase):
 
-    def checkRaises(self, x, y, message=None, regex=None, **kw):
+    def checkRaises(self, x=marker, y=marker, message=None, regex=None, **kw):
+        args = []
+        for value in x, y:
+            if value is not marker:
+                args.append(value)
         try:
-            compare(x, y, **kw)
+            compare(*args, **kw)
         except Exception as e:
             if not isinstance(e, AssertionError):
                 self.fail('Expected AssertionError, got %r' % e)
@@ -1172,3 +1178,51 @@ b
             {1: 'one', 2: 'two'}, [1, 2],
             "{1: 'one', 2: 'two'} != [1, 2]"
         )
+
+    def test_explicit_expected(self):
+        self.checkRaises('x', expected='y',
+                         message= "'y' (expected) != 'x' (actual)")
+
+    def test_explicit_actual(self):
+        self.checkRaises('x', actual='y',
+                         message="'x' (expected) != 'y' (actual)")
+
+    def test_explicit_both(self):
+        self.checkRaises(message="'x' (expected) != 'y' (actual)",
+                         expected='x', actual='y')
+
+    def test_explicit_and_labels(self):
+        self.checkRaises(message="'x' (x_label) != 'y' (y_label)",
+                         expected='x', actual='y',
+                         x_label='x_label', y_label='y_label')
+
+    def test_invalid_two_args_expected(self):
+        with ShouldRaise(TypeError(
+                "Exactly two objects needed, you supplied: ['z', 'x', 'y']"
+        )):
+            compare('x', 'y', expected='z')
+
+    def test_invalid_two_args_actual(self):
+        with ShouldRaise(TypeError(
+                "Exactly two objects needed, you supplied: ['x', 'y', 'z']"
+        )):
+            compare('x', 'y', actual='z')
+
+    def test_invalid_zero_args(self):
+        with ShouldRaise(TypeError(
+                'Exactly two objects needed, you supplied: []'
+        )):
+            compare()
+
+    def test_invalid_one_args(self):
+        with ShouldRaise(TypeError(
+                "Exactly two objects needed, you supplied: ['x']"
+        )):
+            compare('x')
+
+    def test_invalid_three_args(self):
+        with ShouldRaise(TypeError(
+                "Exactly two objects needed, you supplied: ['x', 'y', 'z']"
+        )):
+            compare('x', 'y', 'z')
+
