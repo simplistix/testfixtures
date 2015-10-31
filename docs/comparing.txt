@@ -34,6 +34,14 @@ AssertionError: wrong number of orders: 1 != 2
 This is recommended as it makes the reason for the failure more
 apparent without having to delve into the code or tests.
 
+The expected and actual value can also be explicitly supplied, making it
+clearer as to what has gone wrong:
+
+>>> compare(expected=1, actual=2)
+Traceback (most recent call last):
+ ...
+AssertionError: 1 (expected) != 2 (actual)
+
 The real strengths of this function come when comparing more complex
 data types. A number of common python data types will give more
 detailed output when a comparison fails as described below:
@@ -237,7 +245,7 @@ following:
           trailing_whitespace=False)
 
 Recursive comparison
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 Where :func:`compare` is able to provide a descriptive comparison for
 a particular type, it will then recurse to do the same for the
@@ -326,8 +334,9 @@ To compare lots of these, you would first write a comparer:
   def compare_my_object(x, y, context):
       if x.name == y.name:
           return
-      return 'MyObject named %r != MyObject named %r' % (
-          x.name, y.name
+      return 'MyObject named %s != MyObject named %s' % (
+          context.label('x', repr(x.name)),
+          context.label('y', repr(y.name)),
           )
 
 Then you'd register that comparer for your type:
@@ -370,6 +379,15 @@ two objects are equal, for :func:`compare`'s purposes, by returning
 >>> MyObject('foo') == MyObject('foo')
 False
 >>> compare(MyObject('foo'), MyObject('foo'))
+
+You can also see that you can, and should, use the context object passed in
+to add labels to the representations of the objects being compared if the
+comparison fails:
+
+>>> compare(expected=MyObject('foo'), actual=MyObject('bar'))
+Traceback (most recent call last):
+ ...
+AssertionError: MyObject named 'foo' (expected) != MyObject named 'bar' (actual)
 
 .. invisible-code-block: python
 

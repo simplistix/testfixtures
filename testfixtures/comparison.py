@@ -408,11 +408,10 @@ def compare(*args, **kw):
                    
     :param recursive: If ``True``, when a difference is found in a nested data
                       structure, attempt to highlight the location of the
-                      difference. Defaults to ``True``.
+                      difference.
                    
     :param strict: If ``True``, objects will only compare equal if
                    they are of the same type as well as being equal.
-                   Defaults to ``False``.
                    
     :param comparers: If supplied, should be a dictionary mapping
                       types to comparer functions for those types. These will be
