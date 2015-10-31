@@ -81,16 +81,12 @@ class Files(Manuel):
             if not isinstance(result, FileResult):
                 continue
             if not result.passed:
-                region.formatted = (
-                    'File "%s", line %i:\n'
-                    'Reading from "%s":\n'
-                    '%s' % (
-                        document.location,
-                        region.lineno,
-                        result.path,
-                        diff(result.expected,result.actual)
-                        )
-                    )
+                region.formatted = diff(
+                    result.expected,
+                    result.actual,
+                    'File "%s", line %i:' % (document.location, region.lineno),
+                    'Reading from "%s":' %  result.path
+                )
         
         return
 

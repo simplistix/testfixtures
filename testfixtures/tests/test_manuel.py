@@ -220,8 +220,8 @@ This is just some normal text!
         r.actual = 'same\nactual\n'
         d = TestContainer('evaluated',r)
         d.format_with(Files('td'))
-        compare('File "<memory>", line 0:\n'
-                'Reading from "/foo/bar":\n'
+        compare('--- File "<memory>", line 0:\n'
+                '+++ Reading from "/foo/bar":\n'
                 '@@ -1,3 +1,3 @@\n'
                 ' same\n'
                 '-expected\n'

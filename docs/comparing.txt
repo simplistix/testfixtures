@@ -189,6 +189,8 @@ fails:
 Traceback (most recent call last):
  ...
 AssertionError: 
+--- first
++++ second
 @@ -1,5 +1,5 @@
 <BLANKLINE>
          This is line 1
@@ -205,6 +207,8 @@ spotting the differences easier as follows:
 Traceback (most recent call last):
  ...
 AssertionError: 
+--- first
++++ second
 @@ -1,2 +1,2 @@
 -'\tline 1\r\n'
 +' line1 \n'
@@ -267,6 +271,8 @@ values differ:
 'text': 'foo\nbar\nbaz' != 'foo\nbob\nbaz'
 <BLANKLINE>
 While comparing [1]['text']: 
+--- first
++++ second
 @@ -1,3 +1,3 @@
  foo
 -bar
@@ -799,6 +805,8 @@ As an example:
 >>> from testfixtures import diff
 >>> print(diff('line1\nline2\nline3',
 ...            'line1\nlineA\nline3'))
+--- first
++++ second
 @@ -1,3 +1,3 @@
  line1
 -line2

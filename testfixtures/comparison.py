@@ -580,8 +580,8 @@ class RoundComparison:
 
     def __repr__(self):
         return '<R:%s to %i digits>' % (self.rounded, self.precision)
-        
-def diff(x,y):
+
+def diff(x, y, x_label='', y_label=''):
     """
     A shorthand function that uses :mod:`difflib` to return a
     string representing the differences between the two string
@@ -590,11 +590,12 @@ def diff(x,y):
     Most useful when comparing multi-line strings.
     """
     return '\n'.join(
-        tuple(unified_diff(
+        unified_diff(
             x.split('\n'),
             y.split('\n'),
+            x_label or 'first',
+            y_label or 'second',
             lineterm='')
-              )[2:]
-        )
+    )
 
 

@@ -18,7 +18,10 @@ class TestDiff(TestCase):
         line changed
         line3
         ''')
-        expected = '''@@ -1,5 +1,5 @@
+        expected = '''\
+--- first
++++ second
+@@ -1,5 +1,5 @@
  
          line1
 -        line2
@@ -42,7 +45,7 @@ class TestDiff(TestCase):
                 '\n%r\n!=\n%r' % (expected, actual)
                 )
         except AssertionError:  # pragma: no cover
-            expected = '@@ -1,1 +1,1 @@\n-x\n+y'
+            expected = '--- first\n+++ second\n@@ -1 +1 @@\n-x\n+y'
             self.assertEqual(
                 expected,
                 actual,

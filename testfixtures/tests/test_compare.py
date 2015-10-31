@@ -95,7 +95,8 @@ class TestCompare(TestCase):
     def test_string_diff_long_newlines(self):
         self.checkRaises(
             'x'*5+'\n'+'y'*5,'x'*5+'\n'+'z'*5,
-            "\n@@ -1,2 +1,2 @@\n xxxxx\n-yyyyy\n+zzzzz"
+            "\n--- first\n+++ second\n@@ -1,2 +1,2 @@\n xxxxx\n-yyyyy\n+zzzzz"
+            )
             )
 
     def test_exception_same_object(self):
@@ -560,7 +561,9 @@ class TestCompare(TestCase):
     def test_show_whitespace_long(self):
         self.checkRaises(
             "\t         \n  '",'\r     \n  ',
-            '\n@@ -1,2 +1,2 @@\n'
+            '\n--- first\n'
+            '+++ second\n'
+            '@@ -1,2 +1,2 @@\n'
             '-\'\\t         \\n\'\n'
             '-"  \'"\n'
             '+\'\\r     \\n\'\n'
@@ -761,7 +764,7 @@ b
     def test_prefix_multiline(self):
         self.checkRaises(
             'x'*5+'\n'+'y'*5,'x'*5+'\n'+'z'*5,
-            "file content: \n@@ -1,2 +1,2 @@\n xxxxx\n-yyyyy\n+zzzzz",
+            "file content: \n--- first\n+++ second\n@@ -1,2 +1,2 @@\n xxxxx\n-yyyyy\n+zzzzz",
             prefix='file content'
             )
 
@@ -856,6 +859,8 @@ b
             "('foo\\nbob\\nbaz\\n', 4)\n"
             "\n"
             "While comparing [2]: \n"
+            "--- first\n"
+            "+++ second\n"
             "@@ -1,4 +1,4 @@\n"
             # check that show_whitespace bubbles down
             " 'foo\\n'\n"
