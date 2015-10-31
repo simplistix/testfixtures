@@ -16,7 +16,7 @@ def compare_simple(x, y, context):
     """
     Returns a very simple textual difference between the two supplied objects.
     """
-    return '%r != %r' % (x, y)
+    return context.label('x', repr(x)) + ' != ' + context.label('y', repr(y))
 
 def compare_with_type(x, y, context):
     """
@@ -27,7 +27,10 @@ def compare_with_type(x, y, context):
     to_render = {}
     for name in 'x', 'y':
         obj = source[name]
-        to_render[name] = '{0} ({1!r})'.format(_short_repr(obj), type(obj))
+        to_render[name] = context.label(
+            name,
+            '{0} ({1!r})'.format(_short_repr(obj), type(obj))
+        )
     return '{x} != {y}'.format(**to_render)
 
 def compare_sequence(x, y, context):
@@ -49,11 +52,11 @@ def compare_sequence(x, y, context):
     return (
             'sequence not as expected:\n\n'
             'same:\n%s\n\n'
-            'first:\n%s\n\n'
-            'second:\n%s' ) % (
+            '%s:\n%s\n\n'
+            '%s:\n%s' ) % (
             pformat(x[:i]),
-            pformat(x[i:]),
-            pformat(y[i:]),
+            context.x_label or 'first', pformat(x[i:]),
+            context.y_label or 'second', pformat(y[i:]),
             )
 
 def compare_generator(x, y, context):
@@ -112,8 +115,8 @@ def _compare_mapping(x, y, context, obj_for_class):
         if context.different(x[key], y[key], '[%r]' % (key,)):
             diffs.append('%r: %s != %s' % (
                 key,
-                pformat(x[key]),
-                pformat(y[key]),
+                context.label('x', pformat(x[key])),
+                context.label('y', pformat(y[key])),
                 ))
         else:
             same.append(key)
@@ -123,15 +126,19 @@ def _compare_mapping(x, y, context, obj_for_class):
         if set_same == x_keys == y_keys:
             return
         lines.extend(('', 'same:', repr(same)))
+
+    x_label = context.x_label or 'first'
+    y_label = context.y_label or 'second'
+
     if x_not_y:
-        lines.extend(('', 'in first but not second:'))
+        lines.extend(('', 'in %s but not %s:' % (x_label, y_label)))
         for key in sorted(x_not_y):
             lines.append('%r: %s' % (
                 key,
                 pformat(x[key])
                 ))
     if y_not_x:
-        lines.extend(('', 'in second but not first:'))
+        lines.extend(('', 'in %s but not %s:' % (y_label, x_label)))
         for key in sorted(y_not_x):
             lines.append('%r: %s' % (
                 key,
@@ -150,15 +157,17 @@ def compare_set(x, y, context):
     x_not_y = x - y
     y_not_x = y - x
     lines = ['%s not as expected:' % x.__class__.__name__,'']
+    x_label = context.x_label or 'first'
+    y_label = context.y_label or 'second'
     if x_not_y:
         lines.extend((
-            'in first but not second:',
+            'in %s but not %s:' % (x_label, y_label),
             pformat(sorted(x_not_y)),
             '',
             ))
     if y_not_x:
         lines.extend((
-            'in second but not first:',
+            'in %s but not %s:' % (y_label, x_label),
             pformat(sorted(y_not_x)),
             '',
             ))
@@ -210,16 +219,18 @@ def compare_text(x, y, context):
         y = strip_blank_lines(y)
     if x==y:
         return
+    labelled_x = context.label('x', repr(x))
+    labelled_y = context.label('y', repr(y))
     if len(x) > 10 or len(y) > 10:
         if '\n' in x or '\n' in y:
             if show_whitespace:
                 x = split_repr(x)
                 y = split_repr(y)
-            message = '\n' + diff(x, y)
+            message = '\n' + diff(x, y, context.x_label, context.y_label)
         else:
-            message = '\n%r\n!=\n%r' % (x, y)
+            message = '\n%s\n!=\n%s' % (labelled_x, labelled_y)
     else:
-        message = '%r != %r' % (x, y)
+        message = labelled_x+' != '+labelled_y
     return message
 
 def _short_repr(obj):
@@ -279,12 +290,21 @@ class CompareContext(object):
             
         self.recursive = options.pop('recursive', True)
         self.strict = options.pop('strict', False)
+        self.x_label = options.pop('x_label', None)
+        self.y_label = options.pop('y_label', None)
         self.options = options
         self.message = ''
         self.breadcrumbs = []
 
     def get_option(self, name, default=None):
         return self.options.get(name, default)
+
+    def label(self, side, value):
+        r = str(value)
+        label = getattr(self, side+'_label')
+        if label:
+            r += ' ('+label+')'
+        return r
 
     def _lookup(self, x, y):
         if self.strict and type(x) is not type(y):

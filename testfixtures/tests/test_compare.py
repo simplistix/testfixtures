@@ -67,6 +67,10 @@ class TestCompare(TestCase):
     def test_number_different(self):
         self.checkRaises(1,2,'1 != 2')
 
+    def test_different_with_labels(self):
+        self.checkRaises(1, 2, '1 (expected) != 2 (actual)',
+                         x_label='expected', y_label='actual')
+
     def test_string_same(self):
         compare('x', 'x')
 
@@ -97,6 +101,29 @@ class TestCompare(TestCase):
             'x'*5+'\n'+'y'*5,'x'*5+'\n'+'z'*5,
             "\n--- first\n+++ second\n@@ -1,2 +1,2 @@\n xxxxx\n-yyyyy\n+zzzzz"
             )
+
+    def test_string_diff_short_labels(self):
+        self.checkRaises(
+            '\n'+('x'*9),'\n'+('y'*9),
+            "'\\nxxxxxxxxx' (expected) != '\\nyyyyyyyyy' (actual)",
+            x_label='expected',
+            y_label='actual'
+            )
+
+    def test_string_diff_long_labels(self):
+        self.checkRaises(
+            'x'*11,'y'*11,
+            "\n'xxxxxxxxxxx' (expected)\n!=\n'yyyyyyyyyyy' (actual)",
+            x_label='expected',
+            y_label='actual'
+            )
+
+    def test_string_diff_long_newlines_labels(self):
+        self.checkRaises(
+            'x'*5+'\n'+'y'*5,'x'*5+'\n'+'z'*5,
+            "\n--- expected\n+++ actual\n@@ -1,2 +1,2 @@\n xxxxx\n-yyyyy\n+zzzzz",
+            x_label='expected',
+            y_label='actual'
             )
 
     def test_exception_same_object(self):
@@ -174,6 +201,20 @@ class TestCompare(TestCase):
             "'quite a long string 9'"
             )
 
+    def test_sequence_different_labels_supplied(self):
+        self.checkRaises(
+            [1,2,3], [1,2,4],
+            "sequence not as expected:\n\n"
+            "same:\n"
+            "[1, 2]\n\n"
+            "expected:\n"
+            "[3]\n\n"
+            "actual:\n"
+            "[4]",
+            x_label = 'expected',
+            y_label = 'actual',
+            )
+
     def test_list_same(self):
         compare([1,2,3], [1,2,3])
 
@@ -247,6 +288,23 @@ class TestCompare(TestCase):
             "\n"
             "values differ:\n"
             "'x': 1 != 2"
+            )
+
+    def test_dict_labels_specified(self):
+        self.checkRaises(
+            dict(x=1, y=2),dict(x=2, z=3),
+            "dict not as expected:\n"
+            "\n"
+            "in expected but not actual:\n"
+            "'y': 2\n"
+            "\n"
+            "in actual but not expected:\n"
+            "'z': 3\n"
+            "\n"
+            "values differ:\n"
+            "'x': 1 (expected) != 2 (actual)",
+            x_label='expected',
+            y_label='actual'
             )
 
     def test_dict_tuple_keys_same_value(self):
@@ -337,6 +395,21 @@ class TestCompare(TestCase):
             "[3, 5]\n"
             '\n'
             )
+
+    def test_set_labels(self):
+        self.checkRaises(
+            set([1, 2, 4]),set([1, 3, 5]),
+            "set not as expected:\n"
+            "\n"
+            "in expected but not actual:\n"
+            "[2, 4]\n"
+            '\n'
+            "in actual but not expected:\n"
+            "[3, 5]\n"
+            '\n',
+            x_label='expected',
+            y_label='actual',
+        )
 
     def test_tuple_same(self):
         compare((1,2,3), (1,2,3))
@@ -449,14 +522,16 @@ class TestCompare(TestCase):
 
     def test_sequence_and_generator_strict(self):
         expected = compile(
-            "\(1, 2, 3\) \(<(class|type) 'tuple'>\) != "
+            "\(1, 2, 3\) \(<(class|type) 'tuple'>\) \(expected\) != "
             "<generator object (generator )?at... "
-            "\(<(class|type) 'generator'>\)"
+            "\(<(class|type) 'generator'>\) \(actual\)"
             )
         self.checkRaises(
             (1,2,3), generator(1,2,3),
             regex=expected,
             strict=True,
+            x_label='expected',
+            y_label='actual',
             )
 
     def test_generator_and_sequence(self):
@@ -768,6 +843,14 @@ b
             prefix='file content'
             )
 
+    def test_labels_multiline(self):
+        self.checkRaises(
+            'x'*5+'\n'+'y'*5,'x'*5+'\n'+'z'*5,
+            "\n--- expected\n+++ actual\n@@ -1,2 +1,2 @@\n xxxxx\n-yyyyy\n+zzzzz",
+            x_label='expected',
+            y_label='actual'
+            )
+
     def test_generator_with_non_generator(self):
         self.checkRaises(
             generator(1, 2, 3), None,
@@ -955,6 +1038,62 @@ b
                 "()"
                 ).format(gen1=hexsub(repr(gen1)),
                          gen2=hexsub(repr(gen2)))
+            )
+
+    def test_nested_labels(self):
+        obj1 = singleton('obj1')
+        obj2 = singleton('obj2')
+        gen1 = generator(obj1, obj2)
+        gen2 = generator(obj1, )
+        # dict -> list -> tuple -> generator
+        self.checkRaises(
+            dict(x=[1, ('a', 'b', gen1), 3], y=[3, 4]),
+            dict(x=[1, ('a', 'b', gen2), 3], y=[3, 4]), (
+                "dict not as expected:\n"
+                "\n"
+                "same:\n"
+                "['y']\n"
+                "\n"
+                "values differ:\n"
+                "'x': [1, ('a', 'b', {gen1}), 3] (expected) != "
+                "[1, ('a', 'b', {gen2}), 3] (actual)\n"
+                "\n"
+                "While comparing ['x']: sequence not as expected:\n"
+                "\n"
+                "same:\n"
+                "[1]\n"
+                "\n"
+                "expected:\n"
+                "[('a', 'b', {gen1}), 3]\n"
+                "\n"
+                "actual:\n"
+                "[('a', 'b', {gen2}), 3]\n"
+                "\n"
+                "While comparing ['x'][1]: sequence not as expected:\n"
+                "\n"
+                "same:\n"
+                "('a', 'b')\n"
+                "\n"
+                "expected:\n"
+                "({gen1},)\n"
+                "\n"
+                "actual:\n"
+                "({gen2},)\n"
+                "\n"
+                "While comparing ['x'][1][2]: sequence not as expected:\n"
+                "\n"
+                "same:\n"
+                "(<obj1>,)\n"
+                "\n"
+                "expected:\n"
+                "(<obj2>,)\n"
+                "\n"
+                "actual:\n"
+                "()"
+                ).format(gen1=hexsub(repr(gen1)),
+                         gen2=hexsub(repr(gen2))),
+            x_label='expected',
+            y_label='actual',
             )
 
     def test_nested_strict_only_type_difference(self):
