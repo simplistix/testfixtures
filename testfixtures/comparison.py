@@ -392,7 +392,7 @@ class CompareContext(object):
 
 def compare(*args, **kw):
     """
-    Compare the two arguments passed either positionally for using
+    Compare the two arguments passed either positionally or using
     explicit ``expected`` and ``actual`` keyword paramaters. An
     :class:`AssertionError` will be raised if they are not the same.
     The :class:`AssertionError` raised will attempt to provide
