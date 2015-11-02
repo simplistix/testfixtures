@@ -3,6 +3,24 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.4.0 (1 November 2015)
+-----------------------
+
+- Add support for labelling the arguments passed to :func:`compare`.
+
+- Allow ``expected`` and ``actual`` keyword parameters to be passed to
+  :func:`compare`.
+
+- Fix ``TypeError: unorderable types`` when :func:`compare` found multiple
+  differences in sets and dictionaries on Python 3.
+
+- Add official support for Python 3.5.
+
+- Drop official support for Python 2.6.
+
+Thanks to Daniel Fortunov for the initial ideas for explicit ``expected`` and
+``actual`` support in :func:`compare`.
+
 4.3.3 (15 September 2015)
 -------------------------
 
