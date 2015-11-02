@@ -10,10 +10,9 @@ except ImportError:  # pragma: no cover
 
 from mock import Mock, call
 from testfixtures import Replacer, compare
-from testfixtures.compat import PY3
 from unittest import TestCase
 
-from .compat import catch_warnings
+from warnings import catch_warnings
 
 class ComponentsTests(TestCase):
 

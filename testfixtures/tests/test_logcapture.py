@@ -9,7 +9,7 @@ from unittest import TestSuite, TestCase, makeSuite
 
 from logging import getLogger
 
-from .compat import catch_warnings
+from warnings import catch_warnings
 
 root = getLogger()
 one = getLogger('one')

@@ -16,7 +16,7 @@ import os
 from testfixtures.tests import sample1
 from testfixtures.tests import sample2
 
-from .compat import catch_warnings
+from warnings import catch_warnings
 
 class TestReplace(TestCase):
 

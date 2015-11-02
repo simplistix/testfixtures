@@ -10,8 +10,8 @@ from testfixtures import TempDirectory, Replacer, ShouldRaise, compare
 from unittest import TestCase, TestSuite, makeSuite
 
 from ..compat import Unicode, PY3
-from .compat import catch_warnings
 from testfixtures.tests.compat import py_35_plus
+from warnings import catch_warnings
 
 from ..rmtree import rmtree
 

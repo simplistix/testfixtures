@@ -4,7 +4,7 @@
 from testfixtures import Comparison as C, ShouldRaise, should_raise
 from unittest import TestCase
 
-from .compat import py_27_plus, py_33_plus
+from .compat import py_33_plus
 
 class TestShouldRaise(TestCase):
 
@@ -205,12 +205,8 @@ class TestShouldRaise(TestCase):
             raise FileTypeError('X')
 
     def test_assert_keyerror_raised(self):
-        # 2.7 compat
-        if py_27_plus:  # pragma: no cover
-            expected = "KeyError('foo',) raised, AttributeError('foo',) expected"
-        else:  # pragma: no cover
-            expected = "KeyError(('foo',),) raised, AttributeError('foo',) expected"
-            
+        expected = "KeyError('foo',) raised, AttributeError('foo',) expected"
+
         class Dodgy(dict):
             def __getattr__(self,name):
                 # NB: we forgot to turn our KeyError into an attribute error
