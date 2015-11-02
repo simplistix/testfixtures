@@ -15,21 +15,23 @@ dotted_path = 'testfixtures.tests.test_popen_docs.Popen'
 from unittest import TestCase
 
 from mock import call
-from testfixtures import Replacer, compare
+from testfixtures import Replacer, ShouldRaise, compare
 from testfixtures.popen import MockPopen
 
 class TestMyFunc(TestCase):
 
+    def setUp(self):
+        self.Popen = MockPopen()
+        self.r = Replacer()
+        self.r.replace(dotted_path, self.Popen)
+        self.addCleanup(self.r.restore)
+
     def test_example(self):
         # set up
-        Popen = MockPopen()
-        Popen.set_command('svn ls -R foo',
-                          stdout=b'o', stderr=b'e', returncode=0)
+        self.Popen.set_command('svn ls -R foo', stdout=b'o', stderr=b'e')
 
         # testing of results
-        with Replacer() as r:
-            r.replace(dotted_path, Popen)
-            compare(my_func(), b'o')
+        compare(my_func(), b'o')
 
         # testing calls were in the right order and with the correct parameters:
         compare([
@@ -37,6 +39,15 @@ class TestMyFunc(TestCase):
                         shell=True, stderr=PIPE, stdout=PIPE),
              call.Popen_instance.communicate()
              ], Popen.mock.method_calls)
+
+    def test_example_bad_returncode(self):
+        # set up
+        Popen.set_command('svn ls -R foo', stdout=b'o', stderr=b'e',
+                          returncode=1)
+
+        # testing of error
+        with ShouldRaise(RuntimeError('something bad happened')):
+            my_func()
 
     def test_communicate_with_input(self):
         # setup

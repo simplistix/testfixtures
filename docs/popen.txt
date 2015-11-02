@@ -33,11 +33,11 @@ test:
 .. literalinclude:: ../testfixtures/tests/test_popen_docs.py
    :lines: 4-11
 
-A test that exercises this code using :class:`~testfixtures.popen.MockPopen`
+Tests that exercises this code using :class:`~testfixtures.popen.MockPopen`
 could be written as follows:
 
 .. literalinclude:: ../testfixtures/tests/test_popen_docs.py
-   :lines: 15-39
+   :lines: 15-50
 
 
 Passing input to processes
@@ -48,7 +48,7 @@ checking for the input passed to :meth:`~subprocess.Popen.communicate` method
 when you check the calls on the mock as shown in this example:
 
 .. literalinclude:: ../testfixtures/tests/test_popen_docs.py
-   :lines: 41-52
+   :lines: 52-63
 
 .. note:: Accessing ``.stdin`` isn't current supported by this mock.
 
@@ -61,7 +61,7 @@ The ``.stdout`` and ``.stderr`` attributes of the mock returned by
 the real :class:`~subprocess.Popen` and can be read as shown in this example:
 
 .. literalinclude:: ../testfixtures/tests/test_popen_docs.py
-   :lines: 54-65
+   :lines: 65-76
 
 .. warning::
 
@@ -80,7 +80,7 @@ the correct usage of :meth:`~subprocess.Popen.wait`, can be seen in the
 following example:
 
 .. literalinclude:: ../testfixtures/tests/test_popen_docs.py
-   :lines: 67-81
+   :lines: 78-92
 
 Checking for signal sending
 ---------------------------
@@ -92,7 +92,7 @@ make sense for a real test of sub-process usage but does show how the mock
 behaves:
 
 .. literalinclude:: ../testfixtures/tests/test_popen_docs.py
-   :lines: 83-94
+   :lines: 94-105
 
 Polling a process
 -----------------
@@ -105,4 +105,4 @@ the ``returncode`` is set using the ``poll_count`` parameter as shown in
 the following example:
 
 .. literalinclude:: ../testfixtures/tests/test_popen_docs.py
-   :lines: 96-113
+   :lines: 107-125
