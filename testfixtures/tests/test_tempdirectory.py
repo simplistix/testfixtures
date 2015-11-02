@@ -4,13 +4,14 @@
 import os
 
 from doctest import DocTestSuite, ELLIPSIS
-from mock import Mock, call
+from mock import Mock
 from tempfile import mkdtemp
 from testfixtures import TempDirectory, Replacer, ShouldRaise, compare
 from unittest import TestCase, TestSuite, makeSuite
 
 from ..compat import Unicode, PY3
 from .compat import catch_warnings
+from testfixtures.tests.compat import py_35_plus
 
 from ..rmtree import rmtree
 
@@ -259,6 +260,9 @@ class TempDirectoryTests(TestCase):
         self.assertEqual(expected3,actual3)
         
     def test_atexit(self):
+        # http://bugs.python.org/issue25532
+        from mock import call
+
         m = Mock()
         with Replacer() as r:
             # make sure the marker is false, other tests will
@@ -312,7 +316,11 @@ class TempDirectoryTests(TestCase):
                 compare(f.read(), b'\xc2\xa3')
 
     def test_write_unicode_bad(self):
-        if PY3:
+        if py_35_plus:
+            expected = TypeError(
+                "a bytes-like object is required, not 'str'"
+                )
+        elif PY3:
             expected = TypeError(
                 "'str' does not support the buffer interface"
                 )

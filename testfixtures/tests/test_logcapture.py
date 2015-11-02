@@ -3,7 +3,7 @@ from __future__ import print_function
 # See license.txt for license details.
 
 from doctest import DocTestSuite
-from mock import Mock, call
+from mock import Mock
 from testfixtures import Replacer, LogCapture, compare
 from unittest import TestSuite, TestCase, makeSuite
 
@@ -304,6 +304,9 @@ class LogCaptureTests(TestCase):
             logger.handlers = original_handlers
 
     def test_atexit(self):
+        # http://bugs.python.org/issue25532
+        from mock import call
+
         m = Mock()
         with Replacer() as r:
             # make sure the marker is false, other tests will
@@ -372,5 +375,5 @@ def tearDown(test):
 def test_suite():
     return TestSuite((
         DocTestSuite(setUp=setUp,tearDown=tearDown),
-        makeSuite(LogCaptureTests),        
+        makeSuite(LogCaptureTests),
         ))

@@ -191,7 +191,7 @@ class TestReplace(TestCase):
 
         o = object()
 
-        @replace('testfixtures.tests.sample1.bad',o,strict=False)
+        @replace('testfixtures.tests.sample1.bad', o, strict=False)
         def test_something(r):
             self.failUnless(r is o)
             self.failUnless(sample1.bad is o)
