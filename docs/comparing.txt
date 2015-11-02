@@ -548,8 +548,8 @@ Strict comparison
 ~~~~~~~~~~~~~~~~~
 
 If is it important that the two values being compared are of exactly
-the same type, rather than just being equal as far as python is
-concerned, then the scrict mode of :func:`compare` should be used.
+the same type, rather than just being equal as far as Python is
+concerned, then the strict mode of :func:`compare` should be used.
 
 For example, these two instances will normally appear to be equal
 provided the elements within them are the same:
