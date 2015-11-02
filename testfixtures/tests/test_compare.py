@@ -366,6 +366,52 @@ class TestCompare(TestCase):
             "'ab': 4 != 5"
             )
 
+    def test_dict_consistent_ordering_types_same(self):
+        self.checkRaises(
+            {None: 1, 6: 2, 1: 3},
+            {None: 1, 6: 2, 1: 4},
+            "dict not as expected:\n"
+            "\n"
+            'same:\n'
+            "[6, None]\n"
+            "\n"
+            "values differ:\n"
+            "1: 3 != 4"
+            )
+
+    def test_dict_consistent_ordering_types_x_not_y(self):
+        self.checkRaises(
+            {None: 1, 3: 2},
+            {},
+            "dict not as expected:\n"
+            "\n"
+            "in first but not second:\n"
+            "3: 2\n"
+            "None: 1"
+            )
+
+    def test_dict_consistent_ordering_types_y_not_x(self):
+        self.checkRaises(
+            {},
+            {None: 1, 3: 2},
+            "dict not as expected:\n"
+            "\n"
+            "in second but not first:\n"
+            "3: 2\n"
+            "None: 1"
+            )
+
+    def test_dict_consistent_ordering_types_value(self):
+        self.checkRaises(
+            {None: 1, 6: 2},
+            {None: 3, 6: 4},
+            "dict not as expected:\n"
+            "\n"
+            "values differ:\n"
+            "6: 2 != 4\n"
+            "None: 1 != 3"
+            )
+
     def test_set_same(self):
         compare(set([1]), set([1]))
 
@@ -399,6 +445,19 @@ class TestCompare(TestCase):
             '\n'
             "in second but not first:\n"
             "[3, 5]\n"
+            '\n'
+            )
+
+    def test_set_type_ordering(self):
+        self.checkRaises(
+            {None, 1}, {'', 2},
+            "set not as expected:\n"
+            "\n"
+            "in first but not second:\n"
+            "[1, None]\n"
+            '\n'
+            "in second but not first:\n"
+            "['', 2]\n"
             '\n'
             )
 

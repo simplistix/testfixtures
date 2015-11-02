@@ -103,6 +103,9 @@ def compare_dict(x, y, context):
     """
     return _compare_mapping(x, y, context, x)
 
+def sorted_by_repr(sequence):
+    return sorted(sequence, key=lambda o: repr(o))
+
 def _compare_mapping(x, y, context, obj_for_class):
     
     x_keys = set(x.keys())
@@ -111,7 +114,7 @@ def _compare_mapping(x, y, context, obj_for_class):
     y_not_x = y_keys - x_keys
     same = []
     diffs = []
-    for key in sorted(x_keys.intersection(y_keys)):
+    for key in sorted_by_repr(x_keys.intersection(y_keys)):
         if context.different(x[key], y[key], '[%r]' % (key,)):
             diffs.append('%r: %s != %s' % (
                 key,
@@ -132,14 +135,14 @@ def _compare_mapping(x, y, context, obj_for_class):
 
     if x_not_y:
         lines.extend(('', 'in %s but not %s:' % (x_label, y_label)))
-        for key in sorted(x_not_y):
+        for key in sorted_by_repr(x_not_y):
             lines.append('%r: %s' % (
                 key,
                 pformat(x[key])
                 ))
     if y_not_x:
         lines.extend(('', 'in %s but not %s:' % (y_label, x_label)))
-        for key in sorted(y_not_x):
+        for key in sorted_by_repr(y_not_x):
             lines.append('%r: %s' % (
                 key,
                 pformat(y[key])
@@ -162,13 +165,13 @@ def compare_set(x, y, context):
     if x_not_y:
         lines.extend((
             'in %s but not %s:' % (x_label, y_label),
-            pformat(sorted(x_not_y)),
+            pformat(sorted_by_repr(x_not_y)),
             '',
             ))
     if y_not_x:
         lines.extend((
             'in %s but not %s:' % (y_label, x_label),
-            pformat(sorted(y_not_x)),
+            pformat(sorted_by_repr(y_not_x)),
             '',
             ))
     return '\n'.join(lines)+'\n'
