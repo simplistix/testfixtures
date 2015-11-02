@@ -1,30 +1,12 @@
-# Copyright (c) 2008-2014 Simplistix Ltd
+# Copyright (c) 2008-2014 Simplistix Ltd, 2015 Chris Withers
 # See license.txt for license details.
 
-import os, sys
+import os
 
-if sys.version_info[:2] > (3, 0):
-    from configparser import RawConfigParser
-else:
-    from ConfigParser import RawConfigParser
-    
 from setuptools import setup, find_packages
 
 name = 'testfixtures'
 base_dir = os.path.dirname(__file__)
-
-# read test requirements from tox.ini
-config = RawConfigParser()
-config.read(os.path.join(base_dir, 'tox.ini'))
-test_requires = []
-for item in config.get('testenv', 'deps').split():
-    test_requires.append(item)
-# Tox doesn't need itself, but we need it for testing.
-test_requires.append('tox')
-# an optional dependency, but we want it present dev 
-test_requires.append('zope.component')
-# coveralls needed for travis
-test_requires.append('coveralls')
 
 setup(
     name=name,
@@ -51,7 +33,7 @@ setup(
     zip_safe=False,
     include_package_data=True,
     extras_require=dict(
-        test=test_requires,
+        test=['nose', 'nose-fixes', 'nose-cov', 'mock', 'manuel', 'zope.component', 'coveralls'],
         build=['sphinx', 'pkginfo', 'setuptools-git', 'wheel', 'twine']
     )
 )
