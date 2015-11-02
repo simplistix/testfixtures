@@ -99,10 +99,6 @@ class LogCapture(logging.Handler):
                 logger.handlers = self.old['handlers'][name]
                 logger.disabled = self.old['disabled'][name]
                 logger.propagate = self.old['progagate'][name]
-                if self in logging._handlers:
-                    del logging._handlers[self]
-                if self in logging._handlerList:
-                    logging._handlerList.remove(self)
             self.instances.remove(self)
 
     @classmethod
