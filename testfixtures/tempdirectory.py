@@ -176,7 +176,7 @@ class TempDirectory:
                           in the actual contents used for comparison.
         """
         compare(expected,
-                tuple(self.actual(path, recursive, files_only)),
+                actual=tuple(self.actual(path, recursive, files_only)),
                 recursive=False)
 
     def check(self, *expected):

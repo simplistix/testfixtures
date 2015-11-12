@@ -128,7 +128,7 @@ class LogCapture(logging.Handler):
         """
         return compare(
             expected,
-            tuple(self.actual()),
+            actual=tuple(self.actual()),
             recursive=False
             )
 

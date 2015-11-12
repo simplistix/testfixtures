@@ -74,5 +74,5 @@ class OutputCapture(object):
                 ('stdout', stdout, self.stdout.getvalue()),
                 ('stderr', stderr, self.stderr.getvalue()),
         ):
-            compare(_expected.strip(), captured.strip(), prefix=prefix)
+            compare(_expected.strip(), actual=captured.strip(), prefix=prefix)
 
