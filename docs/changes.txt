@@ -3,6 +3,14 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.5.0 (13 November 2015)
+------------------------
+
+- :class:`LogCapture`, :class:`OutputCapture` and :class:`TempDirectory` now
+  explicitly show what is expected versus actual when reporting differences.
+
+Thanks to Daniel Fortunov for the pull request.
+
 4.4.0 (1 November 2015)
 -----------------------
 
