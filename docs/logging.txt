@@ -50,10 +50,10 @@ AssertionError: sequence not as expected:
 same:
 (('root', 'INFO', 'a message'),)
 <BLANKLINE>
-first:
+expected:
 (('root', 'ERROR', 'another error'),)
 <BLANKLINE>
-second:
+actual:
 (('root', 'ERROR', 'an error'),)
 
 It also has a string representation that allows you to see what has
@@ -189,10 +189,10 @@ AssertionError: sequence not as expected:
 same:
 (('root', 'INFO', 'start of block number 1'),)
 <BLANKLINE>
-first:
+expected:
 ()
 <BLANKLINE>
-second:
+actual:
 (('root', 'ERROR', 'error occurred'),)
 
 Printing

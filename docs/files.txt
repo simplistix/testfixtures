@@ -342,10 +342,10 @@ AssertionError: sequence not as expected:
 same:
 ()
 <BLANKLINE>
-first:
+expected:
 ('subdir',)
 <BLANKLINE>
-second:
+actual:
 ('root.txt', 'subdir')
 
 In some circumstances, you may want to ignore certain files or
