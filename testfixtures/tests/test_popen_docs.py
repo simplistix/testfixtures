@@ -3,6 +3,7 @@
 
 from subprocess import Popen, PIPE
 
+
 def my_func():
     process = Popen('svn ls -R foo', stdout=PIPE, stderr=PIPE, shell=True)
     out, err = process.communicate()
@@ -17,6 +18,7 @@ from unittest import TestCase
 from mock import call
 from testfixtures import Replacer, ShouldRaise, compare
 from testfixtures.popen import MockPopen
+
 
 class TestMyFunc(TestCase):
 
@@ -33,12 +35,12 @@ class TestMyFunc(TestCase):
         # testing of results
         compare(my_func(), b'o')
 
-        # testing calls were in the right order and with the correct parameters:
+        # testing calls were in the right order and with the correct parameters
         compare([
-             call.Popen('svn ls -R foo',
-                        shell=True, stderr=PIPE, stdout=PIPE),
-             call.Popen_instance.communicate()
-             ], Popen.mock.method_calls)
+            call.Popen('svn ls -R foo',
+                       shell=True, stderr=PIPE, stdout=PIPE),
+            call.Popen_instance.communicate()
+            ], Popen.mock.method_calls)
 
     def test_example_bad_returncode(self):
         # set up

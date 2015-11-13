@@ -9,6 +9,7 @@ from testfixtures.compat import PY2
 
 import signal
 
+
 class Tests(TestCase):
 
     def test_command_min_args(self):
@@ -20,7 +21,7 @@ class Tests(TestCase):
         # process started, no return code
         compare(process.pid, 1234)
         compare(None, process.returncode)
-        
+
         out, err = process.communicate()
 
         # test the rest
@@ -37,11 +38,11 @@ class Tests(TestCase):
 
         Popen = MockPopen()
         Popen.set_command('a command', b'out', b'err', 1, 345)
-        
+
         process = Popen('a command', stdout=PIPE, stderr=PIPE)
         compare(process.pid, 345)
         compare(None, process.returncode)
-        
+
         out, err = process.communicate()
 
         # test the rest
@@ -57,9 +58,9 @@ class Tests(TestCase):
     def test_command_is_sequence(self):
         Popen = MockPopen()
         Popen.set_command('a command')
-        
+
         process = Popen(['a', 'command'], stdout=PIPE, stderr=PIPE)
-        
+
         compare(process.wait(), 0)
         compare([
                 call.Popen(['a', 'command'], stderr=-1, stdout=-1),
@@ -78,7 +79,7 @@ class Tests(TestCase):
                 call.Popen('a command', shell=True, stderr=-1, stdout=-1),
                 call.Popen_instance.communicate('foo'),
                 ], Popen.mock.method_calls)
-    
+
     def test_read_from_stdout(self):
         # setup
         Popen = MockPopen()
@@ -91,7 +92,7 @@ class Tests(TestCase):
         compare([
                 call.Popen('a command', shell=True, stderr=-1, stdout=-1),
                 ], Popen.mock.method_calls)
-    
+
     def test_read_from_stderr(self):
         # setup
         Popen = MockPopen()
@@ -133,7 +134,7 @@ class Tests(TestCase):
                 call.Popen('a command'),
                 call.Popen_instance.wait(),
                 ], Popen.mock.method_calls)
-    
+
     def test_multiple_uses(self):
         Popen = MockPopen()
         Popen.set_command('a command', b'a')
@@ -150,7 +151,7 @@ class Tests(TestCase):
                 call.Popen(['b', 'command'], shell=True, stderr=-1, stdout=-1),
                 call.Popen_instance.communicate('foo'),
                 ], Popen.mock.method_calls)
-    
+
     def test_send_signal(self):
         # setup
         Popen = MockPopen()
@@ -189,7 +190,7 @@ class Tests(TestCase):
                 call.Popen('a command', shell=True, stderr=-1, stdout=-1),
                 call.Popen_instance.kill(),
                 ], Popen.mock.method_calls)
-    
+
     def test_all_signals(self):
         # setup
         Popen = MockPopen()
@@ -225,7 +226,7 @@ class Tests(TestCase):
                 call.Popen_instance.wait(),
                 call.Popen_instance.poll(),
                 ], Popen.mock.method_calls)
-    
+
     def test_poll_setup(self):
         # setup
         Popen = MockPopen()
@@ -244,7 +245,7 @@ class Tests(TestCase):
                 call.Popen_instance.wait(),
                 call.Popen_instance.poll(),
                 ], Popen.mock.method_calls)
-    
+
     def test_poll_until_result(self):
         # setup
         Popen = MockPopen()
@@ -266,54 +267,62 @@ class Tests(TestCase):
 
     def test_command_not_specified(self):
         Popen = MockPopen()
-        with ShouldRaise(KeyError("Nothing specified for command 'a command'")):
+        with ShouldRaise(
+                KeyError("Nothing specified for command 'a command'")):
             Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
 
     def test_invalid_parameters(self):
         Popen = MockPopen()
-        with ShouldRaise(TypeError("Popen() got an unexpected keyword argument 'foo'")):
+        with ShouldRaise(
+                TypeError("Popen() got an unexpected keyword argument 'foo'")):
             Popen(foo='bar')
 
     def test_invalid_method_or_attr(self):
         Popen = MockPopen()
         Popen.set_command('command')
         process = Popen('command')
-        with ShouldRaise(AttributeError("Mock object has no attribute 'foo'")):
+        with ShouldRaise(
+                AttributeError("Mock object has no attribute 'foo'")):
             process.foo()
 
     def test_invalid_attribute(self):
         Popen = MockPopen()
         Popen.set_command('command')
         process = Popen('command')
-        with ShouldRaise(AttributeError("Mock object has no attribute 'foo'")):
+        with ShouldRaise(
+                AttributeError("Mock object has no attribute 'foo'")):
             process.foo
-            
+
     def test_invalid_communicate_call(self):
         Popen = MockPopen()
         Popen.set_command('bar')
         process = Popen('bar')
-        with ShouldRaise(TypeError("communicate() got an unexpected keyword argument 'foo'")):
+        with ShouldRaise(TypeError("communicate() got an unexpected "
+                                   "keyword argument 'foo'")):
             process.communicate(foo='bar')
-            
+
     def test_invalid_wait_call(self):
         Popen = MockPopen()
         Popen.set_command('bar')
         process = Popen('bar')
-        with ShouldRaise(TypeError("wait() got an unexpected keyword argument 'foo'")):
+        with ShouldRaise(
+                TypeError("wait() got an unexpected keyword argument 'foo'")):
             process.wait(foo='bar')
 
     def test_invalid_send_signal(self):
         Popen = MockPopen()
         Popen.set_command('bar')
         process = Popen('bar')
-        with ShouldRaise(TypeError("send_signal() got an unexpected keyword argument 'foo'")):
+        with ShouldRaise(TypeError("send_signal() got an unexpected "
+                                   "keyword argument 'foo'")):
             process.send_signal(foo='bar')
 
     def test_invalid_terminate(self):
         Popen = MockPopen()
         Popen.set_command('bar')
         process = Popen('bar')
-        with ShouldRaise(TypeError("terminate() got an unexpected keyword argument 'foo'")):
+        with ShouldRaise(TypeError("terminate() got an unexpected "
+                                   "keyword argument 'foo'")):
             process.terminate(foo='bar')
 
     def test_invalid_kill(self):

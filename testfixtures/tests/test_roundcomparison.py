@@ -7,6 +7,7 @@ from unittest import TestCase
 
 from ..compat import PY2, PY3
 
+
 class Tests(TestCase):
 
     def test_equal_yes_rhs(self):
@@ -55,7 +56,7 @@ class Tests(TestCase):
 
     def test_not_numeric_lhs(self):
         with ShouldRaise(TypeError):
-            R(0.123456, 5)  ==  'abc'
+            R(0.123456, 5) == 'abc'
 
     def test_repr(self):
         compare('<R:0.12346 to 5 digits>',
@@ -64,7 +65,7 @@ class Tests(TestCase):
     def test_str(self):
         compare('<R:0.12346 to 5 digits>',
                 repr(R(0.123456, 5)))
-    
+
     def test_str_negative(self):
         if PY3:
             expected = '<R:123500 to -2 digits>'
@@ -75,7 +76,7 @@ class Tests(TestCase):
     TYPE_ERROR_DECIMAL = TypeError(
         "Cannot compare <R:0.12346 to 5 digits> with <class 'decimal.Decimal'>"
         )
-    
+
     def test_equal_yes_decimal_to_float_rhs(self):
         with ShouldRaise(self.TYPE_ERROR_DECIMAL, unless=PY2):
             self.assertTrue(Decimal("0.123457") == R(0.123456, 5))
@@ -95,7 +96,7 @@ class Tests(TestCase):
     TYPE_ERROR_FLOAT = TypeError(
         "Cannot compare <R:0.12346 to 5 digits> with <class 'float'>"
         )
-    
+
     def test_equal_yes_float_to_decimal_rhs(self):
         with ShouldRaise(self.TYPE_ERROR_FLOAT, unless=PY2):
             self.assertTrue(0.123457 == R(Decimal("0.123456"), 5))
@@ -152,4 +153,3 @@ class Tests(TestCase):
 
     def test_decimal_no_lhs(self):
         self.assertFalse(R(Decimal('0.123456'), 5) == Decimal('0.123453'))
-

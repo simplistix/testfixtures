@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
-import sys, os, pkginfo, datetime
+import datetime
+import os
+import pkginfo
+import sys
 
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-pkg_info = pkginfo.Develop(os.path.join(os.path.dirname(__file__),'..'))
+pkg_info = pkginfo.Develop(os.path.join(os.path.dirname(__file__), '..'))
 
 extensions = [
     'sphinx.ext.autodoc',
@@ -30,7 +33,6 @@ htmlhelp_basename = project+'doc'
 
 # Options for LaTeX output
 latex_documents = [
-  ('index',project+'.tex', project+u' Documentation',
-   'Simplistix Ltd', 'manual'),
+    ('index', project+'.tex', project+u' Documentation',
+     'Simplistix Ltd', 'manual'),
 ]
-

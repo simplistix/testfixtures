@@ -22,32 +22,33 @@ else:
     some_bytes = '\xc2\xa3'
     some_text = '\xc2\xa3'.decode('utf-8')
 
+
 class DemoTempDirectory:
 
-    def test_return_path(self): # pragma: no branch
+    def test_return_path(self):  # pragma: no branch
         """
         If you want the path created when you use `write`, you
         can do:
-        
+
         >>> temp_dir.write('filename', b'data')
         '...filename'
         """
 
-    def test_ignore(self): # pragma: no branch
+    def test_ignore(self):  # pragma: no branch
         """
         TempDirectories can also be set up to ignore certain files:
-        
-        >>> d = TempDirectory(ignore=('.svn',))
+
+        >>> d = TempDirectory(ignore=('.svn', ))
         >>> p = d.write('.svn', b'stuff')
         >>> temp_dir.listdir()
         No files or directories found.
         """
-        
-    def test_ignore_regex(self): # pragma: no branch
+
+    def test_ignore_regex(self):  # pragma: no branch
         """
         TempDirectories can also be set up to ignore certain files:
-        
-        >>> d = TempDirectory(ignore=('^\.svn$','.pyc$'))
+
+        >>> d = TempDirectory(ignore=('^\.svn$', '.pyc$'))
         >>> p = d.write('.svn', b'stuff')
         >>> p = d.write('foo.svn', b'')
         >>> p = d.write('foo.pyc', b'')
@@ -55,10 +56,11 @@ class DemoTempDirectory:
         >>> d.listdir()
         foo.svn
         """
-        
+
+
 class TestTempDirectory:
 
-    def test_cleanup(self): # pragma: no branch
+    def test_cleanup(self):  # pragma: no branch
         """
         >>> d = TempDirectory()
         >>> p = d.path
@@ -70,7 +72,7 @@ class TestTempDirectory:
         False
         """
 
-    def test_cleanup_all(self): # pragma: no branch
+    def test_cleanup_all(self):  # pragma: no branch
         """
         If you create several TempDirecories during a doctest,
         or if exceptions occur while running them,
@@ -101,14 +103,14 @@ class TestTempDirectory:
         False
         """
 
-    def test_with_statement(self): # pragma: no branch
+    def test_with_statement(self):  # pragma: no branch
         """
         >>> with TempDirectory() as d:
         ...    p = d.path
         ...    print(os.path.exists(p))
         ...    path = d.write('something', b'stuff')
         ...    os.listdir(p)
-        ...    with open(os.path.join(p,'something')) as f:
+        ...    with open(os.path.join(p, 'something')) as f:
         ...        print(repr(f.read()))
         True
         ['something']
@@ -117,8 +119,8 @@ class TestTempDirectory:
         False
         """
 
-    def test_listdir_sort(self): # pragma: no branch
-       """
+    def test_listdir_sort(self):  # pragma: no branch
+        """
         >>> with TempDirectory() as d:
         ...    p = d.write('ga', b'')
         ...    p = d.write('foo1', b'')
@@ -130,6 +132,8 @@ class TestTempDirectory:
         g.o
         ga
         """
+
+
 class TempDirectoryTests(TestCase):
 
     def test_write_with_slash_at_start(self):
@@ -137,7 +141,7 @@ class TempDirectoryTests(TestCase):
             with ShouldRaise(ValueError(
                     'Attempt to read or write outside the temporary Directory'
                     )):
-                d.write('/some/folder','stuff')
+                d.write('/some/folder', 'stuff')
 
     def test_makedir_with_slash_at_start(self):
         with TempDirectory() as d:
@@ -174,27 +178,26 @@ class TempDirectoryTests(TestCase):
 
     def test_dont_cleanup_with_path(self):
         d = mkdtemp()
-        fp = os.path.join(d,'test')
-        with open(fp,'w') as f:
+        fp = os.path.join(d, 'test')
+        with open(fp, 'w') as f:
             f.write('foo')
         try:
             td = TempDirectory(path=d)
-            self.assertEqual(d,td.path)
+            self.assertEqual(d, td.path)
             td.cleanup()
             # checks
-            self.assertEqual(os.listdir(d),['test'])
+            self.assertEqual(os.listdir(d), ['test'])
             with open(fp) as f:
-                self.assertEqual(f.read(),'foo')
+                self.assertEqual(f.read(), 'foo')
         finally:
             rmtree(d)
-        
+
     def test_dont_create_with_path(self):
         d = mkdtemp()
         rmtree(d)
         td = TempDirectory(path=d)
-        self.assertEqual(d,td.path)
+        self.assertEqual(d, td.path)
         self.failIf(os.path.exists(d))
-
 
     def test_deprecated_check(self):
         with TempDirectory() as d:
@@ -218,14 +221,14 @@ class TempDirectoryTests(TestCase):
             d.write('foo1', b'')
             d.write('Foo2', b'')
             d.write('g.o', b'')
-            d.compare(['Foo2','foo1','g.o','ga'])
-        
+            d.compare(['Foo2', 'foo1', 'g.o', 'ga'])
+
     def test_compare_path_tuple(self):
         with TempDirectory() as d:
             d.write('a/b/c', b'')
-            d.compare(path=('a','b'),
+            d.compare(path=('a', 'b'),
                       expected=['c'])
-        
+
     def test_recursive_ignore(self):
         with TempDirectory(ignore=['.svn']) as d:
             d.write('.svn/rubbish', b'')
@@ -253,12 +256,12 @@ class TempDirectoryTests(TestCase):
 
             actual1 = d.getpath('foo')
             actual2 = d.getpath('baz/bob')
-            actual3 = d.getpath(('a','b','c'))
+            actual3 = d.getpath(('a', 'b', 'c'))
 
-        self.assertEqual(expected1,actual1)
-        self.assertEqual(expected2,actual2)
-        self.assertEqual(expected3,actual3)
-        
+        self.assertEqual(expected1, actual1)
+        self.assertEqual(expected2, actual2)
+        self.assertEqual(expected3, actual3)
+
     def test_atexit(self):
         # http://bugs.python.org/issue25532
         from mock import call
@@ -279,15 +282,15 @@ class TempDirectoryTests(TestCase):
             with catch_warnings(record=True) as w:
                 d.atexit()
                 self.assertTrue(len(w), 1)
-                compare(str(w[0].message), ( # pragma: no branch
+                compare(str(w[0].message), (  # pragma: no branch
                     "TempDirectory instances not cleaned up by shutdown:\n" +
                     d.path
                     ))
-                
+
             d.cleanup()
 
             compare(set(), TempDirectory.instances)
-            
+
             # check re-running has no ill effects
             d.atexit()
 
@@ -296,7 +299,7 @@ class TempDirectoryTests(TestCase):
             with open(os.path.join(d.path, 'test.file'), 'wb') as f:
                 f.write(b'\xc2\xa3')
             compare(d.read('test.file', 'utf8'), some_text)
-            
+
     def test_read_no_decode(self):
         with TempDirectory() as d:
             with open(os.path.join(d.path, 'test.file'), 'wb') as f:
@@ -336,15 +339,18 @@ class TempDirectoryTests(TestCase):
 # gets rid of the need for the imports in
 # doc tests
 
+
 def setUp(test):
-    test.globs['temp_dir']=TempDirectory()
+    test.globs['temp_dir'] = TempDirectory()
+
 
 def tearDown(test):
     TempDirectory.cleanup_all()
-    
+
+
 def test_suite():
     return TestSuite((
-        DocTestSuite(setUp=setUp,tearDown=tearDown,
+        DocTestSuite(setUp=setUp, tearDown=tearDown,
                      optionflags=ELLIPSIS),
-        makeSuite(TempDirectoryTests),        
+        makeSuite(TempDirectoryTests),
         ))
