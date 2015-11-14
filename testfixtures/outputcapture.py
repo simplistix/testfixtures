@@ -7,6 +7,7 @@ import sys
 from testfixtures.comparison import compare
 from testfixtures.compat import StringIO
 
+
 class OutputCapture(object):
     """
     A context manager for capturing output to the
@@ -35,12 +36,12 @@ class OutputCapture(object):
 
     def __exit__(self, *args):
         self.disable()
-        
+
     def disable(self):
         "Disable the output capture if it is enabled."
         sys.stdout = self.original_stdout
         sys.stderr = self.original_stderr
-        
+
     def enable(self):
         "Enable the output capture if it is disabled."
         if self.original_stdout is None:
@@ -51,12 +52,12 @@ class OutputCapture(object):
             sys.stderr = self.stderr
         else:
             sys.stdout = sys.stderr = self.output
-        
+
     @property
     def captured(self):
         "A property containing any output that has been captured so far."
         return self.output.getvalue()
-    
+
     def compare(self, expected='', stdout='', stderr=''):
         """
         Compare the captured output to that expected. If the output is
@@ -75,4 +76,3 @@ class OutputCapture(object):
                 ('stderr', stderr, self.stderr.getvalue()),
         ):
             compare(_expected.strip(), actual=captured.strip(), prefix=prefix)
-

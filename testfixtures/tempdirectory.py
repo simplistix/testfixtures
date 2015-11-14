@@ -13,6 +13,7 @@ from testfixtures.utils import wrap
 
 from .rmtree import rmtree
 
+
 class TempDirectory:
     """
     A class representing a temporary directory on disk.
@@ -30,14 +31,14 @@ class TempDirectory:
                  passed, :class:`TempDirectory` will not create a new
                  directory to use.
     """
-    
+
     instances = set()
     atexit_setup = False
-    
+
     #: The physical path of the :class:`TempDirectory` on disk
     path = None
-    
-    def __init__(self,ignore=(),create=True,path=None):
+
+    def __init__(self, ignore=(), create=True, path=None):
         self.ignore = []
         for regex in ignore:
             self.ignore.append(compile(regex))
@@ -53,7 +54,7 @@ class TempDirectory:
                 'TempDirectory instances not cleaned up by shutdown:\n'
                 '%s' % ('\n'.join(i.path for i in cls.instances))
                 )
-        
+
     def create(self):
         """
         Create a temporary directory for this instance to use if one
@@ -117,8 +118,8 @@ class TempDirectory:
                 continue
             filtered.append(path)
         return filtered
-    
-    def listdir(self,path=None,recursive=False):
+
+    def listdir(self, path=None, recursive=False):
         """
         Print the contents of the specified directory.
 
@@ -141,7 +142,7 @@ class TempDirectory:
         :param recursive: If `True`, the directory specified will have
                           its subdirectories recursively listed too.
         """
-        actual = self.actual(path,recursive)
+        actual = self.actual(path, recursive)
         if not actual:
             print('No files or directories found.')
         for n in actual:
@@ -193,7 +194,7 @@ class TempDirectory:
         """
         compare(expected, tuple(self.actual()), recursive=False)
 
-    def check_dir(self,dir,*expected):
+    def check_dir(self, dir, *expected):
         """
         .. deprecated:: 4.3.0
 
@@ -202,7 +203,7 @@ class TempDirectory:
 
         This method will only check the contents of the subdirectory
         specified and will not recursively check subdirectories.
-        
+
         :param dir: The subdirectory to check, which can be:
 
                      * A tuple of strings, indicating that the
@@ -221,7 +222,7 @@ class TempDirectory:
         """
         compare(expected, tuple(self.actual(dir)), recursive=False)
 
-    def check_all(self,dir,*expected):
+    def check_all(self, dir, *expected):
         """
         .. deprecated:: 4.3.0
 
@@ -272,8 +273,8 @@ class TempDirectory:
         not exist will also be created.
 
         :param dirpath: The directory to create, which can be:
-        
-                        * A tuple of strings. 
+
+                        * A tuple of strings.
 
                         * A forward-slash separated string.
 
@@ -282,7 +283,7 @@ class TempDirectory:
         thepath = self._join(dirpath)
         os.makedirs(thepath)
         return thepath
-    
+
     def write(self, filepath, data, encoding=None):
         """
         Write the supplied data to a file at the specified path within
@@ -292,23 +293,23 @@ class TempDirectory:
         The file will always be written in binary mode. The data supplied must
         either be bytes or an encoding must be supplied to convert the string
         into bytes.
-        
+
         :param filepath: The path to the file to create, which can be:
-        
-                         * A tuple of strings. 
+
+                         * A tuple of strings.
 
                          * A forward-slash separated string.
 
         :param data: A string containing the data to be written.
-        
+
         :param encoding: The encoding to be used if data is not bytes. Should
                          not be passed if data is already bytes.
-        
+
         :returns: The full path of the file written.
         """
         if isinstance(filepath, basestring):
             filepath = filepath.split('/')
-        if len(filepath)>1:
+        if len(filepath) > 1:
             dirpath = self._join(filepath[:-1])
             if not os.path.exists(dirpath):
                 os.makedirs(dirpath)
@@ -325,15 +326,15 @@ class TempDirectory:
         relative to the temporary directory that is passed in.
 
         :param path: The path to the file to create, which can be:
-        
-                     * A tuple of strings. 
+
+                     * A tuple of strings.
 
                      * A forward-slash separated string.
 
         :returns: A string containing the full path.
         """
         return self._join(path)
-    
+
     def read(self, filepath, encoding=None):
         """
         Reads the file at the specified path within the temporary
@@ -344,13 +345,13 @@ class TempDirectory:
         data will be returned.
 
         :param filepath: The path to the file to read, which can be:
-        
-                         * A tuple of strings. 
+
+                         * A tuple of strings.
 
                          * A forward-slash separated string.
 
         :param encoding: The encoding used to decode the data in the file.
-        
+
         :returns: A string containing the data read.
         """
         with open(self._join(filepath), 'rb') as f:
@@ -361,11 +362,12 @@ class TempDirectory:
 
     def __enter__(self):
         return self
-    
-    def __exit__(self,type,value,traceback):
+
+    def __exit__(self, type, value, traceback):
         self.cleanup()
 
-def tempdir(*args,**kw):
+
+def tempdir(*args, **kw):
     """
     A decorator for making a :class:`TempDirectory` available for the
     duration of a test function.
@@ -373,7 +375,6 @@ def tempdir(*args,**kw):
     All arguments and parameters are passed through to the
     :class:`TempDirectory` constructor.
     """
-    kw['create']=False
-    l = TempDirectory(*args,**kw)
-    return wrap(l.create,l.cleanup)
-
+    kw['create'] = False
+    l = TempDirectory(*args, **kw)
+    return wrap(l.create, l.cleanup)

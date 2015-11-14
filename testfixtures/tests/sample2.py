@@ -13,6 +13,7 @@ try:
 except ImportError:
     guppy = False
 
+
 def dump(path):
     if guppy:
         hpy().heap().stat.dump(path)

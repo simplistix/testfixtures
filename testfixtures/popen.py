@@ -19,14 +19,14 @@ class MockPopen(object):
         self.mock = mock = Mock()
         self.mock.Popen.side_effect = self.Popen
         mock.Popen_instance = Mock(spec=Popen)
-        inst = mock.Popen.return_value =  mock.Popen_instance 
+        inst = mock.Popen.return_value = mock.Popen_instance
         inst.communicate.side_effect = self.communicate
         inst.wait.side_effect = self.wait
         inst.send_signal.side_effect = self.send_signal
         inst.terminate.side_effect = self.terminate
         inst.kill.side_effect = self.kill
         inst.poll.side_effect = self.poll
-        
+
     def set_command(self, command, stdout=b'', stderr=b'', returncode=0,
                     pid=1234, poll_count=3):
         """
@@ -57,10 +57,10 @@ class MockPopen(object):
         return self.mock.Popen(*args, **kw)
 
     def Popen(self, args, bufsize=0, executable=None,
-               stdin=None, stdout=None, stderr=None,
-               preexec_fn=None, close_fds=False, shell=False, cwd=None,
-               env=None, universal_newlines=False,
-               startupinfo=None, creationflags=0):
+              stdin=None, stdout=None, stderr=None,
+              preexec_fn=None, close_fds=False, shell=False, cwd=None,
+              env=None, universal_newlines=False,
+              startupinfo=None, creationflags=0):
 
         if isinstance(args, basestring):
             cmd = args
@@ -69,8 +69,9 @@ class MockPopen(object):
 
         if cmd not in self.commands:
             raise KeyError('Nothing specified for command %r' % cmd)
-        
-        self.stdout, self.stderr, self.returncode, pid, poll = self.commands[cmd]
+
+        self.stdout, self.stderr, self.returncode, pid, poll = \
+            self.commands[cmd]
         self.poll_count = poll
         for name in 'stdout', 'stderr':
             f = TemporaryFile()
@@ -78,10 +79,10 @@ class MockPopen(object):
             f.flush()
             f.seek(0)
             setattr(self.mock.Popen_instance, name, f)
-            
+
         self.mock.Popen_instance.pid = pid
         self.mock.Popen_instance.returncode = None
-        
+
         return self.mock.Popen_instance
 
     def wait(self):
@@ -117,4 +118,3 @@ class MockPopen(object):
     def kill(self):
         "Simulate calls to :meth:`subprocess.Popen.kill`"
         pass
-

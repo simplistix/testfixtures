@@ -8,6 +8,7 @@ from unittest import TestCase, TestSuite, makeSuite
 
 import sys
 
+
 class TestOutputCapture(TestCase):
 
     def test_compare_strips(self):

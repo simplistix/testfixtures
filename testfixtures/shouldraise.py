@@ -7,14 +7,14 @@ from testfixtures import Comparison
 param_docs = """
 
     :param exception: This can be one of the following:
-    
+
                       * `None`, indicating that an exception must be
                         raised, but the type is unimportant.
-                        
+
                       * An exception class, indicating that the type
                         of the exception is important but not the
                         parameters it is created with.
-                        
+
                       * An exception instance, indicating that an
                         exception exactly matching the one supplied
                         should be raised.
@@ -25,6 +25,7 @@ param_docs = """
                    Python.
 """
 
+
 class ShouldRaise(object):
     __doc__ = """
     This context manager is used to assert that an exception is raised
@@ -34,20 +35,20 @@ class ShouldRaise(object):
     #: The exception captured by the context manager.
     #: Can be used to inspect specific attributes of the exception.
     raised = None
-    
+
     def __init__(self, exception=None, unless=False):
         self.exception = exception
         self.expected = not unless
 
     def __enter__(self):
         return self
-    
+
     def __exit__(self, type, actual, traceback):
         # bug in python :-(
         if type is not None and not isinstance(actual, type):
             # fixed in 2.7 onwards!
-            actual = type(actual) # pragma: no cover
-        
+            actual = type(actual)  # pragma: no cover
+
         self.raised = actual
 
         if self.expected:
@@ -73,6 +74,7 @@ class ShouldRaise(object):
 
         return True
 
+
 class should_raise:
     __doc__ = """
     A decorator to assert that the decorated function will raised
@@ -80,7 +82,7 @@ class should_raise:
     passed to check more specifically exactly what exception will be
     raised.
     """ + param_docs
-        
+
     def __init__(self, exception=None, unless=None):
         self.exception = exception
         self.unless = unless
@@ -90,6 +92,6 @@ class should_raise:
         @wraps(target)
         def _should_raise_wrapper(*args, **kw):
             with ShouldRaise(self.exception, self.unless):
-                target(*args,**kw)
-                
+                target(*args, **kw)
+
         return _should_raise_wrapper

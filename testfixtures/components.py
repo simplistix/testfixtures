@@ -7,6 +7,7 @@ import warnings
 from zope.component import getSiteManager
 from zope.component.registry import Components
 
+
 class TestComponents:
     """
     A helper for providing a sterile registry when testing
@@ -18,10 +19,10 @@ class TestComponents:
 
     instances = set()
     atexit_setup = False
-    
+
     def __init__(self):
         self.registry = Components('Testing')
-        self.old = getSiteManager.sethook(lambda:self.registry)
+        self.old = getSiteManager.sethook(lambda: self.registry)
         self.instances.add(self)
         if not self.__class__.atexit_setup:
             atexit.register(self.atexit)
@@ -35,7 +36,7 @@ class TestComponents:
         """
         getSiteManager.sethook(self.old)
         self.instances.remove(self)
-        
+
     @classmethod
     def atexit(cls):
         if cls.instances:

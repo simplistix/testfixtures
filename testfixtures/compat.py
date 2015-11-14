@@ -19,18 +19,18 @@ if sys.version_info[:2] > (3, 0):
     self_name = '__self__'
     from io import StringIO
     xrange = range
-    
+
 else:
-    
+
     PY2 = True
     PY3 = False
-    
+
     Bytes = str
     Unicode = unicode
     basestring = basestring
     BytesLiteral = lambda x: x
     UnicodeLiteral = lambda x: x.decode('latin1')
-    
+
     class_type_name = 'type'
     from types import ClassType
     exception_module = 'exceptions'
@@ -41,12 +41,14 @@ else:
 
 try:
     from mock import call as mock_call
-except ImportError: # pragma: no cover
-    class MockCall: pass
+except ImportError:  # pragma: no cover
+    class MockCall:
+        pass
     mock_call = MockCall()
 
 try:
     from unittest.mock import call as unittest_mock_call
-except ImportError: 
-    class UnittestMockCall: pass
+except ImportError:
+    class UnittestMockCall:
+        pass
     unittest_mock_call = UnittestMockCall()

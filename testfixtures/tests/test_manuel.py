@@ -7,22 +7,24 @@ import re
 from manuel import Document, Region, RegionContainer, Manuel
 from mock import Mock
 from testfixtures import compare, Comparison as C, TempDirectory
-from testfixtures.manuel import Files,FileBlock,FileResult
+from testfixtures.manuel import Files, FileBlock, FileResult
 from unittest import TestCase
 
+
 class TestContainer(RegionContainer):
-    def __init__(self,attr,*blocks):
+    def __init__(self, attr, *blocks):
         self.regions = []
         for block in blocks:
-            region = Region(0,' ')
-            setattr(region,attr,block)
+            region = Region(0, ' ')
+            setattr(region, attr, block)
             self.regions.append(region)
+
 
 class TestManuel(TestCase):
 
     def tearDown(self):
         TempDirectory.cleanup_all()
-        
+
     def test_multiple_files(self):
         d = Document("""
 
@@ -55,8 +57,7 @@ class TestManuel(TestCase):
                   path='file2.txt',
                   content='line 4\n\nline 5\nline 6\n',
                   action='read'),
-                ],[r.parsed for r in d])
-        
+                ], [r.parsed for r in d])
 
     def test_ignore_literal_blocking(self):
         d = Document("""
@@ -77,7 +78,7 @@ class TestManuel(TestCase):
                   path='file.txt',
                   content="line 1\n\nline 2\nline 3\n",
                   action='write'),
-                ],[r.parsed for r in d])
+                ], [r.parsed for r in d])
 
     def test_file_followed_by_text(self):
         d = Document("""
@@ -103,8 +104,8 @@ This is just some normal text!
                           '\nout = \'there\'\n\nfoo = \'bar\'\n',
                   action='write'),
                 None,
-                ],[r.parsed for r in d])
-    
+                ], [r.parsed for r in d])
+
     def test_red_herring(self):
         d = Document("""
 .. topic:: file.txt
@@ -115,7 +116,7 @@ This is just some normal text!
 
 """)
         d.parse_with(Files('td'))
-        compare([r.parsed for r in d],[None])
+        compare([r.parsed for r in d], [None])
 
     def test_no_class(self):
         d = Document("""
@@ -126,17 +127,21 @@ This is just some normal text!
 
 """)
         d.parse_with(Files('td'))
-        compare([r.parsed for r in d],[None])
-    
+        compare([r.parsed for r in d], [None])
+
     def test_unclaimed_works(self):
         # a test manuel
-        CLASS = re.compile(r'^\s+:class:',re.MULTILINE)
+        CLASS = re.compile(r'^\s+:class:', re.MULTILINE)
+
         class Block(object):
-            def __init__(self,source): self.source = source
+            def __init__(self, source):
+                self.source = source
+
         def find_class_blocks(document):
             for region in document.find_regions(CLASS):
                 region.parsed = Block(region.source)
                 document.claim_region(region)
+
         def Test():
             return Manuel(parsers=[find_class_blocks])
 
@@ -157,21 +162,21 @@ This is just some normal text!
                 C(Block,
                   source=' :class:\n'),
                 None,
-                ],[r.parsed for r in d])
+                ], [r.parsed for r in d])
 
     def test_evaluate_non_fileblock(self):
         m = Mock()
-        d = TestContainer('parsed',m)
-        d.evaluate_with(Files('td'),globs={})
-        compare([None],[r.evaluated for r in d])
-        compare(m.call_args_list,[])
-        compare(m.method_calls,[])
+        d = TestContainer('parsed', m)
+        d.evaluate_with(Files('td'), globs={})
+        compare([None], [r.evaluated for r in d])
+        compare(m.call_args_list, [])
+        compare(m.method_calls, [])
 
     def test_evaluate_read_same(self):
         dir = TempDirectory()
         dir.write('foo', b'content')
-        d = TestContainer('parsed',FileBlock('foo','content','read'))
-        d.evaluate_with(Files('td'),globs={'td':dir})
+        d = TestContainer('parsed', FileBlock('foo', 'content', 'read'))
+        d.evaluate_with(Files('td'), globs={'td': dir})
         compare([C(FileResult,
                    passed=True,
                    expected=None,
@@ -181,8 +186,8 @@ This is just some normal text!
     def test_evaluate_read_difference(self):
         dir = TempDirectory()
         dir.write('foo', b'actual')
-        d = TestContainer('parsed',FileBlock('foo','expected','read'))
-        d.evaluate_with(Files('td'),globs={'td':dir})
+        d = TestContainer('parsed', FileBlock('foo', 'expected', 'read'))
+        d.evaluate_with(Files('td'), globs={'td': dir})
         compare([C(FileResult,
                    passed=False,
                    path='foo',
@@ -192,8 +197,8 @@ This is just some normal text!
 
     def test_evaulate_write(self):
         dir = TempDirectory()
-        d = TestContainer('parsed',FileBlock('foo','content','write'))
-        d.evaluate_with(Files('td'),globs={'td':dir})
+        d = TestContainer('parsed', FileBlock('foo', 'content', 'write'))
+        d.evaluate_with(Files('td'), globs={'td': dir})
         compare([C(FileResult,
                    passed=True,
                    expected=None,
@@ -203,14 +208,14 @@ This is just some normal text!
         compare(dir.read('foo', 'ascii'), 'content')
 
     def test_formatter_non_fileblock(self):
-        d = TestContainer('evaluated',object)
+        d = TestContainer('evaluated', object)
         d.format_with(Files('td'))
-        compare(d.formatted(),'')
+        compare(d.formatted(), '')
 
     def test_formatter_passed(self):
-        d = TestContainer('evaluated',FileResult())
+        d = TestContainer('evaluated', FileResult())
         d.format_with(Files('td'))
-        compare(d.formatted(),'')
+        compare(d.formatted(), '')
 
     def test_formatter_failed(self):
         r = FileResult()
@@ -218,7 +223,7 @@ This is just some normal text!
         r.path = '/foo/bar'
         r.expected = 'same\nexpected\n'
         r.actual = 'same\nactual\n'
-        d = TestContainer('evaluated',r)
+        d = TestContainer('evaluated', r)
         d.format_with(Files('td'))
         compare('--- File "<memory>", line 0:\n'
                 '+++ Reading from "/foo/bar":\n'
@@ -228,5 +233,3 @@ This is just some normal text!
                 '+actual\n ',
                 d.formatted()
                 )
-
-    

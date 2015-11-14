@@ -13,11 +13,14 @@ from testfixtures.manuel import Files
 
 from . import compat
 
-def setUp(test):
-    test.globs['tempdir']=TempDirectory()
 
-def tearDown(test): 
+def setUp(test):
+    test.globs['tempdir'] = TempDirectory()
+
+
+def tearDown(test):
     test.globs['tempdir'].cleanup()
+
 
 def test_suite():
     m = doctest.Manuel()
@@ -28,5 +31,5 @@ def test_suite():
         m,
         setUp=setUp,
         tearDown=tearDown,
-        *glob(join(path_to_your_docs,'*.txt'))
+        *glob(join(path_to_your_docs, '*.txt'))
         )

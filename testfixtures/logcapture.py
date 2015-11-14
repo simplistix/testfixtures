@@ -9,6 +9,7 @@ import warnings
 from testfixtures.comparison import compare
 from testfixtures.utils import wrap
 
+
 class LogCapture(logging.Handler):
     """
     These are used to capture entries logged to the Python logging
@@ -17,24 +18,24 @@ class LogCapture(logging.Handler):
     :param names: A string (or tuple of strings) containing the dotted name(s)
                   of loggers to capture. By default, the root logger is
                   captured.
-                  
+
     :param install: If `True`, the :class:`LogCapture` will be
                     installed as part of its instantiation.
-                  
+
     :param propagate: If specified, any captured loggers will have their
                       `propagate` attribute set to the supplied value. This can
                       be used to prevent propagation from a child logger to a
                       parent logger that has configured handlers.
     """
-    
+
     instances = set()
     atexit_setup = False
     installed = False
-    
+
     def __init__(self, names=None, install=True, level=1, propagate=None):
         logging.Handler.__init__(self)
-        if not isinstance(names,tuple):
-            names = (names,)
+        if not isinstance(names, tuple):
+            names = (names, )
         self.names = names
         self.level = level
         self.propagate = propagate
@@ -51,11 +52,11 @@ class LogCapture(logging.Handler):
                 'loggers captured:\n'
                 '%s' % ('\n'.join((str(i.names) for i in cls.instances)))
                 )
-        
+
     def clear(self):
         "Clear any entries that have been captured."
         self.records = []
-        
+
     def emit(self, record):
         self.records.append(record)
 
@@ -106,17 +107,17 @@ class LogCapture(logging.Handler):
         "This will uninstall all existing :class:`LogHandler` objects."
         for i in tuple(cls.instances):
             i.uninstall()
-        
+
     def actual(self):
         for r in self.records:
-            yield (r.name,r.levelname,r.getMessage())
-    
+            yield (r.name, r.levelname, r.getMessage())
+
     def __str__(self):
         if not self.records:
             return 'No logging captured'
         return '\n'.join(["%s %s\n  %s" % r for r in self.actual()])
 
-    def check(self,*expected):
+    def check(self, *expected):
         """
         This will compare the captured entries with the expected
         entries provided and raise an :class:`AssertionError` if they
@@ -134,16 +135,18 @@ class LogCapture(logging.Handler):
 
     def __enter__(self):
         return self
-    
-    def __exit__(self,type,value,traceback):
+
+    def __exit__(self, type, value, traceback):
         self.uninstall()
+
 
 class LogCaptureForDecorator(LogCapture):
 
     def install(self):
         LogCapture.install(self)
         return self
-    
+
+
 def log_capture(*names, **kw):
     """
     A decorator for making a :class:`LogCapture` installed an
@@ -158,4 +161,3 @@ def log_capture(*names, **kw):
     """
     l = LogCaptureForDecorator(names or None, install=False, **kw)
     return wrap(l.install, l.uninstall)
-

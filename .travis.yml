@@ -10,10 +10,14 @@ python:
   - "2.7"
 
 # command to install dependencies
-install: "pip install -Ue .[test,build]"
+install: 
+  - "pip install -Ue .[test,build]"
+  - pip install pep8==1.5.7
 
 # command to run tests, e.g. python setup.py test
-script: nosetests --with-cov --cov=testfixtures
+script:
+  - nosetests --with-cov --cov=testfixtures
+  - pep8
 
 after_success:
   - coverage combine

@@ -16,9 +16,10 @@ one = getLogger('one')
 two = getLogger('two')
 child = getLogger('one.child')
 
+
 class DemoLogCapture:
 
-    def test_simple(self): # pragma: no branch
+    def test_simple(self):  # pragma: no branch
         """
         >>> root.info('some logging')
         >>> print(log_capture)
@@ -33,9 +34,10 @@ class DemoLogCapture:
           some more logging
         """
 
+
 class TestLogCapture:
 
-    def test_simple(self): # pragma: no branch
+    def test_simple(self):  # pragma: no branch
         """
         >>> root.info('before')
         >>> l = LogCapture()
@@ -47,7 +49,7 @@ class TestLogCapture:
           during
         """
 
-    def test_specific_logger(self): # pragma: no branch
+    def test_specific_logger(self):  # pragma: no branch
         """
         >>> l = LogCapture('one')
         >>> root.info('1')
@@ -62,7 +64,7 @@ class TestLogCapture:
           4
         """
 
-    def test_multiple_loggers(self): # pragma: no branch
+    def test_multiple_loggers(self):  # pragma: no branch
         """
         >>> l = LogCapture(('one.child','two'))
         >>> root.info('1')
@@ -77,7 +79,7 @@ class TestLogCapture:
           4
         """
 
-    def test_simple_manual_install(self): # pragma: no branch
+    def test_simple_manual_install(self):  # pragma: no branch
         """
         >>> l = LogCapture(install=False)
         >>> root.info('before')
@@ -90,26 +92,26 @@ class TestLogCapture:
           during
         """
 
-    def test_uninstall(self): # pragma: no branch
+    def test_uninstall(self):  # pragma: no branch
         """
         Lets start off with a couple of loggers:
-        
+
         >>> root = getLogger()
         >>> child = getLogger('child')
 
         Lets also record the handlers for these loggers before
         we start the test:
-        
+
         >>> before_root = root.handlers[:]
         >>> before_child = child.handlers[:]
 
         Lets also record the levels for the loggers:
-        
+
         >>> old_root_level=root.level
         >>> old_child_level=child.level
-        
+
         Now the test:
-        
+
         >>> try:
         ...    root.setLevel(49)
         ...    child.setLevel(69)
@@ -159,13 +161,13 @@ class TestLogCapture:
         True
         """
 
-    def test_uninstall_all(self): # pragma: no branch
+    def test_uninstall_all(self):  # pragma: no branch
         """
         For this test, it's better if we don't have any
         LogCaptures around when we start:
-        
+
         >>> log_capture.uninstall()
-        
+
         If you create several LogCaptures during a doctest,
         it can create clutter to uninstall them all.
         If this is the case, use the classmethod
@@ -174,14 +176,14 @@ class TestLogCapture:
 
         >>> before_handlers_root = root.handlers[:]
         >>> before_handlers_child = child.handlers[:]
-        
+
         >>> l1 = LogCapture()
         >>> l2 = LogCapture('one.child')
 
         We can see that the LogCaptures have changed the
         handlers, removing existing ones and installing
         their own:
-        
+
         >>> len(root.handlers)
         1
         >>> root.handlers==before_handlers_root
@@ -190,26 +192,26 @@ class TestLogCapture:
         1
         >>> child.handlers==before_handlers_child
         False
-        
+
         Now we show the function in action:
 
         >>> LogCapture.uninstall_all()
 
         ...and we can see the handlers are back as
         they were beefore:
-        
+
         >>> before_handlers_root == root.handlers
         True
         >>> before_handlers_child == child.handlers
         True
         """
 
-    def test_two_logcaptures_on_same_logger(self): # pragma: no branch
+    def test_two_logcaptures_on_same_logger(self):  # pragma: no branch
         """
         If you create more than one LogCaptures on a single
         logger, the 2nd one installed will stop the first
         one working!
-        
+
         >>> l1 = LogCapture()
         >>> root.info('1st message')
         >>> print(l1)
@@ -219,7 +221,7 @@ class TestLogCapture:
         >>> root.info('2nd message')
 
         So, l1 missed this message:
-        
+
         >>> print(l1)
         root INFO
           1st message
@@ -231,11 +233,11 @@ class TestLogCapture:
           2nd message
         """
 
-    def test_uninstall_more_than_once(self): # pragma: no branch
+    def test_uninstall_more_than_once(self):  # pragma: no branch
         """
         For this test, it's better if we don't have any
         LogCaptures around when we start:
-        
+
         >>> log_capture.uninstall()
 
         There's no problem with uninstalling a LogCapture
@@ -248,13 +250,13 @@ class TestLogCapture:
         ...    l = LogCapture()
         ...
         ...    print('root level during test:',root.level)
-        ...    
+        ...
         ...    l.uninstall()
         ...
         ...    print('root level after uninstall:',root.level)
         ...
         ...    root.setLevel(69)
-        ...    
+        ...
         ...    l.uninstall()
         ...
         ...    print('root level after another uninstall:',root.level)
@@ -270,8 +272,8 @@ class TestLogCapture:
 
         >>> log_capture.uninstall_all()
         """
-        
-    def test_with_statement(self): # pragma: no branch
+
+    def test_with_statement(self):  # pragma: no branch
         """
         >>> root.info('before')
         >>> with LogCapture() as l:
@@ -281,6 +283,7 @@ class TestLogCapture:
         root INFO
           during
         """
+
 
 class LogCaptureTests(TestCase):
 
@@ -296,8 +299,8 @@ class LogCaptureTests(TestCase):
                 logger.info('during')  # pragma: no branch
 
             l.check(('root', 'INFO', 'during'))
-                
-            compare(logger.handlers,start)
+
+            compare(logger.handlers, start)
 
         finally:
             # only executed if the test fails
@@ -323,16 +326,16 @@ class LogCaptureTests(TestCase):
             with catch_warnings(record=True) as w:
                 l.atexit()
                 self.assertTrue(len(w), 1)
-                compare(str(w[0].message), ( # pragma: no branch
+                compare(str(w[0].message), (  # pragma: no branch
                     "LogCapture instances not uninstalled by shutdown, "
                     "loggers captured:\n"
                     "(None,)"
                     ))
-                
+
             l.uninstall()
 
             compare(set(), LogCapture.instances)
-            
+
             # check re-running has no ill effects
             l.atexit()
 
@@ -344,12 +347,11 @@ class LogCaptureTests(TestCase):
 
     def test_enable_disabled_logger(self):
         logger = getLogger('disabled')
-        logger.disabled=True
+        logger.disabled = True
         with LogCapture('disabled') as log:
             logger.info('a log message')
         log.check(('disabled', 'INFO', 'a log message'))
         compare(logger.disabled, True)
-        
 
     def test_no_propogate(self):
         logger = getLogger('child')
@@ -361,19 +363,22 @@ class LogCaptureTests(TestCase):
                 child_log.check(('child', 'INFO', 'a log message'))
         global_log.check()
         compare(logger.propagate, True)
-        
+
 # using a set up and teardown function
 # gets rid of the need for the imports in
 # doc tests
 
+
 def setUp(test):
-    test.globs['log_capture']=LogCapture()
+    test.globs['log_capture'] = LogCapture()
+
 
 def tearDown(test):
     test.globs['log_capture'].uninstall_all()
-    
+
+
 def test_suite():
     return TestSuite((
-        DocTestSuite(setUp=setUp,tearDown=tearDown),
+        DocTestSuite(setUp=setUp, tearDown=tearDown),
         makeSuite(LogCaptureTests),
         ))
