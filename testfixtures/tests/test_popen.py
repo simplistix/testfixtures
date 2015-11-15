@@ -267,14 +267,16 @@ class Tests(TestCase):
 
     def test_command_not_specified(self):
         Popen = MockPopen()
-        with ShouldRaise(
-                KeyError("Nothing specified for command 'a command'")):
+        with ShouldRaise(KeyError(
+                "Nothing specified for command 'a command'"
+        )):
             Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
 
     def test_invalid_parameters(self):
         Popen = MockPopen()
-        with ShouldRaise(
-                TypeError("Popen() got an unexpected keyword argument 'foo'")):
+        with ShouldRaise(TypeError(
+                "Popen() got an unexpected keyword argument 'foo'"
+        )):
             Popen(foo='bar')
 
     def test_invalid_method_or_attr(self):
@@ -289,40 +291,43 @@ class Tests(TestCase):
         Popen = MockPopen()
         Popen.set_command('command')
         process = Popen('command')
-        with ShouldRaise(
-                AttributeError("Mock object has no attribute 'foo'")):
+        with ShouldRaise(AttributeError("Mock object has no attribute 'foo'")):
             process.foo
 
     def test_invalid_communicate_call(self):
         Popen = MockPopen()
         Popen.set_command('bar')
         process = Popen('bar')
-        with ShouldRaise(TypeError("communicate() got an unexpected "
-                                   "keyword argument 'foo'")):
+        with ShouldRaise(TypeError(
+                "communicate() got an unexpected keyword argument 'foo'"
+        )):
             process.communicate(foo='bar')
 
     def test_invalid_wait_call(self):
         Popen = MockPopen()
         Popen.set_command('bar')
         process = Popen('bar')
-        with ShouldRaise(
-                TypeError("wait() got an unexpected keyword argument 'foo'")):
+        with ShouldRaise(TypeError(
+                "wait() got an unexpected keyword argument 'foo'"
+        )):
             process.wait(foo='bar')
 
     def test_invalid_send_signal(self):
         Popen = MockPopen()
         Popen.set_command('bar')
         process = Popen('bar')
-        with ShouldRaise(TypeError("send_signal() got an unexpected "
-                                   "keyword argument 'foo'")):
+        with ShouldRaise(TypeError(
+                "send_signal() got an unexpected keyword argument 'foo'"
+        )):
             process.send_signal(foo='bar')
 
     def test_invalid_terminate(self):
         Popen = MockPopen()
         Popen.set_command('bar')
         process = Popen('bar')
-        with ShouldRaise(TypeError("terminate() got an unexpected "
-                                   "keyword argument 'foo'")):
+        with ShouldRaise(TypeError(
+                "terminate() got an unexpected keyword argument 'foo'"
+        )):
             process.terminate(foo='bar')
 
     def test_invalid_kill(self):

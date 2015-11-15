@@ -9,6 +9,10 @@ from testfixtures.utils import wrap
 import warnings
 
 
+def not_same_descriptor(x, y, descriptor):
+    return isinstance(x, descriptor) and not isinstance(y, descriptor)
+
+
 class Replacer:
     """
     These are used to manage the mocking out of objects so that units
@@ -55,13 +59,15 @@ class Replacer:
             raise AttributeError('Original %r not found' % attribute)
         if t_obj is not_there and replacement is not_there:
             return not_there
+
         replacement_to_use = replacement
+
         if isinstance(container, (type, ClassType)):
-            if (isinstance(t_obj, classmethod) and not
-                    isinstance(replacement, classmethod)):
+
+            if not_same_descriptor(t_obj, replacement, classmethod):
                 replacement_to_use = classmethod(replacement)
-            elif (isinstance(t_obj, staticmethod) and not
-                  isinstance(replacement, staticmethod)):
+
+            elif not_same_descriptor(t_obj, replacement, staticmethod):
                 replacement_to_use = staticmethod(replacement)
 
         self._replace(container, attribute, method, replacement_to_use, strict)

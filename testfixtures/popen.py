@@ -70,8 +70,7 @@ class MockPopen(object):
         if cmd not in self.commands:
             raise KeyError('Nothing specified for command %r' % cmd)
 
-        self.stdout, self.stderr, self.returncode, pid, poll = \
-            self.commands[cmd]
+        self.stdout, self.stderr, self.returncode, pid, poll = self.commands[cmd]
         self.poll_count = poll
         for name in 'stdout', 'stderr':
             f = TemporaryFile()

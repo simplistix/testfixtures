@@ -35,7 +35,7 @@ class TestMyFunc(TestCase):
         # testing of results
         compare(my_func(), b'o')
 
-        # testing calls were in the right order and with the correct parameters
+        # testing calls were in the right order and with the correct parameters:
         compare([
             call.Popen('svn ls -R foo',
                        shell=True, stderr=PIPE, stdout=PIPE),

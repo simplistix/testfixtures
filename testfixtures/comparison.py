@@ -361,10 +361,9 @@ class CompareContext(object):
                 return comparer
 
         # fallback for iterables
-        if ((isinstance(x, Iterable) and isinstance(y, Iterable))
-            and not
-            (isinstance(x, _unsafe_iterables)
-             or isinstance(y, _unsafe_iterables))):
+        if ((isinstance(x, Iterable) and isinstance(y, Iterable)) and not
+            (isinstance(x, _unsafe_iterables) or
+             isinstance(y, _unsafe_iterables))):
             return compare_generator
 
         return compare_simple
@@ -488,8 +487,9 @@ class Comparison(object):
         if isinstance(object_or_type, basestring):
             container, method, name, c = resolve(object_or_type)
             if c is not_there:
-                raise AttributeError('%r could not be resolved'
-                                     % object_or_type)
+                raise AttributeError(
+                    '%r could not be resolved' % object_or_type
+                )
         elif isinstance(object_or_type, (ClassType, type)):
             c = object_or_type
         elif isinstance(object_or_type, BaseException):

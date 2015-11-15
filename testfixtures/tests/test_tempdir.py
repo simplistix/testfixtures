@@ -37,9 +37,17 @@ class TestTempDir(TestCase):
         d.write('something', b'stuff')
 
         with ShouldRaise(AssertionError(
-            "sequence not as expected:\n\nsame:\n()\n\nexpected:\n"
-            "('.svn', 'something')\n\nactual:\n('something',)"
-                )):
+            "sequence not as expected:\n"
+            "\n"
+            "same:\n"
+            "()\n"
+            "\n"
+            "expected:\n"
+            "('.svn', 'something')\n"
+            "\n"
+            "actual:\n"
+            "('something',)"
+        )):
             d.compare(['.svn', 'something'])
 
     @tempdir(ignore=('.svn', ))

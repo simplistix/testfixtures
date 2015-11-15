@@ -35,9 +35,9 @@ class TestShouldRaise(TestCase):
         except AssertionError as e:
             self.assertEqual(
                 e,
-                C(AssertionError("ValueError('bar',) raised, "
-                                 "ValueError('foo',) expected"))
-                )
+                C(AssertionError(
+                    "ValueError('bar',) raised, ValueError('foo',) expected"
+                )))
         else:
             self.fail('No exception raised!')
 
@@ -147,9 +147,9 @@ class TestShouldRaise(TestCase):
         except AssertionError as e:
             self.assertEqual(
                 e,
-                C(AssertionError("ValueError('bar',) raised, "
-                                 "ValueError('foo',) expected"))
-                )
+                C(AssertionError(
+                    "ValueError('bar',) raised, ValueError('foo',) expected"
+                )))
         else:
             self.fail('No exception raised!')
 
