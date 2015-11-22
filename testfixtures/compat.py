@@ -36,7 +36,7 @@ else:
     exception_module = 'exceptions'
     from new import classobj as new_class
     self_name = 'im_self'
-    from cStringIO import StringIO
+    from StringIO import StringIO
     xrange = xrange
 
 try:

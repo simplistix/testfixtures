@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from __future__ import print_function
 # Copyright (c) 2010-2011 Simplistix Ltd
 # Copyright (c) 2015 Chris Withers
@@ -23,6 +25,12 @@ class TestOutputCapture(TestCase):
             print('there', file=sys.stdout)
             print('now', file=sys.stderr)
         o.compare("hello\nout\nthere\nnow\n")
+
+    def test_unicode(self):
+        with OutputCapture() as o:
+            print(u'こんにちわ', file=sys.stdout)
+            print(u'アウト', file=sys.stderr)
+        o.compare(u"こんにちわ\nアウト\n")
 
     def test_separate_capture(self):
         with OutputCapture(separate=True) as o:
