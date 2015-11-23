@@ -3,6 +3,14 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.5.1 (23 November 2015)
+------------------------
+
+- Switch from :class:`cStringIO` to :class:`StringIO` in :class:`OutputCapture`
+  to better handle unicode being written to `stdout` or `stderr`.
+
+Thanks to "tell-k" for the patch.
+
 4.5.0 (13 November 2015)
 ------------------------
 
