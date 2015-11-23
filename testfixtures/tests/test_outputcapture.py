@@ -24,6 +24,11 @@ class TestOutputCapture(TestCase):
             print('now', file=sys.stderr)
         o.compare("hello\nout\nthere\nnow\n")
 
+    def test_unicode(self):
+        with OutputCapture() as o:
+            print(u'\u65e5', file=sys.stdout)
+        o.compare(u'\u65e5\n')
+
     def test_separate_capture(self):
         with OutputCapture(separate=True) as o:
             print('hello', file=sys.stdout)
