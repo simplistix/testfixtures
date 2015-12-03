@@ -355,6 +355,13 @@ class TempDirectoryTests(TestCase):
             os.symlink(d.getpath('foo'), d.getpath('baz'))
             d.compare(['baz/', 'foo/', 'foo/bar.txt'])
 
+    def test_follow_symlinks(self):
+        with TempDirectory() as d:
+            d.write('foo/bar.txt', b'x')
+            os.symlink(d.getpath('foo'), d.getpath('baz'))
+            d.compare(['baz/', 'baz/bar.txt', 'foo/', 'foo/bar.txt'],
+                      followlinks=True)
+
 
 
 # using a set up and teardown function

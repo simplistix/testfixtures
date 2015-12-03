@@ -90,12 +90,15 @@ class TempDirectory:
         for i in tuple(cls.instances):
             i.cleanup()
 
-    def actual(self, path=None, recursive=False, files_only=False):
+    def actual(self,
+               path=None, recursive=False, files_only=False, followlinks=False):
         path = self._join(path) if path else self.path
 
         result = []
         if recursive:
-            for dirpath, dirnames, filenames in os.walk(path):
+            for dirpath, dirnames, filenames in os.walk(
+                    path, followlinks=followlinks
+            ):
                 dirpath = '/'.join(dirpath[len(path)+1:].split(os.sep))
                 if dirpath:
                     dirpath += '/'
@@ -151,7 +154,8 @@ class TempDirectory:
         for n in actual:
             print(n)
 
-    def compare(self, expected, path=None, files_only=False, recursive=True):
+    def compare(self, expected, path=None, files_only=False, recursive=True,
+                followlinks=False):
         """
         Compare the expected contents with the actual contents of the temporary
         directory.
@@ -178,9 +182,15 @@ class TempDirectory:
         :param recursive: If passed as ``False``, only the direct contents of
                           the directory specified by ``path`` will be included
                           in the actual contents used for comparison.
+
+        :param followlinks: If passed as ``True``, symlinks and hard links
+                            will be followed when recursively building up
+                            the actual list of directory contents.
         """
         compare(expected,
-                actual=tuple(self.actual(path, recursive, files_only)),
+                actual=tuple(self.actual(
+                    path, recursive, files_only, followlinks
+                )),
                 recursive=False)
 
     def check(self, *expected):
