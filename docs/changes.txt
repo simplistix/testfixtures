@@ -3,6 +3,16 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.6.0 (3 December 2015)
+------------------------
+
+- Fix a bug that mean symlinked directories would never show up when using
+  :meth:`TempDirectory.compare` and friends.
+
+- Add the ``followlinks`` parameter to :meth:`TempDirectory.compare` to
+  indicate that symlinked or hard linked directories should be recursed into
+  when using ``recursive=True``.
+
 4.5.1 (23 November 2015)
 ------------------------
 
