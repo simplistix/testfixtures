@@ -99,8 +99,11 @@ class TempDirectory:
                 dirpath = '/'.join(dirpath[len(path)+1:].split(os.sep))
                 if dirpath:
                     dirpath += '/'
+
+                for dirname in dirnames:
                     if not files_only:
-                        result.append(dirpath)
+                        result.append(dirpath+dirname+'/')
+
                 for name in sorted(filenames):
                     result.append(dirpath+name)
         else:

@@ -335,6 +335,28 @@ class TempDirectoryTests(TestCase):
             with ShouldRaise(expected):
                 d.write('test.file', Unicode('\xa3'))
 
+    def test_just_empty_non_recursive(self):
+        with TempDirectory() as d:
+            d.makedir('foo/bar')
+            d.makedir('foo/baz')
+            d.compare(path='foo',
+                      expected=['bar', 'baz'],
+                      recursive=False)
+
+    def test_just_empty_dirs(self):
+        with TempDirectory() as d:
+            d.makedir('foo/bar')
+            d.makedir('foo/baz')
+            d.compare(['foo/', 'foo/bar/', 'foo/baz/'])
+
+    def test_symlink(self):
+        with TempDirectory() as d:
+            d.write('foo/bar.txt', b'x')
+            os.symlink(d.getpath('foo'), d.getpath('baz'))
+            d.compare(['baz/', 'foo/', 'foo/bar.txt'])
+
+
+
 # using a set up and teardown function
 # gets rid of the need for the imports in
 # doc tests
