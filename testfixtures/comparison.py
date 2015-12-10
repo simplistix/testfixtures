@@ -426,6 +426,10 @@ def compare(*args, **kw):
                    being raised, the prefix supplied will be prepended to the
                    message in the :class:`AssertionError`.
 
+    :param raises: If ``False``, the message that would be raised in the
+                   :class:`AssertionError` will be returned instead of the
+                   exception being raised.
+
     :param recursive: If ``True``, when a difference is found in a nested data
                       structure, attempt to highlight the location of the
                       difference.
@@ -439,6 +443,7 @@ def compare(*args, **kw):
                       of this call.
     """
     prefix = kw.pop('prefix', None)
+    raises = kw.pop('raises', True)
     context = CompareContext(kw)
 
     x, y = context.extract_args(args)
@@ -450,7 +455,9 @@ def compare(*args, **kw):
     if prefix:
         message = prefix + ': ' + message
 
-    raise AssertionError(message)
+    if raises:
+        raise AssertionError(message)
+    return message
 
 
 class Comparison(object):

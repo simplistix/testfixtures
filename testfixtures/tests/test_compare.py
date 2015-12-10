@@ -1292,3 +1292,6 @@ b
                 "Exactly two objects needed, you supplied: ['x', 'y', 'z']"
         )):
             compare('x', 'y', 'z')
+
+    def test_dont_raise(self):
+        self.assertEqual(compare('x', 'y', raises=False), "'x' != 'y'")
