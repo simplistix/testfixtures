@@ -3,6 +3,12 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.7.0 (10 December 2015)
+------------------------
+
+- Add the ability to pass ``raises=False`` to :func:`compare` to just get
+  and resulting message back rather than having an exception raised.
+
 4.6.0 (3 December 2015)
 ------------------------
 
