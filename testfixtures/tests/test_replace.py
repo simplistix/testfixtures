@@ -1,8 +1,10 @@
 # Copyright (c) 2008-2014 Simplistix Ltd
 # See license.txt for license details.
+from mock import Mock
 
 from testfixtures import (
     Replacer,
+    Replace,
     ShouldRaise,
     TempDirectory,
     replace,
@@ -392,3 +394,60 @@ class TestReplace(TestCase):
             r.replace('testfixtures.tests.sample1.X.bMethod', lambda: 1)
             compare(sample1.X.bMethod(), 1)
         compare(sample1.X.bMethod(), 2)
+
+    def test_use_as_cleanup(self):
+        def test_z():
+            return 'replacement z'
+
+        compare(sample1.z(), 'original z')
+        replace = Replacer()
+        compare(sample1.z(), 'original z')
+        replace('testfixtures.tests.sample1.z', test_z)
+        cleanup = replace.restore
+        try:
+            compare(sample1.z(), 'replacement z')
+        finally:
+            cleanup()
+        compare(sample1.z(), 'original z')
+
+    def test_replace_context_manager(self):
+        def test_z():
+            return 'replacement z'
+
+        compare(sample1.z(), 'original z')
+
+        with Replace('testfixtures.tests.sample1.z', test_z) as z:
+            compare(z(), 'replacement z')
+            compare(sample1.z(), 'replacement z')
+
+        compare(sample1.z(), 'original z')
+
+    def test_multiple_context_managers(self):
+
+        def test_y(self):
+            return 'test y'
+
+        def test_z():
+            return 'test z'
+
+        compare(sample1.z(), 'original z')
+        compare(sample1.X().y(), 'original y')
+
+        with Replacer() as replace:
+            z = replace('testfixtures.tests.sample1.z', test_z)
+            y = replace('testfixtures.tests.sample1.X.y', test_y)
+            compare(z(), 'test z')
+            compare(y, sample1.X.y)
+            compare(sample1.X().y(), 'test y')
+            compare(sample1.z(), 'test z')
+            compare(sample1.X().y(), 'test y')
+
+        compare(sample1.z(), 'original z')
+        compare(sample1.X().y(), 'original y')
+
+    def test_context_manager_not_strict(self):
+        def test_z():
+            return 'replacement z'
+
+        with Replace('testfixtures.tests.sample1.foo', test_z, strict=False):
+            compare(sample1.foo(), 'replacement z')

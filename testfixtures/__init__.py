@@ -21,7 +21,7 @@ from testfixtures.tdatetime import test_datetime, test_date, test_time
 from testfixtures.logcapture import LogCapture, log_capture
 from testfixtures.outputcapture import OutputCapture
 from testfixtures.resolve import resolve
-from testfixtures.replace import Replacer, replace
+from testfixtures.replace import Replacer, Replace, replace
 from testfixtures.shouldraise import ShouldRaise, should_raise
 from testfixtures.tempdirectory import TempDirectory, tempdir
 from testfixtures.utils import wrap, generator

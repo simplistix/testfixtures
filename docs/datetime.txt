@@ -23,14 +23,13 @@ the ``testfixtures.tests.sample1`` package:
 .. literalinclude:: ../testfixtures/tests/sample1.py
    :lines: 8,18,19
 
-A :class:`~testfixtures.Replacer` can be used to apply the mock as
+:class:`~testfixtures.Replace` can be used to apply the mock as
 shown in the following example, which could appear in either a unit
 test or a doc test: 
 
->>> from testfixtures import Replacer,test_date
+>>> from testfixtures import Replace, test_date
 >>> from testfixtures.tests.sample1 import str_today_1
->>> with Replacer() as r:
-...    r.replace('testfixtures.tests.sample1.date',test_date())
+>>> with Replace('testfixtures.tests.sample1.date', test_date()):
 ...    str_today_1()
 ...    str_today_1()
 '2001-01-01'
@@ -38,19 +37,16 @@ test or a doc test:
 
 If you need a specific date to be returned, you can specify it:
 
->>> with Replacer() as r:
-...    r.replace('testfixtures.tests.sample1.date',test_date(1978,6,13))
+>>> with Replace('testfixtures.tests.sample1.date', test_date(1978,6,13)):
 ...    str_today_1()
 '1978-06-13'
 
 If you need to test with a whole sequence of specific dates, this
 can be done as follows:
 
->>> with Replacer() as r:
-...    d = test_date(None)
+>>> with Replace('testfixtures.tests.sample1.date', test_date(None)) as d:
 ...    d.add(1978,6,13)
 ...    d.add(2009,11,12)
-...    r.replace('testfixtures.tests.sample1.date',d)
 ...    str_today_1()
 ...    str_today_1()
 '1978-06-13'
@@ -63,9 +59,8 @@ size, respectively, of the difference between each date returned.
 
 For example, where 2 days elapse between each returned value:
 
->>> with Replacer() as r:
-...    d = test_date(1978,6,13,delta=2,delta_type='days')
-...    r.replace('testfixtures.tests.sample1.date',d)
+>>> with Replace('testfixtures.tests.sample1.date',
+...              test_date(1978, 6, 13, delta=2, delta_type='days')) as d:
 ...    str_today_1()
 ...    str_today_1()
 ...    str_today_1()
@@ -78,9 +73,8 @@ The ``delta_type`` can be any keyword parameter accepted by the
 zero can be an effective way of ensuring that all calls to the
 :meth:`~testfixtures.test_date.today` method return the same value:
 
->>> with Replacer() as r:
-...    d = test_date(1978,6,13,delta=0)
-...    r.replace('testfixtures.tests.sample1.date',d)
+>>> with Replace('testfixtures.tests.sample1.date',
+...              test_date(1978, 6, 13, delta=0)) as d:
 ...    str_today_1()
 ...    str_today_1()
 ...    str_today_1()
@@ -93,9 +87,7 @@ the next date to be returned using the
 :meth:`~testfixtures.test_date.set` method. The date returned after
 this will be the set date plus the ``delta`` in effect:
 
->>> with Replacer() as r:
-...    d = test_date(delta=2)
-...    r.replace('testfixtures.tests.sample1.date',d)
+>>> with Replace('testfixtures.tests.sample1.date', test_date(delta=2)) as d:
 ...    str_today_1()
 ...    d.set(1978,8,1)
 ...    str_today_1()
@@ -122,10 +114,9 @@ the ``testfixtures.tests.sample1`` package:
 We use the a :class:`~testfixtures.Replacer` as follows, which could
 appear in either a unit test or a doc test:
 
->>> from testfixtures import Replacer,test_datetime
+>>> from testfixtures import Replacer, test_datetime
 >>> from testfixtures.tests.sample1 import str_now_1
->>> with Replacer() as r:
-...    r.replace('testfixtures.tests.sample1.datetime',test_datetime())
+>>> with Replace('testfixtures.tests.sample1.datetime', test_datetime()):
 ...    str_now_1()
 ...    str_now_1()
 '2001-01-01 00:00:00'
@@ -133,19 +124,18 @@ appear in either a unit test or a doc test:
 
 If you need a specific datetime to be returned, you can specify it:
 
->>> with Replacer() as r:
-...    r.replace('testfixtures.tests.sample1.datetime',test_datetime(1978,6,13,1,2,3))
+>>> with Replace('testfixtures.tests.sample1.datetime',
+...              test_datetime(1978,6,13,1,2,3)):
 ...    str_now_1()
 '1978-06-13 01:02:03'
 
 If you need to test with a whole sequence of specific datetimes,
 this can be done as follows:
 
->>> with Replacer() as r:
-...    d = test_datetime(None)
+>>> with Replace('testfixtures.tests.sample1.datetime',
+...              test_datetime(None)) as d:
 ...    d.add(1978,6,13,16,0,1)
 ...    d.add(2009,11,12,11,41,20)
-...    r.replace('testfixtures.tests.sample1.datetime',d)
 ...    str_now_1()
 ...    str_now_1()
 '1978-06-13 16:00:01'
@@ -158,9 +148,10 @@ size, respectively, of the difference between each datetime returned.
 
 For example, where 2 hours elapse between each returned value:
 
->>> with Replacer() as r:
-...    d = test_datetime(1978,6,13,16,0,1,delta=2,delta_type='hours')
-...    r.replace('testfixtures.tests.sample1.datetime',d)
+>>> with Replace(
+...    'testfixtures.tests.sample1.datetime',
+...    test_datetime(1978, 6, 13, 16, 0, 1, delta=2, delta_type='hours')
+... ) as d:
 ...    str_now_1()
 ...    str_now_1()
 ...    str_now_1()
@@ -173,9 +164,8 @@ The ``delta_type`` can be any keyword parameter accepted by the
 zero can be an effective way of ensuring that all calls to the
 :meth:`~testfixtures.test_datetime.now` method return the same value:
 
->>> with Replacer() as r:
-...    d = test_datetime(1978,6,13,16,0,1,delta=0)
-...    r.replace('testfixtures.tests.sample1.datetime',d)
+>>> with Replace('testfixtures.tests.sample1.datetime',
+...              test_datetime(1978, 6, 13, 16, 0, 1, delta=0)) as d:
 ...    str_now_1()
 ...    str_now_1()
 ...    str_now_1()
@@ -188,9 +178,8 @@ the next datetime to be returned using the
 :meth:`~testfixtures.test_datetime.set` method. The value returned after
 this will be the set value plus the ``delta`` in effect:
 
->>> with Replacer() as r:
-...    d = test_datetime(delta=2)
-...    r.replace('testfixtures.tests.sample1.datetime',d)
+>>> with Replace('testfixtures.tests.sample1.datetime',
+...              test_datetime(delta=2)) as d:
 ...    str_now_1()
 ...    d.set(1978,8,1)
 ...    str_now_1()
@@ -320,8 +309,7 @@ appear in either a unit test or a doc test:
 
 >>> from testfixtures import Replacer,test_time
 >>> from testfixtures.tests.sample1 import str_time
->>> with Replacer() as r:
-...    r.replace('testfixtures.tests.sample1.time',test_time())
+>>> with Replace('testfixtures.tests.sample1.time', test_time()):
 ...    str_time()
 ...    str_time()
 '978307200.0'
@@ -330,19 +318,17 @@ appear in either a unit test or a doc test:
 If you need an integer representing a specific time to be returned,
 you can specify it:
 
->>> with Replacer() as r:
-...    r.replace('testfixtures.tests.sample1.time',test_time(1978,6,13,1,2,3))
+>>> with Replace('testfixtures.tests.sample1.time',
+...              test_time(1978, 6, 13, 1, 2, 3)):
 ...    str_time()
 '266547723.0'
 
 If you need to test with a whole sequence of specific timestamps,
 this can be done as follows:
 
->>> with Replacer() as r:
-...    t = test_time(None)
+>>> with Replace('testfixtures.tests.sample1.time', test_time(None)) as t:
 ...    t.add(1978,6,13,16,0,1)
 ...    t.add(2009,11,12,11,41,20)
-...    r.replace('testfixtures.tests.sample1.time',t)
 ...    str_time()
 ...    str_time()
 '266601601.0'
@@ -355,9 +341,10 @@ size, respectively, of the difference between each timestamp returned.
 
 For example, where 2 hours elapse between each returned value:
 
->>> with Replacer() as r:
-...    d = test_time(1978,6,13,16,0,1,delta=2,delta_type='hours')
-...    r.replace('testfixtures.tests.sample1.time',d)
+>>> with Replace(
+...     'testfixtures.tests.sample1.time',
+...     test_time(1978, 6, 13, 16, 0, 1, delta=2, delta_type='hours')
+... ) as d:
 ...    str_time()
 ...    str_time()
 ...    str_time()
@@ -370,9 +357,8 @@ The ``delta_type`` can be any keyword parameter accepted by the
 zero can be an effective way of ensuring that all calls to the
 :meth:`~time.time` function return the same value:
 
->>> with Replacer() as r:
-...    d = test_time(1978,6,13,16,0,1,delta=0)
-...    r.replace('testfixtures.tests.sample1.time',d)
+>>> with Replace('testfixtures.tests.sample1.time',
+...              test_time(1978, 6, 13, 16, 0, 1, delta=0)) as d:
 ...    str_time()
 ...    str_time()
 ...    str_time()
@@ -385,9 +371,7 @@ the next timestamp to be returned using the
 :meth:`~testfixtures.test_time.set` method. The value returned after
 this will be the set value plus the ``delta`` in effect:
 
->>> with Replacer() as r:
-...    d = test_time(delta=2)
-...    r.replace('testfixtures.tests.sample1.time',d)
+>>> with Replace('testfixtures.tests.sample1.time', test_time(delta=2)) as d:
 ...    str_time()
 ...    d.set(1978,8,1)
 ...    str_time()
@@ -417,9 +401,9 @@ In these cases, you need to be careful with the replacement:
 
 >>> from testfixtures import Replacer,test_datetime
 >>> from testfixtures.tests.sample1 import str_now_2, str_today_2
->>> with Replacer() as r:
-...    r.replace('testfixtures.tests.sample1.today',test_date().today)
-...    r.replace('testfixtures.tests.sample1.now',test_datetime().now)
+>>> with Replacer() as replace:
+...    today = replace('testfixtures.tests.sample1.today', test_date().today)
+...    now = replace('testfixtures.tests.sample1.now', test_datetime().now)
 ...    str_today_2()
 ...    str_now_2()
 '2001-01-01'

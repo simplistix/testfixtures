@@ -11,8 +11,13 @@ API Reference
 .. autoclass:: OutputCapture
    :members:
 
+.. autoclass:: Replace()
+   :members:
+
 .. autoclass:: Replacer()
    :members:
+
+.. autofunction:: replace
 
 .. autoclass:: RoundComparison
    :members:
@@ -51,8 +56,6 @@ API Reference
 .. autofunction:: generator
 
 .. autofunction:: log_capture
-
-.. autofunction:: replace
 
 .. autoclass:: should_raise
 

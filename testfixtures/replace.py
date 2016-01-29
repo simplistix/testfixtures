@@ -1,4 +1,4 @@
-# Copyright (c) 2008-2013 Simplistix Ltd
+# Copyright (c) 2008-2013 Simplistix Ltd, 2016 Chris Withers
 # See license.txt for license details.
 
 from functools import partial
@@ -20,9 +20,8 @@ class Replacer:
     dependencies.
     """
 
-    def __init__(self, replace_returns=False):
+    def __init__(self):
         self.originals = {}
-        self.replace_returns = replace_returns
 
     def _replace(self, container, name, method, value, strict=True):
         if value is not_there:
@@ -36,22 +35,11 @@ class Replacer:
             if method == 'i':
                 container[name] = value
 
-    def replace(self, target, replacement, strict=True):
+    def __call__(self, target, replacement, strict=True):
         """
         Replace the specified target with the supplied replacement.
-
-        :param target: A string containing the dotted-path to the
-                       object to be replaced. This path may specify a
-                       module in a package, an attribute of a module,
-                       or any attribute of something contained within
-                       a module.
-
-        :param replacement: The object to use as a replacement.
-
-        :param strict: When `True`, an exception will be raised if an
-                       attempt is made to replace an object that does
-                       not exist.
         """
+
         container, method, attribute, t_obj = resolve(target)
         if method is None:
             raise ValueError('target must contain at least one dot!')
@@ -73,8 +61,13 @@ class Replacer:
         self._replace(container, attribute, method, replacement_to_use, strict)
         if target not in self.originals:
             self.originals[target] = t_obj
-        if self.replace_returns:
-            return replacement
+        return replacement
+
+    def replace(self, target, replacement, strict=True):
+        """
+        Replace the specified target with the supplied replacement.
+        """
+        self(target, replacement, strict)
 
     def restore(self):
         """
@@ -106,18 +99,42 @@ def replace(target, replacement, strict=True):
     """
     A decorator to replace a target object for the duration of a test
     function.
-
-    :param target: A string containing the dotted-path to the
-                   object to be replaced. This path may specify a
-                   module in a package, an attribute of a module,
-                   or any attribute of something contained within
-                   a module.
-
-    :param replacement: The object to use as a replacement.
-
-    :param strict: When `True`, an exception will be raised if an
-                   attempt is made to replace an object that does
-                   not exist.
     """
-    r = Replacer(replace_returns=True)
-    return wrap(partial(r.replace, target, replacement, strict), r.restore)
+    r = Replacer()
+    return wrap(partial(r.__call__, target, replacement, strict), r.restore)
+
+
+class Replace(object):
+    """
+    A context manager that uses a :class:`Replacer` to replace a single target.
+    """
+
+    def __init__(self, target, replacement, strict=True):
+        self.target = target
+        self.replacement = replacement
+        self.strict = strict
+        self._replacer = Replacer()
+
+    def __enter__(self):
+        return self._replacer(self.target, self.replacement, self.strict)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._replacer.restore()
+
+replace_params_doc = """
+:param target: A string containing the dotted-path to the
+               object to be replaced. This path may specify a
+               module in a package, an attribute of a module,
+               or any attribute of something contained within
+               a module.
+
+:param replacement: The object to use as a replacement.
+
+:param strict: When `True`, an exception will be raised if an
+               attempt is made to replace an object that does
+               not exist.
+"""
+
+# add the param docs, so we only have one copy of them!
+for obj in (Replacer.__call__, Replacer.replace, replace, Replace):
+    obj.__doc__ += replace_params_doc

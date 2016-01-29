@@ -38,7 +38,7 @@ class TestReplacer:
         >>> class XReplacement(sample1.X): pass
 
         >>> r = Replacer()
-        >>> r.replace('testfixtures.tests.sample1.X',XReplacement)
+        >>> r.replace('testfixtures.tests.sample1.X', XReplacement)
 
         >>> sample1.X()
         <testfixtures.tests.test_replacer.XReplacement ...>
