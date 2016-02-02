@@ -3,6 +3,14 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.8.0 (2 February 2016)
+-----------------------
+
+- Introduce a new :class:`Replace` context manager and make :class:`Replacer`
+  callable. This gives more succinct and easy to read mocking code.
+
+- Add :class:`ShouldWarn` and :class:`ShouldNotWarn` context managers.
+
 4.7.0 (10 December 2015)
 ------------------------
 
