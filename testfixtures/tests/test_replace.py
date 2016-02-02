@@ -17,6 +17,7 @@ import os
 
 from testfixtures.tests import sample1
 from testfixtures.tests import sample2
+from ..compat import PY3
 
 from warnings import catch_warnings
 
@@ -437,7 +438,8 @@ class TestReplace(TestCase):
             z = replace('testfixtures.tests.sample1.z', test_z)
             y = replace('testfixtures.tests.sample1.X.y', test_y)
             compare(z(), 'test z')
-            compare(y, sample1.X.y)
+            if PY3:
+                compare(y, sample1.X.y)
             compare(sample1.X().y(), 'test y')
             compare(sample1.z(), 'test z')
             compare(sample1.X().y(), 'test y')
