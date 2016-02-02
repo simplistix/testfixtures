@@ -11,10 +11,10 @@ API Reference
 .. autoclass:: OutputCapture
    :members:
 
-.. autoclass:: Replace()
+.. autoclass:: Replace
    :members:
 
-.. autoclass:: Replacer()
+.. autoclass:: Replacer
    :members:
 
 .. autofunction:: replace
