@@ -137,4 +137,7 @@ replace_params_doc = """
 
 # add the param docs, so we only have one copy of them!
 for obj in (Replacer.__call__, Replacer.replace, replace, Replace):
-    obj.__doc__ += replace_params_doc
+    try:
+        obj.__doc__ += replace_params_doc
+    except AttributeError: # python 2 :-(
+        pass
