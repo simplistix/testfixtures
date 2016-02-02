@@ -25,6 +25,12 @@ API Reference
 .. autoclass:: ShouldRaise
    :members:
 
+.. autoclass:: ShouldWarn
+   :members:
+
+.. autoclass:: ShouldNotWarn
+   :members:
+
 .. autoclass:: StringComparison
    :members:
 

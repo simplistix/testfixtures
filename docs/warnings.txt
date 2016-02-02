@@ -1,0 +1,90 @@
+Testing warnings
+================
+
+.. currentmodule:: testfixtures
+
+The :mod:`unittest` support for asserting that warnings are issued
+when expected is fairly convoluted, so TestFixtures has tools to help with this.
+
+The :class:`ShouldWarn` context manager
+---------------------------------------
+
+This context manager allows you to assert that particular warnings are
+recorded in a block of code, for example:
+
+>>> from warnings import warn
+>>> from testfixtures import ShouldWarn
+>>> with ShouldWarn(UserWarning('you should fix that')):
+...     warn('you should fix that')
+
+If a warning issued doesn't match the one expected,
+:class:`ShouldWarn` will raise an :class:`AssertionError`
+causing the test in which it occurs to fail:
+
+>>> from warnings import warn
+>>> from testfixtures import ShouldWarn
+>>> with ShouldWarn(UserWarning('you should fix that')):
+...     warn("sorry dave, I can't let you do that")
+Traceback (most recent call last):
+...
+AssertionError: sequence not as expected:
+<BLANKLINE>
+same:
+[]
+<BLANKLINE>
+expected:
+[
+  <C(failed):....UserWarning>
+  args:('you should fix that',) != ("sorry dave, I can't let you do that",)
+  </C>]
+<BLANKLINE>
+actual:
+[UserWarning("sorry dave, I can't let you do that",)]
+
+You can check multiple warnings in a particular piece of code:
+
+>>> from warnings import warn
+>>> from testfixtures import ShouldWarn
+>>> with ShouldWarn(UserWarning('you should fix that'),
+...                 UserWarning('and that too')):
+...     warn('you should fix that')
+...     warn('and that too')
+
+If you want to inspect more details of the warnings issued, you can capture
+them into a list as follows:
+
+>>> from warnings import warn_explicit
+>>> from testfixtures import ShouldWarn
+>>> with ShouldWarn() as captured:
+...     warn_explicit(message='foo', category=DeprecationWarning,
+...                   filename='bar.py', lineno=42)
+>>> len(captured)
+1
+>>> captured[0].message
+DeprecationWarning('foo',)
+>>> captured[0].lineno
+42
+
+The :class:`ShouldNotWarn` context manager
+------------------------------------------
+
+If you do not expect any warnings to be logged in a piece of code, you can use
+the :class:`ShouldNotWarn` context manager. If any warnings are issued in the
+context it manages, it will raise an :class:`AssertionError` to indicate this:
+
+>>> from warnings import warn
+>>> from testfixtures import ShouldNotWarn
+>>> with ShouldNotWarn():
+...     warn("woah dude")
+Traceback (most recent call last):
+...
+AssertionError: sequence not as expected:
+<BLANKLINE>
+same:
+[]
+<BLANKLINE>
+expected:
+[]
+<BLANKLINE>
+actual:
+[UserWarning('woah dude',)]

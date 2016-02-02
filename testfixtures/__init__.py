@@ -23,5 +23,6 @@ from testfixtures.outputcapture import OutputCapture
 from testfixtures.resolve import resolve
 from testfixtures.replace import Replacer, Replace, replace
 from testfixtures.shouldraise import ShouldRaise, should_raise
+from testfixtures.shouldwarn import ShouldWarn, ShouldNotWarn
 from testfixtures.tempdirectory import TempDirectory, tempdir
 from testfixtures.utils import wrap, generator

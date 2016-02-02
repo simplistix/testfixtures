@@ -16,6 +16,7 @@ The sections below describe the use of the various tools included:
    streams.txt
    files.txt
    exceptions.txt
+   warnings.txt
    popen.txt
    components.txt
    utilities.txt
