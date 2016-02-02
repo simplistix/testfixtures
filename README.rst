@@ -14,5 +14,5 @@ TestFixtures
 ============
 
 TestFixtures is a collection of helpers and mock objects that are useful when
-writing unit tests or doc tests.
+writing unit tests or doc tests. The latest documentation can be found `here <https://testfixtures.readthedocs.org/en/latest>`__.
 
