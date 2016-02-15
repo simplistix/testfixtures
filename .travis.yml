@@ -10,6 +10,10 @@ python:
   - "2.7"
   - "nightly"
 
+matrix:
+  allow_failures:
+    - python: "nightly"
+
 # command to install dependencies
 install: "pip install -Ue .[test,build]"
 
