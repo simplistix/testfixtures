@@ -428,18 +428,18 @@ def compare(*args, **kw):
 
     :param suffix: If provided, in the event of an :class:`AssertionError`
                    being raised, the suffix supplied will be appended to the
-                   message in the :class:`AssertionError` on a new line.
+                   message in the :class:`AssertionError`.
 
     :param raises: If ``False``, the message that would be raised in the
                    :class:`AssertionError` will be returned instead of the
                    exception being raised.
 
-    :param recursive: If ``True`` (default), when a difference is found in a
+    :param recursive: If ``True``, when a difference is found in a
                       nested data structure, attempt to highlight the location
                       of the difference.
 
     :param strict: If ``True``, objects will only compare equal if they are
-                   of the same type as well as being equal.  Default ``False``.
+                   of the same type as well as being equal.
 
     :param comparers: If supplied, should be a dictionary mapping
                       types to comparer functions for those types. These will
