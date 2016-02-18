@@ -3,11 +3,17 @@ Changes
 
 .. currentmodule:: testfixtures
 
-4.8.1 (18 February 2016)
------------------------
+4.9.0 (18 February 2016)
+------------------------
 
 - Added the `suffix` parameter to :func:`compare` to allow failure messages
   to include some additional context.
+
+- Update package metadata to indicate Python 3.5 compatibility.
+
+Thanks for Felix Yan for the metadata patch.
+
+Thanks to Wim Glenn for the suffix patch.
 
 4.8.0 (2 February 2016)
 -----------------------
