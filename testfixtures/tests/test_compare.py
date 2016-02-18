@@ -913,6 +913,14 @@ b
             prefix='file content'
             )
 
+    def test_suffix(self):
+        self.checkRaises(
+            1, 2,
+            '1 != 2\n'
+            'additional context',
+            suffix='additional context',
+            )
+
     def test_labels_multiline(self):
         self.checkRaises(
             'x'*5+'\n'+'y'*5, 'x'*5+'\n'+'z'*5,

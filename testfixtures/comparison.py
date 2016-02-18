@@ -426,16 +426,20 @@ def compare(*args, **kw):
                    being raised, the prefix supplied will be prepended to the
                    message in the :class:`AssertionError`.
 
+    :param suffix: If provided, in the event of an :class:`AssertionError`
+                   being raised, the suffix supplied will be appended to the
+                   message in the :class:`AssertionError` on a new line.
+
     :param raises: If ``False``, the message that would be raised in the
                    :class:`AssertionError` will be returned instead of the
                    exception being raised.
 
-    :param recursive: If ``True``, when a difference is found in a nested data
-                      structure, attempt to highlight the location of the
-                      difference.
+    :param recursive: If ``True`` (default), when a difference is found in a
+                      nested data structure, attempt to highlight the location
+                      of the difference.
 
-    :param strict: If ``True``, objects will only compare equal if
-                   they are of the same type as well as being equal.
+    :param strict: If ``True``, objects will only compare equal if they are
+                   of the same type as well as being equal.  Default ``False``.
 
     :param comparers: If supplied, should be a dictionary mapping
                       types to comparer functions for those types. These will
@@ -443,6 +447,7 @@ def compare(*args, **kw):
                       of this call.
     """
     prefix = kw.pop('prefix', None)
+    suffix = kw.pop('suffix', None)
     raises = kw.pop('raises', True)
     context = CompareContext(kw)
 
@@ -454,6 +459,8 @@ def compare(*args, **kw):
     message = context.message
     if prefix:
         message = prefix + ': ' + message
+    if suffix:
+        message += '\n' + suffix
 
     if raises:
         raise AssertionError(message)
