@@ -3,6 +3,12 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.8.1 (18 February 2016)
+-----------------------
+
+- Added the `suffix` parameter to :func:`compare` to allow failure messages
+  to include some additional context.
+
 4.8.0 (2 February 2016)
 -----------------------
 

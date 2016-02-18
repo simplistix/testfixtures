@@ -34,6 +34,15 @@ AssertionError: wrong number of orders: 1 != 2
 This is recommended as it makes the reason for the failure more
 apparent without having to delve into the code or tests.
 
+You can also optionally specify a suffix, which will be appended to the
+message on a new line:
+
+>>> compare(1, 2, suffix='(Except for very large values of 1)')
+Traceback (most recent call last):
+ ...
+AssertionError: 1 != 2
+(Except for very large values of 1)
+
 The expected and actual value can also be explicitly supplied, making it
 clearer as to what has gone wrong:
 
