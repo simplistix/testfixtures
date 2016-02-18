@@ -439,7 +439,7 @@ def compare(*args, **kw):
                       of the difference.
 
     :param strict: If ``True``, objects will only compare equal if they are
-                   of the same type as well as being equal.  Default False.
+                   of the same type as well as being equal.  Default ``False``.
 
     :param comparers: If supplied, should be a dictionary mapping
                       types to comparer functions for those types. These will
