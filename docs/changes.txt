@@ -3,6 +3,13 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.9.1 (19 February 2016)
+------------------------
+
+- Fix for use with PyPy, broken since 4.8.0.
+
+Thanks to Nicola Iarocci for the pull request to fix.
+
 4.9.0 (18 February 2016)
 ------------------------
 
