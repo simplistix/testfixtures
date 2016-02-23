@@ -139,5 +139,5 @@ replace_params_doc = """
 for obj in (Replacer.__call__, Replacer.replace, replace, Replace):
     try:
         obj.__doc__ += replace_params_doc
-    except AttributeError: # python 2 :-(
+    except (AttributeError, TypeError): # python 2 or pypy 4.0.1 :-(
         pass
