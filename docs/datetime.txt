@@ -21,7 +21,7 @@ This enables you to write tests for code such as the following, from
 the ``testfixtures.tests.sample1`` package:
 
 .. literalinclude:: ../testfixtures/tests/sample1.py
-   :lines: 8,18,19
+   :lines: 8-10,21-22
 
 :class:`~testfixtures.Replace` can be used to apply the mock as
 shown in the following example, which could appear in either a unit
@@ -109,7 +109,7 @@ This enables you to write tests for code such as the following, from
 the ``testfixtures.tests.sample1`` package:
 
 .. literalinclude:: ../testfixtures/tests/sample1.py
-   :lines: 8,10,11
+   :lines: 8-10,11-12
 
 We use the a :class:`~testfixtures.Replacer` as follows, which could
 appear in either a unit test or a doc test:
@@ -302,12 +302,12 @@ This enables you to write tests for code such as the following, from
 the ``testfixtures.tests.sample1`` package:
 
 .. literalinclude:: ../testfixtures/tests/sample1.py
-   :lines: 26-28
+   :lines: 30-34
 
 We use the a :class:`~testfixtures.Replacer` as follows, which could
 appear in either a unit test or a doc test:
 
->>> from testfixtures import Replacer,test_time
+>>> from testfixtures import Replacer, test_time
 >>> from testfixtures.tests.sample1 import str_time
 >>> with Replace('testfixtures.tests.sample1.time', test_time()):
 ...    str_time()
@@ -395,11 +395,11 @@ reference to the :meth:`~datetime.date.today` or
 as the following code from the ``testfixtures.tests.sample1`` package:
 
 .. literalinclude:: ../testfixtures/tests/sample1.py
-   :lines: 8,12-16,20-24
+   :lines: 8-10,14-18,24-28
 
 In these cases, you need to be careful with the replacement:
 
->>> from testfixtures import Replacer,test_datetime
+>>> from testfixtures import Replacer, test_datetime
 >>> from testfixtures.tests.sample1 import str_now_2, str_today_2
 >>> with Replacer() as replace:
 ...    today = replace('testfixtures.tests.sample1.today', test_date().today)
