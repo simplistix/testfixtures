@@ -21,7 +21,7 @@ project = pkg_info.name
 copyright = '2008-2015 Simplistix Ltd, %s Chris Withers' % datetime.datetime.now().year
 version = release = pkg_info.version
 exclude_trees = ['_build']
-unused_docs = ['description.txt']
+exclude_patterns = ['description.txt']
 pygments_style = 'sphinx'
 
 # Options for HTML output
