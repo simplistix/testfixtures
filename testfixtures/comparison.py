@@ -685,3 +685,23 @@ def diff(x, y, x_label='', y_label=''):
             y_label or 'second',
             lineterm='')
     )
+
+
+class RangeComparison:
+    """
+    An object that can be used in comparisons of numerics to validate
+    actual falls within a certain range
+    """
+    def __init__(self, lower_bound, upper_bound):
+        self.lower_bound = lower_bound
+        self.upper_bound = upper_bound
+
+    def __eq__(self, other):
+        return self.lower_bound <= other <= self.upper_bound
+
+    def __ne__(self, other):
+        return not self.lower_bound <= other <= self.upper_bound
+
+    def __repr__(self):
+        return '<less than %s or greater than %s>' % (self.lower_bound,
+                                                      self.upper_bound)
