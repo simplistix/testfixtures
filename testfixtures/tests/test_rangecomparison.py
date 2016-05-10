@@ -14,7 +14,7 @@ class Tests(TestCase):
         self.assertTrue(R(2, 5) == 2)
 
     def test_equal_no_rhs(self):
-            self.assertFalse(5 == R(2, 4))
+        self.assertFalse(5 == R(2, 4))
 
     def test_equal_no_lhs(self):
         self.assertFalse(R(2, 3) == 5)
@@ -48,26 +48,44 @@ class Tests(TestCase):
                             (1, 2, 5))
 
     def test_not_numeric_rhs(self):
-        with ShouldRaise(TypeError):
-            'abc' == R(2, 5)
+        if PY2:
+            self.assertFalse('abc' == R(2, 5))
+            self.assertFalse({} == R(2, 5))
+            self.assertFalse([] == R(2, 5))
+        else:
+            with ShouldRaise(TypeError):
+                'abc' == R(2, 5)
+            with ShouldRaise(TypeError):
+                {} == R(2, 5)
+            with ShouldRaise(TypeError):
+                [] == R(2, 5)
 
     def test_not_numeric_lhs(self):
-        with ShouldRaise(TypeError):
-            R(2, 5) == 'abc'
+        if PY2:
+            self.assertFalse(R(2, 5) == 'abc')
+            self.assertFalse(R(2, 5) == {})
+            self.assertFalse(R(2, 5) == [])
+        else:
+            with ShouldRaise(TypeError):
+                R(2, 5) == 'abc'
+            with ShouldRaise(TypeError):
+                R(2, 5) == {}
+            with ShouldRaise(TypeError):
+                R(2, 5) == []
 
     def test_repr(self):
-        compare('<less than 2 or greater than 5>',
+        compare('<Range: [2, 5]>',
                 repr(R(2, 5)))
 
     def test_str(self):
-        compare('<less than 2 or greater than 5>',
+        compare('<Range: [2, 5]>',
                 str(R(2, 5)))
 
     def test_str_negative(self):
         if PY3:
-            expected = '<less than 2 or greater than 5>'
+            expected = '<Range: [2, 5]>'
         else:
-            expected = '<less than 2 or greater than 5>'
+            expected = '<Range: [2, 5]>'
         compare(expected, repr(R(2, 5)))
 
     def test_equal_yes_decimal_lhs(self):

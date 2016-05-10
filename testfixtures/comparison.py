@@ -697,15 +697,10 @@ class RangeComparison:
         self.upper_bound = upper_bound
 
     def __eq__(self, other):
-        try:
-            0 + other
-        except TypeError:
-            raise TypeError('Cannot detect range of %r' % (type(other)))
         return self.lower_bound <= other <= self.upper_bound
 
     def __ne__(self, other):
         return not self == other
 
     def __repr__(self):
-        return '<less than %s or greater than %s>' % (self.lower_bound,
-                                                      self.upper_bound)
+        return '<Range: [%s, %s]>' % (self.lower_bound, self.upper_bound)
