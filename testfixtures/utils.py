@@ -1,5 +1,6 @@
 # Copyright (c) 2008-2011 Simplistix Ltd
 # See license.txt for license details.
+from textwrap import dedent
 
 from functools import wraps
 from inspect import getargspec
@@ -54,3 +55,11 @@ def wrap(before, after=None):
             w.after.insert(0, after)
         return f
     return wrapper
+
+
+def extend_docstring(docstring, objs):
+    for obj in objs:
+        try:
+            obj.__doc__ = dedent(obj.__doc__) + docstring
+        except (AttributeError, TypeError):  # python 2 or pypy 4.0.1 :-(
+            pass

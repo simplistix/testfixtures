@@ -4,7 +4,7 @@
 from functools import partial
 from testfixtures.compat import ClassType
 from testfixtures.resolve import resolve, not_there
-from testfixtures.utils import wrap
+from testfixtures.utils import wrap, extend_docstring
 
 import warnings
 
@@ -136,8 +136,5 @@ replace_params_doc = """
 """
 
 # add the param docs, so we only have one copy of them!
-for obj in (Replacer.__call__, Replacer.replace, replace, Replace):
-    try:
-        obj.__doc__ += replace_params_doc
-    except (AttributeError, TypeError): # python 2 or pypy 4.0.1 :-(
-        pass
+extend_docstring(replace_params_doc,
+                 [Replacer.__call__, Replacer.replace, replace, Replace])
