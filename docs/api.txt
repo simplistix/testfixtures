@@ -22,6 +22,9 @@ API Reference
 .. autoclass:: RoundComparison
    :members:
 
+.. autoclass:: RangeComparison
+   :members:
+
 .. autoclass:: ShouldRaise
    :members:
 

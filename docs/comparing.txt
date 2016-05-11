@@ -799,6 +799,32 @@ Here's an example:
   the rounded value being compared against it, a :class:`TypeError`
   will be raised.
 
+Range Comparison objects
+-------------------------
+
+When comparing numerics you may not know precisely what value the actual
+value will be but want to confirm it's within a certain tolerance or range.
+
+For these situations, you can use :class:`RangeComparison` object
+wherever you would use ints, floats or Decimals they will compare equal to
+a pair of any int, float or Decimal that represents the acceptable
+lower and upper bounds.
+
+Here's an example:
+
+.. code-block:: python
+
+  from testfixtures import compare, RangeComparison as R
+
+  compare(R(123.456, 789), Decimal(555.01))
+
+.. note::
+
+  The RangeComparison class is stricly greater than or equal to
+  the lower bound and strictly less than or equal to the upper bound
+  ``lower_bound <= actual_value <= upper_bound``.
+  As seen in the example, all numeric types can be mixed and matched properly.
+
 String Comparison objects
 -------------------------
 
