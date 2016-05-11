@@ -802,13 +802,9 @@ Here's an example:
 Range Comparison objects
 -------------------------
 
-When comparing numerics you may not know precisely what value the actual
-value will be but want to confirm it's within a certain tolerance or range.
-
-For these situations, you can use :class:`RangeComparison` object
-wherever you would use ints, floats or Decimals they will compare equal to
-a pair of any int, float or Decimal that represents the acceptable
-lower and upper bounds.
+When comparing orderable types just as numbers, dates and time, you may only
+know what range a value will fall into. :class:`RangeComparison` objects
+let you confirm a value is within a certain tolerance or range.
 
 Here's an example:
 
@@ -820,10 +816,7 @@ Here's an example:
 
 .. note::
 
-  The RangeComparison class is stricly greater than or equal to
-  the lower bound and strictly less than or equal to the upper bound
-  ``lower_bound <= actual_value <= upper_bound``.
-  As seen in the example, all numeric types can be mixed and matched properly.
+  :class:`RangeComparison` is inclusive of both the lower and upper bound.
 
 String Comparison objects
 -------------------------

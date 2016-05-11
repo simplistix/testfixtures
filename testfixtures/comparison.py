@@ -689,14 +689,12 @@ def diff(x, y, x_label='', y_label=''):
 
 class RangeComparison:
     """
-    An object that can be used in comparisons of numerics to validate
-    actual falls within a certain range
+    An object that can be used in comparisons of orderable types to
+    check that a value specified within the given range.
 
-    :param lower_bound: the numeric that the actual has to be equal
-                        to or greater than
+    :param lower_bound: the inclusive lower bound for the acceptable range.
 
-    :param upper_bound: the numeric that the actual has to be equal
-                        to or less than
+    :param upper_bound: the inclusive upper bound for the acceptable range.
     """
     def __init__(self, lower_bound, upper_bound):
         self.lower_bound = lower_bound
