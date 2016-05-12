@@ -268,9 +268,51 @@ class Tests(TestCase):
     def test_command_not_specified(self):
         Popen = MockPopen()
         with ShouldRaise(KeyError(
-                "Nothing specified for command 'a command'"
+            "Nothing specified for command 'a command'"
         )):
             Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
+
+    def test_default_command_min_args(self):
+        # setup
+        Popen = MockPopen()
+        Popen.set_default()
+        # usage
+        process = Popen('a command', stdout=PIPE, stderr=PIPE)
+        # process started, no return code
+        compare(process.pid, 1234)
+        compare(None, process.returncode)
+
+        out, err = process.communicate()
+
+        # test the rest
+        compare(out, b'')
+        compare(err, b'')
+        compare(process.returncode, 0)
+        # test call list
+        compare([
+            call.Popen('a command', stderr=-1, stdout=-1),
+            call.Popen_instance.communicate(),
+        ], Popen.mock.method_calls)
+
+    def test_default_command_max_args(self):
+        Popen = MockPopen()
+        Popen.set_default(b'out', b'err', 1, 345)
+
+        process = Popen('a command', stdout=PIPE, stderr=PIPE)
+        compare(process.pid, 345)
+        compare(None, process.returncode)
+
+        out, err = process.communicate()
+
+        # test the rest
+        compare(out, b'out')
+        compare(err, b'err')
+        compare(process.returncode, 1)
+        # test call list
+        compare([
+            call.Popen('a command', stderr=-1, stdout=-1),
+            call.Popen_instance.communicate(),
+        ], Popen.mock.method_calls)
 
     def test_invalid_parameters(self):
         Popen = MockPopen()

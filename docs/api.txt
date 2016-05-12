@@ -297,9 +297,12 @@ API Reference
 
 .. autoclass:: testfixtures.manuel.Files
 
-.. autoclass:: testfixtures.popen.MockPopen
-   :members:
-
 .. data:: not_there
 
    A singleton used to represent the absence of a particular attribute.
+
+.. currentmodule:: testfixtures.popen
+
+.. autoclass:: testfixtures.popen.MockPopen
+   :members:
+

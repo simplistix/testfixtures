@@ -4,6 +4,7 @@ from mock import Mock
 from subprocess import Popen as Popen
 from tempfile import TemporaryFile
 from testfixtures.compat import basestring
+from testfixtures.utils import extend_docstring
 
 
 class MockPopen(object):
@@ -13,6 +14,8 @@ class MockPopen(object):
     :class:`subprocess.Popen` and is often inserted where it's needed using
     :func:`mock.patch` or a :class:`Replacer`.
     """
+
+    default_command = None
 
     def __init__(self):
         self.commands = {}
@@ -34,24 +37,17 @@ class MockPopen(object):
         specified command.
 
         :param command: A string representing the command to be simulated.
-        :param stdout:
-            A string representing the simulated content written by the process
-            to the stdout pipe.
-        :param stderr:
-            A string representing the simulated content written by the process
-            to the stderr pipe.
-        :param returncode:
-            An integer representing the return code of the simulated process.
-        :param pid:
-            An integer representing the process identifier of the simulated
-            process. This is useful if you have code the prints out the pids
-            of running processes.
-        :param poll_count:
-            Specifies the number of times :meth:`MockPopen.poll` can be
-            called before :attr:`MockPopen.returncode` is set and returned
-            by :meth:`MockPopen.poll`.
         """
         self.commands[command] = (stdout, stderr, returncode, pid, poll_count)
+
+    def set_default(self, stdout=b'', stderr=b'', returncode=0,
+                    pid=1234, poll_count=3):
+        """
+        Set the behaviour of this mock when it is used to simulate commands
+        that have no explicit behavior specified using
+        :meth:`~MockPopen.set_command`.
+        """
+        self.default_command = (stdout, stderr, returncode, pid, poll_count)
 
     def __call__(self, *args, **kw):
         return self.mock.Popen(*args, **kw)
@@ -67,10 +63,11 @@ class MockPopen(object):
         else:
             cmd = ' '.join(args)
 
-        if cmd not in self.commands:
+        behaviour = self.commands.get(cmd, self.default_command)
+        if behaviour is None:
             raise KeyError('Nothing specified for command %r' % cmd)
 
-        self.stdout, self.stderr, self.returncode, pid, poll = self.commands[cmd]
+        self.stdout, self.stderr, self.returncode, pid, poll = behaviour
         self.poll_count = poll
         for name in 'stdout', 'stderr':
             f = TemporaryFile()
@@ -117,3 +114,28 @@ class MockPopen(object):
     def kill(self):
         "Simulate calls to :meth:`subprocess.Popen.kill`"
         pass
+
+
+set_command_params = """
+:param stdout:
+    A string representing the simulated content written by the process
+    to the stdout pipe.
+:param stderr:
+    A string representing the simulated content written by the process
+    to the stderr pipe.
+:param returncode:
+    An integer representing the return code of the simulated process.
+:param pid:
+    An integer representing the process identifier of the simulated
+    process. This is useful if you have code the prints out the pids
+    of running processes.
+:param poll_count:
+    Specifies the number of times :meth:`MockPopen.poll` can be
+    called before :attr:`MockPopen.returncode` is set and returned
+    by :meth:`MockPopen.poll`.
+"""
+
+
+# add the param docs, so we only have one copy of them!
+extend_docstring(set_command_params,
+                 [MockPopen.set_command, MockPopen.set_default])
