@@ -3,6 +3,18 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.10.0 (17 May 2016)
+--------------------
+
+- Fixed examples in documentation broken in 4.5.1.
+
+- Add :class:`RangeComparison` for comparing against values that fall in a
+  range.
+
+- Add :meth:`~popen.MockPopen.set_default` to :class:`~popen.MockPopen`.
+
+Thanks to Asaf Peleg for the :class:`RangeComparison` implementation.
+
 4.9.1 (19 February 2016)
 ------------------------
 
