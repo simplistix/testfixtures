@@ -124,3 +124,17 @@ class TestMyFunc(TestCase):
                 call.Popen_instance.poll(),
                 call.Popen_instance.poll(),
                 ], Popen.mock.method_calls)
+
+    def test_default_behaviour(self):
+        # set up
+        self.Popen.set_default(stdout=b'o', stderr=b'e')
+
+        # testing of results
+        compare(my_func(), b'o')
+
+        # testing calls were in the right order and with the correct parameters:
+        compare([
+            call.Popen('svn ls -R foo',
+                       shell=True, stderr=PIPE, stdout=PIPE),
+            call.Popen_instance.communicate()
+            ], Popen.mock.method_calls)

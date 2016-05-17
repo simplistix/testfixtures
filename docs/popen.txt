@@ -1,3 +1,6 @@
+
+.. currentmodule:: testfixtures.popen
+
 Testing use of the subprocess package
 =====================================
 
@@ -111,3 +114,20 @@ the following example:
 .. literalinclude:: ../testfixtures/tests/test_popen_docs.py
    :pyobject: TestMyFunc.test_poll_until_result
    :dedent: 4
+
+Using default behaviour
+-----------------------
+
+If you're testing something that needs to make many calls to many different
+commands that all behave the same, it can be tedious to specify the behaviour
+of each with :class:`~MockPopen.set_command`. For this case, :class:`~MockPopen`
+has the :class:`~MockPopen.set_default` method which can be used to set the
+behaviour of any command that has not been specified with
+:class:`~MockPopen.set_command` as shown in the
+following example:
+
+.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+   :pyobject: TestMyFunc.test_default_behaviour
+   :dedent: 4
+
+
