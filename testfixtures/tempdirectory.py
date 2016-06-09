@@ -164,9 +164,7 @@ class TempDirectory:
         :param expected: A sequence of strings containing the paths
                          expected in the directory. These paths should
                          be forward-slash separated and relative to
-                         the root of the temporary directory. The sequence
-                         should be sorted, otherwise the comparison will
-                         fail (even if the paths are the same).
+                         the root of the temporary directory.
 
         :param path: The path to use as the root for the comparison,
                      relative to the root of the temporary directory.
@@ -190,7 +188,7 @@ class TempDirectory:
                             will be followed when recursively building up
                             the actual list of directory contents.
         """
-        compare(expected,
+        compare(expected=sorted(expected),
                 actual=tuple(self.actual(
                     path, recursive, files_only, followlinks
                 )),

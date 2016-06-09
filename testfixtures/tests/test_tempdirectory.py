@@ -215,13 +215,21 @@ class TempDirectoryTests(TestCase):
             d.check_all('', 'a/', 'a/b/', 'a/b/c')
             d.check_all('a', 'b/', 'b/c')
 
-    def test_compare_sort(self):
+    def test_compare_sort_actual(self):
         with TempDirectory() as d:
             d.write('ga', b'')
             d.write('foo1', b'')
             d.write('Foo2', b'')
             d.write('g.o', b'')
             d.compare(['Foo2', 'foo1', 'g.o', 'ga'])
+
+    def test_compare_sort_expected(self):
+        with TempDirectory() as d:
+            d.write('ga', b'')
+            d.write('foo1', b'')
+            d.write('Foo2', b'')
+            d.write('g.o', b'')
+            d.compare(['Foo2', 'ga', 'foo1', 'g.o'])
 
     def test_compare_path_tuple(self):
         with TempDirectory() as d:
