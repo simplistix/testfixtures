@@ -158,12 +158,15 @@ class TempDirectory:
                 followlinks=False):
         """
         Compare the expected contents with the actual contents of the temporary
-        directory.
+        directory. An :class:`AssertionError` will be raised if they are not the
+        same.
 
         :param expected: A sequence of strings containing the paths
                          expected in the directory. These paths should
                          be forward-slash separated and relative to
-                         the root of the temporary directory.
+                         the root of the temporary directory. The sequence
+                         should be sorted, otherwise the comparison will
+                         fail (even if the paths are the same).
 
         :param path: The path to use as the root for the comparison,
                      relative to the root of the temporary directory.
