@@ -85,3 +85,14 @@ Bar
 Foo
 Baz
 <BLANKLINE>
+
+.. note::
+
+  Some debuggers, notably :mod:`pdb`, do interesting things with streams
+  such that calling :meth:`~OutputCapture.disable` from within the debugger
+  will have no effect. A good fallback is to type the following, which will
+  almost always restore output to where you want it:
+
+  .. code-block:: python
+
+    import sys; sys.stdout=sys.__stdout__
