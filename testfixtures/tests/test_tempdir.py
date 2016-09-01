@@ -113,12 +113,12 @@ class TestTempDir(TestCase):
 
     @tempdir()
     def test_path_end_seperator(self, d):    
-        d.write('source/foo/bar.txt', '')
+        d.write('source/foo/bar.txt', b'')
 
         d.compare(path='source/', expected=['foo/', 'foo/bar.txt']) 
 
     @tempdir()
     def test_path_not_end_seperator(self, d):    
-        d.write('source/foo/bar.txt', '')
+        d.write('source/foo/bar.txt', b'')
 
         d.compare(path='source', expected=['foo/', 'foo/bar.txt']) 
