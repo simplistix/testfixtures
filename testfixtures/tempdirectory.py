@@ -94,6 +94,9 @@ class TempDirectory:
                path=None, recursive=False, files_only=False, followlinks=False):
         path = self._join(path) if path else self.path
 
+        # strip any ending '/' in path
+        path = path[:-1] if path.endswith('/') else path
+
         result = []
         if recursive:
             for dirpath, dirnames, filenames in os.walk(
