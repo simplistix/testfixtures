@@ -3,6 +3,20 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.10.1 (5 September 2016)
+-------------------------
+
+- Better docs for :meth:`TempDirectory.compare`.
+
+- Remove the need for expected paths supplied to :meth:`TempDirectory.compare`
+  to be in sorted order.
+
+- Document a good way of restoring ``stdout`` when in a debugger.
+
+- Fix handling of trailing slashes in :meth:`TempDirectory.compare`.
+
+Thanks to Maximilian Albert for the :meth:`TempDirectory.compare` docs.
+
 4.10.0 (17 May 2016)
 --------------------
 
