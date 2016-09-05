@@ -370,6 +370,11 @@ class TempDirectoryTests(TestCase):
             d.compare(['baz/', 'baz/bar.txt', 'foo/', 'foo/bar.txt'],
                       followlinks=True)
 
+    def test_trailing_slash(self):
+        with TempDirectory() as d:
+            d.write('source/foo/bar.txt', b'x')
+            d.compare(path='source/', expected=['foo/', 'foo/bar.txt'])
+
 
 
 # using a set up and teardown function

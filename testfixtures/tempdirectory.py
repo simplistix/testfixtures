@@ -271,8 +271,8 @@ class TempDirectory:
         # make things platform independent
         if isinstance(name, basestring):
             name = name.split('/')
-        relative = os.sep.join(name)
-        if relative.startswith('/'):
+        relative = os.sep.join(name).rstrip(os.sep)
+        if relative.startswith(os.sep):
             if relative.startswith(self.path):
                 return relative
             raise ValueError(
