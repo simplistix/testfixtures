@@ -3,6 +3,15 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.11.0 (12 October 2016)
+-------------------------
+
+- Allow the attributes returned in :meth:`LogCapture.actual` rows to be
+  specified.
+
+- Allow a default to be specified for encoding in :meth:`TempDirectory.read` and
+  meth:`TempDirectory.write`.
+
 4.10.1 (5 September 2016)
 -------------------------
 
