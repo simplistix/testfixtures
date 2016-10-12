@@ -26,19 +26,26 @@ class LogCapture(logging.Handler):
                       `propagate` attribute set to the supplied value. This can
                       be used to prevent propagation from a child logger to a
                       parent logger that has configured handlers.
+
+    :param attributes: The sequence of attributes to return for each record.
+                       If an attribute is callable, it will be called and that
+                       value used. If an attribute is missing, ``None`` will
+                       be used in its place.
     """
 
     instances = set()
     atexit_setup = False
     installed = False
 
-    def __init__(self, names=None, install=True, level=1, propagate=None):
+    def __init__(self, names=None, install=True, level=1, propagate=None,
+                 attributes=('name', 'levelname', 'getMessage')):
         logging.Handler.__init__(self)
         if not isinstance(names, tuple):
             names = (names, )
         self.names = names
         self.level = level
         self.propagate = propagate
+        self.attributes = attributes
         self.old = defaultdict(dict)
         self.clear()
         if install:
@@ -110,7 +117,14 @@ class LogCapture(logging.Handler):
 
     def actual(self):
         for r in self.records:
-            yield (r.name, r.levelname, r.getMessage())
+            result = tuple(
+                a_() if callable(a_) else a_ for a_ in
+                    (getattr(r, a, None) for a in self.attributes)
+            )
+            if len(result) == 1:
+                yield result[0]
+            else:
+                yield result
 
     def __str__(self):
         if not self.records:

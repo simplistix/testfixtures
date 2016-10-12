@@ -133,3 +133,32 @@ class TestLog_Capture(TestCase):
 
         global_log.check()
         compare(logger.propagate, True)
+
+    def test_different_attributes(self):
+        with LogCapture(attributes=('funcName', 'processName')) as log:
+            getLogger().info('oh hai')
+        log.check(
+            ('test_different_attributes', 'MainProcess')
+        )
+
+    def test_missing_attribute(self):
+        with LogCapture(attributes=('msg', 'lolwut')) as log:
+            getLogger().info('oh %s', 'hai')
+        log.check(
+            ('oh %s', None)
+        )
+
+    def test_single_attribute(self):
+        # one which isn't a string, to boot!
+        with LogCapture(attributes=['msg']) as log:
+            getLogger().info(dict(foo='bar', baz='bob'))
+        log.check(
+            dict(foo='bar', baz='bob'),
+        )
+
+    def test_msg_is_none(self):
+        with LogCapture(attributes=('msg', 'foo')) as log:
+            getLogger().info(None, extra=dict(foo='bar'))
+        log.check(
+            (None, 'bar')
+        )
