@@ -375,6 +375,19 @@ class TempDirectoryTests(TestCase):
             d.write('source/foo/bar.txt', b'x')
             d.compare(path='source/', expected=['foo/', 'foo/bar.txt'])
 
+    def test_default_encoding(self):
+        encoded = b'\xc2\xa3'
+        decoded = encoded.decode('utf-8')
+        with TempDirectory(encoding='utf-8') as d:
+            d.write('test.txt', decoded)
+            compare(d.read('test.txt'), expected=decoded)
+
+    def test_override_default_encoding(self):
+        encoded = b'\xc2\xa3'
+        decoded = encoded.decode('utf-8')
+        with TempDirectory(encoding='ascii') as d:
+            d.write('test.txt', decoded, encoding='utf-8')
+            compare(d.read('test.txt', encoding='utf-8'), expected=decoded)
 
 
 # using a set up and teardown function

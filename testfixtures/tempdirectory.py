@@ -30,6 +30,10 @@ class TempDirectory:
                  physical path to use as the temporary directory. When
                  passed, :class:`TempDirectory` will not create a new
                  directory to use.
+
+    :param encoding: A default encoding to use for :meth:`read` and
+                     :meth:`write` operations when the ``encoding`` parameter
+                     is not passed to those methods.
     """
 
     instances = set()
@@ -38,11 +42,12 @@ class TempDirectory:
     #: The physical path of the :class:`TempDirectory` on disk
     path = None
 
-    def __init__(self, ignore=(), create=True, path=None):
+    def __init__(self, ignore=(), create=True, path=None, encoding=None):
         self.ignore = []
         for regex in ignore:
             self.ignore.append(compile(regex))
         self.path = path
+        self.encoding = encoding
         self.dont_remove = bool(path)
         if create:
             self.create()
@@ -328,6 +333,7 @@ class TempDirectory:
             if not os.path.exists(dirpath):
                 os.makedirs(dirpath)
         thepath = self._join(filepath)
+        encoding = encoding or self.encoding
         if encoding is not None:
             data = data.encode(encoding)
         with open(thepath, 'wb') as f:
@@ -370,6 +376,7 @@ class TempDirectory:
         """
         with open(self._join(filepath), 'rb') as f:
             data = f.read()
+        encoding = encoding or self.encoding
         if encoding is not None:
             return data.decode(encoding)
         return data
