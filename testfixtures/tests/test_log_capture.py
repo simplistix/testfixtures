@@ -1,7 +1,9 @@
 # Copyright (c) 2008-2013 Simplistix Ltd
 # See license.txt for license details.
 
-from testfixtures import log_capture, compare, Comparison as C, LogCapture
+from testfixtures import (
+    log_capture, compare, Comparison as C, LogCapture, ShouldRaise
+)
 from unittest import TestCase
 
 from logging import getLogger
@@ -162,3 +164,43 @@ class TestLog_Capture(TestCase):
         log.check(
             (None, 'bar')
         )
+
+    def test_normal_check(self):
+        with LogCapture() as log:
+            getLogger().info('oh hai')
+
+        with ShouldRaise(AssertionError) as s:
+            log.check(('root', 'INFO', 'oh noez'))
+
+        compare(str(s.raised), expected=(
+            "sequence not as expected:\n\n"
+            "same:\n"
+            "()\n\n"
+            "expected:\n"
+            "(('root', 'INFO', 'oh noez'),)\n\n"
+            "actual:\n"
+            "(('root', 'INFO', 'oh hai'),)"
+        ))
+
+    def test_recursive_check(self):
+
+        with LogCapture(recursive_check=True) as log:
+            getLogger().info('oh hai')
+
+        with ShouldRaise(AssertionError) as s:
+            log.check(('root', 'INFO', 'oh noez'))
+
+        compare(str(s.raised), expected=(
+            "sequence not as expected:\n\n"
+            "same:\n()\n\n"
+            "expected:\n(('root', 'INFO', 'oh noez'),)\n\n"
+            "actual:\n(('root', 'INFO', 'oh hai'),)\n\n"
+            "While comparing [0]: sequence not as expected:\n\n"
+            "same:\n('root', 'INFO')\n\n"
+            "expected:\n"
+            "('oh noez',)\n\n"
+            "actual:\n"
+            "('oh hai',)\n\n"
+            "While comparing [0][2]: 'oh noez' (expected) != 'oh hai' (actual)"
+        ))
+

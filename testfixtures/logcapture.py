@@ -31,6 +31,11 @@ class LogCapture(logging.Handler):
                        If an attribute is callable, it will be called and that
                        value used. If an attribute is missing, ``None`` will
                        be used in its place.
+
+    :param recursive_check:
+
+      If ``True``, log messages will be compared recursively by
+      :meth:`LogCapture.check`.
     """
 
     instances = set()
@@ -38,7 +43,8 @@ class LogCapture(logging.Handler):
     installed = False
 
     def __init__(self, names=None, install=True, level=1, propagate=None,
-                 attributes=('name', 'levelname', 'getMessage')):
+                 attributes=('name', 'levelname', 'getMessage'),
+                 recursive_check=False):
         logging.Handler.__init__(self)
         if not isinstance(names, tuple):
             names = (names, )
@@ -46,6 +52,7 @@ class LogCapture(logging.Handler):
         self.level = level
         self.propagate = propagate
         self.attributes = attributes
+        self.recursive_check = recursive_check
         self.old = defaultdict(dict)
         self.clear()
         if install:
@@ -144,7 +151,7 @@ class LogCapture(logging.Handler):
         return compare(
             expected,
             actual=tuple(self.actual()),
-            recursive=False
+            recursive=self.recursive_check
             )
 
     def __enter__(self):
