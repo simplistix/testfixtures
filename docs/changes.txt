@@ -3,6 +3,14 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.12.0 (18 October 2016)
+------------------------
+
+- Add support for specifying a callable to extract rows from log records
+  when using :class:`LogCapture`.
+
+- Add support for recursive comparison of log messages with :class:`LogCapture`.
+
 4.11.0 (12 October 2016)
 -------------------------
 
@@ -10,7 +18,7 @@ Changes
   specified.
 
 - Allow a default to be specified for encoding in :meth:`TempDirectory.read` and
-  meth:`TempDirectory.write`.
+  :meth:`TempDirectory.write`.
 
 4.10.1 (5 September 2016)
 -------------------------
