@@ -158,6 +158,16 @@ class TestLog_Capture(TestCase):
             dict(foo='bar', baz='bob'),
         )
 
+    def test_callable_instead_of_attribute(self):
+        def extract_msg(record):
+            return {k: v for (k, v) in record.msg.items()
+                    if k != 'baz'}
+        with LogCapture(attributes=extract_msg) as log:
+            getLogger().info(dict(foo='bar', baz='bob'))
+        log.check(
+            dict(foo='bar'),
+        )
+
     def test_msg_is_none(self):
         with LogCapture(attributes=('msg', 'foo')) as log:
             getLogger().info(None, extra=dict(foo='bar'))

@@ -27,10 +27,18 @@ class LogCapture(logging.Handler):
                       be used to prevent propagation from a child logger to a
                       parent logger that has configured handlers.
 
-    :param attributes: The sequence of attributes to return for each record.
-                       If an attribute is callable, it will be called and that
-                       value used. If an attribute is missing, ``None`` will
-                       be used in its place.
+    :param attributes:
+
+      The sequence of attribute names to return for each record or a callable
+      that extracts a row from a record..
+
+      If a sequence of attribute names, those attributes will be taken from the
+      :class:`~logging.LogRecord`. If an attribute is callable, the value
+      used will be the result of calling it. If an attribute is missing,
+      ``None`` will be used in its place.
+
+      If a callable, it will be called with the :class:`~logging.LogRecord`
+      and the value returned will be used as the row..
 
     :param recursive_check:
 
@@ -122,16 +130,23 @@ class LogCapture(logging.Handler):
         for i in tuple(cls.instances):
             i.uninstall()
 
+    def _actual_row(self, record):
+        for a in self.attributes:
+            value = getattr(record, a, None)
+            if callable(value):
+                value = value()
+            yield value
+
     def actual(self):
         for r in self.records:
-            result = tuple(
-                a_() if callable(a_) else a_ for a_ in
-                    (getattr(r, a, None) for a in self.attributes)
-            )
-            if len(result) == 1:
-                yield result[0]
+            if callable(self.attributes):
+                yield self.attributes(r)
             else:
-                yield result
+                result = tuple(self._actual_row(r))
+                if len(result) == 1:
+                    yield result[0]
+                else:
+                    yield result
 
     def __str__(self):
         if not self.records:
