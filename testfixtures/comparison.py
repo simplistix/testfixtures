@@ -17,6 +17,8 @@ def compare_simple(x, y, context):
     """
     Returns a very simple textual difference between the two supplied objects.
     """
+    if context.ignore_eq and hash(x) == hash(y):
+        return
     return context.label('x', repr(x)) + ' != ' + context.label('y', repr(y))
 
 
@@ -441,6 +443,12 @@ def compare(*args, **kw):
 
     :param strict: If ``True``, objects will only compare equal if they are
                    of the same type as well as being equal.
+
+    :param ignore_eq: If ``True``, object equality, which relies on ``__eq__``
+                      being correctly implemented, will not be used.
+                      Instead, comparers will be looked up and used
+                      and, if no suitable comparer is found, objects will
+                      be considered equal if their hash is equal.
 
     :param comparers: If supplied, should be a dictionary mapping
                       types to comparer functions for those types. These will

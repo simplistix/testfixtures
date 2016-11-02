@@ -1336,3 +1336,38 @@ b
             ignore_eq=True
         )
 
+    def test_django_orm_is_horrible_part_2(self):
+
+        class OrmObj(object):
+            def __init__(self, a):
+                self.a = a
+            def __eq__(self, other):
+                return True
+            def __repr__(self):
+                return 'OrmObj: '+str(self.a)
+
+        def compare_orm_obj(x, y, context):
+            return context.different(x.a, y.a, '.a')
+
+        compare(OrmObj(1), OrmObj(1),
+                comparers={OrmObj: compare_orm_obj},
+                ignore_eq=True)
+
+    def test_django_orm_is_horrible_part_3(self):
+
+        class OrmObj(object):
+            def __init__(self, a):
+                self.a = a
+            def __eq__(self, other):
+                return True
+            def __repr__(self):
+                return 'OrmObj: '+str(self.a)
+
+        self.checkRaises(
+            message=(
+                "OrmObj: 1 (expected) != OrmObj: 1 (actual)"
+            ),
+            expected=OrmObj(1),
+            actual=OrmObj(1),
+            ignore_eq=True
+        )
