@@ -1,5 +1,8 @@
 # Copyright (c) 2008-2014 Simplistix Ltd
 # See license.txt for license details.
+from datetime import date
+
+from functools import partial
 
 from collections import namedtuple
 from mock import Mock, call
@@ -1349,9 +1352,16 @@ b
         def compare_orm_obj(x, y, context):
             return context.different(x.a, y.a, '.a')
 
-        compare(OrmObj(1), OrmObj(1),
-                comparers={OrmObj: compare_orm_obj},
-                ignore_eq=True)
+        t_compare = partial(compare,
+                            comparers={OrmObj: compare_orm_obj},
+                            ignore_eq=True )
+
+        t_compare(OrmObj(1), OrmObj(1))
+        t_compare(OrmObj('some longish string'),
+                  OrmObj('some longish string'))
+        t_compare(OrmObj(date(2016, 1, 1)),
+                  OrmObj(date(2016, 1, 1)))
+
 
     def test_django_orm_is_horrible_part_3(self):
 
@@ -1363,11 +1373,19 @@ b
             def __repr__(self):
                 return 'OrmObj: '+str(self.a)
 
-        self.checkRaises(
-            message=(
-                "OrmObj: 1 (expected) != OrmObj: 1 (actual)"
-            ),
-            expected=OrmObj(1),
-            actual=OrmObj(1),
-            ignore_eq=True
-        )
+        if PY3:
+            with ShouldRaise(TypeError("unhashable type: 'OrmObj'")):
+                compare(
+                    expected=OrmObj(1),
+                    actual=OrmObj(1),
+                    ignore_eq=True
+                )
+        else:
+            self.checkRaises(
+                message=(
+                    "OrmObj: 1 (expected) != OrmObj: 1 (actual)"
+                ),
+                expected=OrmObj(1),
+                actual=OrmObj(1),
+                ignore_eq=True
+            )
