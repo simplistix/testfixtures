@@ -3,6 +3,11 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.13.0 (2 November 2016)
+------------------------
+
+- Add support to :func:`compare` for ignoring broken ``__eq__`` implementations.
+
 4.12.0 (18 October 2016)
 ------------------------
 
