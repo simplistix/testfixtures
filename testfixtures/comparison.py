@@ -73,7 +73,7 @@ def compare_generator(x, y, context):
     x = tuple(x)
     y = tuple(y)
 
-    if x == y:
+    if not context.ignore_eq and x == y:
         return
 
     return compare_sequence(x, y, context)
@@ -311,6 +311,7 @@ class CompareContext(object):
 
         self.recursive = options.pop('recursive', True)
         self.strict = options.pop('strict', False)
+        self.ignore_eq = options.pop('ignore_eq', False)
 
         if 'expected' in options or 'actual' in options:
             self.x_label = 'expected'
@@ -380,7 +381,7 @@ class CompareContext(object):
         current_message = ''
         try:
 
-            if not self.strict and x == y:
+            if not (self.strict or self.ignore_eq) and x == y:
                 return False
 
             comparer = self._lookup(x, y)

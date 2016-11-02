@@ -553,6 +553,44 @@ AssertionError: Decimal('2.001') != Decimal('2.009') when rounded to 2 decimal p
 
 .. _strict-comparison:
 
+Ignoring ``__eq__``
+~~~~~~~~~~~~~~~~~~~
+
+Some objects, such as those from the Django ORM, have pretty broken
+implementations or ``__eq__``. Since :func:`compare` normally relies on this,
+it can result in objects appearing to be equal when they are not.
+
+Take this class, for example:
+
+.. code-block:: python
+
+  class OrmObj(object):
+      def __init__(self, a):
+          self.a = a
+      def __eq__(self, other):
+          return True
+      def __repr__(self):
+          return 'OrmObj: '+str(self.a)
+
+If we compare normally, we erroneously understand the objects to be equal:
+
+>>> compare(actual=OrmObj(1), expected=OrmObj(2))
+
+In order to get a sane comparison, we need to both supply a custom comparer
+as described above, and use the ``ignore_eq`` parameter:
+
+.. code-block:: python
+
+  def compare_orm_obj(x, y, context):
+      if x.a != y.a:
+          return 'OrmObj: %s != %s' % (x.a, y.a)
+
+>>> compare(actual=OrmObj(1), expected=OrmObj(2),
+...         comparers={OrmObj: compare_orm_obj}, ignore_eq=True)
+Traceback (most recent call last):
+...
+AssertionError: OrmObj: 2 != 1
+
 Strict comparison
 ~~~~~~~~~~~~~~~~~
 

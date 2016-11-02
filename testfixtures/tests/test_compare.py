@@ -1303,3 +1303,36 @@ b
 
     def test_dont_raise(self):
         self.assertEqual(compare('x', 'y', raises=False), "'x' != 'y'")
+
+    def test_django_orm_is_horrible(self):
+
+        class OrmObj(object):
+            def __init__(self, a):
+                self.a = a
+            def __eq__(self, other):
+                return True
+            def __repr__(self):
+                return 'OrmObj: '+str(self.a)
+
+        def query_set():
+            yield OrmObj(1)
+            yield OrmObj(2)
+
+        def compare_orm_obj(x, y, context):
+            if x.a != y.a:
+                return 'OrmObj: %s != %s' % (x.a, y.a)
+
+        self.checkRaises(
+            message=(
+                "sequence not as expected:\n\n"
+                "same:\n(OrmObj: 1,)\n\n"
+                "expected:\n(OrmObj: 3,)\n\n"
+                "actual:\n(OrmObj: 2,)\n\n"
+                "While comparing [1]: OrmObj: 3 != 2"
+            ),
+            expected=[OrmObj(1), OrmObj(3)],
+            actual=query_set(),
+            comparers={OrmObj: compare_orm_obj},
+            ignore_eq=True
+        )
+
