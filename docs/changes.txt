@@ -3,6 +3,12 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.13.1 (2 November 2016)
+------------------------
+
+- When ``ignore_eq`` is used with :func:`compare`, fall back to comparing by
+  hash if not type-specific comparer can be found.
+
 4.13.0 (2 November 2016)
 ------------------------
 
