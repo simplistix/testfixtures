@@ -7,7 +7,7 @@ import sys
 import time
 import warnings
 
-if sys.platform.startswith("win"):
+if sys.platform.startswith("win"): # pragma: no cover
     def _waitfor(func, pathname, waitall=False):
         # Perform the operation
         func(pathname)
