@@ -181,6 +181,7 @@ class LogCaptureForDecorator(LogCapture):
 
     def install(self):
         LogCapture.install(self)
+        self.clear()
         return self
 
 

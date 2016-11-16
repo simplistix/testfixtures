@@ -214,3 +214,20 @@ class TestLog_Capture(TestCase):
             "While comparing [0][2]: 'oh noez' (expected) != 'oh hai' (actual)"
         ))
 
+
+class BaseCaptureTest(TestCase):
+    a = 33
+
+    @log_capture()
+    def test_logs_if_a_smaller_than_44(self, logs):
+        logger = getLogger()
+        if self.a < 44:
+            logger.info('{} is smaller than 44'.format(self.a))
+
+        logs.check(
+            ('root', 'INFO', '{} is smaller than 44'.format(self.a)),
+        )
+
+
+class SubclassCaptureTest(BaseCaptureTest):
+    a = 2
