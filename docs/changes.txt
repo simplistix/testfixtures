@@ -3,6 +3,14 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.13.2 (16 November 2016)
+-------------------------
+
+- Fixed a bug where a :class:`LogCapture` wouldn't be cleared when used via
+  :func:`log_capture` on a base class and sub class execute the same test.
+
+Thanks to "mlabonte" for the bug report.
+
 4.13.1 (2 November 2016)
 ------------------------
 
