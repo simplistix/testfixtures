@@ -88,7 +88,8 @@ class LogCapture(logging.Handler):
         framework for the named loggers.
 
         This will remove any existing handlers for those loggers and
-        drop their level to 1 in order to capture all logging.
+        drop their level to that specified on this :class:`LogCapture` in order
+        to capture all logging.
         """
         for name in self.names:
             logger = logging.getLogger(name)
