@@ -3,6 +3,12 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.13.3 (13 December 2016)
+-------------------------
+
+- :func:`compare` now better handled equality comparison with ``ignore_eq=True``
+  when either of the objects being compared cannot be hashed.
+
 4.13.2 (16 November 2016)
 -------------------------
 
