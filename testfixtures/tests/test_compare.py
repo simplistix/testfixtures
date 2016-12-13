@@ -1307,19 +1307,18 @@ b
     def test_dont_raise(self):
         self.assertEqual(compare('x', 'y', raises=False), "'x' != 'y'")
 
+    class OrmObj(object):
+        def __init__(self, a):
+            self.a = a
+        def __eq__(self, other):
+            return True
+        def __repr__(self):
+            return 'OrmObj: '+str(self.a)
+
     def test_django_orm_is_horrible(self):
-
-        class OrmObj(object):
-            def __init__(self, a):
-                self.a = a
-            def __eq__(self, other):
-                return True
-            def __repr__(self):
-                return 'OrmObj: '+str(self.a)
-
         def query_set():
-            yield OrmObj(1)
-            yield OrmObj(2)
+            yield self.OrmObj(1)
+            yield self.OrmObj(2)
 
         def compare_orm_obj(x, y, context):
             if x.a != y.a:
@@ -1333,35 +1332,26 @@ b
                 "actual:\n(OrmObj: 2,)\n\n"
                 "While comparing [1]: OrmObj: 3 != 2"
             ),
-            expected=[OrmObj(1), OrmObj(3)],
+            expected=[self.OrmObj(1), self.OrmObj(3)],
             actual=query_set(),
-            comparers={OrmObj: compare_orm_obj},
+            comparers={self.OrmObj: compare_orm_obj},
             ignore_eq=True
         )
 
     def test_django_orm_is_horrible_part_2(self):
 
-        class OrmObj(object):
-            def __init__(self, a):
-                self.a = a
-            def __eq__(self, other):
-                return True
-            def __repr__(self):
-                return 'OrmObj: '+str(self.a)
-
         def compare_orm_obj(x, y, context):
             return context.different(x.a, y.a, '.a')
 
         t_compare = partial(compare,
-                            comparers={OrmObj: compare_orm_obj},
-                            ignore_eq=True )
+                            comparers={self.OrmObj: compare_orm_obj},
+                            ignore_eq=True)
 
-        t_compare(OrmObj(1), OrmObj(1))
-        t_compare(OrmObj('some longish string'),
-                  OrmObj('some longish string'))
-        t_compare(OrmObj(date(2016, 1, 1)),
-                  OrmObj(date(2016, 1, 1)))
-
+        t_compare(self.OrmObj(1), self.OrmObj(1))
+        t_compare(self.OrmObj('some longish string'),
+                  self.OrmObj('some longish string'))
+        t_compare(self.OrmObj(date(2016, 1, 1)),
+                  self.OrmObj(date(2016, 1, 1)))
 
     def test_django_orm_is_horrible_part_3(self):
 
