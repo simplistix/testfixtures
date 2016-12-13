@@ -1354,28 +1354,19 @@ b
                   self.OrmObj(date(2016, 1, 1)))
 
     def test_django_orm_is_horrible_part_3(self):
+        self.checkRaises(
+            message=(
+                "OrmObj: 1 (expected) != OrmObj: 1 (actual)"
+            ),
+            expected=self.OrmObj(1),
+            actual=self.OrmObj(1),
+            ignore_eq=True
+        )
 
-        class OrmObj(object):
-            def __init__(self, a):
-                self.a = a
-            def __eq__(self, other):
-                return True
-            def __repr__(self):
-                return 'OrmObj: '+str(self.a)
-
-        if PY3:
-            with ShouldRaise(TypeError("unhashable type: 'OrmObj'")):
-                compare(
-                    expected=OrmObj(1),
-                    actual=OrmObj(1),
-                    ignore_eq=True
-                )
-        else:
-            self.checkRaises(
-                message=(
-                    "OrmObj: 1 (expected) != OrmObj: 1 (actual)"
-                ),
-                expected=OrmObj(1),
-                actual=OrmObj(1),
-                ignore_eq=True
-            )
+    def test_django_orm_is_horrible_part_4(self):
+        self.checkRaises(
+            message='[1] (expected) != 2 (actual)',
+            expected=[1],
+            actual=2,
+            ignore_eq=True
+        )

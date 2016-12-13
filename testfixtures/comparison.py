@@ -17,8 +17,14 @@ def compare_simple(x, y, context):
     """
     Returns a very simple textual difference between the two supplied objects.
     """
-    if context.ignore_eq and hash(x) == hash(y):
-        return
+    if context.ignore_eq:
+        try:
+            hash_eq = hash(x) == hash(y)
+        except TypeError:
+            pass
+        else:
+            if hash_eq:
+                return
     return context.label('x', repr(x)) + ' != ' + context.label('y', repr(y))
 
 
