@@ -1316,6 +1316,9 @@ b
             return 'OrmObj: '+str(self.a)
 
     def test_django_orm_is_horrible(self):
+
+        self.assertTrue(self.OrmObj(1) == self.OrmObj(2))
+
         def query_set():
             yield self.OrmObj(1)
             yield self.OrmObj(2)
