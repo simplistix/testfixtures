@@ -3,9 +3,11 @@ import datetime
 import os
 import pkginfo
 import sys
+import time
 
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 pkg_info = pkginfo.Develop(os.path.join(os.path.dirname(__file__), '..'))
+build_date = datetime.datetime.utcfromtimestamp(int(os.environ.get('SOURCE_DATE_EPOCH', time.time())))
 
 extensions = [
     'sphinx.ext.autodoc',
@@ -18,7 +20,7 @@ intersphinx_mapping = {'http://docs.python.org': None}
 source_suffix = '.txt'
 master_doc = 'index'
 project = pkg_info.name
-copyright = '2008-2015 Simplistix Ltd, %s Chris Withers' % datetime.datetime.now().year
+copyright = '2008-2015 Simplistix Ltd, %s Chris Withers' % build_date.year
 version = release = pkg_info.version
 exclude_trees = ['_build']
 exclude_patterns = ['description.txt']
