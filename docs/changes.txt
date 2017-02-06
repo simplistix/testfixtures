@@ -3,6 +3,13 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.13.4 (6 February 2016)
+------------------------
+
+- Keep the `Reproducible Builds`__ guys happy.
+
+  __ https://reproducible-builds.org/
+
 4.13.3 (13 December 2016)
 -------------------------
 
