@@ -270,7 +270,6 @@ class TestShouldRaise(TestCase):
         to_test()
 
     def test_identical_reprs(self):
-
         class AnnoyingException(Exception):
             def __init__(self, **kw):
                 self.other = kw.get('other')
@@ -279,7 +278,6 @@ class TestShouldRaise(TestCase):
             with ShouldRaise(AnnoyingException(other='bar')):
                 raise AnnoyingException(other='baz')
         except AssertionError as e:
-            print(repr(e))
             self.assertEqual(
                 C(AssertionError(
                     "AnnoyingException() raised, AnnoyingException() expected,"

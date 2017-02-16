@@ -61,7 +61,6 @@ class ShouldRaise(object):
                         repr_actual, repr_expected
                     )
                     if repr_actual == repr_expected:
-                        print(str(comparison).split('\n'))
                         extra = [', attributes differ:']
                         extra.extend(str(comparison).split('\n')[2:-1])
                         message += '\n'.join(extra)
