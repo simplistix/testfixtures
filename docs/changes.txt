@@ -3,7 +3,13 @@ Changes
 
 .. currentmodule:: testfixtures
 
-4.13.4 (6 February 2016)
+4.13.5 (1 March 2017)
+-------------------------
+
+- :func:`compare` now correctly compares nested empty dictionaries when using
+  ``ignore_eq=True``.
+
+4.13.4 (6 February 2017)
 ------------------------
 
 - Keep the `Reproducible Builds`__ guys happy.
@@ -13,7 +19,7 @@ Changes
 4.13.3 (13 December 2016)
 -------------------------
 
-- :func:`compare` now better handled equality comparison with ``ignore_eq=True``
+- :func:`compare` now better handles equality comparison with ``ignore_eq=True``
   when either of the objects being compared cannot be hashed.
 
 4.13.2 (16 November 2016)
