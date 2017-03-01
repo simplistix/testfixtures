@@ -137,11 +137,12 @@ def _compare_mapping(x, y, context, obj_for_class):
                 ))
         else:
             same.append(key)
+
+    if not (x_not_y or y_not_x or diffs):
+        return
+
     lines = ['%s not as expected:' % obj_for_class.__class__.__name__]
     if same:
-        set_same = set(same)
-        if set_same == x_keys == y_keys:
-            return
         lines.extend(('', 'same:', repr(same)))
 
     x_label = context.x_label or 'first'

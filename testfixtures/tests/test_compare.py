@@ -982,6 +982,12 @@ b
             "'y': 1 != 2"
             )
 
+    def test_nested_dict_empty_but_same(self):
+        compare(dict(x=dict()), dict(x=dict()), ignore_eq=True)
+
+    def test_nested_dict_empty_with_keys(self):
+        compare(dict(x=dict(x=1)), dict(x=dict(x=1)), ignore_eq=True)
+
     def test_tuple_list_different(self):
         self.checkRaises(
             (1, [2, 3, 5]), (1, [2, 4, 5]),
