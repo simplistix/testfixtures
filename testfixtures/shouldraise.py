@@ -44,6 +44,9 @@ class ShouldRaise(object):
         return self
 
     def __exit__(self, type, actual, traceback):
+
+        __tracebackhide__ = True
+        
         # bug in python :-(
         if type is not None and not isinstance(actual, type):
             # fixed in 2.7 onwards!

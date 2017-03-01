@@ -462,6 +462,9 @@ def compare(*args, **kw):
                       be added to the global comparer registry for the duration
                       of this call.
     """
+
+    __tracebackhide__ = True
+
     prefix = kw.pop('prefix', None)
     suffix = kw.pop('suffix', None)
     raises = kw.pop('raises', True)
