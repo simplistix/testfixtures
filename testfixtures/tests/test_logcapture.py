@@ -16,7 +16,7 @@ two = getLogger('two')
 child = getLogger('one.child')
 
 
-class TestLogCapture:
+class TestLogCapture(TestCase):
 
     def test_simple(self):
         root.info('before')

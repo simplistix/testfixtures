@@ -1,10 +1,11 @@
 # Copyright (c) 2008-2013 Simplistix Ltd
 # See license.txt for license details.
+from unittest import TestCase
 
 from testfixtures import Replacer, ShouldRaise
 
 
-class TestReplacer:
+class TestReplacer(TestCase):
 
     def test_function(self):
         from testfixtures.tests import sample1

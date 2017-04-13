@@ -16,6 +16,7 @@ class TestComponents:
     Instantiation will install an empty registry that will be returned
     by :func:`zope.component.getSiteManager`.
     """
+    __test__ = False
 
     instances = set()
     atexit_setup = False

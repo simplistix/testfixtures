@@ -23,7 +23,7 @@ else:
     some_text = '\xc2\xa3'.decode('utf-8')
 
 
-class TestTempDirectory:
+class TestTempDirectory(TestCase):
 
     def test_cleanup(self):
         d = TempDirectory()
