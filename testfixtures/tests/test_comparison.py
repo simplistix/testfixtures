@@ -3,7 +3,7 @@
 
 from testfixtures import Comparison as C, TempDirectory, compare
 from testfixtures.compat import PY2, PY3, exception_module
-from testfixtures.tests.sample1 import TestClassA, a_function
+from testfixtures.tests.sample1 import SampleClassA, a_function
 from unittest import TestCase
 import sys
 
@@ -59,9 +59,9 @@ class TestC(TestCase):
         # of the correct type and order.
         r = a_function()
         self.assertEqual(r, (
-            C('testfixtures.tests.sample1.TestClassA'),
-            C('testfixtures.tests.sample1.TestClassB'),
-            C('testfixtures.tests.sample1.TestClassA'),
+            C('testfixtures.tests.sample1.SampleClassA'),
+            C('testfixtures.tests.sample1.SampleClassB'),
+            C('testfixtures.tests.sample1.SampleClassA'),
             ))
         # We also want to check specific parts of some
         # of the returned objects' attributes
@@ -138,8 +138,8 @@ class TestC(TestCase):
 
     def test_repr_class(self):
         self.assertEqual(
-            repr(C('testfixtures.tests.sample1.TestClassA')),
-            '<C:testfixtures.tests.sample1.TestClassA>'
+            repr(C('testfixtures.tests.sample1.SampleClassA')),
+            '<C:testfixtures.tests.sample1.SampleClassA>'
             )
 
     def test_repr_function(self):
@@ -150,9 +150,9 @@ class TestC(TestCase):
 
     def test_repr_instance(self):
         self.assertEqual(
-            repr(C(TestClassA('something'))),
+            repr(C(SampleClassA('something'))),
             "\n"
-            "  <C:testfixtures.tests.sample1.TestClassA>\n"
+            "  <C:testfixtures.tests.sample1.SampleClassA>\n"
             "  args:('something',)\n"
             "  </C>"
             )
@@ -187,18 +187,18 @@ class TestC(TestCase):
 
     def test_repr_class_and_vars(self):
         self.assertEqual(
-            repr(C(TestClassA, {'args': (1, )})),
+            repr(C(SampleClassA, {'args': (1,)})),
             "\n"
-            "  <C:testfixtures.tests.sample1.TestClassA>\n"
+            "  <C:testfixtures.tests.sample1.SampleClassA>\n"
             "  args:(1,)\n"
             "  </C>"
             )
 
     def test_repr_nested(self):
         self.assertEqual(
-            repr(C(TestClassA, y=C(AClass), z=C(BClass(1, 2)))),
+            repr(C(SampleClassA, y=C(AClass), z=C(BClass(1, 2)))),
             "\n"
-            "  <C:testfixtures.tests.sample1.TestClassA>\n"
+            "  <C:testfixtures.tests.sample1.SampleClassA>\n"
             "  y:<C:testfixtures.tests.test_comparison.AClass>\n"
             "  z:\n"
             "    <C:testfixtures.tests.test_comparison.BClass>\n"
@@ -442,44 +442,44 @@ class TestC(TestCase):
 
     def test_first(self):
         self.assertEqual(
-            C('testfixtures.tests.sample1.TestClassA'),
-            TestClassA()
+            C('testfixtures.tests.sample1.SampleClassA'),
+            SampleClassA()
             )
 
     def test_second(self):
         self.assertEqual(
-            TestClassA(),
-            C('testfixtures.tests.sample1.TestClassA'),
+            SampleClassA(),
+            C('testfixtures.tests.sample1.SampleClassA'),
             )
 
     def test_not_same_first(self):
         self.assertNotEqual(
             C('datetime'),
-            TestClassA()
+            SampleClassA()
             )
 
     def test_not_same_second(self):
         self.assertNotEqual(
-            TestClassA(),
+            SampleClassA(),
             C('datetime')
             )
 
     def test_object_supplied(self):
         self.assertEqual(
-            TestClassA(1),
-            C(TestClassA(1))
+            SampleClassA(1),
+            C(SampleClassA(1))
             )
 
     def test_class_and_vars(self):
         self.assertEqual(
-            TestClassA(1),
-            C(TestClassA, {'args': (1, )})
+            SampleClassA(1),
+            C(SampleClassA, {'args': (1,)})
             )
 
     def test_class_and_kw(self):
         self.assertEqual(
-            TestClassA(1),
-            C(TestClassA, args=(1, ))
+            SampleClassA(1),
+            C(SampleClassA, args=(1,))
             )
 
     def test_class_and_vars_and_kw(self):
@@ -491,15 +491,15 @@ class TestC(TestCase):
     def test_object_and_vars(self):
         # vars passed are used instead of the object's
         self.assertEqual(
-            TestClassA(1),
-            C(TestClassA(), {'args': (1, )})
+            SampleClassA(1),
+            C(SampleClassA(), {'args': (1,)})
             )
 
     def test_object_and_kw(self):
         # kws passed are used instead of the object's
         self.assertEqual(
-            TestClassA(1),
-            C(TestClassA(), args=(1, ))
+            SampleClassA(1),
+            C(SampleClassA(), args=(1,))
             )
 
     def test_object_not_strict(self):

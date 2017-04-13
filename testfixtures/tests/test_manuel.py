@@ -11,7 +11,7 @@ from testfixtures.manuel import Files, FileBlock, FileResult
 from unittest import TestCase
 
 
-class TestContainer(RegionContainer):
+class SampleContainer(RegionContainer):
     def __init__(self, attr, *blocks):
         self.regions = []
         for block in blocks:
@@ -166,7 +166,7 @@ This is just some normal text!
 
     def test_evaluate_non_fileblock(self):
         m = Mock()
-        d = TestContainer('parsed', m)
+        d = SampleContainer('parsed', m)
         d.evaluate_with(Files('td'), globs={})
         compare([None], [r.evaluated for r in d])
         compare(m.call_args_list, [])
@@ -175,7 +175,7 @@ This is just some normal text!
     def test_evaluate_read_same(self):
         dir = TempDirectory()
         dir.write('foo', b'content')
-        d = TestContainer('parsed', FileBlock('foo', 'content', 'read'))
+        d = SampleContainer('parsed', FileBlock('foo', 'content', 'read'))
         d.evaluate_with(Files('td'), globs={'td': dir})
         compare([C(FileResult,
                    passed=True,
@@ -186,7 +186,7 @@ This is just some normal text!
     def test_evaluate_read_difference(self):
         dir = TempDirectory()
         dir.write('foo', b'actual')
-        d = TestContainer('parsed', FileBlock('foo', 'expected', 'read'))
+        d = SampleContainer('parsed', FileBlock('foo', 'expected', 'read'))
         d.evaluate_with(Files('td'), globs={'td': dir})
         compare([C(FileResult,
                    passed=False,
@@ -197,7 +197,7 @@ This is just some normal text!
 
     def test_evaulate_write(self):
         dir = TempDirectory()
-        d = TestContainer('parsed', FileBlock('foo', 'content', 'write'))
+        d = SampleContainer('parsed', FileBlock('foo', 'content', 'write'))
         d.evaluate_with(Files('td'), globs={'td': dir})
         compare([C(FileResult,
                    passed=True,
@@ -208,12 +208,12 @@ This is just some normal text!
         compare(dir.read('foo', 'ascii'), 'content')
 
     def test_formatter_non_fileblock(self):
-        d = TestContainer('evaluated', object)
+        d = SampleContainer('evaluated', object)
         d.format_with(Files('td'))
         compare(d.formatted(), '')
 
     def test_formatter_passed(self):
-        d = TestContainer('evaluated', FileResult())
+        d = SampleContainer('evaluated', FileResult())
         d.format_with(Files('td'))
         compare(d.formatted(), '')
 
@@ -223,7 +223,7 @@ This is just some normal text!
         r.path = '/foo/bar'
         r.expected = 'same\nexpected\n'
         r.actual = 'same\nactual\n'
-        d = TestContainer('evaluated', r)
+        d = SampleContainer('evaluated', r)
         d.format_with(Files('td'))
         compare('--- File "<memory>", line 0:\n'
                 '+++ Reading from "/foo/bar":\n'

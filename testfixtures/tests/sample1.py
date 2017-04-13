@@ -52,17 +52,17 @@ def z():
     return "original z"
 
 
-class TestClassA:
+class SampleClassA:
     def __init__(self, *args):
         self.args = args
 
 
-class TestClassB(TestClassA):
+class SampleClassB(SampleClassA):
     pass
 
 
 def a_function():
-    return (TestClassA(1), TestClassB(2), TestClassA(3))
+    return (SampleClassA(1), SampleClassB(2), SampleClassA(3))
 
 someDict = dict(
     key='value',
