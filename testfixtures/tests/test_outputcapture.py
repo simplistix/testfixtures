@@ -1,12 +1,12 @@
-from __future__ import print_function
 # Copyright (c) 2010-2011 Simplistix Ltd
 # Copyright (c) 2015 Chris Withers
 # See license.txt for license details.
-
-from testfixtures import OutputCapture, compare
-from unittest import TestCase, TestSuite, makeSuite
+from __future__ import print_function
 
 import sys
+from unittest import TestCase
+
+from testfixtures import OutputCapture
 
 
 class TestOutputCapture(TestCase):

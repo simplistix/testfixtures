@@ -19,7 +19,7 @@ from testfixtures.compat import (
     )
 from testfixtures.comparison import compare_sequence
 from unittest import TestCase
-from .compat import py_33_plus, py_2
+from .compat import py_2
 
 hexaddr = compile('0x[0-9A-Fa-f]+')
 
