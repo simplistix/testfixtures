@@ -323,7 +323,7 @@ do so as follows:
 
 .. code-block:: python
 
-  from testfixtures import Replacer, not_there
+  from testfixtures import Replace, not_there
   from testfixtures.tests.sample1 import someDict
 
   def test_function():
@@ -345,7 +345,7 @@ duration of a test, you would do so as follows:
 
 .. code-block:: python
 
-  from testfixtures import Replacer, not_there
+  from testfixtures import Replace, not_there
   from testfixtures.tests import sample1
 
   def test_function():
