@@ -3,6 +3,9 @@ Testing with zope.component
 
 .. invisible-code-block: python
 
+  from testfixtures import Replacer
+  r = Replacer()
+  r.replace('testfixtures.components.TestComponents.atexit_setup', True)
   from zope.component import getSiteManager
   from testfixtures.components import TestComponents
 
@@ -28,6 +31,7 @@ the current registry is. This may be influenced by frameworks that use
 :mod:`zope.component` which can means that unit tests have no
 baseline to start with:
 
+>>> from zope.component import getSiteManager
 >>> original = getSiteManager()
 >>> print(original)
 <BaseGlobalComponents base>
@@ -35,6 +39,7 @@ baseline to start with:
 Once we've got a :class:`TestComponents` in place, we know what
 we're getting:
 
+>>> from testfixtures.components import TestComponents
 >>> components = TestComponents()
 >>> getSiteManager()
 <Components Testing>
@@ -64,3 +69,7 @@ Now you'll have the original registy back in place:
 
 >>> getSiteManager() is original
 True
+
+.. invisible-code-block: python
+
+  r.restore()
