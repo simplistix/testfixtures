@@ -8,6 +8,11 @@ python:
   - "3.4"
   - "3.3"
   - "2.7"
+  - "nightly"
+
+matrix:
+  allow_failures:
+    - python: "nightly"
 
 # command to install dependencies
 install: "pip install -Ue .[test,build]"
