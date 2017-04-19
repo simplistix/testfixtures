@@ -195,6 +195,15 @@ expected:
 actual:
 (('root', 'ERROR', 'error occurred'),)
 
+The log messages may be easily checked by regexps, too:
+
+.. code-block:: python
+
+  from testfixtures import compare, StringComparison as S
+
+  l.check(('root', 'INFO', S('start of block number .*')))
+
+
 Printing
 ~~~~~~~~
 
