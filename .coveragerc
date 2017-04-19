@@ -1,5 +1,5 @@
 [run]
-parallel = True
+source = testfixtures
 
 [report]
 exclude_lines = 
@@ -12,10 +12,3 @@ exclude_lines =
 
   # example code that we don't want to cover with pragma statements
   guppy =
-
-[paths]
-src = 
-  ./testfixtures/
-  C:\Jenkins\workspace\testfixtures-virtualenv\*\testfixtures
-  /var/lib/jenkins/slave/workspace/testfixtures-virtualenv/*/testfixtures
-  /Users/Shared/Jenkins/Home/workspace/testfixtures-virtualenv/*/testfixtures
