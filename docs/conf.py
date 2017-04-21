@@ -17,6 +17,7 @@ extensions = [
 intersphinx_mapping = {
     'http://docs.python.org': None,
     'http://django.readthedocs.org/en/latest/': None,
+    'http://sybil.readthedocs.io/en/latest/': None,
 }
 
 # General

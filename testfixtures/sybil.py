@@ -19,12 +19,12 @@ class FileBlock(object):
 
 class FileParser(object):
     """
-    A `Manuel <http://packages.python.org/manuel/>`__ plugin that
+    A `Sybil <http://sybil.readthedocs.io>`__ parser that
     parses certain ReST sections to read and write files in the
     configured :class:`TempDirectory`.
 
     :param name: This is the name of the :class:`TempDirectory` to use
-                 in the Manual global namespace (ie: `globs`).
+                 in the Sybil test namespace.
 
     """
     def __init__(self, name):

@@ -2,6 +2,7 @@ from sybil import Sybil, DocTestParser, CodeBlockParser, parse_captures
 from testfixtures import TempDirectory
 from testfixtures.sybil import FileParser
 
+
 def sybil_setup(namespace):
     namespace['tempdir'] = TempDirectory()
 
