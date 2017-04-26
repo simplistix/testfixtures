@@ -13,6 +13,8 @@ if PY3:
 else:
     warn_module = 'exceptions'
 
+from .compat import py_36_plus
+
 
 class ShouldWarnTests(TestCase):
 
@@ -106,14 +108,19 @@ class ShouldWarnTests(TestCase):
                 'foo', DeprecationWarning, 'bar.py', 42, 'bar_module'
             )
         compare(len(recorded), expected=1)
-        compare(C(warnings.WarningMessage,
-                  _category_name='DeprecationWarning',
-                  category=DeprecationWarning,
-                  file=None,
-                  filename='bar.py',
-                  line=None,
-                  lineno=42,
-                  message=C(DeprecationWarning('foo'))
-                  ), recorded[0])
 
+        expected_attrs = dict(
+            _category_name='DeprecationWarning',
+            category=DeprecationWarning,
+            file=None,
+            filename='bar.py',
+            line=None,
+            lineno=42,
+            message=C(DeprecationWarning('foo')),
+        )
 
+        if py_36_plus:
+            expected_attrs['source'] = None
+
+        compare(expected=C(warnings.WarningMessage, **expected_attrs),
+            actual=recorded[0])
