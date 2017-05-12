@@ -3,11 +3,7 @@ Testing with zope.component
 
 .. invisible-code-block: python
 
-  from nose.plugins.skip import SkipTest
-  try:
-      from zope.component import getSiteManager
-  except ImportError:
-      raise SkipTest('zope.component unavailable')
+  from zope.component import getSiteManager
   from testfixtures.components import TestComponents
 
 .. currentmodule:: testfixtures

@@ -1,15 +1,6 @@
-# Copyright (c) 2011-2013 Simplistix Ltd
-# See license.txt for license details.
-
-from nose.plugins.skip import SkipTest
-
-try:
-    from testfixtures.components import TestComponents
-except ImportError:  # pragma: no cover
-    raise SkipTest('zope.component is not available')
-
 from mock import Mock, call
 from testfixtures import Replacer, compare
+from testfixtures.components import TestComponents
 from unittest import TestCase
 
 from warnings import catch_warnings
