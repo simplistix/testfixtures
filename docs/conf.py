@@ -23,7 +23,7 @@ intersphinx_mapping = {
 source_suffix = '.txt'
 master_doc = 'index'
 project = pkg_info.name
-copyright = '2008-2015 Simplistix Ltd, %s Chris Withers' % build_date.year
+copyright = '2008-2015 Simplistix Ltd, 2016-%s Chris Withers' % build_date.year
 version = release = pkg_info.version
 exclude_trees = ['_build']
 exclude_patterns = ['description.txt']
