@@ -299,6 +299,8 @@ While comparing [1]['text']:
 This also applies to any comparers you have provided, as can be seen
 in the next section.
 
+.. _comparer-register:
+
 Providing your own comparers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

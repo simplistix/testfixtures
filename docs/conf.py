@@ -14,7 +14,10 @@ extensions = [
     'sphinx.ext.intersphinx'
     ]
 
-intersphinx_mapping = {'http://docs.python.org': None}
+intersphinx_mapping = {
+    'http://docs.python.org': None,
+    'http://django.readthedocs.org/en/latest/': None,
+}
 
 # General
 source_suffix = '.txt'

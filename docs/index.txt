@@ -18,6 +18,7 @@ The sections below describe the use of the various tools included:
    exceptions.txt
    warnings.txt
    popen.txt
+   django.txt
    components.txt
    utilities.txt
 
