@@ -41,7 +41,19 @@ statements, and making assertion about it.
 Support for creating and checking files and directories in sandboxes
 for both doc tests and unit tests.
 
-**Testing exceptions**
+**Testing exceptions and warnings**
 
-Easy to use ways of checking that a certain exception is raised, even
-down the to the parameters the exception is raised with.
+Easy to use ways of checking that a certain exception is raised,
+or a warning is issued, even down the to the parameters provided.
+
+**Testing subprocesses**
+
+A handy mock for testing code that uses subprocesses.
+
+**Testing when using django**
+
+Helpers for comparing instances of django models.
+
+**Testing when using zope.component**
+
+An easy to use sterile component registry.
