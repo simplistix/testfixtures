@@ -3,6 +3,11 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.14.1 (15 May 2017)
+--------------------
+
+- Fix mis-merge.
+
 4.14.0 (15 May 2017)
 --------------------
 
