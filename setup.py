@@ -35,8 +35,8 @@ setup(
     zip_safe=False,
     include_package_data=True,
     extras_require=dict(
-        test=['nose', 'nose-fixes', 'nose-cov', 'mock', 'manuel',
-              'zope.component', 'coveralls'],
+        test=['nose', 'nose-fixes', 'nose-cov', 'mock', 'manuel', 'coveralls',
+              'zope.component', 'django'],
         build=['sphinx', 'pkginfo', 'setuptools-git', 'wheel', 'twine']
     )
 )
