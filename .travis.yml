@@ -11,7 +11,7 @@ python:
 
 # command to install dependencies
 install: 
-- "pip install --upgrade pip"
+- "pip install --upgrade pip setuptools"
 - "pip install -e .[test]"
  
 # command to run tests, e.g. python setup.py test
