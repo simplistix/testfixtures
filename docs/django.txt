@@ -1,0 +1,54 @@
+Testing when using django
+=========================
+
+Django's ORM has an unfortunate implementation choice to consider
+:class:`~django.db.models.Model` instances to be identical as long as their
+primary keys are the same:
+
+>>> from testfixtures.tests.test_django.models import SampleModel
+>>> SampleModel(id=1, value=1) == SampleModel(id=1, value=2)
+True
+
+To work around this, :mod:`testfixtures.django` :ref:`registers <comparer-register>`
+a comparer for the django :class:`~django.db.models.Model` class. However,
+for this to work, ``ignore_eq=True`` must be passed:
+
+>>> compare(SampleModel(id=1, value=1), SampleModel(id=1, value=2),
+...         ignore_eq=True)
+Traceback (most recent call last):
+ ...
+AssertionError: SampleModel not as expected:
+<BLANKLINE>
+same:
+[u'id']
+<BLANKLINE>
+values differ:
+'value': 1 != 2
+
+Since the above can quickly become cumbersome, a django-specific version
+of :func:`~testfixtures.compare`, with ignoring ``__eq__`` built in, is provided:
+
+>>> from testfixtures.django import compare as django_compare
+>>> django_compare(SampleModel(id=1, value=1), SampleModel(id=1, value=2))
+Traceback (most recent call last):
+ ...
+AssertionError: SampleModel not as expected:
+<BLANKLINE>
+same:
+[u'id']
+<BLANKLINE>
+values differ:
+'value': 1 != 2
+
+It may also be that you want to ignore fields over which you have no control
+and cannot easily mock, such as created or modified times. For this, you
+can use the `ignore_fields` option:
+
+>>> compare(SampleModel(id=1, value=1), SampleModel(id=1, value=2),
+...         ignore_eq=True, ignore_fields=['value'])
+
+.. note::
+
+  The implementation of the comparer for
+  :class:`~django.db.models.Model` instances ignores fields
+  that have ``editable`` set to ``False``.

@@ -1,5 +1,3 @@
-# Copyright (c) 2008-2014 Simplistix Ltd
-# See license.txt for license details.
 from datetime import date
 
 from functools import partial
@@ -34,9 +32,10 @@ call_list_repr = repr(Mock().mock_calls.__class__)
 marker = object()
 
 
-class TestCompare(TestCase):
+class CompareHelper(object):
 
-    def checkRaises(self, x=marker, y=marker, message=None, regex=None, **kw):
+    def check_raises(self, x=marker, y=marker, message=None, regex=None,
+                     compare=compare, **kw):
         args = []
         for value in x, y:
             if value is not marker:
@@ -49,13 +48,16 @@ class TestCompare(TestCase):
             actual = hexsub(e.args[0])
             if message is not None:
                 # handy for debugging, but can't be relied on for tests!
-                # compare(actual, message, show_whitespace=True)
+                compare(actual, expected=message, show_whitespace=True)
                 self.assertEqual(actual, message)
             else:
                 if not regex.match(actual):  # pragma: no cover
                     self.fail('%r did not match %r' % (actual, regex.pattern))
         else:
             self.fail('No exception raised!')
+
+
+class TestCompare(CompareHelper, TestCase):
 
     def test_object_same(self):
         o = object()
@@ -64,23 +66,23 @@ class TestCompare(TestCase):
     def test_object_diff(self):
         o1 = object()
         o2 = object()
-        self.checkRaises(
+        self.check_raises(
             o1, o2,
             '<object object at ...> != <object object at ...>'
             )
 
     def test_different_types(self):
-        self.checkRaises('x', 1, "'x' != 1")
+        self.check_raises('x', 1, "'x' != 1")
 
     def test_number_same(self):
         compare(1, 1)
 
     def test_number_different(self):
-        self.checkRaises(1, 2, '1 != 2')
+        self.check_raises(1, 2, '1 != 2')
 
     def test_different_with_labels(self):
-        self.checkRaises(1, 2, '1 (expected) != 2 (actual)',
-                         x_label='expected', y_label='actual')
+        self.check_raises(1, 2, '1 (expected) != 2 (actual)',
+                          x_label='expected', y_label='actual')
 
     def test_string_same(self):
         compare('x', 'x')
@@ -90,31 +92,31 @@ class TestCompare(TestCase):
             expected = "u'a' != 'b'"
         else:
             expected = "'a' != b'b'"
-        self.checkRaises(
+        self.check_raises(
             UnicodeLiteral('a'), BytesLiteral('b'),
             expected
             )
 
     def test_string_diff_short(self):
-        self.checkRaises(
+        self.check_raises(
             '\n'+('x'*9), '\n'+('y'*9),
             "'\\nxxxxxxxxx' != '\\nyyyyyyyyy'"
             )
 
     def test_string_diff_long(self):
-        self.checkRaises(
+        self.check_raises(
             'x'*11, 'y'*11,
             "\n'xxxxxxxxxxx'\n!=\n'yyyyyyyyyyy'"
             )
 
     def test_string_diff_long_newlines(self):
-        self.checkRaises(
+        self.check_raises(
             'x'*5+'\n'+'y'*5, 'x'*5+'\n'+'z'*5,
             "\n--- first\n+++ second\n@@ -1,2 +1,2 @@\n xxxxx\n-yyyyy\n+zzzzz"
             )
 
     def test_string_diff_short_labels(self):
-        self.checkRaises(
+        self.check_raises(
             '\n'+('x'*9), '\n'+('y'*9),
             "'\\nxxxxxxxxx' (expected) != '\\nyyyyyyyyy' (actual)",
             x_label='expected',
@@ -122,7 +124,7 @@ class TestCompare(TestCase):
             )
 
     def test_string_diff_long_labels(self):
-        self.checkRaises(
+        self.check_raises(
             'x'*11, 'y'*11,
             "\n'xxxxxxxxxxx' (expected)\n!=\n'yyyyyyyyyyy' (actual)",
             x_label='expected',
@@ -130,7 +132,7 @@ class TestCompare(TestCase):
             )
 
     def test_string_diff_long_newlines_labels(self):
-        self.checkRaises(
+        self.check_raises(
             'x'*5+'\n'+'y'*5, 'x'*5+'\n'+'z'*5,
             "\n--- expected\n+++ actual\n"
             "@@ -1,2 +1,2 @@\n xxxxx\n-yyyyy\n+zzzzz",
@@ -150,7 +152,7 @@ class TestCompare(TestCase):
     def test_exception_different_object(self):
         e1 = ValueError('some message')
         e2 = ValueError('some message')
-        self.checkRaises(
+        self.check_raises(
             e1, e2,
             "ValueError('some message',) != ValueError('some message',)"
             )
@@ -163,7 +165,7 @@ class TestCompare(TestCase):
     def test_exception_diff(self):
         e1 = ValueError('some message')
         e2 = ValueError('some other message')
-        self.checkRaises(
+        self.check_raises(
             e1, e2,
             "ValueError('some message',) != ValueError('some other message',)"
             )
@@ -171,7 +173,7 @@ class TestCompare(TestCase):
     def test_exception_diff_c_wrapper(self):
         e1 = ValueError('some message')
         e2 = ValueError('some other message')
-        self.checkRaises(
+        self.check_raises(
             C(e1), e2,
             ("\n"
              "  <C(failed):{0}.ValueError>\n"
@@ -182,7 +184,7 @@ class TestCompare(TestCase):
              ).format(exception_module))
 
     def test_sequence_long(self):
-        self.checkRaises(
+        self.check_raises(
             ['quite a long string 1', 'quite a long string 2',
              'quite a long string 3', 'quite a long string 4',
              'quite a long string 5', 'quite a long string 6',
@@ -215,7 +217,7 @@ class TestCompare(TestCase):
             )
 
     def test_sequence_different_labels_supplied(self):
-        self.checkRaises(
+        self.check_raises(
             [1, 2, 3], [1, 2, 4],
             "sequence not as expected:\n\n"
             "same:\n"
@@ -232,7 +234,7 @@ class TestCompare(TestCase):
         compare([1, 2, 3], [1, 2, 3])
 
     def test_list_different(self):
-        self.checkRaises(
+        self.check_raises(
             [1, 2, 3], [1, 2, 4],
             "sequence not as expected:\n\n"
             "same:\n"
@@ -244,7 +246,7 @@ class TestCompare(TestCase):
             )
 
     def test_list_totally_different(self):
-        self.checkRaises(
+        self.check_raises(
             [1], [2],
             "sequence not as expected:\n\n"
             "same:\n"
@@ -256,7 +258,7 @@ class TestCompare(TestCase):
             )
 
     def test_list_first_shorter(self):
-        self.checkRaises(
+        self.check_raises(
             [1, 2], [1, 2, 3],
             "sequence not as expected:\n\n"
             "same:\n[1, 2]\n\n"
@@ -265,7 +267,7 @@ class TestCompare(TestCase):
             )
 
     def test_list_second_shorter(self):
-        self.checkRaises(
+        self.check_raises(
             [1, 2, 3], [1, 2],
             "sequence not as expected:\n\n"
             "same:\n[1, 2]\n\n"
@@ -277,7 +279,7 @@ class TestCompare(TestCase):
         compare(dict(x=1), dict(x=1))
 
     def test_dict_first_missing_keys(self):
-        self.checkRaises(
+        self.check_raises(
             dict(), dict(z=3),
             "dict not as expected:\n"
             "\n"
@@ -286,7 +288,7 @@ class TestCompare(TestCase):
             )
 
     def test_dict_second_missing_keys(self):
-        self.checkRaises(
+        self.check_raises(
             dict(z=3), dict(),
             "dict not as expected:\n"
             "\n"
@@ -295,7 +297,7 @@ class TestCompare(TestCase):
             )
 
     def test_dict_values_different(self):
-        self.checkRaises(
+        self.check_raises(
             dict(x=1), dict(x=2),
             "dict not as expected:\n"
             "\n"
@@ -304,7 +306,7 @@ class TestCompare(TestCase):
             )
 
     def test_dict_labels_specified(self):
-        self.checkRaises(
+        self.check_raises(
             dict(x=1, y=2), dict(x=2, z=3),
             "dict not as expected:\n"
             "\n"
@@ -324,7 +326,7 @@ class TestCompare(TestCase):
         compare({(1, 2): None}, {(1, 2): None})
 
     def test_dict_tuple_keys_different_value(self):
-        self.checkRaises(
+        self.check_raises(
             {(1, 2): 3},
             {(1, 2): 42},
             "dict not as expected:\n"
@@ -334,7 +336,7 @@ class TestCompare(TestCase):
             )
 
     def test_dict_full_diff(self):
-        self.checkRaises(
+        self.check_raises(
             dict(x=1, y=2, a=4), dict(x=1, z=3, a=5),
             "dict not as expected:\n"
             "\n"
@@ -352,7 +354,7 @@ class TestCompare(TestCase):
             )
 
     def test_dict_consistent_ordering(self):
-        self.checkRaises(
+        self.check_raises(
             dict(xa=1, xb=2, ya=1, yb=2, aa=3, ab=4),
             dict(xa=1, xb=2, za=3, zb=4, aa=5, ab=5),
             "dict not as expected:\n"
@@ -374,7 +376,7 @@ class TestCompare(TestCase):
             )
 
     def test_dict_consistent_ordering_types_same(self):
-        self.checkRaises(
+        self.check_raises(
             {None: 1, 6: 2, 1: 3},
             {None: 1, 6: 2, 1: 4},
             "dict not as expected:\n"
@@ -387,7 +389,7 @@ class TestCompare(TestCase):
             )
 
     def test_dict_consistent_ordering_types_x_not_y(self):
-        self.checkRaises(
+        self.check_raises(
             {None: 1, 3: 2},
             {},
             "dict not as expected:\n"
@@ -398,7 +400,7 @@ class TestCompare(TestCase):
             )
 
     def test_dict_consistent_ordering_types_y_not_x(self):
-        self.checkRaises(
+        self.check_raises(
             {},
             {None: 1, 3: 2},
             "dict not as expected:\n"
@@ -409,7 +411,7 @@ class TestCompare(TestCase):
             )
 
     def test_dict_consistent_ordering_types_value(self):
-        self.checkRaises(
+        self.check_raises(
             {None: 1, 6: 2},
             {None: 3, 6: 4},
             "dict not as expected:\n"
@@ -423,7 +425,7 @@ class TestCompare(TestCase):
         compare(set([1]), set([1]))
 
     def test_set_first_missing_keys(self):
-        self.checkRaises(
+        self.check_raises(
             set(), set([3]),
             "set not as expected:\n"
             "\n"
@@ -433,7 +435,7 @@ class TestCompare(TestCase):
             )
 
     def test_set_second_missing_keys(self):
-        self.checkRaises(
+        self.check_raises(
             set([3]), set(),
             "set not as expected:\n"
             "\n"
@@ -443,7 +445,7 @@ class TestCompare(TestCase):
             )
 
     def test_set_full_diff(self):
-        self.checkRaises(
+        self.check_raises(
             set([1, 2, 4]), set([1, 3, 5]),
             "set not as expected:\n"
             "\n"
@@ -456,7 +458,7 @@ class TestCompare(TestCase):
             )
 
     def test_set_type_ordering(self):
-        self.checkRaises(
+        self.check_raises(
             {None, 1}, {'', 2},
             "set not as expected:\n"
             "\n"
@@ -469,7 +471,7 @@ class TestCompare(TestCase):
             )
 
     def test_set_labels(self):
-        self.checkRaises(
+        self.check_raises(
             set([1, 2, 4]), set([1, 3, 5]),
             "set not as expected:\n"
             "\n"
@@ -487,7 +489,7 @@ class TestCompare(TestCase):
         compare((1, 2, 3), (1, 2, 3))
 
     def test_tuple_different(self):
-        self.checkRaises(
+        self.check_raises(
             (1, 2, 3), (1, 2, 4),
             "sequence not as expected:\n\n"
             "same:\n(1, 2)\n\n"
@@ -496,7 +498,7 @@ class TestCompare(TestCase):
             )
 
     def test_tuple_totally_different(self):
-        self.checkRaises(
+        self.check_raises(
             (1, ), (2, ),
             "sequence not as expected:\n\n"
             "same:\n()\n\n"
@@ -505,7 +507,7 @@ class TestCompare(TestCase):
             )
 
     def test_tuple_first_shorter(self):
-        self.checkRaises(
+        self.check_raises(
             (1, 2), (1, 2, 3),
             "sequence not as expected:\n\n"
             "same:\n(1, 2)\n\n"
@@ -514,7 +516,7 @@ class TestCompare(TestCase):
             )
 
     def test_tuple_second_shorter(self):
-        self.checkRaises(
+        self.check_raises(
             (1, 2, 3), (1, 2),
             "sequence not as expected:\n\n"
             "same:\n(1, 2)\n\n"
@@ -526,7 +528,7 @@ class TestCompare(TestCase):
         compare(generator(1, 2, 3), generator(1, 2, 3))
 
     def test_generator_different(self):
-        self.checkRaises(
+        self.check_raises(
             generator(1, 2, 3), generator(1, 2, 4),
             "sequence not as expected:\n\n"
             "same:\n(1, 2)\n\n"
@@ -535,7 +537,7 @@ class TestCompare(TestCase):
             )
 
     def test_generator_totally_different(self):
-        self.checkRaises(
+        self.check_raises(
             generator(1, ), generator(2, ),
             "sequence not as expected:\n\n"
             "same:\n()\n\n"
@@ -544,7 +546,7 @@ class TestCompare(TestCase):
             )
 
     def test_generator_first_shorter(self):
-        self.checkRaises(
+        self.check_raises(
             generator(1, 2), generator(1, 2, 3),
             "sequence not as expected:\n\n"
             "same:\n(1, 2)\n\n"
@@ -553,7 +555,7 @@ class TestCompare(TestCase):
             )
 
     def test_generator_second_shorted(self):
-        self.checkRaises(
+        self.check_raises(
             generator(1, 2, 3), generator(1, 2),
             "sequence not as expected:\n\n"
             "same:\n(1, 2)\n\n"
@@ -562,7 +564,7 @@ class TestCompare(TestCase):
             )
 
     def test_nested_generator_different(self):
-        self.checkRaises(
+        self.check_raises(
             generator(1, 2, generator(3), 4),
             generator(1, 2, generator(3), 5),
             "sequence not as expected:\n"
@@ -598,7 +600,7 @@ class TestCompare(TestCase):
             "<generator object (generator )?at... "
             "\(<(class|type) 'generator'>\) \(actual\)"
             )
-        self.checkRaises(
+        self.check_raises(
             (1, 2, 3), generator(1, 2, 3),
             regex=expected,
             strict=True,
@@ -613,7 +615,7 @@ class TestCompare(TestCase):
         compare(xrange(1, 4), xrange(1, 4))
 
     def test_iterable_with_iterable_different(self):
-        self.checkRaises(
+        self.check_raises(
             xrange(1, 4), xrange(1, 3),
             "sequence not as expected:\n"
             "\n"
@@ -636,7 +638,7 @@ class TestCompare(TestCase):
             "<generator object (generator )?at... "
             "\(<(class|type) 'generator'>\)"
             )
-        self.checkRaises(
+        self.check_raises(
             xrange(1, 4), generator(1, 2, 3),
             regex=expected,
             strict=True,
@@ -656,7 +658,7 @@ class TestCompare(TestCase):
             expected = ("(1, 2, 3) (<class 'tuple'>) != "
                         "[1, 2, 3] (<class 'list'>)")
 
-        self.checkRaises(
+        self.check_raises(
             (1, 2, 3), [1, 2, 3],
             expected,
             strict=True
@@ -693,18 +695,18 @@ class TestCompare(TestCase):
 
         class Y:
             pass
-        self.checkRaises(X, Y, expected)
+        self.check_raises(X, Y, expected)
 
     def test_show_whitespace(self):
         # does nothing! ;-)
-        self.checkRaises(
+        self.check_raises(
             ' x \n\r', ' x \n \t',
             "' x \\n\\r' != ' x \\n \\t'",
             show_whitespace=True
             )
 
     def test_show_whitespace_long(self):
-        self.checkRaises(
+        self.check_raises(
             "\t         \n  '", '\r     \n  ',
             '\n--- first\n'
             '+++ second\n'
@@ -720,7 +722,7 @@ class TestCompare(TestCase):
         compare('x', 'x', show_whitespace=True)
 
     def test_show_whitespace_not_used_because_of_other_difference(self):
-        self.checkRaises(
+        self.check_raises(
             (1, 'a'),
             (2, 'b'),
             "sequence not as expected:\n"
@@ -737,7 +739,7 @@ class TestCompare(TestCase):
             )
 
     def test_include_trailing_whitespace(self):
-        self.checkRaises(
+        self.check_raises(
             ' x \n', ' x  \n',
             "' x \\n' != ' x  \\n'"
             )
@@ -746,7 +748,7 @@ class TestCompare(TestCase):
         compare(' x \t\n', ' x\t  \n', trailing_whitespace=False)
 
     def test_ignore_trailing_whitespace_non_string(self):
-        self.checkRaises(
+        self.check_raises(
             1, '',
             "1 != ''",
             trailing_whitespace=False
@@ -755,7 +757,7 @@ class TestCompare(TestCase):
     def test_ignore_trailing_whitespace_but_respect_leading_whitespace(self):
         # NB: careful: this strips off the last newline too
         #     DON'T use if you care about that!
-        self.checkRaises(
+        self.check_raises(
             'a\n b\n  c\n',
             'a\nb\nc\n',
             "'a\\n b\\n  c' != 'a\\nb\\nc'",
@@ -763,7 +765,7 @@ class TestCompare(TestCase):
             )
 
     def test_include_blank_lines(self):
-        self.checkRaises(
+        self.check_raises(
             '\n \n', '\n  ',
             "'\\n \\n' != '\\n  '"
             )
@@ -778,7 +780,7 @@ b
                 '    a\nb', blanklines=False)
 
     def test_ignore_blank_lines_non_string(self):
-        self.checkRaises(
+        self.check_raises(
             1, '',
             "1 != ''",
             blanklines=False
@@ -818,7 +820,7 @@ b
             r.replace('testfixtures.comparison._registry', {
                 list: compare_sequence,
                 })
-            self.checkRaises(
+            self.check_raises(
                 [1, MyObject('foo')], [1, MyObject('bar')],
                 "sequence not as expected:\n"
                 "\n"
@@ -839,7 +841,7 @@ b
         m = Mock()
         m.aCall()
         # Mock().method_calls is a list subclass
-        self.checkRaises(
+        self.check_raises(
             [call.bCall()], m.method_calls,
             "sequence not as expected:\n\n"
             "same:\n[]\n\n"
@@ -856,7 +858,7 @@ b
         compare_obj = Mock()
         compare_obj.return_value = 'not equal'
 
-        self.checkRaises(
+        self.check_raises(
             object(), object(),
             "not equal",
             strict=True,
@@ -867,7 +869,7 @@ b
         class MyList(list):
             pass
         # default comparer used!
-        self.checkRaises(
+        self.check_raises(
             MyList((1, 2, 3)), MyList((1, 2, 4)),
             "sequence not as expected:\n"
             "\n"
@@ -885,7 +887,7 @@ b
     def test_list_subclass_strict(self):
         m = Mock()
         m.aCall()
-        self.checkRaises(
+        self.check_raises(
             [call.aCall()], m.method_calls,
             ("[call.aCall()] (<{0} 'list'>) != [call.aCall()] "
              "({1})").format(class_type_name, call_list_repr),
@@ -895,7 +897,7 @@ b
     def test_list_subclass_long_strict(self):
         m = Mock()
         m.call('X'*20)
-        self.checkRaises(
+        self.check_raises(
             [call.call('Y'*20)], m.method_calls,
             ("[call.call('YYYYYYYYYYYYYYYYYY... "
              "(<{0} 'list'>) != "
@@ -905,11 +907,11 @@ b
             )
 
     def test_prefix(self):
-        self.checkRaises(1, 2, 'wrong number of orders: 1 != 2',
-                         prefix='wrong number of orders')
+        self.check_raises(1, 2, 'wrong number of orders: 1 != 2',
+                          prefix='wrong number of orders')
 
     def test_prefix_multiline(self):
-        self.checkRaises(
+        self.check_raises(
             'x'*5+'\n'+'y'*5, 'x'*5+'\n'+'z'*5,
             "file content: \n--- first\n+++ second\n"
             "@@ -1,2 +1,2 @@\n xxxxx\n-yyyyy\n+zzzzz",
@@ -917,7 +919,7 @@ b
             )
 
     def test_suffix(self):
-        self.checkRaises(
+        self.check_raises(
             1, 2,
             '1 != 2\n'
             'additional context',
@@ -925,7 +927,7 @@ b
             )
 
     def test_labels_multiline(self):
-        self.checkRaises(
+        self.check_raises(
             'x'*5+'\n'+'y'*5, 'x'*5+'\n'+'z'*5,
             "\n--- expected\n+++ actual\n"
             "@@ -1,2 +1,2 @@\n xxxxx\n-yyyyy\n+zzzzz",
@@ -934,7 +936,7 @@ b
             )
 
     def test_generator_with_non_generator(self):
-        self.checkRaises(
+        self.check_raises(
             generator(1, 2, 3), None,
             '<generator object generator at ...> != None',
             )
@@ -949,7 +951,7 @@ b
             compare(generator(1, 2, 3), bad_gen())
 
     def test_nested_dict_tuple_values_different(self):
-        self.checkRaises(
+        self.check_raises(
             dict(x=(1, 2, 3)), dict(x=(1, 2, 4)),
             "dict not as expected:\n"
             "\n"
@@ -969,7 +971,7 @@ b
             )
 
     def test_nested_dict_different(self):
-        self.checkRaises(
+        self.check_raises(
             dict(x=dict(y=1)), dict(x=dict(y=2)),
             "dict not as expected:\n"
             "\n"
@@ -989,7 +991,7 @@ b
         compare(dict(x=dict(x=1)), dict(x=dict(x=1)), ignore_eq=True)
 
     def test_tuple_list_different(self):
-        self.checkRaises(
+        self.check_raises(
             (1, [2, 3, 5]), (1, [2, 4, 5]),
             "sequence not as expected:\n"
             "\n"
@@ -1015,7 +1017,7 @@ b
             )
 
     def test_tuple_long_strings_different(self):
-        self.checkRaises(
+        self.check_raises(
             (1, 2, "foo\nbar\nbaz\n", 4),
             (1, 2, "foo\nbob\nbaz\n", 4),
             "sequence not as expected:\n"
@@ -1043,7 +1045,7 @@ b
             )
 
     def test_dict_multiple_differences(self):
-        self.checkRaises(
+        self.check_raises(
             dict(x=(1, 2, 3), y=(4, 5, 6, )),
             dict(x=(1, 2, 4), y=(4, 5, 7, )),
             "dict not as expected:\n"
@@ -1081,7 +1083,7 @@ b
         gen1 = generator(obj1, obj2)
         gen2 = generator(obj1, )
         # dict -> list -> tuple -> generator
-        self.checkRaises(
+        self.check_raises(
             dict(x=[1, ('a', 'b', gen1), 3], y=[3, 4]),
             dict(x=[1, ('a', 'b', gen2), 3], y=[3, 4]), (
                 "dict not as expected:\n"
@@ -1134,7 +1136,7 @@ b
         gen1 = generator(obj1, obj2)
         gen2 = generator(obj1, )
         # dict -> list -> tuple -> generator
-        self.checkRaises(
+        self.check_raises(
             dict(x=[1, ('a', 'b', gen1), 3], y=[3, 4]),
             dict(x=[1, ('a', 'b', gen2), 3], y=[3, 4]), (
                 "dict not as expected:\n"
@@ -1188,7 +1190,7 @@ b
         MyTuple = namedtuple('MyTuple', 'x y z')
         type_repr = repr(MyTuple)
         tuple_repr = repr(tuple)
-        self.checkRaises(
+        self.check_raises(
             [MyTuple(1, 2, 3)],
             [(1, 2, 3)],
             ("sequence not as expected:\n"
@@ -1215,7 +1217,7 @@ b
         else:
             expected = "[1, 2] (<class 'list'>) != (1, 3) (<class 'tuple'>)"
 
-        self.checkRaises(
+        self.check_raises(
             (1, 2, [1, 2]), (1, 2, (1, 3)),
             "sequence not as expected:\n"
             "\n"
@@ -1238,7 +1240,7 @@ b
 
     def test_namedtuple_same_type(self):
         class_ = namedtuple('Foo', 'x y')
-        self.checkRaises(
+        self.check_raises(
             class_(1, 2), class_(1, 3),
             "Foo not as expected:\n\n"
             "same:\n"
@@ -1250,7 +1252,7 @@ b
     def test_namedtuple_different_type(self):
         class_a = namedtuple('Foo', 'x y')
         class_b = namedtuple('Bar', 'x y z')
-        self.checkRaises(
+        self.check_raises(
             class_a(1, 2), class_b(1, 2, 3),
             "Foo(x=1, y=2) (<class 'testfixtures.tests.test_compare.Foo'>) != "
             "Bar(x=1, y=2, z=3) "
@@ -1258,27 +1260,27 @@ b
             )
 
     def test_dict_with_list(self):
-        self.checkRaises(
+        self.check_raises(
             {1: 'one', 2: 'two'}, [1, 2],
             "{1: 'one', 2: 'two'} != [1, 2]"
         )
 
     def test_explicit_expected(self):
-        self.checkRaises('x', expected='y',
-                         message="'y' (expected) != 'x' (actual)")
+        self.check_raises('x', expected='y',
+                          message="'y' (expected) != 'x' (actual)")
 
     def test_explicit_actual(self):
-        self.checkRaises('x', actual='y',
-                         message="'x' (expected) != 'y' (actual)")
+        self.check_raises('x', actual='y',
+                          message="'x' (expected) != 'y' (actual)")
 
     def test_explicit_both(self):
-        self.checkRaises(message="'x' (expected) != 'y' (actual)",
-                         expected='x', actual='y')
+        self.check_raises(message="'x' (expected) != 'y' (actual)",
+                          expected='x', actual='y')
 
     def test_explicit_and_labels(self):
-        self.checkRaises(message="'x' (x_label) != 'y' (y_label)",
-                         expected='x', actual='y',
-                         x_label='x_label', y_label='y_label')
+        self.check_raises(message="'x' (x_label) != 'y' (y_label)",
+                          expected='x', actual='y',
+                          x_label='x_label', y_label='y_label')
 
     def test_invalid_two_args_expected(self):
         with ShouldRaise(TypeError(
@@ -1333,7 +1335,7 @@ b
             if x.a != y.a:
                 return 'OrmObj: %s != %s' % (x.a, y.a)
 
-        self.checkRaises(
+        self.check_raises(
             message=(
                 "sequence not as expected:\n\n"
                 "same:\n(OrmObj: 1,)\n\n"
@@ -1363,7 +1365,7 @@ b
                   self.OrmObj(date(2016, 1, 1)))
 
     def test_django_orm_is_horrible_part_3(self):
-        self.checkRaises(
+        self.check_raises(
             message=(
                 "OrmObj: 1 (expected) != OrmObj: 1 (actual)"
             ),
@@ -1373,7 +1375,7 @@ b
         )
 
     def test_django_orm_is_horrible_part_4(self):
-        self.checkRaises(
+        self.check_raises(
             message='[1] (expected) != 2 (actual)',
             expected=[1],
             actual=2,

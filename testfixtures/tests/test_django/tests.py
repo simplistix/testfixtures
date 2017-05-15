@@ -1,0 +1,75 @@
+import django
+import os
+from unittest import TestCase
+
+from testfixtures.compat import PY3
+from ... import compare
+from ...django import compare as django_compare
+from ..test_compare import CompareHelper
+
+os.environ['DJANGO_SETTINGS_MODULE'] = 'testfixtures.tests.test_django.settings'
+django.setup()
+
+from .models import SampleModel
+
+
+class CompareTests(CompareHelper, TestCase):
+
+    def test_simple_same(self):
+        django_compare(SampleModel(id=1), SampleModel(id=1))
+
+    def test_simple_diff(self):
+        if PY3:
+            expected = "'id': 1 != 2"
+        else:
+            expected = "u'id': 1 != 2"
+
+        self.check_raises(
+            SampleModel(id=1), SampleModel(id=2),
+            compare=django_compare,
+            message=(
+                'SampleModel not as expected:\n'
+                '\n'
+                'same:\n'
+                "['value']\n"
+                '\n'
+                'values differ:\n'+
+                expected
+            )
+        )
+
+    def test_simple_ignore_fields(self):
+        django_compare(SampleModel(id=1), SampleModel(id=1),
+                       ignore_fields=['id'])
+
+    def test_ignored_because_speshul(self):
+        # see http://stackoverflow.com/questions/21925671/convert-django-model-object-to-dict-with-all-of-the-fields-intact
+        django_compare(SampleModel(not_editable=1), SampleModel(not_editable=2))
+
+    def test_normal_compare_id_same(self):
+        # other diffs ignored
+        compare(SampleModel(id=1, value=1), SampleModel(id=1, value=2))
+
+    def test_normal_compare_id_diff(self):
+        if PY3:
+            expected = (
+                "'id': 3 != 4\n"
+                "'value': 1 != 2"
+            )
+
+        else:
+            expected = (
+                "'value': 1 != 2\n"
+                "u'id': 3 != 4"
+            )
+
+        self.check_raises(
+            SampleModel(id=3, value=1), SampleModel(id=4, value=2),
+            compare=django_compare,
+            message=(
+                'SampleModel not as expected:\n'
+                '\n'
+                'values differ:\n'+
+                expected
+            )
+        )

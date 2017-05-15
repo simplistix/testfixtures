@@ -306,3 +306,11 @@ API Reference
 .. autoclass:: testfixtures.popen.MockPopen
    :members:
 
+.. automodule:: testfixtures.django
+  :members:
+
+  .. function:: compare(x, y, prefix=None, suffix=None, raises=True, recursive=True, strict=False, comparers=None, **kw)
+
+      This is identical to :func:`compare`, but with ``ignore=True``
+      automatically set to make comparing django :class:`~django.db.models.Model`
+      instances easier.

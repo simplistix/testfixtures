@@ -50,7 +50,7 @@ Thanks to "mlabonte" for the bug report.
 - Add support for recursive comparison of log messages with :class:`LogCapture`.
 
 4.11.0 (12 October 2016)
--------------------------
+------------------------
 
 - Allow the attributes returned in :meth:`LogCapture.actual` rows to be
   specified.
@@ -115,7 +115,7 @@ Thanks to Wim Glenn for the suffix patch.
 ------------------------
 
 - Add the ability to pass ``raises=False`` to :func:`compare` to just get
-  and resulting message back rather than having an exception raised.
+  the resulting message back rather than having an exception raised.
 
 4.6.0 (3 December 2015)
 ------------------------
@@ -222,7 +222,7 @@ Thanks to BATS Global Markets for donating the code for
 Thanks to Daniel Fortunov for the documentation clarification.
 
 4.1.1 (30 October 2014)
--------------------------
+-----------------------
 
 - Fix bug that prevented logger propagation to be controlled by the
   :class:`log_capture` decorator.
@@ -230,7 +230,7 @@ Thanks to Daniel Fortunov for the documentation clarification.
 Thanks to John Kristensen for the fix.
 
 4.1.0 (14 October 2014)
--------------------------
+-----------------------
 
 - Fix :func:`compare` bug when :class:`dict` instances with
   :class:`tuple` keys were not equal.

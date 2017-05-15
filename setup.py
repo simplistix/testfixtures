@@ -25,11 +25,8 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.2',
-        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
@@ -38,8 +35,8 @@ setup(
     zip_safe=False,
     include_package_data=True,
     extras_require=dict(
-        test=['nose', 'nose-fixes', 'nose-cov', 'mock', 'manuel',
-              'zope.component', 'coveralls'],
+        test=['nose', 'nose-fixes', 'nose-cov', 'mock', 'manuel', 'coveralls',
+              'zope.component', 'django'],
         build=['sphinx', 'pkginfo', 'setuptools-git', 'wheel', 'twine']
     )
 )
