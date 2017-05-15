@@ -27,6 +27,7 @@ py_35_plus = sys.version_info[:2] >= (3, 5)
 # Python 2.7 compatibility stuff
 
 BYTE_LITERALS = re.compile("^b('.*')$", re.MULTILINE)
+UNICODE_LITERALS = re.compile("u('.*')", re.MULTILINE)
 
 
 def find_code_blocks(document):
@@ -55,4 +56,9 @@ if py_2:
                 self, want, got, optionflags
                 )
 else:
-    DocTestChecker = doctest.OutputChecker
+    class DocTestChecker(doctest.OutputChecker):
+        def check_output(self, want, got, optionflags):
+            want = UNICODE_LITERALS.sub('\\1', want)
+            return doctest.OutputChecker.check_output(
+                self, want, got, optionflags
+                )
