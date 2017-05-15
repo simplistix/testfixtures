@@ -3,6 +3,12 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.14.0 (15 May 2017)
+--------------------
+
+- Added helpers for testing with :doc:`django <django>`
+  :class:`~django.db.models.Model` instances.
+
 4.13.5 (1 March 2017)
 -------------------------
 
