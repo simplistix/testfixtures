@@ -3,6 +3,11 @@ Changes
 
 .. currentmodule:: testfixtures
 
+4.14.3 (15 May 2017)
+--------------------
+
+- Fix build environment bug in ``.travis.yml`` that caused bad tarballs.
+
 4.14.2 (15 May 2017)
 --------------------
 
