@@ -1,4 +1,8 @@
-from sybil import Sybil, DocTestParser, CodeBlockParser, parse_captures
+from sybil import Sybil
+from sybil.parsers.doctest import  DocTestParser
+from sybil.parsers.codeblock import CodeBlockParser
+from sybil.parsers.capture import parse_captures
+
 from testfixtures import TempDirectory
 from testfixtures.sybil import FileParser
 
