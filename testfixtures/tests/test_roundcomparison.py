@@ -1,6 +1,3 @@
-# Copyright (c) 2014 Simplistix Ltd
-# See license.txt for license details.
-
 from decimal import Decimal
 from testfixtures import RoundComparison as R, compare, ShouldRaise
 from unittest import TestCase

@@ -1,6 +1,3 @@
-# Copyright (c) 2008-2014 Simplistix Ltd
-# See license.txt for license details.
-
 import os
 from tempfile import mkdtemp
 from unittest import TestCase

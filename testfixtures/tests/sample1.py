@@ -1,5 +1,5 @@
-# Copyright (c) 2008 Simplistix Ltd
-# See license.txt for license details.
+# NB: This file is used in the documentation, if you make changes, ensure
+#     you update the line numbers in popen.txt!
 """
 A sample module containing the kind of code that
 TestFixtures helps with testing

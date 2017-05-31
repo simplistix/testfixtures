@@ -1,7 +1,4 @@
 from __future__ import print_function
-
-# Copyright (c) 2008-2013 Simplistix Ltd
-# See license.txt for license details.
 from logging import getLogger
 from unittest import TestCase
 from warnings import catch_warnings

@@ -1,6 +1,3 @@
-# Copyright (c) 2008-2014 Simplistix Ltd
-# See license.txt for license details.
-
 from testfixtures import Comparison as C, ShouldRaise, should_raise
 from unittest import TestCase
 

@@ -1,6 +1,3 @@
-# Copyright (c) 2008-2013 Simplistix Ltd
-# See license.txt for license details.
-
 from testfixtures import (
     log_capture, compare, Comparison as C, LogCapture, ShouldRaise
 )

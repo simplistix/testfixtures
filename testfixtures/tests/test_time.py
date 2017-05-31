@@ -1,6 +1,3 @@
-# Copyright (c) 2008-2013 Simplistix Ltd
-# See license.txt for license details.
-
 from testfixtures import test_time, replace, compare, ShouldRaise
 from unittest import TestCase
 from testfixtures.tests.test_datetime import SampleTZInfo

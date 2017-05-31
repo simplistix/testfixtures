@@ -1,6 +1,3 @@
-# Copyright (c) 2010-2011 Simplistix Ltd
-# Copyright (c) 2015 Chris Withers
-# See license.txt for license details.
 from __future__ import print_function
 
 import sys

@@ -1,6 +1,3 @@
-# Copyright (c) 2008 Simplistix Ltd
-# See license.txt for license details.
-
 from unittest import TestCase
 
 from types import GeneratorType

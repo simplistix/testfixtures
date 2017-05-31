@@ -1,6 +1,3 @@
-# Copyright (c) 2008-2012 Simplistix Ltd
-# See license.txt for license details.
-
 from unittest import TestCase
 
 from testfixtures import diff

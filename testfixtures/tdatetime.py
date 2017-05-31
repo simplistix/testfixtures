@@ -1,6 +1,3 @@
-# Copyright (c) 2008-2013 Simplistix Ltd
-# See license.txt for license details.
-
 from calendar import timegm
 from datetime import datetime, timedelta, date
 from testfixtures.compat import new_class

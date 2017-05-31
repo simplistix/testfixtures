@@ -1,6 +1,3 @@
-# Copyright (c) 2008-2014 Simplistix Ltd
-# See license.txt for license details.
-
 from datetime import date as d
 from time import strptime
 from testfixtures import ShouldRaise, test_date, replace, compare
