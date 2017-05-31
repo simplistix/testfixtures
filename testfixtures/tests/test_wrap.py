@@ -1,9 +1,11 @@
 # Copyright (c) 2008 Simplistix Ltd
 # See license.txt for license details.
 
+from unittest import TestCase
+
 from mock import Mock
+
 from testfixtures import wrap, compare
-from unittest import TestCase, TestSuite, makeSuite
 
 
 class TestWrap(TestCase):
@@ -213,7 +215,6 @@ class TestWrap(TestCase):
         @wrap(m.before, m.after)
         def test_function():
             something = 1
-            from testfixtures.tests import sample2
             m.test()
             return 'something'
 

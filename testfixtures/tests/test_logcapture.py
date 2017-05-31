@@ -1,15 +1,14 @@
 from __future__ import print_function
+
 # Copyright (c) 2008-2013 Simplistix Ltd
 # See license.txt for license details.
-
-from doctest import DocTestSuite
-from mock import Mock
-from testfixtures import Replacer, LogCapture, compare
-from unittest import TestSuite, TestCase, makeSuite
-
 from logging import getLogger
-
+from unittest import TestCase
 from warnings import catch_warnings
+
+from mock import Mock
+
+from testfixtures import Replacer, LogCapture, compare
 
 root = getLogger()
 one = getLogger('one')
@@ -17,272 +16,174 @@ two = getLogger('two')
 child = getLogger('one.child')
 
 
-class DemoLogCapture:
+class TestLogCapture(TestCase):
 
-    def test_simple(self):  # pragma: no branch
-        """
-        >>> root.info('some logging')
-        >>> print(log_capture)
-        root INFO
-          some logging
-        >>> log_capture.clear()
-        >>> print(log_capture)
-        No logging captured
-        >>> root.info('some more logging')
-        >>> print(log_capture)
-        root INFO
-          some more logging
-        """
+    def test_simple(self):
+        root.info('before')
+        l = LogCapture()
+        root.info('during')
+        l.uninstall()
+        root.info('after')
+        assert str(l) == "root INFO\n  during"
 
+    def test_specific_logger(self):
+        l = LogCapture('one')
+        root.info('1')
+        one.info('2')
+        two.info('3')
+        child.info('4')
+        l.uninstall()
+        assert str(l) == (
+            "one INFO\n  2\n"
+            "one.child INFO\n  4"
+        )
 
-class TestLogCapture:
+    def test_multiple_loggers(self):
+        l = LogCapture(('one.child','two'))
+        root.info('1')
+        one.info('2')
+        two.info('3')
+        child.info('4')
+        l.uninstall()
+        assert str(l) == (
+            "two INFO\n  3\n"
+            "one.child INFO\n  4"
+        )
 
-    def test_simple(self):  # pragma: no branch
-        """
-        >>> root.info('before')
-        >>> l = LogCapture()
-        >>> root.info('during')
-        >>> l.uninstall()
-        >>> root.info('after')
-        >>> print(l)
-        root INFO
-          during
-        """
+    def test_simple_manual_install(self):
+        l = LogCapture(install=False)
+        root.info('before')
+        l.install()
+        root.info('during')
+        l.uninstall()
+        root.info('after')
+        assert str(l) == "root INFO\n  during"
 
-    def test_specific_logger(self):  # pragma: no branch
-        """
-        >>> l = LogCapture('one')
-        >>> root.info('1')
-        >>> one.info('2')
-        >>> two.info('3')
-        >>> child.info('4')
-        >>> l.uninstall()
-        >>> print(l)
-        one INFO
-          2
-        one.child INFO
-          4
-        """
+    def test_uninstall(self):
+        # Lets start off with a couple of loggers:
 
-    def test_multiple_loggers(self):  # pragma: no branch
-        """
-        >>> l = LogCapture(('one.child','two'))
-        >>> root.info('1')
-        >>> one.info('2')
-        >>> two.info('3')
-        >>> child.info('4')
-        >>> l.uninstall()
-        >>> print(l)
-        two INFO
-          3
-        one.child INFO
-          4
-        """
+        root = getLogger()
+        child = getLogger('child')
 
-    def test_simple_manual_install(self):  # pragma: no branch
-        """
-        >>> l = LogCapture(install=False)
-        >>> root.info('before')
-        >>> l.install()
-        >>> root.info('during')
-        >>> l.uninstall()
-        >>> root.info('after')
-        >>> print(l)
-        root INFO
-          during
-        """
+        # Lets also record the handlers for these loggers before
+        # we start the test:
 
-    def test_uninstall(self):  # pragma: no branch
-        """
-        Lets start off with a couple of loggers:
+        before_root = root.handlers[:]
+        before_child = child.handlers[:]
 
-        >>> root = getLogger()
-        >>> child = getLogger('child')
+        # Lets also record the levels for the loggers:
 
-        Lets also record the handlers for these loggers before
-        we start the test:
+        old_root_level=root.level
+        old_child_level=child.level
 
-        >>> before_root = root.handlers[:]
-        >>> before_child = child.handlers[:]
+        # Now the test:
 
-        Lets also record the levels for the loggers:
+        try:
+            root.setLevel(49)
+            child.setLevel(69)
+            l1 = LogCapture()
+            l2 = LogCapture('child')
+            root = getLogger()
+            root.info('1')
+            child = getLogger('child')
+            assert root.level == 1
+            assert child.level == 1
 
-        >>> old_root_level=root.level
-        >>> old_child_level=child.level
+            child.info('2')
+            assert str(l1) == (
+                "root INFO\n  1\n"
+                "child INFO\n  2"
+            )
+            assert str(l2) == (
+                "child INFO\n  2"
+            )
+            l2.uninstall()
+            l1.uninstall()
+            assert root.level == 49
+            assert child.level == 69
+        finally:
+           root.setLevel(old_root_level)
+           child.setLevel(old_child_level)
 
-        Now the test:
+        # Now we check the handlers are as they were before
+        # the test:
+        assert root.handlers == before_root
+        assert child.handlers == before_child
 
-        >>> try:
-        ...    root.setLevel(49)
-        ...    child.setLevel(69)
-        ...
-        ...    l1 = LogCapture()
-        ...    l2 = LogCapture('child')
-        ...
-        ...    root = getLogger()
-        ...    root.info('1')
-        ...    print('root level during test:',root.level)
-        ...    child = getLogger('child')
-        ...    print('child level during test:',child.level)
-        ...    child.info('2')
-        ...    print('l1 contents:')
-        ...    print(l1)
-        ...    print('l2 contents:')
-        ...    print(l2)
-        ...
-        ...    l2.uninstall()
-        ...    l1.uninstall()
-        ...
-        ...    print('root level after test:',root.level)
-        ...    print('child level after test:',child.level)
-        ...
-        ... finally:
-        ...    root.setLevel(old_root_level)
-        ...    child.setLevel(old_child_level)
-        root level during test: 1
-        child level during test: 1
-        l1 contents:
-        root INFO
-          1
-        child INFO
-          2
-        l2 contents:
-        child INFO
-          2
-        root level after test: 49
-        child level after test: 69
+    def test_uninstall_all(self):
+        before_handlers_root = root.handlers[:]
+        before_handlers_child = child.handlers[:]
 
-        Now we check the handlers are as they were before
-        the test:
+        l1 = LogCapture()
+        l2 = LogCapture('one.child')
 
-        >>> root.handlers == before_root
-        True
-        >>> child.handlers == before_child
-        True
-        """
+        # We can see that the LogCaptures have changed the
+        # handlers, removing existing ones and installing
+        # their own:
 
-    def test_uninstall_all(self):  # pragma: no branch
-        """
-        For this test, it's better if we don't have any
-        LogCaptures around when we start:
+        assert len(root.handlers) == 1
+        assert root.handlers != before_handlers_root
+        assert len(child.handlers) == 1
+        assert child.handlers != before_handlers_child
 
-        >>> log_capture.uninstall()
+        # Now we show the function in action:
 
-        If you create several LogCaptures during a doctest,
-        it can create clutter to uninstall them all.
-        If this is the case, use the classmethod
-        LogCapture.uninstall_all() as a tearDown function
-        to remove them all:
+        LogCapture.uninstall_all()
 
-        >>> before_handlers_root = root.handlers[:]
-        >>> before_handlers_child = child.handlers[:]
+        # ...and we can see the handlers are back as
+        # they were beefore:
 
-        >>> l1 = LogCapture()
-        >>> l2 = LogCapture('one.child')
+        assert before_handlers_root == root.handlers
+        assert before_handlers_child == child.handlers
 
-        We can see that the LogCaptures have changed the
-        handlers, removing existing ones and installing
-        their own:
+    def test_two_logcaptures_on_same_logger(self):
+        # If you create more than one LogCapture on a single
+        # logger, the 2nd one installed will stop the first
+        # one working!
 
-        >>> len(root.handlers)
-        1
-        >>> root.handlers==before_handlers_root
-        False
-        >>> len(child.handlers)
-        1
-        >>> child.handlers==before_handlers_child
-        False
+        l1 = LogCapture()
+        root.info('1st message')
+        assert str(l1) == "root INFO\n  1st message"
+        l2 = LogCapture()
+        root.info('2nd message')
 
-        Now we show the function in action:
+        # So, l1 missed this message:
+        assert str(l1) == "root INFO\n  1st message"
 
-        >>> LogCapture.uninstall_all()
+        # ...because l2 kicked it out and recorded the message:
 
-        ...and we can see the handlers are back as
-        they were beefore:
+        assert str(l2) == "root INFO\n  2nd message"
 
-        >>> before_handlers_root == root.handlers
-        True
-        >>> before_handlers_child == child.handlers
-        True
-        """
+        LogCapture.uninstall_all()
 
-    def test_two_logcaptures_on_same_logger(self):  # pragma: no branch
-        """
-        If you create more than one LogCaptures on a single
-        logger, the 2nd one installed will stop the first
-        one working!
+    def test_uninstall_more_than_once(self):
+        # There's no problem with uninstalling a LogCapture
+        # more than once:
 
-        >>> l1 = LogCapture()
-        >>> root.info('1st message')
-        >>> print(l1)
-        root INFO
-          1st message
-        >>> l2 = LogCapture()
-        >>> root.info('2nd message')
+        old_level = root.level
+        try:
+           root.setLevel(49)
+           l = LogCapture()
+           assert root.level == 1
+           l.uninstall()
+           assert root.level == 49
+           root.setLevel(69)
+           l.uninstall()
+           assert root.level == 69
+        finally:
+           root.setLevel(old_level)
 
-        So, l1 missed this message:
+        # And even when loggers have been uninstalled, there's
+        # no problem having uninstall_all as a backstop:
 
-        >>> print(l1)
-        root INFO
-          1st message
+        l.uninstall_all()
 
-        ...because l2 kicked it out and recorded the message:
-
-        >>> print(l2)
-        root INFO
-          2nd message
-        """
-
-    def test_uninstall_more_than_once(self):  # pragma: no branch
-        """
-        For this test, it's better if we don't have any
-        LogCaptures around when we start:
-
-        >>> log_capture.uninstall()
-
-        There's no problem with uninstalling a LogCapture
-        more than once:
-
-        >>> old_level = root.level
-        >>> try:
-        ...    root.setLevel(49)
-        ...
-        ...    l = LogCapture()
-        ...
-        ...    print('root level during test:',root.level)
-        ...
-        ...    l.uninstall()
-        ...
-        ...    print('root level after uninstall:',root.level)
-        ...
-        ...    root.setLevel(69)
-        ...
-        ...    l.uninstall()
-        ...
-        ...    print('root level after another uninstall:',root.level)
-        ...
-        ... finally:
-        ...    root.setLevel(old_level)
-        root level during test: 1
-        root level after uninstall: 49
-        root level after another uninstall: 69
-
-        And even when loggers have been uninstalled, there's
-        no problem having uninstall_all as a backstop:
-
-        >>> log_capture.uninstall_all()
-        """
-
-    def test_with_statement(self):  # pragma: no branch
-        """
-        >>> root.info('before')
-        >>> with LogCapture() as l:
-        ...   root.info('during')
-        >>> root.info('after')
-        >>> print(l)
-        root INFO
-          during
-        """
+    def test_with_statement(self):
+        root.info('before')
+        with LogCapture() as l:
+          root.info('during')
+        root.info('after')
+        assert str(l) == "root INFO\n  during"
 
 
 class LogCaptureTests(TestCase):
@@ -296,7 +197,7 @@ class LogCaptureTests(TestCase):
             logger.handlers = start = [object()]
 
             with LogCapture() as l:
-                logger.info('during')  # pragma: no branch
+                logger.info('during')
 
             l.check(('root', 'INFO', 'during'))
 
@@ -326,7 +227,7 @@ class LogCaptureTests(TestCase):
             with catch_warnings(record=True) as w:
                 l.atexit()
                 self.assertTrue(len(w), 1)
-                compare(str(w[0].message), (  # pragma: no branch
+                compare(str(w[0].message), (
                     "LogCapture instances not uninstalled by shutdown, "
                     "loggers captured:\n"
                     "(None,)"
@@ -363,22 +264,3 @@ class LogCaptureTests(TestCase):
                 child_log.check(('child', 'INFO', 'a log message'))
         global_log.check()
         compare(logger.propagate, True)
-
-# using a set up and teardown function
-# gets rid of the need for the imports in
-# doc tests
-
-
-def setUp(test):
-    test.globs['log_capture'] = LogCapture()
-
-
-def tearDown(test):
-    test.globs['log_capture'].uninstall_all()
-
-
-def test_suite():
-    return TestSuite((
-        DocTestSuite(setUp=setUp, tearDown=tearDown),
-        makeSuite(LogCaptureTests),
-        ))

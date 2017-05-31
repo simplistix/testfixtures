@@ -3,7 +3,7 @@
 
 from testfixtures import test_time, replace, compare, ShouldRaise
 from unittest import TestCase
-from testfixtures.tests.test_datetime import TestTZInfo
+from testfixtures.tests.test_datetime import SampleTZInfo
 
 
 class TestTime(TestCase):
@@ -39,7 +39,7 @@ class TestTime(TestCase):
         with ShouldRaise(ValueError(
             'Cannot add datetime with tzinfo set'
                 )):
-            t.add(datetime(2001, 1, 1, tzinfo=TestTZInfo()))
+            t.add(datetime(2001, 1, 1, tzinfo=SampleTZInfo()))
 
     @replace('time.time', test_time(None))
     def test_now_requested_longer_than_supplied(self, t):
@@ -94,7 +94,7 @@ class TestTime(TestCase):
         with ShouldRaise(ValueError(
             'Cannot set datetime with tzinfo set'
                 )):
-            t.set(datetime(2001, 1, 1, tzinfo=TestTZInfo()))
+            t.set(datetime(2001, 1, 1, tzinfo=SampleTZInfo()))
 
     @replace('time.time', test_time(None))
     def test_set_kw(self):
@@ -106,13 +106,13 @@ class TestTime(TestCase):
     def test_set_kw_tzinfo(self):
         from time import time
         with ShouldRaise(TypeError('Cannot set tzinfo on ttime')):
-            time.set(year=2001, tzinfo=TestTZInfo())
+            time.set(year=2001, tzinfo=SampleTZInfo())
 
     @replace('time.time', test_time(None))
     def test_set_args_tzinfo(self):
         from time import time
         with ShouldRaise(TypeError('Cannot set tzinfo on ttime')):
-            time.set(2002, 1, 2, 3, 4, 5, 6, TestTZInfo())
+            time.set(2002, 1, 2, 3, 4, 5, 6, SampleTZInfo())
 
     @replace('time.time', test_time(None))
     def test_add_kw(self):
@@ -124,13 +124,13 @@ class TestTime(TestCase):
     def test_add_tzinfo_kw(self):
         from time import time
         with ShouldRaise(TypeError('Cannot add tzinfo to ttime')):
-            time.add(year=2001, tzinfo=TestTZInfo())
+            time.add(year=2001, tzinfo=SampleTZInfo())
 
     @replace('time.time', test_time(None))
     def test_add_tzinfo_args(self):
         from time import time
         with ShouldRaise(TypeError('Cannot add tzinfo to ttime')):
-            time.add(2001, 1, 2, 3, 4, 5, 6, TestTZInfo())
+            time.add(2001, 1, 2, 3, 4, 5, 6, SampleTZInfo())
 
     @replace('time.time', test_time(2001, 1, 2, 3, 4, 5, 600000))
     def test_max_number_args(self):
@@ -142,7 +142,7 @@ class TestTime(TestCase):
             "You don't want to use tzinfo with test_time"
                 )):
             @replace('time.time',
-                     test_time(2001, 1, 2, 3, 4, 5, 6, TestTZInfo()))
+                     test_time(2001, 1, 2, 3, 4, 5, 6, SampleTZInfo()))
             def myfunc():
                 pass  # pragma: no cover
 
@@ -168,7 +168,7 @@ class TestTime(TestCase):
         with ShouldRaise(TypeError(
             "You don't want to use tzinfo with test_time"
                 )):
-            @replace('time.time', test_time(year=2001, tzinfo=TestTZInfo()))
+            @replace('time.time', test_time(year=2001, tzinfo=SampleTZInfo()))
             def myfunc():
                 pass  # pragma: no cover
 

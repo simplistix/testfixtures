@@ -1,4 +1,4 @@
-# Copyright (c) 2008-2014 Simplistix Ltd, 2015-2016 Chris Withers
+# Copyright (c) 2008-2014 Simplistix Ltd, 2015-2017 Chris Withers
 # See license.txt for license details.
 
 import os
@@ -35,8 +35,8 @@ setup(
     zip_safe=False,
     include_package_data=True,
     extras_require=dict(
-        test=['nose', 'nose-fixes', 'nose-cov', 'mock', 'manuel', 'coveralls',
-              'zope.component', 'django'],
+        test=['pytest', 'mock', 'sybil', 'coverage', 'coveralls',
+              'zope.component', 'django', 'pytest-django'],
         build=['sphinx', 'pkginfo', 'setuptools-git', 'wheel', 'twine']
     )
 )

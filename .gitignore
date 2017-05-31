@@ -20,3 +20,4 @@
 desc.html
 pip-selfcheck.json
 .coverage.*
+.cache

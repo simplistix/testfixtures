@@ -27,7 +27,7 @@ Here's a simple example:
   output.compare('\n'.join([
       "Hello!",
       "Something bad happened!",
-      ]))
+  ]))
 
 To make life easier, both the actual and expected output are stripped
 of leading and trailing whitespace before the comparison is done:

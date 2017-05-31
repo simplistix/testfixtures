@@ -42,4 +42,3 @@ The items in the section are now available as follows:
   # change out again
   import os
   os.chdir(original_dir)
-

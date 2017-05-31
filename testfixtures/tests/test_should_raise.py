@@ -4,8 +4,8 @@
 from testfixtures import Comparison as C, ShouldRaise, should_raise
 from unittest import TestCase
 
-from .compat import py_33_plus
-from .compat import py_36_plus
+from ..compat import PY_34_PLUS
+from ..compat import PY_36_PLUS
 
 
 class TestShouldRaise(TestCase):
@@ -188,12 +188,12 @@ class TestShouldRaise(TestCase):
         self.assertEqual(C(ValueError('foo bar')), s.raised)
 
     def test_import_errors_1(self):
-        if py_33_plus:
+        if PY_34_PLUS:
             message = "No module named 'textfixtures'"
         else:
             message = 'No module named textfixtures.foo.bar'
 
-        exception = ModuleNotFoundError if py_36_plus else ImportError
+        exception = ModuleNotFoundError if PY_36_PLUS else ImportError
 
         with ShouldRaise(exception(message)):
             import textfixtures.foo.bar

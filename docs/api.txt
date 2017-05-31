@@ -295,7 +295,7 @@ API Reference
 .. autoclass:: testfixtures.components.TestComponents
    :members:
 
-.. autoclass:: testfixtures.manuel.Files
+.. autoclass:: testfixtures.sybil.FileParser
 
 .. data:: not_there
 

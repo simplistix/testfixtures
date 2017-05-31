@@ -13,6 +13,8 @@ To work around this, :mod:`testfixtures.django` :ref:`registers <comparer-regist
 a comparer for the django :class:`~django.db.models.Model` class. However,
 for this to work, ``ignore_eq=True`` must be passed:
 
+>>> from testfixtures import compare
+>>> import testfixtures.django # to register the comparer...
 >>> compare(SampleModel(id=1, value=1), SampleModel(id=1, value=2),
 ...         ignore_eq=True)
 Traceback (most recent call last):

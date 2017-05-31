@@ -2,17 +2,16 @@
 # See license.txt for license details.
 
 import os
-
-from doctest import DocTestSuite, ELLIPSIS
-from mock import Mock
 from tempfile import mkdtemp
-from testfixtures import TempDirectory, Replacer, ShouldRaise, compare
-from unittest import TestCase, TestSuite, makeSuite
-
-from ..compat import Unicode, PY3
-from testfixtures.tests.compat import py_35_plus
+from unittest import TestCase
 from warnings import catch_warnings
 
+from mock import Mock
+
+from testfixtures import (
+    TempDirectory, Replacer, ShouldRaise, compare, OutputCapture
+)
+from ..compat import Unicode, PY3, PY_35_PLUS
 from ..rmtree import rmtree
 
 if PY3:
@@ -23,115 +22,49 @@ else:
     some_text = '\xc2\xa3'.decode('utf-8')
 
 
-class DemoTempDirectory:
+class TestTempDirectory(TestCase):
 
-    def test_return_path(self):  # pragma: no branch
-        """
-        If you want the path created when you use `write`, you
-        can do:
+    def test_cleanup(self):
+        d = TempDirectory()
+        p = d.path
+        assert os.path.exists(p) is True
+        p = d.write('something', b'stuff')
+        d.cleanup()
+        assert os.path.exists(p) is False
 
-        >>> temp_dir.write('filename', b'data')
-        '...filename'
-        """
+    def test_cleanup_all(self):
+        d1 = TempDirectory()
+        d2 = TempDirectory()
 
-    def test_ignore(self):  # pragma: no branch
-        """
-        TempDirectories can also be set up to ignore certain files:
+        assert os.path.exists(d1.path) is True
+        p1 = d1.path
+        assert os.path.exists(d2.path) is True
+        p2 = d2.path
 
-        >>> d = TempDirectory(ignore=('.svn', ))
-        >>> p = d.write('.svn', b'stuff')
-        >>> temp_dir.listdir()
-        No files or directories found.
-        """
+        TempDirectory.cleanup_all()
 
-    def test_ignore_regex(self):  # pragma: no branch
-        """
-        TempDirectories can also be set up to ignore certain files:
+        assert os.path.exists(p1) is False
+        assert os.path.exists(p2) is False
 
-        >>> d = TempDirectory(ignore=('^\.svn$', '.pyc$'))
-        >>> p = d.write('.svn', b'stuff')
-        >>> p = d.write('foo.svn', b'')
-        >>> p = d.write('foo.pyc', b'')
-        >>> p = d.write('bar.pyc', b'')
-        >>> d.listdir()
-        foo.svn
-        """
-
-
-class TestTempDirectory:
-
-    def test_cleanup(self):  # pragma: no branch
-        """
-        >>> d = TempDirectory()
-        >>> p = d.path
-        >>> os.path.exists(p)
-        True
-        >>> p = d.write('something', b'stuff')
-        >>> d.cleanup()
-        >>> os.path.exists(p)
-        False
-        """
-
-    def test_cleanup_all(self):  # pragma: no branch
-        """
-        If you create several TempDirecories during a doctest,
-        or if exceptions occur while running them,
-        it can create clutter on disk.
-        For this reason, it's recommended to use the classmethod
-        TempDirectory.cleanup_all() as a tearDown function
-        to remove them all:
-
-        >>> d1 = TempDirectory()
-        >>> d2 = TempDirectory()
-
-        Some sanity checks:
-
-        >>> os.path.exists(d1.path)
-        True
-        >>> p1 = d1.path
-        >>> os.path.exists(d2.path)
-        True
-        >>> p2 = d2.path
-
-        Now we show the function in action:
-
-        >>> TempDirectory.cleanup_all()
-
-        >>> os.path.exists(p1)
-        False
-        >>> os.path.exists(p2)
-        False
-        """
-
-    def test_with_statement(self):  # pragma: no branch
-        """
-        >>> with TempDirectory() as d:
-        ...    p = d.path
-        ...    print(os.path.exists(p))
-        ...    path = d.write('something', b'stuff')
-        ...    os.listdir(p)
-        ...    with open(os.path.join(p, 'something')) as f:
-        ...        print(repr(f.read()))
-        True
-        ['something']
-        'stuff'
-        >>> os.path.exists(p)
-        False
-        """
+    def test_with_statement(self):
+        with TempDirectory() as d:
+           p = d.path
+           assert os.path.exists(p) is True
+           d.write('something', b'stuff')
+           assert os.listdir(p) == ['something']
+           with open(os.path.join(p, 'something')) as f:
+               assert f.read() == 'stuff'
+        assert os.path.exists(p) is False
 
     def test_listdir_sort(self):  # pragma: no branch
-        """
-        >>> with TempDirectory() as d:
-        ...    p = d.write('ga', b'')
-        ...    p = d.write('foo1', b'')
-        ...    p = d.write('Foo2', b'')
-        ...    p = d.write('g.o', b'')
-        ...    d.listdir()
-        Foo2
-        foo1
-        g.o
-        ga
-        """
+        with TempDirectory() as d:
+            d.write('ga', b'')
+            d.write('foo1', b'')
+            d.write('Foo2', b'')
+            d.write('g.o', b'')
+            with OutputCapture() as output:
+                d.listdir()
+        output.compare('Foo2\nfoo1\ng.o\nga')
 
 
 class TempDirectoryTests(TestCase):
@@ -327,7 +260,7 @@ class TempDirectoryTests(TestCase):
                 compare(f.read(), b'\xc2\xa3')
 
     def test_write_unicode_bad(self):
-        if py_35_plus:
+        if PY_35_PLUS:
             expected = TypeError(
                 "a bytes-like object is required, not 'str'"
                 )
@@ -388,24 +321,3 @@ class TempDirectoryTests(TestCase):
         with TempDirectory(encoding='ascii') as d:
             d.write('test.txt', decoded, encoding='utf-8')
             compare(d.read('test.txt', encoding='utf-8'), expected=decoded)
-
-
-# using a set up and teardown function
-# gets rid of the need for the imports in
-# doc tests
-
-
-def setUp(test):
-    test.globs['temp_dir'] = TempDirectory()
-
-
-def tearDown(test):
-    TempDirectory.cleanup_all()
-
-
-def test_suite():
-    return TestSuite((
-        DocTestSuite(setUp=setUp, tearDown=tearDown,
-                     optionflags=ELLIPSIS),
-        makeSuite(TempDirectoryTests),
-        ))

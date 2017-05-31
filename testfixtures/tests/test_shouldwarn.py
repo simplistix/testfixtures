@@ -6,14 +6,12 @@ from testfixtures import (
     ShouldWarn, compare, ShouldRaise, ShouldNotWarn,
     Comparison as C
 )
-from testfixtures.compat import PY3
+from testfixtures.compat import PY3, PY_36_PLUS
 
 if PY3:
     warn_module = 'builtins'
 else:
     warn_module = 'exceptions'
-
-from .compat import py_36_plus
 
 
 class ShouldWarnTests(TestCase):
@@ -119,7 +117,7 @@ class ShouldWarnTests(TestCase):
             message=C(DeprecationWarning('foo')),
         )
 
-        if py_36_plus:
+        if PY_36_PLUS:
             expected_attrs['source'] = None
 
         compare(expected=C(warnings.WarningMessage, **expected_attrs),

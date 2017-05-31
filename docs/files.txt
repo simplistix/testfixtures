@@ -557,22 +557,22 @@ will need to make sure that the directory is cleaned up as required.
 
  >>> rmtree(thedir)
 
-Using with Manuel
+Using with Sybil
 -----------------
 
-`Manuel`__ is an excellent take on testing the examples found in
+`Sybil`__ is a tool for testing the examples found in
 documentation. It works by applying a set of specialised
 parsers to the documentation and testing or otherwise using the the
 blocks returned by those parsers.
 
-__ http://pypi.python.org/pypi/manuel
+__ http://sybil.readthedocs.io
 
-The key differences between testing with Manuel and the traditional
-doctest are that it is possible to plug in different types of parser,
+The key differences between testing with Sybil and traditional
+doctests are that it is possible to plug in different types of parser,
 not just the "python console session" one, and so it is possible to
 test different types of examples. TestFixtures provides one these
-plugins to aid working with 
-:class:`~testfixtures.TempDirectory` objects. This plugin makes use of
+parsers to aid working with
+:class:`~testfixtures.TempDirectory` objects. This parser makes use of
 :rst:dir:`topic` directives with specific classes set to perform
 different actions. 
 
@@ -584,25 +584,26 @@ Setting up
 
 To use the Manuel plugin, you need to make sure a
 :class:`TempDirectory` instance is available under a particular name
-in the test globals. This name is then passed to the plugin's
-constructor and the plugin is passed to Manuel's
-:class:`~manuel.testing.TestSuite` constructor.
+in the sybil test namespace. This name is then passed to the plugin's
+constructor and the plugin is passed to the
+:class:`~sybil.sybil.Sybil` constructor.
 
-The following example shows how to return a test suite that will
+The following example shows how to use Sybil's `pytest`__ integration to
 execute all of the examples below. These require not only the
-TestFixtures plugin but also the Manuel plugins that give more
-traditional doctest behaviour, hidden code blocks
+TestFixtures parser but also the Sybil parsers that give more
+traditional doctest behaviour, invisible code blocks
 that are useful for setting things up and checking examples without
 breaking up the flow of the documentation, and capturing of examples
 from the documentation to use for use in other forms of testing: 
 
-.. literalinclude:: ../testfixtures/tests/test_manuel_examples.py
-   :lines: 7-
+__ https://docs.pytest.org/en/latest/
+
+.. literalinclude:: ../testfixtures/tests/conftest.py
 
 Writing files
 ~~~~~~~~~~~~~
 
-To write a file with the plugin, a :rst:dir:`topic` with a class of
+To write a file, a :rst:dir:`topic` with a class of
 ``write-file`` is included in the documentation. The following example
 is a complete reStructuredText file that shows how to write a file
 that is then used by a later example:
@@ -612,7 +613,7 @@ that is then used by a later example:
 Checking the contents of files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To read a file with the plugin, a :rst:dir:`topic` with a class of
+To read a file, a :rst:dir:`topic` with a class of
 ``read-file`` is included in the documentation. The following example
 is a complete reStructuredText file that shows how to check the values
 written by the code being documented while also using this check as
@@ -624,8 +625,9 @@ Checking the contents of directories
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 While the TestFixtures plugin itself does not offer any facility for
-checking the contents of directories, Manuel's :mod:`~manuel.capture`
-plugin can be used in conjunction with the existing features of a
+checking the contents of directories, Sybil's
+:mod:`~sybil.parsers.capture.parse_captures`
+can be used in conjunction with the existing features of a
 :class:`TempDirectory` to illustrate the contents expected
 in a directory seamlessly within the documentation.
 
