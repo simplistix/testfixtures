@@ -351,3 +351,22 @@ class TestDateTime(TestCase):
         compare(datetime.now(), datetime(2001, 1, 1, 0, 0, 0, 0))
         compare(datetime.now(), datetime(2001, 1, 1, 0, 0, 0, 100))
         compare(datetime.now(), datetime(2001, 1, 1, 0, 0, 0, 200))
+
+    def test_tick_when_static(self):
+        datetime = test_datetime(delta=0)
+        compare(datetime.now(), expected=d(2001, 1, 1))
+        datetime.tick(hours=1)
+        compare(datetime.now(), expected=d(2001, 1, 1, 1))
+
+    def test_tick_when_dynamic(self):
+        # hopefully not that common?
+        datetime = test_datetime()
+        compare(datetime.now(), expected=d(2001, 1, 1))
+        datetime.tick(hours=1)
+        compare(datetime.now(), expected=d(2001, 1, 1, 1, 0, 10))
+
+    def test_tick_with_timedelta_instance(self):
+        datetime = test_datetime(delta=0)
+        compare(datetime.now(), expected=d(2001, 1, 1))
+        datetime.tick(timedelta(hours=1))
+        compare(datetime.now(), expected=d(2001, 1, 1, 1))

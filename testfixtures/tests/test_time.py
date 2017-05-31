@@ -1,6 +1,7 @@
-from testfixtures import test_time, replace, compare, ShouldRaise
+from datetime import timedelta
 from unittest import TestCase
-from testfixtures.tests.test_datetime import SampleTZInfo
+from testfixtures import test_time, replace, compare, ShouldRaise
+from .test_datetime import SampleTZInfo
 
 
 class TestTime(TestCase):
@@ -180,3 +181,22 @@ class TestTime(TestCase):
         compare(time(), 978307200.0)
         compare(time(), 978307200.001)
         compare(time(), 978307200.002)
+
+    def test_tick_when_static(self):
+        time = test_time(delta=0)
+        compare(time(), expected=978307200.0)
+        time.tick(seconds=1)
+        compare(time(), expected=978307201.0)
+
+    def test_tick_when_dynamic(self):
+        # hopefully not that common?
+        time = test_time()
+        compare(time(), expected=978307200.0)
+        time.tick(seconds=1)
+        compare(time(), expected=978307202.0)
+
+    def test_tick_with_timedelta_instance(self):
+        time = test_time(delta=0)
+        compare(time(), expected=978307200.0)
+        time.tick(timedelta(seconds=1))
+        compare(time(), expected=978307201.0)

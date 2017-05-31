@@ -113,7 +113,7 @@ API Reference
 
      This will add the :class:`datetime.date` created from the
      supplied parameters to the queue of dates to be returned by
-     :meth:`~datetime.date.today`.  An instance
+     :meth:`~tdate.today`.  An instance
      of :class:`~datetime.date` may also be passed as a single
      positional argument.
 
@@ -121,10 +121,19 @@ API Reference
 
      This will set the :class:`datetime.date` created from the
      supplied parameters as the next date to be returned by
-     :meth:`~datetime.date.today`, regardless of any dates in the
+     :meth:`~tdate.today`, regardless of any dates in the
      queue.   An instance
      of :class:`~datetime.date` may also be passed as a single
      positional argument.
+
+   .. method:: tdate.tick(*args, **kw)
+
+     This method should be called either with a :class:`~datetime.timedelta`
+     as a positional argument, or with keyword parameters that will be used
+     to construct a :class:`~datetime.timedelta`.
+
+     The  :class:`~datetime.timedelta` will be used to advance the next date
+     to be returned by :meth:`~tdate.today`.
 
    .. classmethod:: tdate.today()
 
@@ -212,6 +221,16 @@ API Reference
      of :class:`~datetime.datetime` may also be passed as a single
      positional argument.
 
+   .. method:: tdatetime.tick(*args, **kw)
+
+     This method should be called either with a :class:`~datetime.timedelta`
+     as a positional argument, or with keyword parameters that will be used
+     to construct a :class:`~datetime.timedelta`.
+
+     The  :class:`~datetime.timedelta` will be used to advance the next datetime
+     to be returned by :meth:`~tdatetime.now` or :meth:`~tdatetime.utcnow`.
+
+
    .. classmethod:: tdatetime.now([tz])
 
      :param tz: An optional timezone to apply to the returned time.
@@ -289,6 +308,16 @@ API Reference
      :class:`datetime.datetime` constructor.  An instance of
      :class:`~datetime.datetime` may also be passed as a single
      positional argument.
+
+   .. method:: ttime.tick(*args, **kw)
+
+     This method should be called either with a :class:`~datetime.timedelta`
+     as a positional argument, or with keyword parameters that will be used
+     to construct a :class:`~datetime.timedelta`.
+
+     The  :class:`~datetime.timedelta` will be used to advance the next time
+     to be returned by a call to the mock.
+
 
 .. autofunction:: wrap
 

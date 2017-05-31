@@ -35,6 +35,15 @@ def set_(cls, *args, **kw):
     cls.add(*args, **kw)
 
 
+@classmethod
+def tick(cls, *args, **kw):
+    if kw:
+        delta = timedelta(**kw)
+    else:
+        delta, = args
+    cls._q[-1] += delta
+
+
 def __add__(self, other):
     r = super(self.__class__, self).__add__(other)
     if self._ct:
@@ -85,6 +94,7 @@ def test_factory(n, type, default, args, kw, tz=None, **to_patch):
     to_patch['_tzta'] = tz
     to_patch['add'] = add
     to_patch['set'] = set_
+    to_patch['tick'] = tick
     to_patch['__add__'] = __add__
     if '__new__' not in to_patch:
         to_patch['__new__'] = __new__

@@ -1,4 +1,4 @@
-from datetime import date as d
+from datetime import date as d, timedelta
 from time import strptime
 from testfixtures import ShouldRaise, test_date, replace, compare
 from testfixtures.tests import sample1, sample2
@@ -241,3 +241,22 @@ class TestDate(TestCase):
             self.failIf(inst.__class__ is date, inst)
             self.failUnless(isinstance(inst, d), inst)
             self.failUnless(inst.__class__ is d, inst)
+
+    def test_tick_when_static(self):
+        date = test_date(delta=0)
+        compare(date.today(), expected=d(2001, 1, 1))
+        date.tick(days=1)
+        compare(date.today(), expected=d(2001, 1, 2))
+
+    def test_tick_when_dynamic(self):
+        # hopefully not that common?
+        date = test_date()
+        compare(date.today(), expected=date(2001, 1, 1))
+        date.tick(days=1)
+        compare(date.today(), expected=date(2001, 1, 3))
+
+    def test_tick_with_timedelta_instance(self):
+        date = test_date(delta=0)
+        compare(date.today(), expected=d(2001, 1, 1))
+        date.tick(timedelta(days=1))
+        compare(date.today(), expected=d(2001, 1, 2))
