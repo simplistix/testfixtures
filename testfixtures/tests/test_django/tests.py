@@ -1,16 +1,10 @@
-import django
-import os
 from unittest import TestCase
 
 from testfixtures.compat import PY3
+from .models import SampleModel
+from ..test_compare import CompareHelper
 from ... import compare
 from ...django import compare as django_compare
-from ..test_compare import CompareHelper
-
-os.environ['DJANGO_SETTINGS_MODULE'] = 'testfixtures.tests.test_django.settings'
-django.setup()
-
-from .models import SampleModel
 
 
 class CompareTests(CompareHelper, TestCase):
