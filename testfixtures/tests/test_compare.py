@@ -15,11 +15,11 @@ from testfixtures import (
     )
 from testfixtures.compat import (
     class_type_name, exception_module, PY3, xrange,
-    BytesLiteral, UnicodeLiteral
-    )
+    BytesLiteral, UnicodeLiteral,
+    PY2
+)
 from testfixtures.comparison import compare_sequence
 from unittest import TestCase
-from .compat import py_2
 
 hexaddr = compile('0x[0-9A-Fa-f]+')
 
@@ -88,7 +88,7 @@ class TestCompare(CompareHelper, TestCase):
         compare('x', 'x')
 
     def test_unicode_string_different(self):
-        if py_2:
+        if PY2:
             expected = "u'a' != 'b'"
         else:
             expected = "'a' != b'b'"
@@ -651,7 +651,7 @@ class TestCompare(CompareHelper, TestCase):
         compare((1, 2, 3), [1, 2, 3])
 
     def test_tuple_and_list_strict(self):
-        if py_2:
+        if PY2:
             expected = ("(1, 2, 3) (<type 'tuple'>) != "
                         "[1, 2, 3] (<type 'list'>)")
         else:
@@ -1212,7 +1212,7 @@ b
             )
 
     def test_strict_nested_different(self):
-        if py_2:
+        if PY2:
             expected = "[1, 2] (<type 'list'>) != (1, 3) (<type 'tuple'>)"
         else:
             expected = "[1, 2] (<class 'list'>) != (1, 3) (<class 'tuple'>)"

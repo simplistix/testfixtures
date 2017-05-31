@@ -11,8 +11,7 @@ from mock import Mock
 from testfixtures import (
     TempDirectory, Replacer, ShouldRaise, compare, OutputCapture
 )
-from testfixtures.tests.compat import py_35_plus
-from ..compat import Unicode, PY3
+from ..compat import Unicode, PY3, PY_35_PLUS
 from ..rmtree import rmtree
 
 if PY3:
@@ -261,7 +260,7 @@ class TempDirectoryTests(TestCase):
                 compare(f.read(), b'\xc2\xa3')
 
     def test_write_unicode_bad(self):
-        if py_35_plus:
+        if PY_35_PLUS:
             expected = TypeError(
                 "a bytes-like object is required, not 'str'"
                 )
