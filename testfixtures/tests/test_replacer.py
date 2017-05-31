@@ -123,8 +123,7 @@ class TestReplacer(TestCase):
     def test_remove_called_twice(self):
         from testfixtures.tests import sample1
 
-        def test_z():
-          return 'replacement z'
+        def test_z(): pass
 
         r = Replacer()
         r.replace('testfixtures.tests.sample1.z',test_z)
