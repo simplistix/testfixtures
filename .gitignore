@@ -16,7 +16,6 @@
 /local
 /man
 /.Python
-.noseids
 desc.html
 pip-selfcheck.json
 .coverage.*

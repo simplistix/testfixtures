@@ -35,7 +35,8 @@ Running the tests
 
 Once you've set up a virtualenv, the tests can be run as follows::
 
-  $ bin/nosetests
+  $ source bin/activate
+  $ pytest
 
 Building the documentation
 --------------------------
