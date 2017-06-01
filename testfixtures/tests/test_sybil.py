@@ -8,7 +8,7 @@ from testfixtures import compare, Comparison as C, TempDirectory
 from testfixtures.sybil import FileParser, FileBlock
 
 
-class TestManuel(TestCase):
+class TestFileParser(TestCase):
 
     def check_document(self, text, expected):
         d = Document(dedent(text), path='/dev/null')

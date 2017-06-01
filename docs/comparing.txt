@@ -742,12 +742,6 @@ Gotchas
 
 There are a few things to be careful of when using comparisons:
 
-.. work around Manuel bug :-(
-.. invisible-code-block: python
-
-  class NoVars(object):
-      __slots__ = ['x']
-
 - The default strict comparison cannot be used with a class such as
   the following:
 
@@ -771,14 +765,6 @@ There are a few things to be careful of when using comparisons:
   >>> C(NoVars, x=1, strict=False) == nv
   True
   
-.. work around Manuel bug :-(
-.. invisible-code-block: python
-        class SomeModel:
-            def __eq__(self,other):
-                if isinstance(other,SomeModel):
-                    return True
-                return False
-
 - If the object being compared has an ``__eq__`` method, such as
   Django model instances, then the :class:`~testfixtures.Comparison`
   must be the first object in the equality check.

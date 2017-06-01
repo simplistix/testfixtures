@@ -562,8 +562,8 @@ Using with Sybil
 
 `Sybil`__ is a tool for testing the examples found in
 documentation. It works by applying a set of specialised
-parsers to the documentation and testing or otherwise using the the
-blocks returned by those parsers.
+parsers to the documentation and testing or otherwise using the examples
+returned by those parsers.
 
 __ http://sybil.readthedocs.io
 
@@ -576,17 +576,17 @@ parsers to aid working with
 :rst:dir:`topic` directives with specific classes set to perform
 different actions. 
 
-The following sections describe how to use this plugin to help with
+The following sections describe how to use this parser to help with
 writing temporary files and checking their contents.
 
 Setting up
 ~~~~~~~~~~
 
-To use the Manuel plugin, you need to make sure a
+To use the Sybil parser, you need to make sure a
 :class:`TempDirectory` instance is available under a particular name
-in the sybil test namespace. This name is then passed to the plugin's
-constructor and the plugin is passed to the
-:class:`~sybil.sybil.Sybil` constructor.
+in the sybil test namespace. This name is then passed to the parser's
+constructor and the parser is passed to the
+:class:`~sybil.Sybil` constructor.
 
 The following example shows how to use Sybil's `pytest`__ integration to
 execute all of the examples below. These require not only the
@@ -624,9 +624,9 @@ part of the documentation:
 Checking the contents of directories
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-While the TestFixtures plugin itself does not offer any facility for
-checking the contents of directories, Sybil's
-:mod:`~sybil.parsers.capture.parse_captures`
+While :class:`~testfixtures.sybil.FileParser` itself does not offer any
+facility for checking the contents of directories, Sybil's
+:func:`~sybil.parsers.capture.parse_captures`
 can be used in conjunction with the existing features of a
 :class:`TempDirectory` to illustrate the contents expected
 in a directory seamlessly within the documentation.
@@ -643,9 +643,9 @@ technique:
 A note on encoding and line endings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-As currently implemented, the plugin provided by TestFixtures only works
+As currently implemented, the parser provided by TestFixtures only works
 with textual file content that can be encoded using the ASCII
 character set. This content will always be written with ``'\n'`` line
-seperators and, when read, will always have its line endings
+separators and, when read, will always have its line endings
 normalised to ``'\n'``. If you hit any limitations caused by this,
 please raise an issue in the tracker on GitHub.
