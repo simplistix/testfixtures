@@ -3,6 +3,29 @@ Changes
 
 .. currentmodule:: testfixtures
 
+5.0.0 (1 June 2017)
+-------------------
+
+- Move from `nose`__ to `pytest`__ for running tests.
+
+  __ http://nose.readthedocs.io/en/latest/
+
+  __ https://docs.pytest.org/en/latest/
+
+- Switch from `manuel`__ to `sybil`__ for checking examples in
+  documentation. This introduces a backwards incompatible change
+  in that :class:`~testfixtures.sybil.FileParser` replaces the Manuel
+  plugin that is no longer included.
+
+  __ http://packages.python.org/manuel/
+
+  __ http://sybil.readthedocs.io/en/latest/
+
+- Add a 'tick' method to :meth:`test_datetime <tdatetime.tick>`,
+  :meth:`test_date <tdate.tick>` and :meth:`test_time <ttime.tick>`,
+  to advance the returned point in time, which is particularly helpful
+  when ``delta`` is set to zero.
+
 4.14.3 (15 May 2017)
 --------------------
 
