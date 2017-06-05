@@ -372,6 +372,11 @@ Thanks to Matthias Lehmann for the import error reports.
 - Removed support for the following obscure uses of
   :class:`should_raise`: 
 
+  .. invisible-code-block: python
+
+     from mock import MagicMock
+     should_raise = x = MagicMock()
+
   .. code-block:: python
 
     should_raise(x, IndexError)[1]

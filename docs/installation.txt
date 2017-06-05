@@ -15,6 +15,11 @@ then you should do one of the following:
 - Add an ``extra_requires`` parameter in your call to ``setup`` as
   follows:
 
+  .. invisible-code-block: python
+
+     from mock import Mock
+     setup = Mock()
+
   .. code-block:: python
 
     setup(
