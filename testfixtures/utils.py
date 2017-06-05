@@ -3,7 +3,7 @@
 from textwrap import dedent
 
 from functools import wraps
-from inspect import getargspec
+import inspect
 
 
 def generator(*args):
@@ -33,7 +33,14 @@ def wrap(before, after=None):
             @wraps(wrapped)
             def wrapping(*args, **kw):
                 args = list(args)
-                to_add = len(getargspec(wrapped)[0][len(args):])
+
+                try:
+                    getargspec = inspect.getfullargspec
+                except AttributeError:
+                    getargspec = inspect.getargspec
+                argspec = getargspec(wrapped)
+
+                to_add = len(argspec[0][len(args):])
                 added = 0
                 for c in w.before:
                     r = c()
