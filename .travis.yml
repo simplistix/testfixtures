@@ -18,7 +18,7 @@ python:
 install: 
 - "pip install --upgrade pip setuptools"
 - "pip install -Ue .[test,build]"
-- sh -c "if ! [ $DJANGO_VERSION = 'latest' ]; then pip install django==DJANGO_VERSION; fi"
+- sh -c "if ! [ $DJANGO_VERSION = 'latest' ]; then pip install django==$DJANGO_VERSION; fi"
 
 # command to run tests, e.g. python setup.py test
 script: coverage run -m pytest
