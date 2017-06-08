@@ -3,6 +3,11 @@ language: python
 # for container-y googdness:
 sudo: false
 
+env:
+  - DJANGO_VERSION=latest
+  - DJANGO_VERSION=1.10.7
+  - DJANGO_VERSION=1.9.13
+
 python:
   - "3.6"
   - "3.5"
@@ -13,7 +18,8 @@ python:
 install: 
 - "pip install --upgrade pip setuptools"
 - "pip install -Ue .[test,build]"
- 
+- sh -c "if ! [ $DJANGO_VERSION = 'latest' ]; then pip install django==DJANGO_VERSION; fi"
+
 # command to run tests, e.g. python setup.py test
 script: coverage run -m pytest
 
@@ -30,5 +36,6 @@ deploy:
     tags: true
     repo: Simplistix/testfixtures
     python: "3.4"
+    condition: $DJANGO_VERSION = latest
   skip_cleanup: true
   distributions: "sdist bdist_wheel"
