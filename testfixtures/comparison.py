@@ -143,6 +143,10 @@ def _compare_mapping(x, y, context, obj_for_class):
 
     lines = ['%s not as expected:' % obj_for_class.__class__.__name__]
     if same:
+        try:
+            same = sorted(same)
+        except TypeError:
+            pass
         lines.extend(('', 'same:', repr(same)))
 
     x_label = context.x_label or 'first'

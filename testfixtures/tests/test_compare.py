@@ -376,13 +376,18 @@ class TestCompare(CompareHelper, TestCase):
             )
 
     def test_dict_consistent_ordering_types_same(self):
+        if PY3:
+            same = "[6, None]\n"
+        else:
+            same = "[None, 6]\n"
+
         self.check_raises(
             {None: 1, 6: 2, 1: 3},
             {None: 1, 6: 2, 1: 4},
             "dict not as expected:\n"
-            "\n"
-            'same:\n'
-            "[6, None]\n"
+            "\n"+
+            'same:\n'+
+            same+
             "\n"
             "values differ:\n"
             "1: 3 != 4"
