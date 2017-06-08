@@ -3,6 +3,12 @@ Changes
 
 .. currentmodule:: testfixtures
 
+5.1.1 (8 June 2017)
+-------------------
+
+- Fix support for Django 1.9 in
+  :func:`testfixtures.django.compare_model`.
+
 5.1.0 (8 June 2017)
 -------------------
 
