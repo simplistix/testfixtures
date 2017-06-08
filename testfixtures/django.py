@@ -1,6 +1,5 @@
 from  __future__ import absolute_import
 from functools import partial
-from itertools import chain
 
 from django.db.models import Model
 
@@ -8,12 +7,23 @@ from .comparison import _compare_mapping, register
 from . import compare as base_compare
 
 
-def model_to_dict(instance, exclude, include_not_editable):
+def instance_fields(instance):
     opts = instance._meta
-    data = {}
-    for f in chain(
-        opts.concrete_fields, opts.private_fields, opts.many_to_many
+    for name in (
+        'concrete_fields',
+        'virtual_fields',
+        'private_fields',
+        'many_to_many'
     ):
+        fields = getattr(opts, name, None)
+        if fields:
+            for field in fields:
+                yield field
+
+
+def model_to_dict(instance, exclude, include_not_editable):
+    data = {}
+    for f in instance_fields(instance):
         if f.name in exclude:
             continue
         if not getattr(f, 'editable', False) and not include_not_editable:
