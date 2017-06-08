@@ -10,8 +10,9 @@ primary keys are the same:
 True
 
 To work around this, :mod:`testfixtures.django` :ref:`registers <comparer-register>`
-a comparer for the django :class:`~django.db.models.Model` class. However,
-for this to work, ``ignore_eq=True`` must be passed:
+a :func:`comparer <testfixtures.django.compare_model>` for the django
+:class:`~django.db.models.Model` class. However, for this to work,
+``ignore_eq=True`` must be passed:
 
 >>> from testfixtures import compare
 >>> import testfixtures.django # to register the comparer...
@@ -54,3 +55,22 @@ can use the `ignore_fields` option:
   The implementation of the comparer for
   :class:`~django.db.models.Model` instances ignores fields
   that have ``editable`` set to ``False``.
+
+By default, non-editable fields are ignored:
+
+>>> django_compare(SampleModel(not_editable=1), SampleModel(not_editable=2))
+
+If you wish to include these fields in the comparison, pass the
+``non_editable_fields`` option:
+
+>>> django_compare(SampleModel(not_editable=1), SampleModel(not_editable=2),
+...                non_editable_fields=True)
+Traceback (most recent call last):
+ ...
+AssertionError: SampleModel not as expected:
+<BLANKLINE>
+same:
+['created', u'id', 'value']
+<BLANKLINE>
+values differ:
+'not_editable': 1 != 2

@@ -37,8 +37,27 @@ class CompareTests(CompareHelper, TestCase):
                        ignore_fields=['id'])
 
     def test_ignored_because_speshul(self):
-        # see http://stackoverflow.com/questions/21925671/convert-django-model-object-to-dict-with-all-of-the-fields-intact
         django_compare(SampleModel(not_editable=1), SampleModel(not_editable=2))
+
+    def test_ignored_because_no_longer_speshul(self):
+        if PY3:
+            same = "['created', 'id', 'value']\n"
+        else:
+            same = "['created', u'id', 'value']\n"
+        self.check_raises(
+            SampleModel(not_editable=1), SampleModel(not_editable=2),
+            compare=django_compare,
+            message=(
+                'SampleModel not as expected:\n'
+                '\n'
+                'same:\n'+
+                same+
+                '\n'
+                'values differ:\n'
+                "'not_editable': 1 != 2"
+            ),
+            non_editable_fields=True
+        )
 
     def test_normal_compare_id_same(self):
         # other diffs ignored
