@@ -1,5 +1,5 @@
 from testfixtures import Comparison as C, TempDirectory, compare
-from testfixtures.compat import PY2, PY3, exception_module, PY_34_PLUS
+from testfixtures.compat import PY2, PY3, exception_module
 from testfixtures.tests.sample1 import SampleClassA, a_function
 from unittest import TestCase
 import sys
@@ -220,7 +220,7 @@ class TestC(TestCase):
             self.fail('No exception raised!')
 
     def test_repr_failed_all_reasons_in_one(self):
-        if PY_34_PLUS:
+        if PY3:
             expected = (
                 "\n  <C(failed):testfixtures.tests.test_com[79 chars] </C>"
                 " != <AClass>",
@@ -247,7 +247,7 @@ class TestC(TestCase):
             self.fail('No exception raised!')
 
     def test_repr_failed_not_in_other(self):
-        if PY_34_PLUS:
+        if PY3:
             expected = (
                 "\n  <C(failed):testfixtures.tests.test_com[39 chars] </C>"
                 " != <AClass>",
@@ -274,7 +274,7 @@ class TestC(TestCase):
 
     def test_repr_failed_not_in_self_strict(self):
         # use single element tuple to check %
-        if PY_34_PLUS:
+        if PY3:
             expected = (
                 "\n  <C(failed):testfixtures.tests.test_com[44 chars] </C>"
                 " != <AClass>",
@@ -298,7 +298,7 @@ class TestC(TestCase):
             self.fail('No exception raised!')
 
     def test_repr_failed_not_in_self_not_strict(self):
-        if PY_34_PLUS:
+        if PY3:
             expected = (
                 "\n  <C(failed):testfixtures.tests.test_com[39 chars] </C>"
                 " != <AClass>",
@@ -603,7 +603,7 @@ class TestC(TestCase):
         self.assertEqual(C(X, x=1, strict=False), x)
 
     def test_no___dict___not_strict_different(self):
-        if PY_34_PLUS:
+        if PY3:
             expected = (
                 "\n  <C(failed):testfixtures.tests.test_com[42 chars] </C>"
                 " != <X>",
@@ -730,7 +730,7 @@ class TestC(TestCase):
         NoName.__name__ = ''
         NoName.__module__ = ''
         c = C(NoName)
-        if PY_34_PLUS:
+        if PY3:
             expected = "<C:<class '.TestC.test_no_name.<locals>.NoName'>>"
         else:
             expected = "<C:<class '.'>>"
