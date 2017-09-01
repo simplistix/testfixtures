@@ -259,7 +259,7 @@ class TempDirectoryTests(TestCase):
     def test_write_unicode_bad(self):
         if PY3:
             expected = TypeError(
-                "'str' does not support the buffer interface"
+                "a bytes-like object is required, not 'str'"
                 )
         else:
             expected = UnicodeDecodeError(
