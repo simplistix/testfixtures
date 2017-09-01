@@ -90,7 +90,7 @@ class TestTime(TestCase):
         t.set(datetime(2001, 1, 1, 1, 0, 1))
         compare(time(), 978310801.0)
         with ShouldRaise(ValueError(
-            'Cannot set datetime with tzinfo set'
+            'Cannot add datetime with tzinfo set'
                 )):
             t.set(datetime(2001, 1, 1, tzinfo=SampleTZInfo()))
 
@@ -103,13 +103,13 @@ class TestTime(TestCase):
     @replace('time.time', test_time(None))
     def test_set_kw_tzinfo(self):
         from time import time
-        with ShouldRaise(TypeError('Cannot set tzinfo on ttime')):
+        with ShouldRaise(TypeError('Cannot add using tzinfo on ttime')):
             time.set(year=2001, tzinfo=SampleTZInfo())
 
     @replace('time.time', test_time(None))
     def test_set_args_tzinfo(self):
         from time import time
-        with ShouldRaise(TypeError('Cannot set tzinfo on ttime')):
+        with ShouldRaise(TypeError('Cannot add using tzinfo on ttime')):
             time.set(2002, 1, 2, 3, 4, 5, 6, SampleTZInfo())
 
     @replace('time.time', test_time(None))
@@ -121,13 +121,13 @@ class TestTime(TestCase):
     @replace('time.time', test_time(None))
     def test_add_tzinfo_kw(self):
         from time import time
-        with ShouldRaise(TypeError('Cannot add tzinfo to ttime')):
+        with ShouldRaise(TypeError('Cannot add using tzinfo on ttime')):
             time.add(year=2001, tzinfo=SampleTZInfo())
 
     @replace('time.time', test_time(None))
     def test_add_tzinfo_args(self):
         from time import time
-        with ShouldRaise(TypeError('Cannot add tzinfo to ttime')):
+        with ShouldRaise(TypeError('Cannot add using tzinfo on ttime')):
             time.add(2001, 1, 2, 3, 4, 5, 6, SampleTZInfo())
 
     @replace('time.time', test_time(2001, 1, 2, 3, 4, 5, 600000))

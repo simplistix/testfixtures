@@ -6,7 +6,7 @@ from testfixtures.compat import new_class
 @classmethod
 def add(cls, *args, **kw):
     if 'tzinfo' in kw or len(args) > 7:
-        raise TypeError('Cannot add tzinfo to %s' % cls.__name__)
+        raise TypeError('Cannot add using tzinfo on %s' % cls.__name__)
     if args and isinstance(args[0], cls.__bases__[0]):
         inst = args[0]
         if getattr(inst, 'tzinfo', None):
@@ -22,14 +22,6 @@ def add(cls, *args, **kw):
 
 @classmethod
 def set_(cls, *args, **kw):
-    if 'tzinfo' in kw or len(args) > 7:
-        raise TypeError('Cannot set tzinfo on %s' % cls.__name__)
-    if args and isinstance(args[0], cls.__bases__[0]):
-        inst = args[0]
-        if getattr(inst, 'tzinfo', None):
-            raise ValueError(
-                'Cannot set %s with tzinfo set' % inst.__class__.__name__
-                )
     if cls._q:
         cls._q = []
     cls.add(*args, **kw)
