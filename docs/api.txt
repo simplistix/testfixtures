@@ -81,6 +81,10 @@ API Reference
    call :meth:`~tdate.set` or :meth:`~tdate.add` before calling
    :meth:`~tdate.today`.
 
+   If an instance of :class:`~datetime.date` is passed as a single
+   positional argument, that will be used as the first date returned by
+   :meth:`~datetime.date.today`
+
    :param year: An optional year used to create the first date returned by
                 :meth:`~datetime.date.today`.
 
@@ -150,6 +154,10 @@ API Reference
    queue of datetimes to be returned will be empty and you will need to
    call :meth:`~tdatetime.set` or :meth:`~tdatetime.add` before calling
    :meth:`~tdatetime.now` or :meth:`~tdatetime.utcnow`.
+
+   If an instance of :class:`~datetime.datetime` is passed as a single
+   positional argument, that will be used as the first date returned by
+   :meth:`~tdatetime.now`
 
    :param year: An optional year used to create the first datetime returned by
                 :meth:`~tdatetime.now`.
@@ -266,6 +274,9 @@ API Reference
    queue of times to be returned will be empty and you will need to
    call :meth:`~ttime.set` or :meth:`~ttime.add` before calling
    the mock.
+
+   If an instance of :class:`~datetime.datetime` is passed as a single
+   positional argument, that will be used to create the first time returned.
 
    :param year: An optional year used to create the first time returned.
 

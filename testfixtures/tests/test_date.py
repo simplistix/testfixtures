@@ -56,6 +56,11 @@ class TestDate(TestCase):
         compare(date.today(), d(2001, 1, 2))
         compare(date.today(), d(2001, 1, 3))
 
+    def test_instantiate_with_date(self):
+        from datetime import date
+        t = test_date(date(2002, 1, 1))
+        compare(t.today(), d(2002, 1, 1))
+
     @replace('datetime.date', test_date(strict=True))
     def test_call(self, t):
         compare(t(2002, 1, 2), d(2002, 1, 2))

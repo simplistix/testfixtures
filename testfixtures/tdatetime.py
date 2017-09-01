@@ -96,12 +96,10 @@ def test_factory(n, type, default, args, kw, tz=None, **to_patch):
         class_._cls = class_
     else:
         class_._cls = type
-    if args == (None, ):
-        pass
-    elif args or kw:
-        q.append(class_(*args, **kw))
-    else:
-        q.append(class_(*default))
+    if args != (None, ):
+        if not (args or kw):
+            args = default
+        class_.add(*args, **kw)
     return class_
 
 
@@ -128,7 +126,6 @@ def correct_datetime(cls, dt):
 
 
 def test_datetime(*args, **kw):
-    tz = None
     if len(args) > 7:
         tz = args[7]
         args = args[:7]

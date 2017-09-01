@@ -99,6 +99,11 @@ class TestDateTime(TestCase):
                 )):
             t.add(d(2001, 1, 1, tzinfo=SampleTZInfo()))
 
+    def test_instantiate_with_datetime(self):
+        from datetime import datetime
+        t = test_datetime(datetime(2002, 1, 1, 1))
+        compare(t.now(), d(2002, 1, 1, 1, 0, 0))
+
     @replace('datetime.datetime', test_datetime(None))
     def test_now_requested_longer_than_supplied(self, t):
         t.add(2002, 1, 1, 1, 0, 0)
