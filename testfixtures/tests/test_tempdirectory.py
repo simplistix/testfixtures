@@ -8,7 +8,7 @@ from mock import Mock
 from testfixtures import (
     TempDirectory, Replacer, ShouldRaise, compare, OutputCapture
 )
-from ..compat import Unicode, PY3, PY_35_PLUS
+from ..compat import Unicode, PY3
 from ..rmtree import rmtree
 
 if PY3:
@@ -257,11 +257,7 @@ class TempDirectoryTests(TestCase):
                 compare(f.read(), b'\xc2\xa3')
 
     def test_write_unicode_bad(self):
-        if PY_35_PLUS:
-            expected = TypeError(
-                "a bytes-like object is required, not 'str'"
-                )
-        elif PY3:
+        if PY3:
             expected = TypeError(
                 "'str' does not support the buffer interface"
                 )

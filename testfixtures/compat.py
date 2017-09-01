@@ -3,8 +3,6 @@ import sys
 
 PY_VERSION = sys.version_info[:2]
 
-PY_34_PLUS = PY_VERSION >= (3, 4)
-PY_35_PLUS = PY_VERSION >= (3, 5)
 PY_36_PLUS = PY_VERSION >= (3, 6)
 
 if PY_VERSION > (3, 0):
