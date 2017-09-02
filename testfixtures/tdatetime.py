@@ -9,10 +9,14 @@ def add(cls, *args, **kw):
         raise TypeError('Cannot add using tzinfo on %s' % cls.__name__)
     if args and isinstance(args[0], cls.__bases__[0]):
         inst = args[0]
-        if getattr(inst, 'tzinfo', None):
-            raise ValueError(
-                'Cannot add %s with tzinfo set' % inst.__class__.__name__
-                )
+        tzinfo = getattr(inst, 'tzinfo', None)
+        if tzinfo:
+            if tzinfo != cls._tzta:
+                raise ValueError(
+                    'Cannot add %s with tzinfo of %s as configured to use %s' % (
+                        inst.__class__.__name__, tzinfo, cls._tzta
+                    ))
+            inst = inst.replace(tzinfo=None)
         if cls._ct:
             inst = cls._ct(inst)
         cls._q.append(inst)
@@ -130,7 +134,7 @@ def test_datetime(*args, **kw):
         tz = args[7]
         args = args[:7]
     else:
-        tz = kw.pop('tzinfo', None)
+        tz = kw.pop('tzinfo', getattr(args[0], 'tzinfo', None) if args else None)
     if 'delta' in kw:
         gap = kw.pop('delta')
         gap_delta = 0
@@ -197,7 +201,7 @@ test_date.__test__ = False
 
 
 def test_time(*args, **kw):
-    if 'tzinfo' in kw or len(args) > 7:
+    if 'tzinfo' in kw or len(args) > 7 or (args and getattr(args[0], 'tzinfo', None)):
         raise TypeError("You don't want to use tzinfo with test_time")
     if 'delta' in kw:
         gap = kw.pop('delta')

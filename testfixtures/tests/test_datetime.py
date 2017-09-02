@@ -62,6 +62,20 @@ class TestDateTime(TestCase):
         info = SampleTZInfo()
         compare(datetime.now(info), d(2001, 1, 1, tzinfo=info))
 
+    def test_now_with_tz_instance(self):
+        dt = test_datetime(d(2001, 1, 1, tzinfo=SampleTZInfo()))
+        compare(dt.now(), d(2001, 1, 1))
+
+    def test_now_with_tz_instance_and_supplied(self):
+        dt = test_datetime(d(2001, 1, 1, tzinfo=SampleTZInfo()))
+        info = SampleTZInfo2()
+        compare(dt.now(info), d(2001, 1, 1, 0, 1, tzinfo=info))
+
+    def test_now_with_tz_setup_and_same_supplied(self):
+        dt = test_datetime(d(2001, 1, 1, tzinfo=SampleTZInfo()))
+        info = SampleTZInfo()
+        compare(dt.now(info), d(2001, 1, 1, tzinfo=info))
+
     @replace('datetime.datetime', test_datetime(2002, 1, 1, 1, 2, 3))
     def test_now_supplied(self):
         from datetime import datetime
@@ -94,10 +108,13 @@ class TestDateTime(TestCase):
         t.add(datetime(2002, 1, 1, 2))
         compare(datetime.now(), d(2002, 1, 1, 1, 0, 0))
         compare(datetime.now(), d(2002, 1, 1, 2, 0, 0))
+        tzinfo = SampleTZInfo()
+        tzrepr = repr(tzinfo)
         with ShouldRaise(ValueError(
-            'Cannot add datetime with tzinfo set'
-                )):
-            t.add(d(2001, 1, 1, tzinfo=SampleTZInfo()))
+            'Cannot add datetime with tzinfo of %s as configured to use None' %(
+                tzrepr
+            ))):
+            t.add(d(2001, 1, 1, tzinfo=tzinfo))
 
     def test_instantiate_with_datetime(self):
         from datetime import datetime
@@ -197,10 +214,13 @@ class TestDateTime(TestCase):
         compare(datetime.now(), d(2002, 1, 1, 1, 0, 0))
         t.set(datetime(2002, 1, 1, 2))
         compare(datetime.now(), d(2002, 1, 1, 2, 0, 0))
+        tzinfo = SampleTZInfo()
+        tzrepr = repr(tzinfo)
         with ShouldRaise(ValueError(
-            'Cannot add datetime with tzinfo set'
-                )):
-            t.set(d(2001, 1, 1, tzinfo=SampleTZInfo()))
+            'Cannot add datetime with tzinfo of %s as configured to use None' %(
+                tzrepr
+            ))):
+            t.set(d(2001, 1, 1, tzinfo=tzinfo))
 
     @replace('datetime.datetime', test_datetime(None, tzinfo=SampleTZInfo()))
     def test_set_tz_setup(self):

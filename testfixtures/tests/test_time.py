@@ -34,10 +34,13 @@ class TestTime(TestCase):
         from time import time
         t.add(datetime(2002, 1, 1, 2))
         compare(time(), 1009850400.0)
+        tzinfo = SampleTZInfo()
+        tzrepr = repr(tzinfo)
         with ShouldRaise(ValueError(
-            'Cannot add datetime with tzinfo set'
-                )):
-            t.add(datetime(2001, 1, 1, tzinfo=SampleTZInfo()))
+            'Cannot add datetime with tzinfo of %s as configured to use None' %(
+                tzrepr
+            ))):
+            t.add(datetime(2001, 1, 1, tzinfo=tzinfo))
 
     def test_instantiate_with_datetime(self):
         from datetime import datetime
@@ -94,10 +97,13 @@ class TestTime(TestCase):
         from time import time
         t.set(datetime(2001, 1, 1, 1, 0, 1))
         compare(time(), 978310801.0)
+        tzinfo = SampleTZInfo()
+        tzrepr = repr(tzinfo)
         with ShouldRaise(ValueError(
-            'Cannot add datetime with tzinfo set'
-                )):
-            t.set(datetime(2001, 1, 1, tzinfo=SampleTZInfo()))
+            'Cannot add datetime with tzinfo of %s as configured to use None' %(
+                tzrepr
+            ))):
+            t.set(datetime(2001, 1, 1, tzinfo=tzinfo))
 
     @replace('time.time', test_time(None))
     def test_set_kw(self):
@@ -174,6 +180,13 @@ class TestTime(TestCase):
             @replace('time.time', test_time(year=2001, tzinfo=SampleTZInfo()))
             def myfunc():
                 pass  # pragma: no cover
+
+    def test_instance_tzinfo(self):
+        from datetime import datetime
+        with ShouldRaise(TypeError(
+            "You don't want to use tzinfo with test_time"
+                )):
+            test_time(datetime(2001, 1, 1, tzinfo=SampleTZInfo()))
 
     def test_subsecond_deltas(self):
         time = test_time(delta=0.5)
