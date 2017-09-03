@@ -1,7 +1,10 @@
 from unittest import TestCase
 
+from testfixtures import OutputCapture, Replacer
 from testfixtures.compat import PY3
 from .models import SampleModel
+from testfixtures.tests.test_django.manage import main
+
 from ..test_compare import CompareHelper
 from ... import compare
 from ...django import compare as django_compare
@@ -86,3 +89,11 @@ class CompareTests(CompareHelper, TestCase):
                 expected
             )
         )
+
+    def test_manage(self):
+        with OutputCapture() as output:
+            with Replacer() as r:
+                r.replace('os.environ.DJANGO_SETTINGS_MODULE', '', strict=False)
+                r.replace('sys.argv', ['x', 'check'])
+                main()
+        output.compare('System check identified no issues (0 silenced).')
