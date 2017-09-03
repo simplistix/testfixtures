@@ -42,7 +42,6 @@ jobs:
       python: 3.6
       env: DJANGO_VERSION=latest
       script: skip
-      after_success: skip
 
       install: "pip install -Ue .[build]"
       deploy:
@@ -50,5 +49,8 @@ jobs:
         user: chrisw
         password:
           secure: QrmUWPegJzGIYGI8XGY7ztjHTbpMgVDLNV6f9fjjAoo8efOubJh/BASjWD3ESPlIo1j5tGCcSRP2MN1+30zBxq7a7oiCnthISx42DP6Ih+wLHFCu7uBm12AH96hIOQUAtQotNSwB9dJAJIKKom7xkrV/nStjbcqC7hosTZlTy6o=
+        on:
+          tags: true
+          repo: Simplistix/testfixtures
         skip_cleanup: true
         distributions: "sdist bdist_wheel"
