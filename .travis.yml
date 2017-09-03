@@ -5,8 +5,8 @@ sudo: false
 
 env:
   - DJANGO_VERSION=latest
-  - DJANGO_VERSION=1.10.7
-  - DJANGO_VERSION=1.9.13
+  - DJANGO_VERSION=1.10
+  - DJANGO_VERSION=1.9
 
 python:
   - "3.6"
@@ -17,7 +17,8 @@ python:
 install: 
 - "pip install --upgrade pip setuptools"
 - "pip install -Ue .[test]"
-- sh -c "if ! [ $DJANGO_VERSION = 'latest' ]; then pip install django==$DJANGO_VERSION; fi"
+- sh -c "if [ $DJANGO_VERSION = '1.10' ]; then pip install 'django<1.11'; fi"
+- sh -c "if [ $DJANGO_VERSION = '1.9' ]; then pip install 'django<1.10'; fi"
 
 # command to run tests, e.g. python setup.py test
 script: coverage run -m pytest
