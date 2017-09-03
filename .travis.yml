@@ -53,7 +53,5 @@ jobs:
         on:
           tags: true
           repo: Simplistix/testfixtures
-          python: "3.6"
-          condition: $DJANGO_VERSION = latest
         skip_cleanup: true
         distributions: "sdist bdist_wheel"

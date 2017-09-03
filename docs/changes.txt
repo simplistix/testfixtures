@@ -3,6 +3,29 @@ Changes
 
 .. currentmodule:: testfixtures
 
+5.2.0 (3 September 2017)
+------------------------
+
+- :class:`test_datetime` and :class:`test_time` now accept a
+  :class:`~datetime.datetime` instance during instantiation to set the initial
+  value.
+
+- :class:`test_date` now accepts a :class:`~datetime.date` instance during
+  instantiation to set the initial value.
+
+- Relax the restriction on adding, setting or instantiating :class:`test_datetime`
+  with `tzinfo` such that if the `tzinfo` matches the one configured,
+  then it's okay to add.
+  This means that you can now instantiate a :class:`test_datetime` with an existing
+  :class:`~datetime.datetime` instance that has `tzinfo` set.
+
+- :func:`testfixtures.django.compare_model` now ignores
+  :class:`many to many <django.db.models.ManyToManyField>` fields rather than
+  blowing up on them.
+
+- Drop official support for Python 3.4, although things should continue to
+  work.
+
 5.1.1 (8 June 2017)
 -------------------
 
