@@ -1,5 +1,7 @@
 from unittest import TestCase
 
+import pytest
+from django.contrib.auth.models import User
 from testfixtures import OutputCapture, Replacer
 from testfixtures.compat import PY3
 from .models import SampleModel
@@ -97,3 +99,13 @@ class CompareTests(CompareHelper, TestCase):
                 r.replace('sys.argv', ['x', 'check'])
                 main()
         output.compare('System check identified no issues (0 silenced).')
+
+    @pytest.mark.django_db
+    def test_many_to_many_same(self):
+        user = User.objects.create(username='foo')
+        django_compare(user,
+                       expected=User(
+                           username='foo', first_name='', last_name='',
+                           is_superuser=False
+                       ),
+                       ignore_fields=['id', 'date_joined'])

@@ -13,7 +13,6 @@ def instance_fields(instance):
         'concrete_fields',
         'virtual_fields',
         'private_fields',
-        'many_to_many'
     ):
         fields = getattr(opts, name, None)
         if fields:

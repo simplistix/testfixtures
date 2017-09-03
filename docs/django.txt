@@ -74,3 +74,12 @@ same:
 <BLANKLINE>
 values differ:
 'not_editable': 1 != 2
+
+
+.. note::
+
+  The registered comparer currently ignores
+  :class:`many to many <django.db.models.ManyToManyField>` fields.
+  Patches to fix this deficiency are welcome!
+
+
