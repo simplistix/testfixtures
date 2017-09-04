@@ -42,8 +42,8 @@ jobs:
       python: 3.6
       env: DJANGO_VERSION=latest
       script: skip
-#      work around bug, if you skip after_success, the deploy never gets run:
-#      after_success: skip
+      # work around https://github.com/travis-ci/travis-ci/issues/8337:
+      after_success: true
 
       install: "pip install -Ue .[build]"
       deploy:
