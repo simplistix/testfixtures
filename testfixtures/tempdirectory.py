@@ -193,6 +193,9 @@ class TempDirectory:
                             will be followed when recursively building up
                             the actual list of directory contents.
         """
+
+        __tracebackhide__ = True
+    
         compare(expected=sorted(expected),
                 actual=tuple(self.actual(
                     path, recursive, files_only, followlinks
