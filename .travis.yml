@@ -31,7 +31,6 @@ jobs:
   include:
 
     - stage: coverage
-      if: type != cron
       python: 3.6
       env: DJANGO_VERSION=latest
       after_success: skip
@@ -47,7 +46,9 @@ jobs:
       # work around https://github.com/travis-ci/travis-ci/issues/8337:
       after_success: true
 
-      install: "pip install -Ue .[build]"
+      install:
+      - "pip install --upgrade pip setuptools"
+      - "pip install -Ue .[build]"
       deploy:
         provider: pypi
         user: chrisw
