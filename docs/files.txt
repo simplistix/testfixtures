@@ -60,14 +60,28 @@ may find the decorator suits your needs better:
   from testfixtures import tempdir, compare
   
   @tempdir()
-  def test_function(d):
-      d.write('test.txt', b'some foo thing')
-      foo2bar(d.path, 'test.txt')
-      compare(d.read('test.txt'), b'some bar thing')
+  def test_function(dir):
+      dir.write('test.txt', b'some foo thing')
+      foo2bar(dir.path, 'test.txt')
+      compare(dir.read('test.txt'), b'some bar thing')
 
 .. check the above raises no assertion error:
 
   >>> test_function()
+
+.. note::
+    This method is not compatible with pytest's fixture discovery stuff.
+    Instead, put a fixture such as the following in your `conftest.py`:
+
+    .. code-block:: python
+
+      from testfixtures import TempDirectory
+      import pytest
+
+      @pytest.fixture()
+      def dir():
+          with TempDirectory() as dir:
+              yield dir
 
 Manual usage
 ~~~~~~~~~~~~

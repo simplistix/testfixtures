@@ -107,18 +107,33 @@ decorator will see this and pass the replacement in it's place:
 .. code-block:: python
 
   from mock import Mock, call
-  from testfixtures import compare,replace
+  from testfixtures import compare, replace
 
   @replace('testfixtures.tests.sample1.X.y', Mock())
-  def test_function(mock_y):
-      mock_y.return_value = 'mock y'
+  def test_function(mocked_y):
+      mocked_y.return_value = 'mock y'
       print(X().y())
-      compare(mock_y.mock_calls, expected=[call()])
+      compare(mocked_y.mock_calls, expected=[call()])
 
 The above still results in the same output:
 
 >>> test_function()
 mock y
+
+.. note::
+    This method is not compatible with pytest's fixture discovery stuff.
+    Instead, put a fixture such as the following in your `conftest.py`:
+
+    .. code-block:: python
+
+      from testfixtures import Replace
+      import pytest
+
+      @pytest.fixture()
+      def mocked_y():
+          m = Mock()
+          with Replace('testfixtures.tests.sample1.X.y', m):
+              yield m
 
 Manual usage
 ~~~~~~~~~~~~

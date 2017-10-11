@@ -77,19 +77,34 @@ find the decorator suits your needs better:
   from testfixtures import log_capture
   
   @log_capture()
-  def test_function(l):
+  def test_function(capture):
       logger = logging.getLogger()
       logger.info('a message')
       logger.error('an error')
 
-      l.check(
+      capture.check(
           ('root', 'INFO', 'a message'),
           ('root', 'ERROR', 'an error'),
-          )
+      )
 
 .. check the above raises no assertion error:
 
   >>> test_function()
+
+
+.. note::
+    This method is not compatible with pytest's fixture discovery stuff.
+    Instead, put a fixture such as the following in your `conftest.py`:
+
+    .. code-block:: python
+
+      import pytest
+
+      @pytest.fixture(autouse=True)
+      def capture():
+          with LogCapture() as capture:
+              yield capture
+
 
 Manual usage
 ~~~~~~~~~~~~
