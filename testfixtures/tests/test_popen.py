@@ -1,4 +1,4 @@
-from subprocess import PIPE
+from subprocess import PIPE, STDOUT
 from unittest import TestCase
 
 from mock import call
@@ -105,6 +105,26 @@ class Tests(TestCase):
         compare([
                 call.Popen('a command', shell=True, stderr=-1, stdout=-1),
                 ], Popen.mock.method_calls)
+
+    def test_read_from_stdout_with_stderr_redirected_check_stderr_in_stdout(self):
+        # setup
+        Popen = MockPopen()
+        Popen.set_command('a command', stdout=b'foo', stderr=b'bar')
+        # usage
+        process = Popen('a command', stdout=PIPE, stderr=STDOUT, shell=True)
+        self.assertTrue(isinstance(process.stdout.fileno(), int))
+        # test stdout contents
+        self.assertIn('bar', process.stdout.read())
+
+    def test_read_from_stdout_with_stderr_redirected_check_stdout_in_stdout(self):
+        # setup
+        Popen = MockPopen()
+        Popen.set_command('a command', stdout=b'foo', stderr=b'bar')
+        # usage
+        process = Popen('a command', stdout=PIPE, stderr=STDOUT, shell=True)
+        self.assertTrue(isinstance(process.stdout.fileno(), int))
+        # test stdout contents
+        self.assertIn('foo', process.stdout.read())
 
     def test_read_from_stdout_and_stderr(self):
         # setup

@@ -1,7 +1,7 @@
 # Copyright (c) 2015 Simplistix Ltd
 # See license.txt for license details.
 from mock import Mock
-from subprocess import Popen as Popen
+from subprocess import Popen as Popen, STDOUT
 from tempfile import TemporaryFile
 from testfixtures.compat import basestring
 from testfixtures.utils import extend_docstring
@@ -69,6 +69,11 @@ class MockPopen(object):
 
         self.stdout, self.stderr, self.returncode, pid, poll = behaviour
         self.poll_count = poll
+
+        if stderr == STDOUT:
+            self.stdout += self.stderr
+            self.stderr = b''
+
         for name in 'stdout', 'stderr':
             f = TemporaryFile()
             f.write(getattr(self, name))
