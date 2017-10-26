@@ -114,7 +114,7 @@ class Tests(TestCase):
         process = Popen('a command', stdout=PIPE, stderr=STDOUT, shell=True)
         self.assertTrue(isinstance(process.stdout.fileno(), int))
         # test stdout contents
-        self.assertIn('bar', process.stdout.read())
+        self.assertIn(b'bar', process.stdout.read())
 
     def test_read_from_stdout_with_stderr_redirected_check_stdout_in_stdout(self):
         # setup
@@ -124,7 +124,7 @@ class Tests(TestCase):
         process = Popen('a command', stdout=PIPE, stderr=STDOUT, shell=True)
         self.assertTrue(isinstance(process.stdout.fileno(), int))
         # test stdout contents
-        self.assertIn('foo', process.stdout.read())
+        self.assertIn(b'foo', process.stdout.read())
 
     def test_read_from_stdout_and_stderr(self):
         # setup
