@@ -106,7 +106,7 @@ class Tests(TestCase):
                 call.Popen('a command', shell=True, stderr=-1, stdout=-1),
                 ], Popen.mock.method_calls)
 
-    def test_read_from_stdout_with_stderr_redirected_check_stderr_in_stdout(self):
+    def test_read_from_stdout_with_stderr_redirected_check_stdout_contents(self):
         # setup
         Popen = MockPopen()
         Popen.set_command('a command', stdout=b'foo', stderr=b'bar')
@@ -114,17 +114,7 @@ class Tests(TestCase):
         process = Popen('a command', stdout=PIPE, stderr=STDOUT, shell=True)
         self.assertTrue(isinstance(process.stdout.fileno(), int))
         # test stdout contents
-        self.assertIn(b'bar', process.stdout.read())
-
-    def test_read_from_stdout_with_stderr_redirected_check_stdout_in_stdout(self):
-        # setup
-        Popen = MockPopen()
-        Popen.set_command('a command', stdout=b'foo', stderr=b'bar')
-        # usage
-        process = Popen('a command', stdout=PIPE, stderr=STDOUT, shell=True)
-        self.assertTrue(isinstance(process.stdout.fileno(), int))
-        # test stdout contents
-        self.assertIn(b'foo', process.stdout.read())
+        compare(b'foobar', process.stdout.read())
 
     def test_communicate_with_stderr_redirected_check_stderr_is_none(self):
         # setup
