@@ -1,7 +1,10 @@
 # Copyright (c) 2015 Simplistix Ltd
 # See license.txt for license details.
 from itertools import chain, izip_longest
-from mock import Mock
+try:
+    from unittest.mock import Mock
+except ImportError:
+    from mock import Mock
 from subprocess import Popen as Popen, STDOUT
 from tempfile import TemporaryFile
 from testfixtures.compat import basestring
