@@ -1,6 +1,6 @@
 import os
 
-from mock import Mock
+from .mock import Mock
 from tempfile import mkdtemp
 from testfixtures import Replacer, ShouldRaise, TempDirectory, compare, tempdir
 from unittest import TestCase

@@ -15,7 +15,7 @@ dotted_path = 'testfixtures.tests.test_popen_docs.Popen'
 
 from unittest import TestCase
 
-from mock import call
+from .mock import call
 from testfixtures import Replacer, ShouldRaise, compare
 from testfixtures.popen import MockPopen
 

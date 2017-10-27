@@ -1,7 +1,7 @@
 from subprocess import PIPE
 from unittest import TestCase
 
-from mock import call
+from .mock import call
 from testfixtures import ShouldRaise, compare
 
 from testfixtures.popen import MockPopen

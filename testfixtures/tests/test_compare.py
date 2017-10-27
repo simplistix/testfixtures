@@ -3,7 +3,7 @@ from datetime import date
 from functools import partial
 
 from collections import namedtuple
-from mock import Mock, call
+from .mock import Mock, call
 from re import compile
 from testfixtures import (
     Comparison as C,

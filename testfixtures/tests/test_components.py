@@ -1,4 +1,4 @@
-from mock import Mock, call
+from .mock import Mock, call
 from testfixtures import Replacer, compare
 from testfixtures.components import TestComponents
 from unittest import TestCase
