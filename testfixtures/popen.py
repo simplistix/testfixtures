@@ -84,6 +84,15 @@ class MockPopen(object):
             raise KeyError('Nothing specified for command %r' % cmd)
 
         stdout_value, stderr_value, self.returncode, pid, poll = behaviour
+
+        if stderr == STDOUT:
+            line_iterator = chain.from_iterable(zip_longest(
+                stdout_value.splitlines(True),
+                stderr_value.splitlines(True)
+            ))
+            stdout_value = b''.join(l for l in line_iterator if l)
+            stderr_value = None
+
         self.poll_count = poll
         for name, option, mock_value in (
             ('stdout', stdout, stdout_value),
@@ -96,26 +105,6 @@ class MockPopen(object):
                 value.flush()
                 value.seek(0)
             setattr(self.mock.Popen_instance, name, value)
-# =======
-#
-#         if stderr == STDOUT:
-#             line_iterator = chain.from_iterable(izip_longest(
-#                 self.stdout.splitlines(True),
-#                 self.stderr.splitlines(True)
-#             ))
-#             self.stdout = b''.join(l for l in line_iterator if l)
-#             self.stderr = None
-#
-#         for name in 'stdout', 'stderr':
-#             value = getattr(self, name)
-#             if value is None:
-#                 continue
-#             f = TemporaryFile()
-#             f.write(value)
-#             f.flush()
-#             f.seek(0)
-#             setattr(self.mock.Popen_instance, name, f)
-# >>>>>>> pr-68
 
         self.mock.Popen_instance.pid = pid
         self.mock.Popen_instance.returncode = None
