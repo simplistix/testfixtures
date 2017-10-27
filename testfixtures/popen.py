@@ -6,6 +6,11 @@ from tempfile import TemporaryFile
 from testfixtures.compat import basestring, PY3
 from testfixtures.utils import extend_docstring
 
+try:
+    from unittest.mock import Mock
+except ImportError:
+    from mock import Mock
+
 
 class MockPopen(object):
     """
