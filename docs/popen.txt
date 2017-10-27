@@ -24,7 +24,7 @@ simulates the behaviour of a subprocess. :class:`~testfixtures.popen.MockPopen`
 is an attempt to provide just such a mock.
 
 .. note:: To use :class:`~testfixtures.popen.MockPopen`, you must have the
-          :mod:`mock` package installed.
+          :mod:`mock` package installed or be using Python 3.3 or later.
 
 
 Example usage

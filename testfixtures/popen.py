@@ -1,6 +1,9 @@
 # Copyright (c) 2015 Simplistix Ltd
 # See license.txt for license details.
-from mock import Mock
+try:
+    from unittest.mock import Mock
+except ImportError:
+    from mock import Mock
 from subprocess import Popen as Popen
 from tempfile import TemporaryFile
 from testfixtures.compat import basestring
