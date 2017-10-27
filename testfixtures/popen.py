@@ -1,9 +1,9 @@
 # Copyright (c) 2015 Simplistix Ltd
 # See license.txt for license details.
-from itertools import chain, izip_longest
+from itertools import chain
 from subprocess import Popen as Popen, STDOUT, PIPE
 from tempfile import TemporaryFile
-from testfixtures.compat import basestring, PY3
+from testfixtures.compat import basestring, PY3, zip_longest
 from testfixtures.utils import extend_docstring
 
 try:

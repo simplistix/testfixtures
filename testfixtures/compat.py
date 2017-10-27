@@ -23,6 +23,7 @@ if PY_VERSION > (3, 0):
     self_name = '__self__'
     from io import StringIO
     xrange = range
+    from itertools import zip_longest
 
 else:
 
@@ -42,6 +43,7 @@ else:
     self_name = 'im_self'
     from StringIO import StringIO
     xrange = xrange
+    from itertools import izip_longest as zip_longest
 
 try:
     from mock import call as mock_call
