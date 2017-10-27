@@ -112,9 +112,9 @@ class Tests(TestCase):
         Popen.set_command('a command', stdout=b'foo', stderr=b'bar')
         # usage
         process = Popen('a command', stdout=PIPE, stderr=STDOUT, shell=True)
-        self.assertTrue(isinstance(process.stdout.fileno(), int))
         # test stdout contents
         compare(b'foobar', process.stdout.read())
+        compare(process.stderr, None)
 
     def test_read_from_stdout_with_stderr_redirected_check_stdout_stderr_interleaved(self):
         # setup
@@ -126,7 +126,6 @@ class Tests(TestCase):
         # test stdout contents
         compare(b'o1\ne1\no2\ne2\no3\no4\n', process.stdout.read())
 
-
     def test_communicate_with_stderr_redirected_check_stderr_is_none(self):
         # setup
         Popen = MockPopen()
@@ -135,6 +134,7 @@ class Tests(TestCase):
         process = Popen('a command', stdout=PIPE, stderr=STDOUT, shell=True)
         out, err = process.communicate()
         # test stderr is None
+        compare(out, b'foobar')
         compare(err, None)
 
     def test_read_from_stdout_and_stderr(self):
