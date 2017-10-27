@@ -412,3 +412,40 @@ class Tests(TestCase):
                 call.Popen('a command'),
                 call.Popen_instance.communicate(),
                 ], Popen.mock.method_calls)
+
+    def test_use_as_context_manager(self):
+        # setup
+        Popen = MockPopen()
+        Popen.set_command('a command')
+        if PY2:
+
+            process = Popen('a command')
+            with ShouldRaise(AttributeError):
+                process.__enter__
+            with ShouldRaise(AttributeError):
+                process.__exit__
+
+        else:
+
+            # usage
+            with Popen('a command', stdout=PIPE, stderr=PIPE) as process:
+                # process started, no return code
+                compare(process.pid, 1234)
+                compare(None, process.returncode)
+
+                out, err = process.communicate()
+
+            # test the rest
+            compare(out, b'')
+            compare(err, b'')
+            compare(process.returncode, 0)
+
+            compare(process.stdout.closed, expected=True)
+            compare(process.stderr.closed, expected=True)
+
+            # test call list
+            compare([
+                call.Popen('a command', stderr=-1, stdout=-1),
+                call.Popen_instance.communicate(),
+                call.Popen_instance.wait(),
+            ], Popen.mock.method_calls)

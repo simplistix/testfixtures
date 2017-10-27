@@ -6,7 +6,7 @@ except ImportError:
     from mock import Mock
 from subprocess import Popen as Popen, PIPE
 from tempfile import TemporaryFile
-from testfixtures.compat import basestring
+from testfixtures.compat import basestring, PY3
 from testfixtures.utils import extend_docstring
 
 
@@ -32,6 +32,17 @@ class MockPopen(object):
         inst.terminate.side_effect = self.terminate
         inst.kill.side_effect = self.kill
         inst.poll.side_effect = self.poll
+        if PY3:
+            def __enter__(self):
+                return inst
+            inst.__enter__ = __enter__
+
+            def __exit__(self, exc_type, exc_val, exc_tb):
+                inst.wait()
+                for stream in inst.stdout, inst.stderr:
+                    stream.close()
+
+            inst.__exit__ = __exit__
 
     def set_command(self, command, stdout=b'', stderr=b'', returncode=0,
                     pid=1234, poll_count=3):
