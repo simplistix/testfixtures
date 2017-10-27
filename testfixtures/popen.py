@@ -1,10 +1,11 @@
 # Copyright (c) 2015 Simplistix Ltd
 # See license.txt for license details.
+from itertools import chain, izip_longest
 try:
     from unittest.mock import Mock
 except ImportError:
     from mock import Mock
-from subprocess import Popen as Popen
+from subprocess import Popen as Popen, STDOUT
 from tempfile import TemporaryFile
 from testfixtures.compat import basestring
 from testfixtures.utils import extend_docstring
@@ -72,9 +73,21 @@ class MockPopen(object):
 
         self.stdout, self.stderr, self.returncode, pid, poll = behaviour
         self.poll_count = poll
+
+        if stderr == STDOUT:
+            line_iterator = chain.from_iterable(izip_longest(
+                self.stdout.splitlines(True),
+                self.stderr.splitlines(True)
+            ))
+            self.stdout = b''.join(l for l in line_iterator if l)
+            self.stderr = None
+
         for name in 'stdout', 'stderr':
+            value = getattr(self, name)
+            if value is None:
+                continue
             f = TemporaryFile()
-            f.write(getattr(self, name))
+            f.write(value)
             f.flush()
             f.seek(0)
             setattr(self.mock.Popen_instance, name, f)
