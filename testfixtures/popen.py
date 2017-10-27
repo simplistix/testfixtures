@@ -4,7 +4,7 @@ try:
     from unittest.mock import Mock
 except ImportError:
     from mock import Mock
-from subprocess import Popen as Popen
+from subprocess import Popen as Popen, PIPE
 from tempfile import TemporaryFile
 from testfixtures.compat import basestring
 from testfixtures.utils import extend_docstring
@@ -70,14 +70,19 @@ class MockPopen(object):
         if behaviour is None:
             raise KeyError('Nothing specified for command %r' % cmd)
 
-        self.stdout, self.stderr, self.returncode, pid, poll = behaviour
+        stdout_value, stderr_value, self.returncode, pid, poll = behaviour
         self.poll_count = poll
-        for name in 'stdout', 'stderr':
-            f = TemporaryFile()
-            f.write(getattr(self, name))
-            f.flush()
-            f.seek(0)
-            setattr(self.mock.Popen_instance, name, f)
+        for name, option, mock_value in (
+            ('stdout', stdout, stdout_value),
+            ('stderr', stderr, stderr_value)
+        ):
+            value = None
+            if option is PIPE:
+                value = TemporaryFile()
+                value.write(mock_value)
+                value.flush()
+                value.seek(0)
+            setattr(self.mock.Popen_instance, name, value)
 
         self.mock.Popen_instance.pid = pid
         self.mock.Popen_instance.returncode = None
@@ -92,7 +97,9 @@ class MockPopen(object):
     def communicate(self, input=None):
         "Simulate calls to :meth:`subprocess.Popen.communicate`"
         self.wait()
-        return self.stdout, self.stderr
+        i = self.mock.Popen_instance
+        return (i.stdout and i.stdout.read(),
+                i.stderr and i.stderr.read())
 
     def poll(self):
         "Simulate calls to :meth:`subprocess.Popen.poll`"

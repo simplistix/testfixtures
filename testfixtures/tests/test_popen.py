@@ -393,3 +393,22 @@ class Tests(TestCase):
             text = 'poll() takes 1 positional argument but 2 were given'
         with ShouldRaise(TypeError(text)):
             process.poll('moo')
+
+    def test_non_pipe(self):
+        # setup
+        Popen = MockPopen()
+        Popen.set_command('a command')
+        # usage
+        process = Popen('a command')
+        # checks
+        compare(process.stdout, expected=None)
+        compare(process.stderr, expected=None)
+        out, err = process.communicate()
+        # test the rest
+        compare(out, expected=None)
+        compare(err, expected=None)
+        # test call list
+        compare([
+                call.Popen('a command'),
+                call.Popen_instance.communicate(),
+                ], Popen.mock.method_calls)
