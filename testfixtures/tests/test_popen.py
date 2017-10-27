@@ -116,6 +116,17 @@ class Tests(TestCase):
         # test stdout contents
         compare(b'foobar', process.stdout.read())
 
+    def test_read_from_stdout_with_stderr_redirected_check_stdout_stderr_interleaved(self):
+        # setup
+        Popen = MockPopen()
+        Popen.set_command('a command', stdout=b'o1\no2\no3\no4\n', stderr=b'e1\ne2\n')
+        # usage
+        process = Popen('a command', stdout=PIPE, stderr=STDOUT, shell=True)
+        self.assertTrue(isinstance(process.stdout.fileno(), int))
+        # test stdout contents
+        compare(b'o1\ne1\no2\ne2\no3\no4\n', process.stdout.read())
+
+
     def test_communicate_with_stderr_redirected_check_stderr_is_none(self):
         # setup
         Popen = MockPopen()
