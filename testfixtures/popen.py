@@ -72,11 +72,14 @@ class MockPopen(object):
 
         if stderr == STDOUT:
             self.stdout += self.stderr
-            self.stderr = b''
+            self.stderr = None
 
         for name in 'stdout', 'stderr':
+            value = getattr(self, name)
+            if value is None:
+                continue
             f = TemporaryFile()
-            f.write(getattr(self, name))
+            f.write(value)
             f.flush()
             f.seek(0)
             setattr(self.mock.Popen_instance, name, f)

@@ -126,6 +126,16 @@ class Tests(TestCase):
         # test stdout contents
         self.assertIn(b'foo', process.stdout.read())
 
+    def test_communicate_with_stderr_redirected_check_stderr_is_none(self):
+        # setup
+        Popen = MockPopen()
+        Popen.set_command('a command', stdout=b'foo', stderr=b'bar')
+        # usage
+        process = Popen('a command', stdout=PIPE, stderr=STDOUT, shell=True)
+        out, err = process.communicate()
+        # test stderr is None
+        compare(err, None)
+
     def test_read_from_stdout_and_stderr(self):
         # setup
         Popen = MockPopen()
