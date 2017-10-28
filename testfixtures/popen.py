@@ -1,13 +1,15 @@
 # Copyright (c) 2015 Simplistix Ltd
 # See license.txt for license details.
+from itertools import chain
+from subprocess import Popen as Popen, STDOUT, PIPE
+from tempfile import TemporaryFile
+from testfixtures.compat import basestring, PY3, zip_longest
+from testfixtures.utils import extend_docstring
+
 try:
     from unittest.mock import Mock
 except ImportError:
     from mock import Mock
-from subprocess import Popen as Popen, PIPE
-from tempfile import TemporaryFile
-from testfixtures.compat import basestring, PY3
-from testfixtures.utils import extend_docstring
 
 
 class MockPopen(object):
@@ -82,6 +84,15 @@ class MockPopen(object):
             raise KeyError('Nothing specified for command %r' % cmd)
 
         stdout_value, stderr_value, self.returncode, pid, poll = behaviour
+
+        if stderr == STDOUT:
+            line_iterator = chain.from_iterable(zip_longest(
+                stdout_value.splitlines(True),
+                stderr_value.splitlines(True)
+            ))
+            stdout_value = b''.join(l for l in line_iterator if l)
+            stderr_value = None
+
         self.poll_count = poll
         for name, option, mock_value in (
             ('stdout', stdout, stdout_value),
