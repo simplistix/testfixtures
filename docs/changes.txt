@@ -3,6 +3,25 @@ Changes
 
 .. currentmodule:: testfixtures
 
+5.3.0 (28 October 2017)
+-----------------------
+
+- Add pytest traceback hiding for :meth:`TempDirectory.compare`.
+
+- Add warnings that :func:`log_capture`, :func:`tempdir` and
+  :func:`replace` are not currently compatible with pytest's fixtures
+  mechanism.
+
+- Better support for ``stdout`` or ``stderr`` *not* being set to ``PIPE``
+  when using :class:`~testfixtures.popen.MockPopen`.
+
+- Add support to :class:`~testfixtures.popen.MockPopen` for
+  using :class:`subprocess.Popen` as a context manager in Python 3.
+
+- Add support to :class:`~testfixtures.popen.MockPopen` for ``stderr=STDOUT``.
+
+Thanks to Tim Davies for his work on  :class:`~testfixtures.popen.MockPopen`.
+
 5.2.0 (3 September 2017)
 ------------------------
 
