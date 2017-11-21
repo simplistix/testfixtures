@@ -3,6 +3,12 @@ Changes
 
 .. currentmodule:: testfixtures
 
+5.3.1 (21 November 2017)
+------------------------
+
+- Fix missing support for the `start_new_session` parameter to
+  :class:`~testfixtures.popen.MockPopen`.
+
 5.3.0 (28 October 2017)
 -----------------------
 
