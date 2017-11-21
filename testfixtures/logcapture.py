@@ -27,7 +27,7 @@ class LogCapture(logging.Handler):
     :param attributes:
 
       The sequence of attribute names to return for each record or a callable
-      that extracts a row from a record..
+      that extracts a row from a record.
 
       If a sequence of attribute names, those attributes will be taken from the
       :class:`~logging.LogRecord`. If an attribute is callable, the value
@@ -157,9 +157,10 @@ class LogCapture(logging.Handler):
         entries provided and raise an :class:`AssertionError` if they
         do not match.
 
-        :param expected: A sequence of 3-tuples containing the
-                         expected log entries. Each tuple should be of
-                         the form (logger_name, string_level, message)
+        :param expected:
+
+          A sequence of values returns as specified in the ``attributes``
+          passed to the constructor.
         """
         return compare(
             expected,
