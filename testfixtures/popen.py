@@ -1,5 +1,3 @@
-# Copyright (c) 2015 Simplistix Ltd
-# See license.txt for license details.
 from itertools import chain
 from subprocess import Popen as Popen, STDOUT, PIPE
 from tempfile import TemporaryFile

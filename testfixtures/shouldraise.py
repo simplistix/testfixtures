@@ -1,6 +1,3 @@
-# Copyright (c) 2008-2014 Simplistix Ltd
-# See license.txt for license details.
-
 from functools import wraps
 from testfixtures import Comparison
 

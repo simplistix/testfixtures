@@ -1,5 +1,3 @@
-# Copyright (c) 2008-2011 Simplistix Ltd
-# See license.txt for license details.
 from textwrap import dedent
 
 from functools import wraps

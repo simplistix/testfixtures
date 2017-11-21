@@ -1,6 +1,3 @@
-# Copyright (c) 2010-2011 Simplistix Ltd
-# See license.txt for license details.
-
 import atexit
 import warnings
 

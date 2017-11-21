@@ -1,7 +1,3 @@
-# Copyright (c) 2008-2014 Simplistix Ltd
-# See license.txt for license details.
-
-
 class singleton(object):
 
     def __init__(self, name):

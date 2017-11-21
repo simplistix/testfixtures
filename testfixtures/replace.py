@@ -1,6 +1,3 @@
-# Copyright (c) 2008-2013 Simplistix Ltd, 2016 Chris Withers
-# See license.txt for license details.
-
 from functools import partial
 from testfixtures.compat import ClassType
 from testfixtures.resolve import resolve, not_there

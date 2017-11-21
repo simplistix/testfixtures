@@ -1,6 +1,3 @@
-# Copyright (c) 2008-2014 Simplistix Ltd
-# See license.txt for license details.
-
 from collections import Iterable
 from difflib import unified_diff
 from pprint import pformat
