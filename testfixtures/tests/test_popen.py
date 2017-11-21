@@ -480,3 +480,14 @@ class Tests(TestCase):
                 call.Popen_instance.communicate(),
                 call.Popen_instance.wait(),
             ], Popen.mock.method_calls)
+
+    def test_start_new_session(self):
+        # setup
+        Popen = MockPopen()
+        Popen.set_command('a command')
+        # usage
+        Popen('a command', start_new_session=True)
+        # test call list
+        compare([
+            call.Popen('a command', start_new_session=True),
+        ], Popen.mock.method_calls)
