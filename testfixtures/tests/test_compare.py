@@ -43,18 +43,20 @@ class CompareHelper(object):
         try:
             compare(*args, **kw)
         except Exception as e:
-            if not isinstance(e, AssertionError):
-                self.fail('Expected AssertionError, got %r' % e)
+            if not isinstance(e, AssertionError):  # pragma: no cover
+                raise
             actual = hexsub(e.args[0])
             if message is not None:
                 # handy for debugging, but can't be relied on for tests!
                 compare(actual, expected=message, show_whitespace=True)
-                self.assertEqual(actual, message)
+                assert actual==message
             else:
                 if not regex.match(actual):  # pragma: no cover
-                    self.fail('%r did not match %r' % (actual, regex.pattern))
+                    raise AssertionError(
+                        '%r did not match %r' % (actual, regex.pattern)
+                    )
         else:
-            self.fail('No exception raised!')
+            raise AssertionError('No exception raised!')
 
 
 class TestCompare(CompareHelper, TestCase):
