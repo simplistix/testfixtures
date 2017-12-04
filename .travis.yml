@@ -1,6 +1,6 @@
 language: python
 
-# for container-y googdness:
+# for container-y goodness:
 sudo: false
 
 env:
@@ -15,12 +15,13 @@ python:
 matrix:
   exclude:
   - env: DJANGO_VERSION=latest
-    python: 2.7
+    python: "2.7"
 
 # command to install dependencies
 install: 
 - "pip install --upgrade pip setuptools"
 - "pip install -Ue .[test]"
+- sh -c "if [ $DJANGO_VERSION = 'latest' ]; then pip install -U django; fi"
 - sh -c "if [ $DJANGO_VERSION = '1.10' ]; then pip install 'django<1.11'; fi"
 - sh -c "if [ $DJANGO_VERSION = '1.9' ]; then pip install 'django<1.10'; fi"
 
