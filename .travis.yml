@@ -10,8 +10,12 @@ env:
 
 python:
   - "3.6"
-  - "3.5"
   - "2.7"
+
+matrix:
+  exclude:
+  - env: DJANGO_VERSION=latest
+    python: 2.7
 
 # command to install dependencies
 install: 

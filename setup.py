@@ -35,7 +35,10 @@ setup(
     include_package_data=True,
     extras_require=dict(
         test=['pytest', 'mock', 'sybil', 'coverage', 'coveralls',
-              'zope.component', 'django', 'pytest-django'],
+              'zope.component',
+              'django<2;python_version<3',
+              'django;python_version>=3',
+              'pytest-django'],
         build=['sphinx', 'pkginfo', 'setuptools-git', 'wheel', 'twine']
     )
 )
