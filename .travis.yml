@@ -21,7 +21,6 @@ matrix:
 install: 
 - "pip install --upgrade pip setuptools"
 - "pip install -Ue .[test]"
-- sh -c "if [ $DJANGO_VERSION = 'latest' ]; then pip install -U django; fi"
 - sh -c "if [ $DJANGO_VERSION = '1.10' ]; then pip install 'django<1.11'; fi"
 - sh -c "if [ $DJANGO_VERSION = '1.9' ]; then pip install 'django<1.10'; fi"
 
