@@ -3,6 +3,11 @@ Changes
 
 .. currentmodule:: testfixtures
 
+5.4.0 (25 January 2018)
+-----------------------
+
+- Add explicit support for :class:`~unittest.mock.Mock` to :func:`compare`.
+
 5.3.1 (21 November 2017)
 ------------------------
 
