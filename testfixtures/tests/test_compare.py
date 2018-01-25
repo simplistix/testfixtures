@@ -845,15 +845,15 @@ b
                 )
 
     def test_list_subclass(self):
-        m = Mock()
-        m.aCall()
-        # Mock().method_calls is a list subclass
+        class  MyList(list): pass
+        a_list = MyList([1])
+        b_list = MyList([2])
         self.check_raises(
-            [call.bCall()], m.method_calls,
+            a_list, b_list,
             "sequence not as expected:\n\n"
             "same:\n[]\n\n"
-            "first:\n[call.bCall()]\n\n"
-            "second:\n[call.aCall()]"
+            "first:\n[1]\n\n"
+            "second:\n[2]"
             )
 
     def test_strict_okay(self):
@@ -1388,3 +1388,57 @@ b
             actual=2,
             ignore_eq=True
         )
+
+    def test_mock_call_same(self):
+        m = Mock()
+        m.foo(1, 2, x=3)
+        compare(m.mock_calls, m.mock_calls)
+
+    def test_mock_call_same_strict(self):
+        m = Mock()
+        m.foo(1, 2, x=3)
+        compare(m.mock_calls, m.mock_calls, strict=True)
+
+    def test_calls_different(self):
+        m1 =Mock()
+        m2 =Mock()
+        m1.foo(1, 2, x=3, y=4)
+        m2.bar(1, 3, x=7, y=4)
+
+        self.check_raises(
+            m1.mock_calls,
+            m2.mock_calls,
+            "sequence not as expected:\n"
+            "\n"
+            "same:\n"
+            "[]\n"
+            "\n"
+            "first:\n"
+            "[call.foo(1, 2, x=3, y=4)]\n"
+            "\n"
+            "second:\n"
+            "[call.bar(1, 3, x=7, y=4)]"
+            "\n\n"
+            'While comparing [0]: mock.call not as expected:\n'
+            '\n'
+            "While comparing [0] function name: 'foo' != 'bar'\n"
+            '\n'
+            'While comparing [0] args: sequence not as expected:\n'
+            '\n'
+            'same:\n'
+            '(1,)\n'
+            '\n'
+            'first:\n'
+            '(2,)\n'
+            '\n'
+            'second:\n'
+            '(3,)\n'
+            '\n'
+            'While comparing [0] kw: dict not as expected:\n'
+            '\n'
+            'same:\n'
+            "['y']\n"
+            '\n'
+            'values differ:\n'
+            "'x': 3 != 7"
+            )

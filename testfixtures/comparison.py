@@ -2,12 +2,13 @@ from collections import Iterable
 from difflib import unified_diff
 from pprint import pformat
 from re import compile, MULTILINE
+from types import GeneratorType
+
 from testfixtures import not_there
 from testfixtures.compat import (
-    ClassType, Unicode, basestring, PY3, mock_call, unittest_mock_call
-    )
+    ClassType, Unicode, basestring, mock_call, unittest_mock_call
+)
 from testfixtures.resolve import resolve
-from types import GeneratorType
 
 
 def compare_simple(x, y, context):
@@ -257,6 +258,17 @@ def compare_text(x, y, context):
     return message
 
 
+def compare_call(x, y, context):
+    if x == y:
+        return
+    x_name, x_args, x_kw = x
+    y_name, y_args, y_kw = y
+    context.different(x_name, y_name, ' function name')
+    context.different(x_args, y_args, ' args')
+    context.different(x_kw, y_kw, ' kw')
+    return 'mock.call not as expected:'
+
+
 def _short_repr(obj):
     repr_ = repr(obj)
     if len(repr_) > 30:
@@ -272,8 +284,8 @@ _registry = {
     str: compare_text,
     Unicode: compare_text,
     GeneratorType: compare_generator,
-    mock_call.__class__: compare_simple,
-    unittest_mock_call.__class__: compare_simple,
+    mock_call.__class__: compare_call,
+    unittest_mock_call.__class__: compare_call,
     }
 
 
