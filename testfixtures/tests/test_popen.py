@@ -150,6 +150,19 @@ class Tests(TestCase):
                 call.Popen('a command', shell=True, stderr=PIPE, stdout=PIPE),
                 ], Popen.mock.method_calls)
 
+    def test_write_to_stdin(self):
+        # setup
+        Popen = MockPopen()
+        Popen.set_command('a command')
+        # usage
+        process = Popen('a command', stdin=PIPE, shell=True)
+        process.stdin.write('some text')
+        # test call list
+        compare([
+                call.Popen('a command', shell=True, stdin=PIPE),
+                call.Popen_instance.stdin.write('some text'),
+                ], Popen.mock.method_calls)
+
     def test_wait_and_return_code(self):
         # setup
         Popen = MockPopen()
