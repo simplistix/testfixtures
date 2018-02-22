@@ -76,6 +76,20 @@ the real :class:`~subprocess.Popen` and can be read as shown in this example:
     above. Be very careful when reading ``.stdout`` and ``.stderr`` and
     consider using :class:`~subprocess.Popen.communicate` instead.
 
+
+Writing to ``stdin``
+--------------------
+
+If you set ``stdin=PIPE`` in your call to ``Popen`` then the ``stdin``
+attribute of the mock returned by :class:`~testfixtures.popen.MockPopen`
+will be a mock and you can then examine the write calls to it as shown
+in this example:
+
+.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+   :pyobject: TestMyFunc.test_write_to_stdin
+   :dedent: 4
+
+
 Specifying the return code
 --------------------------
 
