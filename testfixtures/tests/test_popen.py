@@ -55,6 +55,22 @@ class Tests(TestCase):
                 call.Popen_instance.communicate(),
                 ], Popen.mock.method_calls)
 
+    def test_callable(self):
+        def some_callable(command, stdin):
+            return bytes(command, encoding='utf8'), bytes(stdin, encoding='utf8'), 1, 345, 0
+
+        Popen = MockPopen()
+        Popen.set_callable('a command', some_callable)
+
+        process = Popen('a command', stdin='some stdin', stdout=PIPE, stderr=PIPE)
+        compare(process.pid, 345)
+
+        out, err = process.communicate()
+
+        compare(out, b'a command')
+        compare(err, b'some stdin')
+        compare(process.returncode, 1)
+
     def test_command_is_sequence(self):
         Popen = MockPopen()
         Popen.set_command('a command')
@@ -357,6 +373,22 @@ class Tests(TestCase):
             call.Popen('a command', stderr=-1, stdout=-1),
             call.Popen_instance.communicate(),
         ], Popen.mock.method_calls)
+
+    def test_default_callable(self):
+        def some_callable(command, stdin):
+            return bytes(command, encoding='utf8'), bytes(stdin, encoding='utf8'), 1, 345, 0
+
+        Popen = MockPopen()
+        Popen.set_default_callable(some_callable)
+
+        process = Popen('a command', stdin='some stdin', stdout=PIPE, stderr=PIPE)
+        compare(process.pid, 345)
+
+        out, err = process.communicate()
+
+        compare(out, b'a command')
+        compare(err, b'some stdin')
+        compare(process.returncode, 1)
 
     def test_invalid_parameters(self):
         Popen = MockPopen()

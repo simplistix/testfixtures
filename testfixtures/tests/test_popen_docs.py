@@ -153,3 +153,19 @@ class TestMyFunc(TestCase):
                        shell=True, stderr=PIPE, stdout=PIPE),
             call.Popen_instance.communicate()
             ], Popen.mock.method_calls)
+
+    def test_callable(self):
+        # set up
+        def command_callable(command, stdin):
+            return b'stdout', b'stderr', 0, 1234, 3
+        self.Popen.set_default_callable(command_callable)
+
+        # testing of results
+        compare(my_func(), b'stdout')
+
+        # testing calls were in the right order and with the correct parameters:
+        compare([
+            call.Popen('svn ls -R foo',
+                       shell=True, stderr=PIPE, stdout=PIPE),
+            call.Popen_instance.communicate()
+        ], Popen.mock.method_calls)

@@ -54,14 +54,42 @@ class MockPopen(object):
         """
         self.commands[command] = (stdout, stderr, returncode, pid, poll_count)
 
+    def set_callable(self, command, command_callable):
+        """
+        Set callable to provide the  behavior of this mock when it is used
+        to simulate the specified command.
+
+        The provided callable will be called each time the specified
+        command is simulated, with the command and any standard input as
+        arguments.  It should return a tuple of the arguments for
+        :meth:`~MockPopen.set_default`.
+
+        :param command: A string representing the command to be simulated.
+        :param command_callable: A callable to be called to provide the behavior
+        """
+        self.commands[command] = command_callable
+
     def set_default(self, stdout=b'', stderr=b'', returncode=0,
                     pid=1234, poll_count=3):
         """
         Set the behaviour of this mock when it is used to simulate commands
         that have no explicit behavior specified using
-        :meth:`~MockPopen.set_command`.
+        :meth:`~MockPopen.set_command` or :meth:`~MockPopen.set_callable`.
         """
         self.default_command = (stdout, stderr, returncode, pid, poll_count)
+
+    def set_default_callable(self, command_callable):
+        """
+        Set callable to provide the behavior of this mock when it is used
+        to simulate commands that have no explicit behavior specified using
+        :meth:`~MockPopen.set_command` or :meth:`~MockPopen.set_callable`.
+
+        Specified callable will be used in the same way as callables sepcified
+        with :meth:`~MockPopen.set_callable`.
+
+        :param command_callable: A callable to be called to provide the behavior
+        """
+        self.default_command = command_callable
 
     def __call__(self, *args, **kw):
         return self.mock.Popen(*args, **kw)
@@ -81,6 +109,9 @@ class MockPopen(object):
         behaviour = self.commands.get(cmd, self.default_command)
         if behaviour is None:
             raise KeyError('Nothing specified for command %r' % cmd)
+
+        if callable(behaviour):
+            behaviour = behaviour(command=cmd, stdin=stdin)
 
         stdout_value, stderr_value, self.returncode, pid, poll = behaviour
 
