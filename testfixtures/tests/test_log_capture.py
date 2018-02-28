@@ -211,6 +211,36 @@ class TestLog_Capture(TestCase):
             "While comparing [0][2]: 'oh noez' (expected) != 'oh hai' (actual)"
         ))
 
+    def test_check_in_with_matching_record(self):
+        with LogCapture() as log:
+            logger = getLogger()
+            logger.info('Hello')
+            logger.info('Goodbye')
+        log.check_in(
+            ('root', 'INFO', 'Goodbye')
+        )
+
+    def test_check_in_with_no_matching_record(self):
+        with LogCapture() as log:
+            logger = getLogger()
+            logger.info('Hello')
+            logger.info('Goodbye')
+        with ShouldRaise(AssertionError):
+            log.check_in(
+                ('root', 'INFO', 'Something else')
+            )
+
+    def test_check_in_with_some_matching_records(self):
+        with LogCapture() as log:
+            logger = getLogger()
+            logger.info('Hello')
+            logger.info('Goodbye')
+        with ShouldRaise(AssertionError):
+            log.check_in(
+                ('root', 'INFO', 'Something else'),
+                ('root', 'INFO', 'Hello')
+            )
+
 
 class BaseCaptureTest(TestCase):
     a = 33

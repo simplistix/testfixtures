@@ -168,6 +168,22 @@ class LogCapture(logging.Handler):
             recursive=self.recursive_check
             )
 
+    def check_in(self, *expected):
+        """
+        This will check that all expected entries have been captured,
+        or raise an :class:`AssertionError` if any have not
+        :param expected: A sequence of 3-tuples containing the
+                         expected log entries. Each tuple should be of
+                         the form (logger_name, string_level, message) 
+        """
+        captured = tuple(self.actual())
+        for record in expected:
+            if record not in captured:
+                raise AssertionError(
+                    'Could not find {} in captured logging'.format(
+                        record
+                    ))
+
     def __enter__(self):
         return self
 
