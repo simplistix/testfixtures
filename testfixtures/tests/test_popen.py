@@ -2,11 +2,10 @@ from subprocess import PIPE, STDOUT
 from unittest import TestCase
 
 from .mock import call
-import six
 from testfixtures import ShouldRaise, compare
 
 from testfixtures.popen import MockPopen
-from testfixtures.compat import PY2
+from testfixtures.compat import BytesLiteral, PY2
 
 import signal
 
@@ -58,7 +57,7 @@ class Tests(TestCase):
 
     def test_callable(self):
         def some_callable(command, stdin):
-            return six.b(command), six.b(stdin), 1, 345, 0
+            return BytesLiteral(command), BytesLiteral(stdin), 1, 345, 0
 
         Popen = MockPopen()
         Popen.set_callable('a command', some_callable)
@@ -377,7 +376,7 @@ class Tests(TestCase):
 
     def test_default_callable(self):
         def some_callable(command, stdin):
-            return six.b(command), six.b(stdin), 1, 345, 0
+            return BytesLiteral(command), BytesLiteral(stdin), 1, 345, 0
 
         Popen = MockPopen()
         Popen.set_default_callable(some_callable)
