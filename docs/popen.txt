@@ -148,13 +148,12 @@ Using a callable to define behavior
 -----------------------------------
 
 If you're testing a command which will be called multiple times and will return
-different output each time, you can specify a callable for a specific command
-with :class:`~MockPopen.set_callable` or for commands where no behavior is specified
-with :class:`~MockPopen.set_default_callable`.
+different output each time, you can specify a callable with
+:class:`~MockPopen.set_callable`.
 
-The callable will be called each time the matching command is invoked with the
-command and any standard input provided.  It should return the the arguments to
-:class:`~MockPopen.set_default`.
+The callable will be called each time a command is invoked with the command and
+any standard input provided.  It should return an instance of
+:class:`~PopenBehaviour`.
 
 .. literalinclude:: ../testfixtures/tests/test_popen_docs.py
    :pyobject: TestMyFunc.test_callable

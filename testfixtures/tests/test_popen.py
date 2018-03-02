@@ -4,7 +4,7 @@ from unittest import TestCase
 from .mock import call
 from testfixtures import ShouldRaise, compare
 
-from testfixtures.popen import MockPopen
+from testfixtures.popen import MockPopen, PopenBehaviour
 from testfixtures.compat import BytesLiteral, PY2
 
 import signal
@@ -57,10 +57,10 @@ class Tests(TestCase):
 
     def test_callable(self):
         def some_callable(command, stdin):
-            return BytesLiteral(command), BytesLiteral(stdin), 1, 345, 0
+            return PopenBehaviour(BytesLiteral(command), BytesLiteral(stdin), 1, 345, 0)
 
         Popen = MockPopen()
-        Popen.set_callable('a command', some_callable)
+        Popen.set_callable(some_callable)
 
         process = Popen('a command', stdin='some stdin', stdout=PIPE, stderr=PIPE)
         compare(process.pid, 345)
@@ -373,22 +373,6 @@ class Tests(TestCase):
             call.Popen('a command', stderr=-1, stdout=-1),
             call.Popen_instance.communicate(),
         ], Popen.mock.method_calls)
-
-    def test_default_callable(self):
-        def some_callable(command, stdin):
-            return BytesLiteral(command), BytesLiteral(stdin), 1, 345, 0
-
-        Popen = MockPopen()
-        Popen.set_default_callable(some_callable)
-
-        process = Popen('a command', stdin='some stdin', stdout=PIPE, stderr=PIPE)
-        compare(process.pid, 345)
-
-        out, err = process.communicate()
-
-        compare(out, b'a command')
-        compare(err, b'some stdin')
-        compare(process.returncode, 1)
 
     def test_invalid_parameters(self):
         Popen = MockPopen()

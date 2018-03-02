@@ -17,7 +17,7 @@ from unittest import TestCase
 
 from .mock import call
 from testfixtures import Replacer, ShouldRaise, compare
-from testfixtures.popen import MockPopen
+from testfixtures.popen import MockPopen, PopenBehaviour
 
 
 class TestMyFunc(TestCase):
@@ -157,8 +157,8 @@ class TestMyFunc(TestCase):
     def test_callable(self):
         # set up
         def command_callable(command, stdin):
-            return b'stdout', b'stderr', 0, 1234, 3
-        self.Popen.set_default_callable(command_callable)
+            return PopenBehaviour(stdout=b'stdout')
+        self.Popen.set_callable(command_callable)
 
         # testing of results
         compare(my_func(), b'stdout')
