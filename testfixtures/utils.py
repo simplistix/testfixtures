@@ -1,7 +1,27 @@
-from textwrap import dedent
-
+import sys
 from functools import wraps
 from inspect import getargspec
+from textwrap import dedent
+
+from . import singleton
+
+DEFAULT = singleton('DEFAULT')
+defaults = {DEFAULT}
+
+try:
+    from unittest.mock import DEFAULT
+except ImportError:
+    pass
+else:
+    defaults.add(DEFAULT)
+
+
+try:
+    from mock import DEFAULT
+except ImportError:
+    pass
+else:
+    defaults.add(DEFAULT)
 
 
 def generator(*args):
@@ -13,10 +33,25 @@ def generator(*args):
         yield i
 
 
-class Wrappings:
-    def __init__(self):
-        self.before = []
-        self.after = []
+def _is_started(patcher):
+    # XXXX horrible
+    return hasattr(patcher, 'is_local')
+
+
+class Wrapping:
+
+    attribute_name = None
+    new = DEFAULT
+
+    def __init__(self, before, after):
+        self.before, self.after = before, after
+
+    def __enter__(self):
+        return self.before()
+
+    def __exit__(self, exc_type=None, exc_val=None, exc_tb=None):
+        if self.after is not None:
+            self.after()
 
 
 def wrap(before, after=None):
@@ -24,34 +59,52 @@ def wrap(before, after=None):
     A decorator that causes the supplied callables to be called before
     or after the wrapped callable, as appropriate.
     """
-    def wrapper(wrapped):
-        if getattr(wrapped, '_wrappings', None) is None:
-            w = Wrappings()
 
-            @wraps(wrapped)
-            def wrapping(*args, **kw):
-                args = list(args)
-                to_add = len(getargspec(wrapped)[0][len(args):])
-                added = 0
-                for c in w.before:
-                    r = c()
-                    if added < to_add:
-                        args.append(r)
+    wrapping = Wrapping(before, after)
+
+    def wrapper(func):
+        if hasattr(func, 'patchings'):
+            func.patchings.append(wrapping)
+            return func
+
+        @wraps(func)
+        def patched(*args, **keywargs):
+            extra_args = []
+            entered_patchers = []
+
+            to_add = len(getargspec(func)[0][len(args):])
+            added = 0
+
+            exc_info = tuple()
+            try:
+                for patching in patched.patchings:
+                    arg = patching.__enter__()
+                    entered_patchers.append(patching)
+                    if patching.attribute_name is not None:
+                        keywargs.update(arg)
+                    elif patching.new in defaults and added < to_add:
+                        extra_args.append(arg)
                         added += 1
-                try:
-                    return wrapped(*args, **kw)
-                finally:
-                    for c in w.after:
-                        c()
-            f = wrapping
-            f._wrappings = w
-        else:
-            f = wrapped
-        w = f._wrappings
-        w.before.append(before)
-        if after is not None:
-            w.after.insert(0, after)
-        return f
+
+                args += tuple(extra_args)
+                return func(*args, **keywargs)
+            except:
+                if (patching not in entered_patchers and
+                    _is_started(patching)):
+                    # the patcher may have been started, but an exception
+                    # raised whilst entering one of its additional_patchers
+                    entered_patchers.append(patching)
+                # Pass the exception to __exit__
+                exc_info = sys.exc_info()
+                # re-raise the exception
+                raise
+            finally:
+                for patching in reversed(entered_patchers):
+                    patching.__exit__(*exc_info)
+
+        patched.patchings = [wrapping]
+        return patched
+
     return wrapper
 
 
