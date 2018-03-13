@@ -1,8 +1,8 @@
 from unittest import TestCase
 
-from .mock import Mock
+from .mock import Mock, MagicMock, patch, DEFAULT
 
-from testfixtures import wrap, compare
+from testfixtures import wrap, compare, log_capture
 
 
 class TestWrap(TestCase):
@@ -232,3 +232,14 @@ class TestWrap(TestCase):
             pass  # pragma: no cover
 
         compare(test_function.__name__, 'test_function')
+
+    def test_our_wrap_dealing_with_mock_patch(self):
+
+        @patch.multiple('testfixtures.tests.sample1', X=DEFAULT)
+        @log_capture()
+        def patched(log, X):
+            from testfixtures.tests.sample1 import X as imported_X
+            assert isinstance(X, MagicMock)
+            assert imported_X is X
+
+        patched()
