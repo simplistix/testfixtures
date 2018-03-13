@@ -1,8 +1,10 @@
+from unittest import TestCase
+import sys
+
 from testfixtures import Comparison as C, TempDirectory, compare
 from testfixtures.compat import PY2, PY3, exception_module
 from testfixtures.tests.sample1 import SampleClassA, a_function
-from unittest import TestCase
-import sys
+import pytest
 
 
 class AClass:
@@ -47,6 +49,7 @@ class FussyDefineComparison(object):
         return not self == other  # pragma: no cover
 
 
+@pytest.mark.not_pytest
 class TestC(TestCase):
 
     def test_example(self):
