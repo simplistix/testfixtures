@@ -8,8 +8,9 @@ from . import singleton
 DEFAULT = singleton('DEFAULT')
 defaults = {DEFAULT}
 
+
 try:
-    from unittest.mock import DEFAULT
+    from mock import DEFAULT
 except ImportError:
     pass
 else:
@@ -17,7 +18,7 @@ else:
 
 
 try:
-    from mock import DEFAULT
+    from unittest.mock import DEFAULT
 except ImportError:
     pass
 else:

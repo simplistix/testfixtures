@@ -1,7 +1,9 @@
+from __future__ import absolute_import
+
 from logging import getLogger
 from unittest import TestCase
 
-from mock import patch
+from .mock import patch
 
 from testfixtures import (
     log_capture, compare, Comparison as C, LogCapture, ShouldRaise
