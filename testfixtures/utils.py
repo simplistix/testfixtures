@@ -34,11 +34,6 @@ def generator(*args):
         yield i
 
 
-def _is_started(patcher):
-    # XXXX horrible
-    return hasattr(patcher, 'is_local')
-
-
 class Wrapping:
 
     attribute_name = None
@@ -90,11 +85,6 @@ def wrap(before, after=None):
                 args += tuple(extra_args)
                 return func(*args, **keywargs)
             except:
-                if (patching not in entered_patchers and
-                    _is_started(patching)):
-                    # the patcher may have been started, but an exception
-                    # raised whilst entering one of its additional_patchers
-                    entered_patchers.append(patching)
                 # Pass the exception to __exit__
                 exc_info = sys.exc_info()
                 # re-raise the exception
