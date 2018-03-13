@@ -11,7 +11,7 @@ defaults = {DEFAULT}
 
 try:
     from mock import DEFAULT
-except ImportError:
+except ImportError:  # pragma: no cover
     pass
 else:
     defaults.add(DEFAULT)
