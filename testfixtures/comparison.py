@@ -324,12 +324,11 @@ class CompareContext(object):
     x_label = y_label = None
 
     def __init__(self, options):
+        self.registries = []
         comparers = options.pop('comparers', None)
         if comparers:
-            self.registry = dict(_registry)
-            self.registry.update(comparers)
-        else:
-            self.registry = _registry
+            self.registries.append(comparers)
+        self.registries.append(_registry)
 
         self.recursive = options.pop('recursive', True)
         self.strict = options.pop('strict', False)
@@ -379,9 +378,10 @@ class CompareContext(object):
             return compare_with_type
 
         for class_ in _shared_mro(x, y):
-            comparer = self.registry.get(class_)
-            if comparer:
-                return comparer
+            for registry in self.registries:
+                comparer = registry.get(class_)
+                if comparer:
+                    return comparer
 
         # fallback for iterables
         if ((isinstance(x, Iterable) and isinstance(y, Iterable)) and not
@@ -472,7 +472,7 @@ def compare(*args, **kw):
 
     :param comparers: If supplied, should be a dictionary mapping
                       types to comparer functions for those types. These will
-                      be added to the global comparer registry for the duration
+                      be added to the comparer registry for the duration
                       of this call.
     """
 
