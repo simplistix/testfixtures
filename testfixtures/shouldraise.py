@@ -44,11 +44,6 @@ class ShouldRaise(object):
 
         __tracebackhide__ = True
         
-        # bug in python :-(
-        if type is not None and not isinstance(actual, type):
-            # fixed in 2.7 onwards!
-            actual = type(actual)  # pragma: no cover
-
         self.raised = actual
 
         if self.expected:
