@@ -412,7 +412,7 @@ class CompareContext(object):
             specific_comparer = comparer is not compare_simple
 
             if self.strict:
-                if type(x) is type(x) and x == y and not specific_comparer:
+                if x == y and not specific_comparer:
                     return False
 
             if result:
