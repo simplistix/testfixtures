@@ -15,15 +15,39 @@ def compare_simple(x, y, context):
     """
     Returns a very simple textual difference between the two supplied objects.
     """
-    if context.ignore_eq:
+    if x != y:
+        return context.label('x', repr(x)) + ' != ' + context.label('y', repr(y))
+
+
+def compare_object(x, y, context):
+    """
+    Compare the two supplied objects based on their type and attributes.
+    """
+    if type(x) is not type(y) or isinstance(x, ClassType):
+        return compare_simple(x, y, context)
+    slots = getattr(x, '__slots__', None)
+    if slots:
+        x_attrs = {n: getattr(x, n) for n in slots}
+        y_attrs = {n: getattr(y, n) for n in slots}
+    else:
         try:
-            hash_eq = hash(x) == hash(y)
+            x_attrs = vars(x).copy()
+            y_attrs = vars(y).copy()
         except TypeError:
-            pass
-        else:
-            if hash_eq:
-                return
-    return context.label('x', repr(x)) + ' != ' + context.label('y', repr(y))
+            return compare_simple(x, y, context)
+    if x_attrs != y_attrs:
+        return _compare_mapping(x_attrs, y_attrs, context, x,
+                                'attributes ', '.%s')
+
+
+def compare_exception(x, y, context):
+    """
+    Compare the two supplied exceptions based on their message, type and
+    attributes.
+    """
+    if x.args != y.args:
+        return compare_simple(x, y, context)
+    return compare_object(x, y, context)
 
 
 def compare_with_type(x, y, context):
@@ -118,7 +142,8 @@ def sorted_by_repr(sequence):
     return sorted(sequence, key=lambda o: repr(o))
 
 
-def _compare_mapping(x, y, context, obj_for_class):
+def _compare_mapping(x, y, context, obj_for_class,
+                     prefix='', breadcrumb='[%r]'):
 
     x_keys = set(x.keys())
     y_keys = set(y.keys())
@@ -127,7 +152,7 @@ def _compare_mapping(x, y, context, obj_for_class):
     same = []
     diffs = []
     for key in sorted_by_repr(x_keys.intersection(y_keys)):
-        if context.different(x[key], y[key], '[%r]' % (key, )):
+        if context.different(x[key], y[key], breadcrumb % (key, )):
             diffs.append('%r: %s != %s' % (
                 key,
                 context.label('x', pformat(x[key])),
@@ -145,27 +170,27 @@ def _compare_mapping(x, y, context, obj_for_class):
             same = sorted(same)
         except TypeError:
             pass
-        lines.extend(('', 'same:', repr(same)))
+        lines.extend(('', '%ssame:' % prefix, repr(same)))
 
     x_label = context.x_label or 'first'
     y_label = context.y_label or 'second'
 
     if x_not_y:
-        lines.extend(('', 'in %s but not %s:' % (x_label, y_label)))
+        lines.extend(('', '%sin %s but not %s:' % (prefix, x_label, y_label)))
         for key in sorted_by_repr(x_not_y):
             lines.append('%r: %s' % (
                 key,
                 pformat(x[key])
                 ))
     if y_not_x:
-        lines.extend(('', 'in %s but not %s:' % (y_label, x_label)))
+        lines.extend(('', '%sin %s but not %s:' % (prefix, y_label, x_label)))
         for key in sorted_by_repr(y_not_x):
             lines.append('%r: %s' % (
                 key,
                 pformat(y[key])
                 ))
     if diffs:
-        lines.extend(('', 'values differ:'))
+        lines.extend(('', '%sdiffer:' % (prefix or 'values ')))
         lines.extend(diffs)
     return '\n'.join(lines)
 
@@ -283,9 +308,12 @@ _registry = {
     tuple: compare_tuple,
     str: compare_text,
     Unicode: compare_text,
+    int: compare_simple,
+    float: compare_simple,
     GeneratorType: compare_generator,
     mock_call.__class__: compare_call,
     unittest_mock_call.__class__: compare_call,
+    BaseException: compare_exception,
     }
 
 
@@ -389,7 +417,11 @@ class CompareContext(object):
              isinstance(y, _unsafe_iterables))):
             return compare_generator
 
-        return compare_simple
+        # special handling for Comparisons:
+        if isinstance(x, Comparison) or isinstance(y, Comparison):
+            return compare_simple
+
+        return compare_object
 
     def _separator(self):
         return '\n\nWhile comparing %s: ' % ''.join(self.breadcrumbs[1:])

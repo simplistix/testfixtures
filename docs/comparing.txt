@@ -253,6 +253,43 @@ following:
   compare('line1\nline2', 'line1 \t\nline2   \n',
           trailing_whitespace=False)
 
+.. _comparer-objects:
+
+objects
+~~~~~~~
+
+Even if your objects do not natively support comparison, when they are compared
+they will be considered identical if they are of the same type and have identical
+attributes. Take this instances of this class as an example:
+
+.. code-block:: python
+
+  from datetime import datetime
+
+  class MyObject(object):
+      def __init__(self, name):
+          self.name = name
+      def __repr__(self):
+          return '<MyObject>'
+
+If the attributes and type of instances are the same, they will be considered equal:
+
+>>> compare(MyObject('foo'), MyObject('foo'))
+
+However, if their attributes differ, you will get an informative error:
+
+>>> compare(MyObject('foo'), MyObject('bar'))
+Traceback (most recent call last):
+ ...
+AssertionError: MyObject not as expected:
+<BLANKLINE>
+attributes differ:
+'name': 'foo' != 'bar'
+<BLANKLINE>
+While comparing .name: 'foo' != 'bar'
+
+This type of comparison is also used on objects that make use of ``__slots__``.
+
 Recursive comparison
 ~~~~~~~~~~~~~~~~~~~~
 

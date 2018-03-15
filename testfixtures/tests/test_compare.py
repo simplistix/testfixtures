@@ -3,6 +3,8 @@ from datetime import date
 from functools import partial
 
 from collections import namedtuple
+
+from testfixtures.tests.sample1 import SampleClassA, SampleClassB, Slotted
 from .mock import Mock, call
 from re import compile
 from testfixtures import (
@@ -154,10 +156,7 @@ class TestCompare(CompareHelper, TestCase):
     def test_exception_different_object(self):
         e1 = ValueError('some message')
         e2 = ValueError('some message')
-        self.check_raises(
-            e1, e2,
-            "ValueError('some message',) != ValueError('some message',)"
-            )
+        compare(e1, e2)
 
     def test_exception_different_object_c_wrapper(self):
         e1 = ValueError('some message')
@@ -1338,32 +1337,32 @@ b
             yield self.OrmObj(1)
             yield self.OrmObj(2)
 
-        def compare_orm_obj(x, y, context):
-            if x.a != y.a:
-                return 'OrmObj: %s != %s' % (x.a, y.a)
-
         self.check_raises(
             message=(
-                "sequence not as expected:\n\n"
-                "same:\n(OrmObj: 1,)\n\n"
-                "expected:\n(OrmObj: 3,)\n\n"
-                "actual:\n(OrmObj: 2,)\n\n"
-                "While comparing [1]: OrmObj: 3 != 2"
+                "sequence not as expected:\n"
+                "\n"
+                "same:\n"
+                "(OrmObj: 1,)\n"
+                "\n"
+                "expected:\n"
+                "(OrmObj: 3,)\n"
+                "\n"
+                "actual:\n"
+                "(OrmObj: 2,)\n"
+                '\n'
+                'While comparing [1]: OrmObj not as expected:\n'
+                '\n'
+                'attributes differ:\n'
+                "'a': 3 (expected) != 2 (actual)"
             ),
             expected=[self.OrmObj(1), self.OrmObj(3)],
             actual=query_set(),
-            comparers={self.OrmObj: compare_orm_obj},
             ignore_eq=True
         )
 
     def test_django_orm_is_horrible_part_2(self):
 
-        def compare_orm_obj(x, y, context):
-            return context.different(x.a, y.a, '.a')
-
-        t_compare = partial(compare,
-                            comparers={self.OrmObj: compare_orm_obj},
-                            ignore_eq=True)
+        t_compare = partial(compare, ignore_eq=True)
 
         t_compare(self.OrmObj(1), self.OrmObj(1))
         t_compare(self.OrmObj('some longish string'),
@@ -1372,10 +1371,7 @@ b
                   self.OrmObj(date(2016, 1, 1)))
 
     def test_django_orm_is_horrible_part_3(self):
-        self.check_raises(
-            message=(
-                "OrmObj: 1 (expected) != OrmObj: 1 (actual)"
-            ),
+        compare(
             expected=self.OrmObj(1),
             actual=self.OrmObj(1),
             ignore_eq=True
@@ -1442,3 +1438,100 @@ b
             'values differ:\n'
             "'x': 3 != 7"
             )
+
+    def test_compare_arbitrary_nested_same(self):
+        compare(SampleClassA([SampleClassB()]),
+                SampleClassA([SampleClassB()]))
+
+    def test_compare_different_vars(self):
+        obj1 = SampleClassB(1)
+        obj1.same = 42
+        obj1.foo = '1'
+        obj2 = SampleClassB(2)
+        obj2.same = 42
+        obj2.bar = '2'
+        self.check_raises(
+            obj1, obj2,
+            "SampleClassB not as expected:\n"
+            "\n"
+            "attributes same:\n"
+            "['same']\n"
+            "\n"
+            'attributes in first but not second:\n'
+            "'foo': '1'\n"
+            "\n"
+            'attributes in second but not first:\n'
+            "'bar': '2'\n"
+            '\n'
+            'attributes differ:\n'
+            "'args': (1,) != (2,)\n"
+            '\n'
+            "While comparing .args: sequence not as expected:\n"
+            '\n'
+            'same:\n'
+            '()\n'
+            '\n'
+            'first:\n'
+            '(1,)\n'
+            '\n'
+            'second:\n'
+            '(2,)'
+        )
+
+    def test_compare_arbitrary_nested_diff(self):
+        class OurClass:
+            def __init__(self, *args):
+                self.args = args
+            def __repr__(self):
+                return '<OurClass obj>'
+        self.check_raises(
+            OurClass(OurClass(1)),
+            OurClass(OurClass(2)),
+            "OurClass not as expected:\n"
+            "\n"
+            'attributes differ:\n'
+            "'args': (<OurClass obj>,) != (<OurClass obj>,)\n"
+            '\n'
+            'While comparing .args: sequence not as expected:\n'
+            '\n'
+            'same:\n'
+            '()\n'
+            '\n'
+            'first:\n'
+            '(<OurClass obj>,)\n'
+            '\n'
+            'second:\n'
+            '(<OurClass obj>,)\n'
+            '\n'
+            'While comparing .args[0]: OurClass not as expected:\n'
+            '\n'
+            'attributes differ:\n'
+            "'args': (1,) != (2,)\n"
+            '\n'
+            'While comparing .args[0].args: sequence not as expected:\n'
+            '\n'
+            'same:\n'
+            '()\n'
+            '\n'
+            'first:\n'
+            '(1,)\n'
+            '\n'
+            'second:\n'
+            '(2,)'
+        )
+
+    def test_compare_slotted_same(self):
+        compare(Slotted(1, 2), Slotted(1, 2))
+
+    def test_compare_slotted_diff(self):
+        self.check_raises(
+            Slotted(1, 2),
+            Slotted(1, 3),
+            "Slotted not as expected:\n"
+            "\n"
+            "attributes same:\n"
+            "['x']\n"
+            "\n"
+            'attributes differ:\n'
+            "'y': 2 != 3"
+        )
