@@ -68,12 +68,7 @@ class TestCompare(CompareHelper, TestCase):
         compare(o, o)
 
     def test_object_diff(self):
-        o1 = object()
-        o2 = object()
-        self.check_raises(
-            o1, o2,
-            '<object object at ...> != <object object at ...>'
-            )
+        compare(object(), object())
 
     def test_different_types(self):
         self.check_raises('x', 1, "'x' != 1")
