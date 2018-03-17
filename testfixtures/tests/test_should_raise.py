@@ -1,7 +1,41 @@
+from textwrap import dedent
+
 from testfixtures import Comparison as C, ShouldRaise, should_raise
 from unittest import TestCase
 
 from ..compat import PY3, PY_36_PLUS
+from ..shouldraise import ShouldAssert
+
+
+class TestShouldAssert(object):
+
+    def test_no_exception(self):
+        try:
+            with ShouldAssert('foo'):
+                pass
+        except AssertionError as e:
+            assert str(e) == 'No exception raised!'
+
+    def test_wrong_exception(self):
+        try:
+            with ShouldAssert('foo'):
+                raise KeyError()
+        except KeyError:
+            pass
+
+    def test_wrong_text(self):
+        try:
+            with ShouldAssert('foo'):
+                assert False, 'bar'
+        except AssertionError as e:
+            assert str(e) == dedent("""\
+                --- expected
+                +++ actual
+                @@ -1 +1,2 @@
+                -foo
+                +bar
+                +assert False""")
+
 
 
 class TestShouldRaise(TestCase):
@@ -14,29 +48,16 @@ class TestShouldRaise(TestCase):
     def test_no_exception(self):
         def to_test():
             pass
-        try:
+        with ShouldAssert('None raised, ValueError() expected'):
             should_raise(ValueError())(to_test)()
-        except AssertionError as e:
-            self.assertEqual(
-                e,
-                C(AssertionError('None raised, ValueError() expected'))
-                )
-        else:
-            self.fail('No exception raised!')
 
     def test_wrong_exception(self):
         def to_test():
             raise ValueError('bar')
-        try:
+        with ShouldAssert(
+            "ValueError('bar',) raised, ValueError('foo',) expected"
+        ):
             should_raise(ValueError('foo'))(to_test)()
-        except AssertionError as e:
-            self.assertEqual(
-                e,
-                C(AssertionError(
-                    "ValueError('bar',) raised, ValueError('foo',) expected"
-                )))
-        else:
-            self.fail('No exception raised!')
 
     def test_only_exception_class(self):
         def to_test():
@@ -49,15 +70,8 @@ class TestShouldRaise(TestCase):
         # an up-front assertion
         def to_test():
             pass
-        try:
+        with ShouldAssert("No exception raised!"):
             should_raise()(to_test)()
-        except AssertionError as e:
-            self.assertEqual(
-                e,
-                C(AssertionError("No exception raised!"))
-                )
-        else:
-            self.fail('No exception raised!')
 
     def test_args(self):
         def to_test(*args):
@@ -138,50 +152,31 @@ class TestShouldRaise(TestCase):
             raise ValueError('foo bar')
 
     def test_with_exception_supplied_wrong_args(self):
-        try:
+        with ShouldAssert(
+            "ValueError('bar',) raised, ValueError('foo',) expected"
+        ):
             with ShouldRaise(ValueError('foo')):
                 raise ValueError('bar')
-        except AssertionError as e:
-            self.assertEqual(
-                e,
-                C(AssertionError(
-                    "ValueError('bar',) raised, ValueError('foo',) expected"
-                )))
-        else:
-            self.fail('No exception raised!')
 
     def test_neither_supplied(self):
         with ShouldRaise():
             raise ValueError('foo bar')
 
     def test_with_no_exception_when_expected(self):
-        try:
+        with ShouldAssert("None raised, ValueError('foo',) expected"):
             with ShouldRaise(ValueError('foo')):
                 pass
-        except AssertionError as e:
-            self.assertEqual(
-                e,
-                C(AssertionError("None raised, ValueError('foo',) expected"))
-                )
-        else:
-            self.fail('No exception raised!')
 
     def test_with_no_exception_when_neither_expected(self):
-        try:
+        with ShouldAssert("No exception raised!"):
             with ShouldRaise():
                 pass
-        except AssertionError as e:
-            self.assertEqual(
-                e,
-                C(AssertionError("No exception raised!"))
-                )
-        else:
-            self.fail('No exception raised!')
 
     def test_with_getting_raised_exception(self):
+        e = ValueError('foo bar')
         with ShouldRaise() as s:
-            raise ValueError('foo bar')
-        self.assertEqual(C(ValueError('foo bar')), s.raised)
+            raise e
+        assert e is s.raised
 
     def test_import_errors_1(self):
         if PY3:
@@ -208,22 +203,17 @@ class TestShouldRaise(TestCase):
             raise FileTypeError('X')
 
     def test_assert_keyerror_raised(self):
-        expected = "KeyError('foo',) raised, AttributeError('foo',) expected"
 
         class Dodgy(dict):
             def __getattr__(self, name):
                 # NB: we forgot to turn our KeyError into an attribute error
                 return self[name]
-        try:
+
+        with ShouldAssert(
+            "KeyError('foo',) raised, AttributeError('foo',) expected"
+        ):
             with ShouldRaise(AttributeError('foo')):
                 Dodgy().foo
-        except AssertionError as e:
-            self.assertEqual(
-                C(AssertionError(expected)),
-                e
-                )
-        else:
-            self.fail('No exception raised!')
 
     def test_decorator_usage(self):
 
@@ -238,28 +228,20 @@ class TestShouldRaise(TestCase):
             raise AttributeError()
 
     def test_unless_false_bad(self):
-        try:
+        with ShouldAssert("No exception raised!"):
             with ShouldRaise(unless=False):
                 pass
-        except AssertionError as e:
-            self.assertEqual(e, C(AssertionError("No exception raised!")))
-        else:
-            self.fail('No exception raised!')
 
     def test_unless_true_okay(self):
         with ShouldRaise(unless=True):
             pass
 
     def test_unless_true_not_okay(self):
-        try:
+        with ShouldAssert(
+            "AttributeError('foo',) raised, no exception expected"
+        ):
             with ShouldRaise(unless=True):
                 raise AttributeError('foo')
-        except AssertionError as e:
-            self.assertEqual(e, C(AssertionError(
-                "AttributeError('foo',) raised, no exception expected"
-                )))
-        else:
-            self.fail('No exception raised!')
 
     def test_unless_decorator_usage(self):
 
@@ -274,17 +256,10 @@ class TestShouldRaise(TestCase):
             def __init__(self, **kw):
                 self.other = kw.get('other')
 
-        try:
+        with ShouldAssert(
+            "AnnoyingException() raised, AnnoyingException() expected,"
+            " attributes differ:\n"
+            "  other:'bar' != 'baz'"
+        ):
             with ShouldRaise(AnnoyingException(other='bar')):
                 raise AnnoyingException(other='baz')
-        except AssertionError as e:
-            self.assertEqual(
-                C(AssertionError(
-                    "AnnoyingException() raised, AnnoyingException() expected,"
-                    " attributes differ:\n"
-                    "  other:'bar' != 'baz'"
-                )),
-                e,
-                )
-        else:
-            self.fail('No exception raised!')

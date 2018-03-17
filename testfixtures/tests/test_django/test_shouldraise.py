@@ -1,7 +1,8 @@
 from django.core.exceptions import ValidationError
 
-from testfixtures import ShouldRaise, compare
+from testfixtures import ShouldRaise
 from testfixtures.compat import PY2
+from testfixtures.shouldraise import ShouldAssert
 
 
 class TestShouldRaiseWithValidatorErrors(object):
@@ -21,10 +22,6 @@ class TestShouldRaiseWithValidatorErrors(object):
                 'ValidationError(["d\'oh"]) (expected) != '
                 'ValidationError([\'nuts\']) (actual)'
             )
-        try:
+        with ShouldAssert(message):
             with ShouldRaise(ValidationError("d'oh")):
                 raise ValidationError("nuts")
-        except AssertionError as e:
-            compare(str(e), expected=message)
-        else:
-            raise AssertionError('No exception raised!')

@@ -4,6 +4,7 @@ from functools import partial
 
 from collections import namedtuple
 
+from testfixtures.shouldraise import ShouldAssert
 from testfixtures.tests.sample1 import SampleClassA, SampleClassB, Slotted
 from .mock import Mock, call
 from re import compile
@@ -793,14 +794,14 @@ b
             self.assertEqual(y, {2: 2})
             self.assertEqual(context.get_option('foo'), 'bar')
             return 'not equal'
-        with ShouldRaise(AssertionError('not equal')):
+        with ShouldAssert('not equal'):
             compare({1: 1}, {2: 2},
                     foo='bar',
                     comparers={dict: compare_dict})
 
     def test_register_more_specific(self):
         class_ = namedtuple('Test', 'x')
-        with ShouldRaise(AssertionError('compare class_')):
+        with ShouldAssert('compare class_'):
             compare(class_(1), class_(2),
                     comparers={
                     tuple: Mock(return_value='compare tuple'),

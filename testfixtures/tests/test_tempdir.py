@@ -1,5 +1,6 @@
 import os
 
+from testfixtures.shouldraise import ShouldAssert
 from .mock import Mock
 from tempfile import mkdtemp
 from testfixtures import Replacer, ShouldRaise, TempDirectory, compare, tempdir
@@ -33,7 +34,7 @@ class TestTempDir(TestCase):
     def test_not_same(self, d):
         d.write('something', b'stuff')
 
-        with ShouldRaise(AssertionError(
+        with ShouldAssert(
             "sequence not as expected:\n"
             "\n"
             "same:\n"
@@ -44,7 +45,7 @@ class TestTempDir(TestCase):
             "\n"
             "actual:\n"
             "('something',)"
-        )):
+        ):
             d.compare(['.svn', 'something'])
 
     @tempdir(ignore=('.svn', ))

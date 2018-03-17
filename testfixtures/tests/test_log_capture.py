@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from logging import getLogger
 from unittest import TestCase
 
+from testfixtures.shouldraise import ShouldAssert
 from .mock import patch
 
 from testfixtures import (
@@ -180,10 +181,7 @@ class TestLog_Capture(TestCase):
         with LogCapture() as log:
             getLogger().info('oh hai')
 
-        with ShouldRaise(AssertionError) as s:
-            log.check(('root', 'INFO', 'oh noez'))
-
-        compare(str(s.raised), expected=(
+        with ShouldAssert(
             "sequence not as expected:\n\n"
             "same:\n"
             "()\n\n"
@@ -191,17 +189,15 @@ class TestLog_Capture(TestCase):
             "(('root', 'INFO', 'oh noez'),)\n\n"
             "actual:\n"
             "(('root', 'INFO', 'oh hai'),)"
-        ))
+        ):
+            log.check(('root', 'INFO', 'oh noez'))
 
     def test_recursive_check(self):
 
         with LogCapture(recursive_check=True) as log:
             getLogger().info('oh hai')
 
-        with ShouldRaise(AssertionError) as s:
-            log.check(('root', 'INFO', 'oh noez'))
-
-        compare(str(s.raised), expected=(
+        with ShouldAssert(
             "sequence not as expected:\n\n"
             "same:\n()\n\n"
             "expected:\n(('root', 'INFO', 'oh noez'),)\n\n"
@@ -213,7 +209,8 @@ class TestLog_Capture(TestCase):
             "actual:\n"
             "('oh hai',)\n\n"
             "While comparing [0][2]: 'oh noez' (expected) != 'oh hai' (actual)"
-        ))
+        ):
+            log.check(('root', 'INFO', 'oh noez'))
 
     @log_capture()
     @patch('testfixtures.tests.sample1.SampleClassA')

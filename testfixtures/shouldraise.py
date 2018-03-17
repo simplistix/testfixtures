@@ -1,5 +1,6 @@
+from contextlib import contextmanager
 from functools import wraps
-from testfixtures import Comparison
+from testfixtures import Comparison, diff
 
 param_docs = """
 
@@ -89,3 +90,20 @@ class should_raise:
                 target(*args, **kw)
 
         return _should_raise_wrapper
+
+
+@contextmanager
+def ShouldAssert(expected_text):
+    """
+    A context manager to check that an :class:`AssertionError`
+    is raised and its text is as expected.
+    """
+    try:
+        yield
+    except AssertionError as e:
+        actual_text = str(e)
+        if expected_text != actual_text:
+            raise AssertionError(diff(expected_text, actual_text,
+                                      x_label='expected', y_label='actual'))
+    else:
+        raise AssertionError('No exception raised!')
