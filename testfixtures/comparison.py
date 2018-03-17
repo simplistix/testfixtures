@@ -373,6 +373,7 @@ class CompareContext(object):
         self.options = options
         self.message = ''
         self.breadcrumbs = []
+        self._seen = set()
 
     def extract_args(self, args):
 
@@ -428,7 +429,18 @@ class CompareContext(object):
     def _separator(self):
         return '\n\nWhile comparing %s: ' % ''.join(self.breadcrumbs[1:])
 
+    def seen(self, x, y):
+        key = id(x), id(y)
+        if key in self._seen:
+            return True
+        self._seen.add(key)
+
     def different(self, x, y, breadcrumb):
+
+        if self.seen(x, y):
+            # a self-referential hierarchy; so lets say this one is
+            # equal and hope the first time we saw it covers things...
+            return False
 
         recursed = bool(self.breadcrumbs)
         self.breadcrumbs.append(breadcrumb)
