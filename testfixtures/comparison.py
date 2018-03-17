@@ -19,22 +19,24 @@ def compare_simple(x, y, context):
         return context.label('x', repr(x)) + ' != ' + context.label('y', repr(y))
 
 
+def _extract_attrs(obj):
+    slots = getattr(obj, '__slots__', None)
+    if slots:
+        return {n: getattr(obj, n) for n in slots}
+    else:
+        try:
+            attrs = vars(obj).copy()
+        except TypeError:
+            return None
+        return attrs
 def compare_object(x, y, context):
     """
     Compare the two supplied objects based on their type and attributes.
     """
     if type(x) is not type(y) or isinstance(x, ClassType):
         return compare_simple(x, y, context)
-    slots = getattr(x, '__slots__', None)
-    if slots:
-        x_attrs = {n: getattr(x, n) for n in slots}
-        y_attrs = {n: getattr(y, n) for n in slots}
-    else:
-        try:
-            x_attrs = vars(x).copy()
-            y_attrs = vars(y).copy()
-        except TypeError:
-            return compare_simple(x, y, context)
+    x_attrs = _extract_attrs(x)
+    y_attrs = _extract_attrs(y)
     if x_attrs != y_attrs:
         return _compare_mapping(x_attrs, y_attrs, context, x,
                                 'attributes ', '.%s')
