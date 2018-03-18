@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 from functools import wraps
-from testfixtures import Comparison, diff
+from testfixtures import Comparison, diff, compare
+from testfixtures.utils import match_type_or_instance
 
 param_docs = """
 
@@ -42,31 +43,18 @@ class ShouldRaise(object):
         return self
 
     def __exit__(self, type, actual, traceback):
-
         __tracebackhide__ = True
-        
         self.raised = actual
-
         if self.expected:
             if self.exception:
-                comparison = Comparison(self.exception)
-                if comparison != actual:
-                    repr_actual = repr(actual)
-                    repr_expected = repr(self.exception)
-                    message = '%s raised, %s expected' % (
-                        repr_actual, repr_expected
-                    )
-                    if repr_actual == repr_expected:
-                        extra = [', attributes differ:']
-                        extra.extend(str(comparison).split('\n')[2:-1])
-                        message += '\n'.join(extra)
-                    raise AssertionError(message)
-
+                compare(self.exception,
+                        match_type_or_instance(self.exception, actual),
+                        x_label='expected',
+                        y_label='raised')
             elif not actual:
                 raise AssertionError('No exception raised!')
         elif actual:
             raise AssertionError('%r raised, no exception expected' % actual)
-
         return True
 
 

@@ -48,14 +48,14 @@ class TestShouldRaise(TestCase):
     def test_no_exception(self):
         def to_test():
             pass
-        with ShouldAssert('None raised, ValueError() expected'):
+        with ShouldAssert('ValueError() (expected) != None (raised)'):
             should_raise(ValueError())(to_test)()
 
     def test_wrong_exception(self):
         def to_test():
             raise ValueError('bar')
         with ShouldAssert(
-            "ValueError('bar',) raised, ValueError('foo',) expected"
+            "ValueError('foo',) (expected) != ValueError('bar',) (raised)"
         ):
             should_raise(ValueError('foo'))(to_test)()
 
@@ -63,6 +63,18 @@ class TestShouldRaise(TestCase):
         def to_test():
             raise ValueError('bar')
         should_raise(ValueError)(to_test)()
+
+    def test_wrong_exception_class(self):
+        def to_test():
+            raise ValueError('bar')
+        if PY3:
+            message = ("<class 'KeyError'> (expected) != "
+                       "ValueError('bar',) (raised)")
+        else:
+            message = ("<type 'exceptions.KeyError'> (expected) != "
+                       "ValueError('bar',) (raised)")
+        with ShouldAssert(message):
+            should_raise(KeyError)(to_test)()
 
     def test_no_supplied_or_raised(self):
         # effectvely we're saying "something should be raised!"
@@ -153,7 +165,7 @@ class TestShouldRaise(TestCase):
 
     def test_with_exception_supplied_wrong_args(self):
         with ShouldAssert(
-            "ValueError('bar',) raised, ValueError('foo',) expected"
+            "ValueError('foo',) (expected) != ValueError('bar',) (raised)"
         ):
             with ShouldRaise(ValueError('foo')):
                 raise ValueError('bar')
@@ -163,7 +175,7 @@ class TestShouldRaise(TestCase):
             raise ValueError('foo bar')
 
     def test_with_no_exception_when_expected(self):
-        with ShouldAssert("None raised, ValueError('foo',) expected"):
+        with ShouldAssert("ValueError('foo',) (expected) != None (raised)"):
             with ShouldRaise(ValueError('foo')):
                 pass
 
@@ -210,7 +222,7 @@ class TestShouldRaise(TestCase):
                 return self[name]
 
         with ShouldAssert(
-            "KeyError('foo',) raised, AttributeError('foo',) expected"
+            "AttributeError('foo',) (expected) != KeyError('foo',) (raised)"
         ):
             with ShouldRaise(AttributeError('foo')):
                 Dodgy().foo
@@ -257,9 +269,10 @@ class TestShouldRaise(TestCase):
                 self.other = kw.get('other')
 
         with ShouldAssert(
-            "AnnoyingException() raised, AnnoyingException() expected,"
-            " attributes differ:\n"
-            "  other:'bar' != 'baz'"
+            "AnnoyingException not as expected:\n\n"
+            "attributes differ:\n"
+            "'other': 'bar' (expected) != 'baz' (raised)\n\n"
+            "While comparing .other: 'bar' (expected) != 'baz' (raised)"
         ):
             with ShouldRaise(AnnoyingException(other='bar')):
                 raise AnnoyingException(other='baz')

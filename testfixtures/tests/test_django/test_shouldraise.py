@@ -15,12 +15,12 @@ class TestShouldRaiseWithValidatorErrors(object):
         if PY2:
             message = (
                 'ValidationError([u"d\'oh"]) (expected) != '
-                'ValidationError([u\'nuts\']) (actual)'
+                'ValidationError([u\'nuts\']) (raised)'
             )
         else:
             message = (
                 'ValidationError(["d\'oh"]) (expected) != '
-                'ValidationError([\'nuts\']) (actual)'
+                'ValidationError([\'nuts\']) (raised)'
             )
         with ShouldAssert(message):
             with ShouldRaise(ValidationError("d'oh")):
