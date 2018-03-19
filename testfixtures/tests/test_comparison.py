@@ -32,9 +32,6 @@ class WeirdException(Exception):
 class X(object):
     __slots__ = ['x']
 
-    def __repr__(self):
-        return '<X>'
-
 
 class FussyDefineComparison(object):
 
