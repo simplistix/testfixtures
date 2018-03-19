@@ -657,14 +657,10 @@ AssertionError: A(x=1) (<class '__main__.A'>) != B(x=1) (<class '__main__.B'>)
 Comparison objects
 ------------------
 
-Another common problem with the checking in tests is that not all
-objects support comparison and nor should they need to. For this
-reason, TextFixtures provides the :class:`~testfixtures.Comparison`
-class.
-
-This class lets you instantiate placeholders that can be used to
-compare expected results with actual results where objects in the
-actual results do not support useful comparison.  
+Another common problem with the checking in tests is that you may only want to make
+assertions about the type of an object that is nested in a data structure, or even just compare
+a subset of an object's attributes. TextFixtures provides the :class:`~testfixtures.Comparison`
+class to help in situations like these.
 
 Comparisons will appear to be equal to any object they are compared
 with that matches their specification. For example, take the following
@@ -677,39 +673,10 @@ class:
       def __init__(self, x, y):
          self.x, self.y = x, y
 
-Normal comparison doesn't work, which makes testing tricky:
-
->>> SomeClass(1, 2) == SomeClass(1, 2)
-False
-
-Here's how this comparison can be done:
+When a comparison fails, the :class:`~testfixtures.Comparison` will not equal the object it
+was compared with and its representation changes to give information about what went wrong:
 
 >>> from testfixtures import Comparison as C
->>> C(SomeClass, x=1, y=2) == SomeClass(1, 2)
-True
-
-Perhaps even more importantly, when a comparison fails, its
-representation changes to give information about what went wrong. The
-common idiom for using comparisons is in conjuction with
-:meth:`~unittest.TestCase.assertEqual` or
-:meth:`~testfixtures.compare`: 
-
->>> compare(C(SomeClass, x=2), SomeClass(1, 2))
-Traceback (most recent call last):
- ...
-AssertionError: 
-<C(failed):...SomeClass>
-attributes in actual but not Comparison:
-'y': 2
-<BLANKLINE>
-attributes differ:
-'x': 2 (Comparison) != 1 (actual)
-</C> != <...SomeClass...>
-
-The key is that the comparison object actually stores information
-about what it was last compared with. The following example shows this
-more clearly: 
-
 >>> c = C(SomeClass, x=2)
 >>> print(repr(c))
 <C:...SomeClass>x: 2</C>
@@ -752,7 +719,7 @@ dotted name:
 >>> C('types.ModuleType') == sys
 True
 
-Alternatively, if you happen to have a non-comparable object already
+Alternatively, if you happen to have an object already
 around, comparison can be done with it:
 
 >>> C(SomeClass(1,2)) == SomeClass(1,2)
@@ -765,7 +732,7 @@ achieved with the `strict` parameter:
 True
 
 The above can be problematic if you want to compare an object with
-attibutes that share names with parameters to the :class:`~testfixtures.Comparison`
+attributes that share names with parameters to the :class:`~testfixtures.Comparison`
 constructor. For this reason, you can pass the attributes in a
 dictionary:
 
@@ -798,7 +765,7 @@ Gotchas
   It will not work correctly if used as the second object in the
   expression:
 
-  >>> SomeModel()==C(SomeModel)
+  >>> SomeModel() == C(SomeModel)
   False
 
   However, if the comparison is correctly placed first, then
@@ -810,7 +777,7 @@ Gotchas
 - It probably goes without saying, but comparisons should not be used
   on both sides of an equality check:
 
-  >>> C(SomeClass)==C(SomeClass)
+  >>> C(SomeClass) == C(SomeClass)
   False
 
 Round Comparison objects
