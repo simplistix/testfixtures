@@ -173,11 +173,12 @@ class TestCompare(CompareHelper, TestCase):
         self.check_raises(
             C(e1), e2,
             ("\n"
-             "  <C(failed):{0}.ValueError>\n"
-             "  args:('some message',) != ('some other message',)\n"
-             "  </C>"
-             " != "
-             "ValueError('some other message',)"
+             "<C(failed):{0}.ValueError>\n"
+             "attributes differ:\n"
+             "'args': ('some message',) (Comparison) "
+             "!= ('some other message',) (actual)\n"
+             "</C>"
+             " != ValueError('some other message',)"
              ).format(exception_module))
 
     def test_sequence_long(self):

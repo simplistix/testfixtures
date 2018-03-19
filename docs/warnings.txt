@@ -34,9 +34,10 @@ same:
 <BLANKLINE>
 expected:
 [
-  <C(failed):....UserWarning>
-  args:('you should fix that',) != ("sorry dave, I can't let you do that",)
-  </C>]
+<C(failed):....UserWarning>
+attributes differ:
+'args': ('you should fix that',) (Comparison) != ("sorry dave, I can't let you do that",) (actual)
+</C>]
 <BLANKLINE>
 actual:
 [UserWarning("sorry dave, I can't let you do that",)]

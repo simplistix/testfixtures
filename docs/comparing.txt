@@ -698,10 +698,13 @@ common idiom for using comparisons is in conjuction with
 Traceback (most recent call last):
  ...
 AssertionError: 
-  <C(failed):...SomeClass>
-  x:2 != 1
-  y:2 not in Comparison
-  </C> != <...SomeClass...>
+<C(failed):...SomeClass>
+attributes in actual but not Comparison:
+'y': 2
+<BLANKLINE>
+attributes differ:
+'x': 2 (Comparison) != 1 (actual)
+</C> != <...SomeClass...>
 
 The key is that the comparison object actually stores information
 about what it was last compared with. The following example shows this
@@ -709,18 +712,18 @@ more clearly:
 
 >>> c = C(SomeClass, x=2)
 >>> print(repr(c))
-<BLANKLINE>
-  <C:...SomeClass>
-  x:2
-  </C>
+<C:...SomeClass>x: 2</C>
 >>> c == SomeClass(1, 2)
 False
 >>> print(repr(c))
 <BLANKLINE>
-  <C(failed):...SomeClass>
-  x:2 != 1
-  y:2 not in Comparison
-  </C>
+<C(failed):...SomeClass>
+attributes in actual but not Comparison:
+'y': 2
+<BLANKLINE>
+attributes differ:
+'x': 2 (Comparison) != 1 (actual)
+</C>
 
 .. note:: 
 
@@ -770,38 +773,14 @@ dictionary:
 Traceback (most recent call last):
  ...
 AssertionError: 
-  <C(failed):...SomeClass>
-  strict:3 not in other
-  </C> != <...SomeClass...>
+<C(failed):...SomeClass>
+attributes in Comparison but not actual:
+'strict': 3
+</C> != <...SomeClass...>
 
 Gotchas
 ~~~~~~~
 
-There are a few things to be careful of when using comparisons:
-
-- The default strict comparison cannot be used with a class such as
-  the following:
-
-  .. code-block:: python
-
-    class NoVars(object):
-         __slots__ = ['x']
-
-  If you try, you will get an error that explains the problem:
-
-  >>> C(NoVars, x=1) == NoVars()
-  Traceback (most recent call last):
-   ...
-  TypeError: <NoVars object at ...> does not support vars() so cannot do strict comparison
-
-  Comparisons can still be done with classes that don't support
-  ``vars()``, they just need to be non-strict:
-
-  >>> nv = NoVars()
-  >>> nv.x = 1
-  >>> C(NoVars, x=1, strict=False) == nv
-  True
-  
 - If the object being compared has an ``__eq__`` method, such as
   Django model instances, then the :class:`~testfixtures.Comparison`
   must be the first object in the equality check.

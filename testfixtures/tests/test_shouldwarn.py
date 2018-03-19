@@ -43,8 +43,7 @@ class ShouldWarnTests(TestCase):
         with ShouldAssert(
             "sequence not as expected:\n\n"
             "same:\n[]\n\n"
-            "expected:\n[\n  <C:"+warn_module+".UserWarning>\n"
-            "  args:('foo',)\n  </C>]"
+            "expected:\n[<C:"+warn_module+".UserWarning>args: ('foo',)</C>]"
             "\n\nactual:\n[]"
         ):
             with ShouldWarn(UserWarning('foo')):
@@ -91,9 +90,9 @@ class ShouldWarnTests(TestCase):
             "sequence not as expected:\n\n"
             "same:\n[]\n\n"
             "expected:\n[\n"
-            "  <C(failed):"+warn_module+".DeprecationWarning>\n"
-            "  args:('bar',) != ('foo',)"
-            "\n  </C>]\n\n"
+            "<C(failed):"+warn_module+".DeprecationWarning>\n"
+            "attributes differ:\n"
+            "'args': ('bar',) (Comparison) != ('foo',) (actual)\n</C>]\n\n"
             "actual:\n[DeprecationWarning('foo',)]"
         ):
             with ShouldWarn(DeprecationWarning('bar')):

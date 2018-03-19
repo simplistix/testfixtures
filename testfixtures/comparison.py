@@ -9,6 +9,7 @@ from testfixtures.compat import (
     ClassType, Unicode, basestring, mock_call, unittest_mock_call
 )
 from testfixtures.resolve import resolve
+from testfixtures.utils import indent
 
 
 def compare_simple(x, y, context):
@@ -22,13 +23,22 @@ def compare_simple(x, y, context):
 def _extract_attrs(obj):
     slots = getattr(obj, '__slots__', None)
     if slots:
-        return {n: getattr(obj, n) for n in slots}
+        attrs = {}
+        for n in slots:
+            value = getattr(obj, n, not_there)
+            if value is not not_there:
+                attrs[n] = value
     else:
         try:
             attrs = vars(obj).copy()
         except TypeError:
             return None
-        return attrs
+        else:
+            if isinstance(obj, BaseException):
+                attrs['args'] = obj.args
+    return attrs
+
+
 def compare_object(x, y, context):
     """
     Compare the two supplied objects based on their type and attributes.
@@ -145,7 +155,8 @@ def sorted_by_repr(sequence):
 
 
 def _compare_mapping(x, y, context, obj_for_class,
-                     prefix='', breadcrumb='[%r]'):
+                     prefix='', breadcrumb='[%r]',
+                     check_y_not_x=True):
 
     x_keys = set(x.keys())
     y_keys = set(y.keys())
@@ -163,10 +174,14 @@ def _compare_mapping(x, y, context, obj_for_class,
         else:
             same.append(key)
 
-    if not (x_not_y or y_not_x or diffs):
+    if not (x_not_y or (check_y_not_x and y_not_x) or diffs):
         return
 
-    lines = ['%s not as expected:' % obj_for_class.__class__.__name__]
+    if obj_for_class is not_there:
+        lines = []
+    else:
+        lines = ['%s not as expected:' % obj_for_class.__class__.__name__]
+
     if same:
         try:
             same = sorted(same)
@@ -584,103 +599,77 @@ class Comparison(object):
                 )
         elif isinstance(object_or_type, (ClassType, type)):
             c = object_or_type
-        elif isinstance(object_or_type, BaseException):
-            c = object_or_type.__class__
-            if attribute_dict is None:
-                attribute_dict = vars(object_or_type)
-                attribute_dict['args'] = object_or_type.args
         else:
             c = object_or_type.__class__
             if attribute_dict is None:
-                attribute_dict = vars(object_or_type)
+                attribute_dict = _extract_attrs(object_or_type)
         self.c = c
         self.v = attribute_dict
         self.strict = strict
 
     def __eq__(self, other):
         if self.c is not other.__class__:
-            self.failed = True
+            self.failed = 'wrong type'
             return False
+
         if self.v is None:
             return True
-        self.failed = {}
-        if isinstance(other, BaseException):
-            v = dict(vars(other))
-            v['args'] = other.args
-        else:
-            try:
-                v = vars(other)
-            except TypeError:
-                if self.strict:
-                    raise TypeError(
-                        '%r does not support vars() so cannot '
-                        'do strict comparison' % other
-                        )
-                v = {}
-                for k in self.v.keys():
-                    try:
-                        v[k] = getattr(other, k)
-                    except AttributeError:
-                        pass
 
-        e = set(self.v.keys())
-        a = set(v.keys())
-        for k in e.difference(a):
-            try:
-                # class attribute?
-                v[k] = getattr(other, k)
-            except AttributeError:
-                self.failed[k] = '%s not in other' % repr(self.v[k])
-            else:
-                a.add(k)
         if self.strict:
-            for k in a.difference(e):
-                self.failed[k] = '%s not in Comparison' % repr(v[k])
-        for k in e.intersection(a):
-            ev = self.v[k]
-            av = v[k]
-            if ev != av:
-                self.failed[k] = '%r != %r' % (ev, av)
-        if self.failed:
-            return False
-        return True
+            v = _extract_attrs(other)
+        else:
+            v = {}
+            for k in self.v.keys():
+                try:
+                    v[k] = getattr(other, k)
+                except AttributeError:
+                    pass
+
+        kw = {'x_label': 'Comparison', 'y_label': 'actual'}
+        context = CompareContext(kw)
+        self.failed = _compare_mapping(self.v,
+                                       v,
+                                       context,
+                                       obj_for_class=not_there,
+                                       prefix='attributes ',
+                                       breadcrumb='.%s',
+                                       check_y_not_x=self.strict)
+        return not self.failed
 
     def __ne__(self, other):
         return not(self == other)
 
-    def __repr__(self, indent=2):
-        full = False
-        if self.failed is True:
-            v = 'wrong type</C>'
-        elif self.v is None:
-            v = ''
-        else:
-            full = True
-            v = '\n'
-            if self.failed:
-                vd = self.failed
-                r = str
-            else:
-                vd = self.v
-                r = repr
-            for vk, vv in sorted(vd.items()):
-                if isinstance(vv, Comparison):
-                    vvr = vv.__repr__(indent+2)
-                else:
-                    vvr = r(vv)
-                v += (' ' * indent + '%s:%s\n' % (vk, vvr))
-            v += (' '*indent)+'</C>'
+    def __repr__(self):
         name = getattr(self.c, '__module__', '')
         if name:
             name += '.'
         name += getattr(self.c, '__name__', '')
         if not name:
             name = repr(self.c)
-        r = '<C%s:%s>%s' % (self.failed and '(failed)' or '', name, v)
-        if full:
-            return '\n'+(' '*indent)+r
+
+        text = ''
+        if self.failed:
+            text = self.failed
+        elif self.v:
+            lines = []
+            for k, v in sorted(self.v.items()):
+                rv = repr(v)
+                if '\n' in rv:
+                    rv = indent(rv)
+                lines.append('%s: %s' % (k, rv))
+            text = '\n'.join(lines)
+            if len(lines) > 1:
+                text = '\n'+text
+
+        r = '<C%s:%s>' % (self.failed and '(failed)' or '', name)
+        if '\n' in text:
+            r = '\n'+r+text+'\n'
         else:
-            return r
+            r += text
+        if text:
+            r += '</C>'
+
+        return r
 
 
 class StringComparison:

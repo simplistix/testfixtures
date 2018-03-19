@@ -270,6 +270,8 @@ class TestShouldRaise(TestCase):
 
         with ShouldAssert(
             "AnnoyingException not as expected:\n\n"
+            'attributes same:\n'
+            "['args']\n\n"
             "attributes differ:\n"
             "'other': 'bar' (expected) != 'baz' (raised)\n\n"
             "While comparing .other: 'bar' (expected) != 'baz' (raised)"
