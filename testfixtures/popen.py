@@ -11,6 +11,10 @@ except ImportError:
 
 
 class PopenBehaviour(object):
+    """
+    An object representing the behaviour of a :class:`MockPopen` when
+    simulating a particular command.
+    """
 
     def __init__(self, stdout=b'', stderr=b'', returncode=0, pid=1234,
                  poll_count=3):
