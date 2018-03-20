@@ -136,15 +136,26 @@ class LogCapture(logging.Handler):
             yield value
 
     def actual(self):
+        """
+        The sequence of actual records logged, having had their attributes
+        extracted as specified by the ``attributes`` parameter to the
+        :class:`LogCapture` constructor.
+
+        This can be useful for making more complex assertions about logged
+        records. The actual records logged can also be inspected by using the
+        :attr:`records` attribute.
+        """
+        actual = []
         for r in self.records:
             if callable(self.attributes):
-                yield self.attributes(r)
+                actual.append(self.attributes(r))
             else:
                 result = tuple(self._actual_row(r))
                 if len(result) == 1:
-                    yield result[0]
+                    actual.append(result[0])
                 else:
-                    yield result
+                    actual.append(result)
+        return actual
 
     def __str__(self):
         if not self.records:
@@ -164,7 +175,7 @@ class LogCapture(logging.Handler):
         """
         return compare(
             expected,
-            actual=tuple(self.actual()),
+            actual=self.actual(),
             recursive=self.recursive_check
             )
 
