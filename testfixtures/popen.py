@@ -29,7 +29,7 @@ class MockPopen(object):
     :func:`mock.patch` or a :class:`Replacer`.
     """
 
-    default_command = None
+    default_behaviour = None
 
     def __init__(self):
         self.commands = {}
@@ -77,7 +77,7 @@ class MockPopen(object):
 
         :param command_callable: A callable to be called to provide the behavior
         """
-        self.default_command = command_callable
+        self.default_behaviour = command_callable
 
     def set_default(self, stdout=b'', stderr=b'', returncode=0,
                     pid=1234, poll_count=3):
@@ -86,8 +86,8 @@ class MockPopen(object):
         that have no explicit behavior specified using
         :meth:`~MockPopen.set_command` or :meth:`~MockPopen.set_callable`.
         """
-        self.default_command = PopenBehaviour(stdout, stderr, returncode, pid,
-                                              poll_count)
+        self.default_behaviour = PopenBehaviour(stdout, stderr, returncode, pid,
+                                                poll_count)
 
     def __call__(self, *args, **kw):
         return self.mock.Popen(*args, **kw)
@@ -104,7 +104,7 @@ class MockPopen(object):
         else:
             cmd = ' '.join(args)
 
-        behaviour = self.commands.get(cmd, self.default_command)
+        behaviour = self.commands.get(cmd, self.default_behaviour)
         if behaviour is None:
             raise KeyError('Nothing specified for command %r' % cmd)
 
