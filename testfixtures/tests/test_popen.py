@@ -55,12 +55,12 @@ class Tests(TestCase):
                 call.Popen_instance.communicate(),
                 ], Popen.mock.method_calls)
 
-    def test_callable(self):
+    def test_callable_default_behaviour(self):
         def some_callable(command, stdin):
             return PopenBehaviour(BytesLiteral(command), BytesLiteral(stdin), 1, 345, 0)
 
         Popen = MockPopen()
-        Popen.set_callable(some_callable)
+        Popen.set_default(behaviour=some_callable)
 
         process = Popen('a command', stdin='some stdin', stdout=PIPE, stderr=PIPE)
         compare(process.pid, 345)

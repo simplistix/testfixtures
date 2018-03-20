@@ -158,7 +158,7 @@ class TestMyFunc(TestCase):
         # set up
         def command_callable(command, stdin):
             return PopenBehaviour(stdout=b'stdout')
-        self.Popen.set_callable(command_callable)
+        self.Popen.set_default(behaviour=command_callable)
 
         # testing of results
         compare(my_func(), b'stdout')
