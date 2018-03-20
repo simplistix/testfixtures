@@ -10,6 +10,21 @@ except ImportError:
     from mock import Mock
 
 
+class PopenBehaviour(object):
+    """
+    An object representing the behaviour of a :class:`MockPopen` when
+    simulating a particular command.
+    """
+
+    def __init__(self, stdout=b'', stderr=b'', returncode=0, pid=1234,
+                 poll_count=3):
+        self.stdout = stdout
+        self.stderr = stderr
+        self.returncode = returncode
+        self.pid = pid
+        self.poll_count = poll_count
+
+
 class MockPopen(object):
     """
     A specialised mock for testing use of :class:`subprocess.Popen`.
@@ -18,7 +33,7 @@ class MockPopen(object):
     :func:`mock.patch` or a :class:`Replacer`.
     """
 
-    default_command = None
+    default_behaviour = None
 
     def __init__(self):
         self.commands = {}
@@ -52,16 +67,27 @@ class MockPopen(object):
 
         :param command: A string representing the command to be simulated.
         """
-        self.commands[command] = (stdout, stderr, returncode, pid, poll_count)
+        self.commands[command] = PopenBehaviour(stdout, stderr, returncode,
+                                                pid, poll_count)
 
     def set_default(self, stdout=b'', stderr=b'', returncode=0,
-                    pid=1234, poll_count=3):
+                    pid=1234, poll_count=3, behaviour=None):
         """
         Set the behaviour of this mock when it is used to simulate commands
         that have no explicit behavior specified using
-        :meth:`~MockPopen.set_command`.
+        :meth:`~MockPopen.set_command` or :meth:`~MockPopen.set_callable`.
+
+        If supplied, ``behaviour`` must be either a :class:`PopenBehaviour`
+        instance or a callable that takes the ``command`` string representing
+        the command to be simulated and the ``stdin`` for that command and
+        returns a :class:`PopenBehaviour` instance.
         """
-        self.default_command = (stdout, stderr, returncode, pid, poll_count)
+        if behaviour is None:
+            self.default_behaviour = PopenBehaviour(
+                stdout, stderr, returncode, pid, poll_count
+            )
+        else:
+            self.default_behaviour = behaviour
 
     def __call__(self, *args, **kw):
         return self.mock.Popen(*args, **kw)
@@ -78,11 +104,17 @@ class MockPopen(object):
         else:
             cmd = ' '.join(args)
 
-        behaviour = self.commands.get(cmd, self.default_command)
+        behaviour = self.commands.get(cmd, self.default_behaviour)
         if behaviour is None:
             raise KeyError('Nothing specified for command %r' % cmd)
 
-        stdout_value, stderr_value, self.returncode, pid, poll = behaviour
+        if callable(behaviour):
+            behaviour = behaviour(command=cmd, stdin=stdin)
+
+        self.returncode = behaviour.returncode
+
+        stdout_value = behaviour.stdout
+        stderr_value = behaviour.stderr
 
         if stderr == STDOUT:
             line_iterator = chain.from_iterable(zip_longest(
@@ -92,7 +124,7 @@ class MockPopen(object):
             stdout_value = b''.join(l for l in line_iterator if l)
             stderr_value = None
 
-        self.poll_count = poll
+        self.poll_count = behaviour.poll_count
         for name, option, mock_value in (
             ('stdout', stdout, stdout_value),
             ('stderr', stderr, stderr_value)
@@ -108,7 +140,7 @@ class MockPopen(object):
         if stdin == PIPE:
             self.mock.Popen_instance.stdin = Mock()
 
-        self.mock.Popen_instance.pid = pid
+        self.mock.Popen_instance.pid = behaviour.pid
         self.mock.Popen_instance.returncode = None
 
         return self.mock.Popen_instance

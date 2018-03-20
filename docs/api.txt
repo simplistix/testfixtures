@@ -343,7 +343,7 @@ API Reference
 
 .. currentmodule:: testfixtures.popen
 
-.. autoclass:: testfixtures.popen.MockPopen
+.. automodule:: testfixtures.popen
    :members:
 
 .. automodule:: testfixtures.django
