@@ -4,6 +4,7 @@ from inspect import getargspec
 from textwrap import dedent
 
 from . import singleton
+from .compat import ClassType
 
 DEFAULT = singleton('DEFAULT')
 defaults = {DEFAULT}
@@ -105,3 +106,20 @@ def extend_docstring(docstring, objs):
             obj.__doc__ = dedent(obj.__doc__) + docstring
         except (AttributeError, TypeError):  # python 2 or pypy 4.0.1 :-(
             pass
+
+
+def match_type_or_instance(expected, actual):
+    if isinstance(expected, (ClassType, type)):
+        type_actual = type(actual)
+        if expected is type_actual:
+            return type_actual
+    return actual
+
+
+def indent(text, indent_size = 2):
+    indented = []
+    for do_indent, line in enumerate(text.splitlines(True)):
+        if do_indent:
+            line = ' '*indent_size + line
+        indented.append(line)
+    return ''.join(indented)

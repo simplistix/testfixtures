@@ -7,6 +7,7 @@ from testfixtures import (
     Comparison as C
 )
 from testfixtures.compat import PY3, PY_36_PLUS
+from testfixtures.shouldraise import ShouldAssert
 
 if PY3:
     warn_module = 'builtins'
@@ -23,12 +24,12 @@ class ShouldWarnTests(TestCase):
         compare(len(backstop), expected=0)
 
     def test_warn_not_expected(self):
-        with ShouldRaise(AssertionError(
+        with ShouldAssert(
             "sequence not as expected:\n\n"
             "same:\n[]\n\n"
             "expected:\n[]\n\n"
             "actual:\n[UserWarning('foo',)]"
-        )):
+        ):
             with warnings.catch_warnings(record=True) as backstop:
                 with ShouldNotWarn():
                     warnings.warn('foo')
@@ -39,13 +40,12 @@ class ShouldWarnTests(TestCase):
             pass
 
     def test_no_warn_not_expected(self):
-        with ShouldRaise(AssertionError(
+        with ShouldAssert(
             "sequence not as expected:\n\n"
             "same:\n[]\n\n"
-            "expected:\n[\n  <C:"+warn_module+".UserWarning>\n"
-            "  args:('foo',)\n  </C>]"
+            "expected:\n[<C:"+warn_module+".UserWarning>args: ('foo',)</C>]"
             "\n\nactual:\n[]"
-        )):
+        ):
             with ShouldWarn(UserWarning('foo')):
                 pass
 
@@ -69,13 +69,13 @@ class ShouldWarnTests(TestCase):
             warnings.warn('foo')
 
     def test_minimal_bad(self):
-        with ShouldRaise(AssertionError(
+        with ShouldAssert(
             "sequence not as expected:\n\n"
             "same:\n[]\n\n"
             "expected:\n"
             "[<C(failed):"+warn_module+".DeprecationWarning>wrong type</C>]\n\n"
             "actual:\n[UserWarning('foo',)]"
-        )):
+        ):
             with ShouldWarn(DeprecationWarning):
                 warnings.warn('foo')
 
@@ -86,15 +86,15 @@ class ShouldWarnTests(TestCase):
             )
 
     def test_maximal_bad(self):
-        with ShouldRaise(AssertionError(
+        with ShouldAssert(
             "sequence not as expected:\n\n"
             "same:\n[]\n\n"
             "expected:\n[\n"
-            "  <C(failed):"+warn_module+".DeprecationWarning>\n"
-            "  args:('bar',) != ('foo',)"
-            "\n  </C>]\n\n"
+            "<C(failed):"+warn_module+".DeprecationWarning>\n"
+            "attributes differ:\n"
+            "'args': ('bar',) (Comparison) != ('foo',) (actual)\n</C>]\n\n"
             "actual:\n[DeprecationWarning('foo',)]"
-        )):
+        ):
             with ShouldWarn(DeprecationWarning('bar')):
                 warnings.warn_explicit(
                     'foo', DeprecationWarning, 'bar.py', 42, 'bar_module'

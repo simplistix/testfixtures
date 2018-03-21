@@ -253,6 +253,43 @@ following:
   compare('line1\nline2', 'line1 \t\nline2   \n',
           trailing_whitespace=False)
 
+.. _comparer-objects:
+
+objects
+~~~~~~~
+
+Even if your objects do not natively support comparison, when they are compared
+they will be considered identical if they are of the same type and have identical
+attributes. Take this instances of this class as an example:
+
+.. code-block:: python
+
+  from datetime import datetime
+
+  class MyObject(object):
+      def __init__(self, name):
+          self.name = name
+      def __repr__(self):
+          return '<MyObject>'
+
+If the attributes and type of instances are the same, they will be considered equal:
+
+>>> compare(MyObject('foo'), MyObject('foo'))
+
+However, if their attributes differ, you will get an informative error:
+
+>>> compare(MyObject('foo'), MyObject('bar'))
+Traceback (most recent call last):
+ ...
+AssertionError: MyObject not as expected:
+<BLANKLINE>
+attributes differ:
+'name': 'foo' != 'bar'
+<BLANKLINE>
+While comparing .name: 'foo' != 'bar'
+
+This type of comparison is also used on objects that make use of ``__slots__``.
+
 Recursive comparison
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -620,14 +657,10 @@ AssertionError: A(x=1) (<class '__main__.A'>) != B(x=1) (<class '__main__.B'>)
 Comparison objects
 ------------------
 
-Another common problem with the checking in tests is that not all
-objects support comparison and nor should they need to. For this
-reason, TextFixtures provides the :class:`~testfixtures.Comparison`
-class.
-
-This class lets you instantiate placeholders that can be used to
-compare expected results with actual results where objects in the
-actual results do not support useful comparison.  
+Another common problem with the checking in tests is that you may only want to make
+assertions about the type of an object that is nested in a data structure, or even just compare
+a subset of an object's attributes. TextFixtures provides the :class:`~testfixtures.Comparison`
+class to help in situations like these.
 
 Comparisons will appear to be equal to any object they are compared
 with that matches their specification. For example, take the following
@@ -640,50 +673,24 @@ class:
       def __init__(self, x, y):
          self.x, self.y = x, y
 
-Normal comparison doesn't work, which makes testing tricky:
-
->>> SomeClass(1, 2) == SomeClass(1, 2)
-False
-
-Here's how this comparison can be done:
+When a comparison fails, the :class:`~testfixtures.Comparison` will not equal the object it
+was compared with and its representation changes to give information about what went wrong:
 
 >>> from testfixtures import Comparison as C
->>> C(SomeClass, x=1, y=2) == SomeClass(1, 2)
-True
-
-Perhaps even more importantly, when a comparison fails, its
-representation changes to give information about what went wrong. The
-common idiom for using comparisons is in conjuction with
-:meth:`~unittest.TestCase.assertEqual` or
-:meth:`~testfixtures.compare`: 
-
->>> compare(C(SomeClass, x=2), SomeClass(1, 2))
-Traceback (most recent call last):
- ...
-AssertionError: 
-  <C(failed):...SomeClass>
-  x:2 != 1
-  y:2 not in Comparison
-  </C> != <...SomeClass...>
-
-The key is that the comparison object actually stores information
-about what it was last compared with. The following example shows this
-more clearly: 
-
 >>> c = C(SomeClass, x=2)
 >>> print(repr(c))
-<BLANKLINE>
-  <C:...SomeClass>
-  x:2
-  </C>
+<C:...SomeClass>x: 2</C>
 >>> c == SomeClass(1, 2)
 False
 >>> print(repr(c))
 <BLANKLINE>
-  <C(failed):...SomeClass>
-  x:2 != 1
-  y:2 not in Comparison
-  </C>
+<C(failed):...SomeClass>
+attributes in actual but not Comparison:
+'y': 2
+<BLANKLINE>
+attributes differ:
+'x': 2 (Comparison) != 1 (actual)
+</C>
 
 .. note:: 
 
@@ -712,7 +719,7 @@ dotted name:
 >>> C('types.ModuleType') == sys
 True
 
-Alternatively, if you happen to have a non-comparable object already
+Alternatively, if you happen to have an object already
 around, comparison can be done with it:
 
 >>> C(SomeClass(1,2)) == SomeClass(1,2)
@@ -725,7 +732,7 @@ achieved with the `strict` parameter:
 True
 
 The above can be problematic if you want to compare an object with
-attibutes that share names with parameters to the :class:`~testfixtures.Comparison`
+attributes that share names with parameters to the :class:`~testfixtures.Comparison`
 constructor. For this reason, you can pass the attributes in a
 dictionary:
 
@@ -733,38 +740,14 @@ dictionary:
 Traceback (most recent call last):
  ...
 AssertionError: 
-  <C(failed):...SomeClass>
-  strict:3 not in other
-  </C> != <...SomeClass...>
+<C(failed):...SomeClass>
+attributes in Comparison but not actual:
+'strict': 3
+</C> != <...SomeClass...>
 
 Gotchas
 ~~~~~~~
 
-There are a few things to be careful of when using comparisons:
-
-- The default strict comparison cannot be used with a class such as
-  the following:
-
-  .. code-block:: python
-
-    class NoVars(object):
-         __slots__ = ['x']
-
-  If you try, you will get an error that explains the problem:
-
-  >>> C(NoVars, x=1) == NoVars()
-  Traceback (most recent call last):
-   ...
-  TypeError: <NoVars object at ...> does not support vars() so cannot do strict comparison
-
-  Comparisons can still be done with classes that don't support
-  ``vars()``, they just need to be non-strict:
-
-  >>> nv = NoVars()
-  >>> nv.x = 1
-  >>> C(NoVars, x=1, strict=False) == nv
-  True
-  
 - If the object being compared has an ``__eq__`` method, such as
   Django model instances, then the :class:`~testfixtures.Comparison`
   must be the first object in the equality check.
@@ -782,7 +765,7 @@ There are a few things to be careful of when using comparisons:
   It will not work correctly if used as the second object in the
   expression:
 
-  >>> SomeModel()==C(SomeModel)
+  >>> SomeModel() == C(SomeModel)
   False
 
   However, if the comparison is correctly placed first, then
@@ -794,7 +777,7 @@ There are a few things to be careful of when using comparisons:
 - It probably goes without saying, but comparisons should not be used
   on both sides of an equality check:
 
-  >>> C(SomeClass)==C(SomeClass)
+  >>> C(SomeClass) == C(SomeClass)
   False
 
 Round Comparison objects

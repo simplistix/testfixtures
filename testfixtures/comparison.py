@@ -9,21 +9,57 @@ from testfixtures.compat import (
     ClassType, Unicode, basestring, mock_call, unittest_mock_call
 )
 from testfixtures.resolve import resolve
+from testfixtures.utils import indent
 
 
 def compare_simple(x, y, context):
     """
     Returns a very simple textual difference between the two supplied objects.
     """
-    if context.ignore_eq:
+    if x != y:
+        return context.label('x', repr(x)) + ' != ' + context.label('y', repr(y))
+
+
+def _extract_attrs(obj):
+    slots = getattr(obj, '__slots__', None)
+    if slots:
+        attrs = {}
+        for n in slots:
+            value = getattr(obj, n, not_there)
+            if value is not not_there:
+                attrs[n] = value
+    else:
         try:
-            hash_eq = hash(x) == hash(y)
+            attrs = vars(obj).copy()
         except TypeError:
-            pass
+            return None
         else:
-            if hash_eq:
-                return
-    return context.label('x', repr(x)) + ' != ' + context.label('y', repr(y))
+            if isinstance(obj, BaseException):
+                attrs['args'] = obj.args
+    return attrs
+
+
+def compare_object(x, y, context):
+    """
+    Compare the two supplied objects based on their type and attributes.
+    """
+    if type(x) is not type(y) or isinstance(x, ClassType):
+        return compare_simple(x, y, context)
+    x_attrs = _extract_attrs(x)
+    y_attrs = _extract_attrs(y)
+    if x_attrs != y_attrs:
+        return _compare_mapping(x_attrs, y_attrs, context, x,
+                                'attributes ', '.%s')
+
+
+def compare_exception(x, y, context):
+    """
+    Compare the two supplied exceptions based on their message, type and
+    attributes.
+    """
+    if x.args != y.args:
+        return compare_simple(x, y, context)
+    return compare_object(x, y, context)
 
 
 def compare_with_type(x, y, context):
@@ -118,7 +154,9 @@ def sorted_by_repr(sequence):
     return sorted(sequence, key=lambda o: repr(o))
 
 
-def _compare_mapping(x, y, context, obj_for_class):
+def _compare_mapping(x, y, context, obj_for_class,
+                     prefix='', breadcrumb='[%r]',
+                     check_y_not_x=True):
 
     x_keys = set(x.keys())
     y_keys = set(y.keys())
@@ -127,7 +165,7 @@ def _compare_mapping(x, y, context, obj_for_class):
     same = []
     diffs = []
     for key in sorted_by_repr(x_keys.intersection(y_keys)):
-        if context.different(x[key], y[key], '[%r]' % (key, )):
+        if context.different(x[key], y[key], breadcrumb % (key, )):
             diffs.append('%r: %s != %s' % (
                 key,
                 context.label('x', pformat(x[key])),
@@ -136,36 +174,40 @@ def _compare_mapping(x, y, context, obj_for_class):
         else:
             same.append(key)
 
-    if not (x_not_y or y_not_x or diffs):
+    if not (x_not_y or (check_y_not_x and y_not_x) or diffs):
         return
 
-    lines = ['%s not as expected:' % obj_for_class.__class__.__name__]
+    if obj_for_class is not_there:
+        lines = []
+    else:
+        lines = ['%s not as expected:' % obj_for_class.__class__.__name__]
+
     if same:
         try:
             same = sorted(same)
         except TypeError:
             pass
-        lines.extend(('', 'same:', repr(same)))
+        lines.extend(('', '%ssame:' % prefix, repr(same)))
 
     x_label = context.x_label or 'first'
     y_label = context.y_label or 'second'
 
     if x_not_y:
-        lines.extend(('', 'in %s but not %s:' % (x_label, y_label)))
+        lines.extend(('', '%sin %s but not %s:' % (prefix, x_label, y_label)))
         for key in sorted_by_repr(x_not_y):
             lines.append('%r: %s' % (
                 key,
                 pformat(x[key])
                 ))
     if y_not_x:
-        lines.extend(('', 'in %s but not %s:' % (y_label, x_label)))
+        lines.extend(('', '%sin %s but not %s:' % (prefix, y_label, x_label)))
         for key in sorted_by_repr(y_not_x):
             lines.append('%r: %s' % (
                 key,
                 pformat(y[key])
                 ))
     if diffs:
-        lines.extend(('', 'values differ:'))
+        lines.extend(('', '%sdiffer:' % (prefix or 'values ')))
         lines.extend(diffs)
     return '\n'.join(lines)
 
@@ -283,9 +325,12 @@ _registry = {
     tuple: compare_tuple,
     str: compare_text,
     Unicode: compare_text,
+    int: compare_simple,
+    float: compare_simple,
     GeneratorType: compare_generator,
     mock_call.__class__: compare_call,
     unittest_mock_call.__class__: compare_call,
+    BaseException: compare_exception,
     }
 
 
@@ -324,12 +369,11 @@ class CompareContext(object):
     x_label = y_label = None
 
     def __init__(self, options):
+        self.registries = []
         comparers = options.pop('comparers', None)
         if comparers:
-            self.registry = dict(_registry)
-            self.registry.update(comparers)
-        else:
-            self.registry = _registry
+            self.registries.append(comparers)
+        self.registries.append(_registry)
 
         self.recursive = options.pop('recursive', True)
         self.strict = options.pop('strict', False)
@@ -344,6 +388,7 @@ class CompareContext(object):
         self.options = options
         self.message = ''
         self.breadcrumbs = []
+        self._seen = set()
 
     def extract_args(self, args):
 
@@ -379,9 +424,10 @@ class CompareContext(object):
             return compare_with_type
 
         for class_ in _shared_mro(x, y):
-            comparer = self.registry.get(class_)
-            if comparer:
-                return comparer
+            for registry in self.registries:
+                comparer = registry.get(class_)
+                if comparer:
+                    return comparer
 
         # fallback for iterables
         if ((isinstance(x, Iterable) and isinstance(y, Iterable)) and not
@@ -389,12 +435,27 @@ class CompareContext(object):
              isinstance(y, _unsafe_iterables))):
             return compare_generator
 
-        return compare_simple
+        # special handling for Comparisons:
+        if isinstance(x, Comparison) or isinstance(y, Comparison):
+            return compare_simple
+
+        return compare_object
 
     def _separator(self):
         return '\n\nWhile comparing %s: ' % ''.join(self.breadcrumbs[1:])
 
+    def seen(self, x, y):
+        key = id(x), id(y)
+        if key in self._seen:
+            return True
+        self._seen.add(key)
+
     def different(self, x, y, breadcrumb):
+
+        if self.seen(x, y):
+            # a self-referential hierarchy; so lets say this one is
+            # equal and hope the first time we saw it covers things...
+            return False
 
         recursed = bool(self.breadcrumbs)
         self.breadcrumbs.append(breadcrumb)
@@ -412,7 +473,7 @@ class CompareContext(object):
             specific_comparer = comparer is not compare_simple
 
             if self.strict:
-                if type(x) is type(x) and x == y and not specific_comparer:
+                if x == y and not specific_comparer:
                     return False
 
             if result:
@@ -472,7 +533,7 @@ def compare(*args, **kw):
 
     :param comparers: If supplied, should be a dictionary mapping
                       types to comparer functions for those types. These will
-                      be added to the global comparer registry for the duration
+                      be added to the comparer registry for the duration
                       of this call.
     """
 
@@ -538,103 +599,77 @@ class Comparison(object):
                 )
         elif isinstance(object_or_type, (ClassType, type)):
             c = object_or_type
-        elif isinstance(object_or_type, BaseException):
-            c = object_or_type.__class__
-            if attribute_dict is None:
-                attribute_dict = vars(object_or_type)
-                attribute_dict['args'] = object_or_type.args
         else:
             c = object_or_type.__class__
             if attribute_dict is None:
-                attribute_dict = vars(object_or_type)
+                attribute_dict = _extract_attrs(object_or_type)
         self.c = c
         self.v = attribute_dict
         self.strict = strict
 
     def __eq__(self, other):
         if self.c is not other.__class__:
-            self.failed = True
+            self.failed = 'wrong type'
             return False
+
         if self.v is None:
             return True
-        self.failed = {}
-        if isinstance(other, BaseException):
-            v = dict(vars(other))
-            v['args'] = other.args
-        else:
-            try:
-                v = vars(other)
-            except TypeError:
-                if self.strict:
-                    raise TypeError(
-                        '%r does not support vars() so cannot '
-                        'do strict comparison' % other
-                        )
-                v = {}
-                for k in self.v.keys():
-                    try:
-                        v[k] = getattr(other, k)
-                    except AttributeError:
-                        pass
 
-        e = set(self.v.keys())
-        a = set(v.keys())
-        for k in e.difference(a):
-            try:
-                # class attribute?
-                v[k] = getattr(other, k)
-            except AttributeError:
-                self.failed[k] = '%s not in other' % repr(self.v[k])
-            else:
-                a.add(k)
         if self.strict:
-            for k in a.difference(e):
-                self.failed[k] = '%s not in Comparison' % repr(v[k])
-        for k in e.intersection(a):
-            ev = self.v[k]
-            av = v[k]
-            if ev != av:
-                self.failed[k] = '%r != %r' % (ev, av)
-        if self.failed:
-            return False
-        return True
+            v = _extract_attrs(other)
+        else:
+            v = {}
+            for k in self.v.keys():
+                try:
+                    v[k] = getattr(other, k)
+                except AttributeError:
+                    pass
+
+        kw = {'x_label': 'Comparison', 'y_label': 'actual'}
+        context = CompareContext(kw)
+        self.failed = _compare_mapping(self.v,
+                                       v,
+                                       context,
+                                       obj_for_class=not_there,
+                                       prefix='attributes ',
+                                       breadcrumb='.%s',
+                                       check_y_not_x=self.strict)
+        return not self.failed
 
     def __ne__(self, other):
         return not(self == other)
 
-    def __repr__(self, indent=2):
-        full = False
-        if self.failed is True:
-            v = 'wrong type</C>'
-        elif self.v is None:
-            v = ''
-        else:
-            full = True
-            v = '\n'
-            if self.failed:
-                vd = self.failed
-                r = str
-            else:
-                vd = self.v
-                r = repr
-            for vk, vv in sorted(vd.items()):
-                if isinstance(vv, Comparison):
-                    vvr = vv.__repr__(indent+2)
-                else:
-                    vvr = r(vv)
-                v += (' ' * indent + '%s:%s\n' % (vk, vvr))
-            v += (' '*indent)+'</C>'
+    def __repr__(self):
         name = getattr(self.c, '__module__', '')
         if name:
             name += '.'
         name += getattr(self.c, '__name__', '')
         if not name:
             name = repr(self.c)
-        r = '<C%s:%s>%s' % (self.failed and '(failed)' or '', name, v)
-        if full:
-            return '\n'+(' '*indent)+r
+
+        text = ''
+        if self.failed:
+            text = self.failed
+        elif self.v:
+            lines = []
+            for k, v in sorted(self.v.items()):
+                rv = repr(v)
+                if '\n' in rv:
+                    rv = indent(rv)
+                lines.append('%s: %s' % (k, rv))
+            text = '\n'.join(lines)
+            if len(lines) > 1:
+                text = '\n'+text
+
+        r = '<C%s:%s>' % (self.failed and '(failed)' or '', name)
+        if '\n' in text:
+            r = '\n'+r+text+'\n'
         else:
-            return r
+            r += text
+        if text:
+            r += '</C>'
+
+        return r
 
 
 class StringComparison:
