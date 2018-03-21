@@ -94,4 +94,5 @@ def ShouldAssert(expected_text):
             raise AssertionError(diff(expected_text, actual_text,
                                       x_label='expected', y_label='actual'))
     else:
-        raise AssertionError('No exception raised!')
+        raise AssertionError('Expected AssertionError(%r), None raised!' %
+                             expected_text)

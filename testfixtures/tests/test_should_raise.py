@@ -14,7 +14,7 @@ class TestShouldAssert(object):
             with ShouldAssert('foo'):
                 pass
         except AssertionError as e:
-            assert str(e) == 'No exception raised!'
+            assert str(e) == "Expected AssertionError('foo'), None raised!"
 
     def test_wrong_exception(self):
         try:
