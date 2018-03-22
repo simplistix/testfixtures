@@ -1,8 +1,12 @@
 from __future__ import print_function
 from logging import getLogger
+from textwrap import dedent
 from unittest import TestCase
 from warnings import catch_warnings
 
+import pytest
+
+from testfixtures.shouldraise import ShouldAssert
 from .mock import Mock
 
 from testfixtures import Replacer, LogCapture, compare
@@ -261,3 +265,287 @@ class LogCaptureTests(TestCase):
                 child_log.check(('child', 'INFO', 'a log message'))
         global_log.check()
         compare(logger.propagate, True)
+
+
+class TestCheckPresent(object):
+
+    def test_order_matters_ok(self):
+        with LogCapture() as log:
+            root.info('one')
+            root.error('junk')
+            root.warning('two')
+            root.error('junk')
+            root.error('three')
+        log.check_present(
+            ('root', 'INFO', 'one'),
+            ('root', 'WARNING', 'two'),
+            ('root', 'ERROR', 'three'),
+        )
+
+    def test_order_matters_not_okay(self):
+        with LogCapture() as log:
+            root.error('junk')
+        with ShouldAssert(dedent("""\
+                sequence not as expected:
+                
+                same:
+                ()
+                
+                expected:
+                (('root', 'INFO', 'one'),)
+                
+                actual:
+                (('root', 'ERROR', 'junk'),)""")):
+            log.check_present(
+                ('root', 'INFO', 'one'),
+            )
+
+    def test_order_matters_not_okay_recursive(self):
+        with LogCapture(recursive_check=True) as log:
+            root.error('junk')
+        with ShouldAssert(dedent("""\
+                sequence not as expected:
+                
+                same:
+                ()
+                
+                expected:
+                (('root', 'INFO', 'one'),)
+                
+                actual:
+                (('root', 'ERROR', 'junk'),)
+                
+                While comparing [0]: sequence not as expected:
+                
+                same:
+                ('root',)
+                
+                expected:
+                ('INFO', 'one')
+                
+                actual:
+                ('ERROR', 'junk')
+                
+                While comparing [0][1]: 'INFO' (expected) != 'ERROR' (actual)""")):
+            log.check_present(
+                ('root', 'INFO', 'one'),
+            )
+
+    def test_order_matters_but_wrong(self):
+        with LogCapture() as log:
+            root.info('one')
+            root.error('j1')
+            root.error('three')
+            root.warning('two')
+            root.error('j2')
+        with ShouldAssert(dedent("""\
+                sequence not as expected:
+                
+                same:
+                (('root', 'INFO', 'one'),)
+                
+                expected:
+                (('root', 'WARNING', 'two'), ('root', 'ERROR', 'three'))
+                
+                actual:
+                (('root', 'ERROR', 'j1'),
+                 ('root', 'ERROR', 'three'),
+                 ('root', 'WARNING', 'two'),
+                 ('root', 'ERROR', 'j2'))""")):
+            log.check_present(
+                ('root', 'INFO', 'one'),
+                ('root', 'WARNING', 'two'),
+                ('root', 'ERROR', 'three'),
+            )
+
+    def test_order_doesnt_matter_ok(self):
+        with LogCapture() as log:
+            root.info('one')
+            root.error('junk')
+            root.warning('two')
+            root.error('junk')
+            root.error('three')
+        log.check_present(
+            ('root', 'ERROR', 'three'),
+            ('root', 'INFO', 'one'),
+            ('root', 'WARNING', 'two'),
+            order_matters=False
+        )
+
+    def test_order_doesnt_matter_not_okay(self):
+        with LogCapture() as log:
+            root.error('junk')
+        with ShouldAssert(dedent("""\
+                entries not as expected:
+                
+                expected and found:
+                []
+                
+                expected but not found:
+                [('root', 'INFO', 'one')]
+                
+                other entries:
+                [('root', 'ERROR', 'junk')]""")):
+            log.check_present(
+                ('root', 'INFO', 'one'),
+                order_matters=False
+            )
+
+    def test_single_item_ok(self):
+        with LogCapture() as log:
+            root.info('one')
+            root.error('junk')
+            root.warning('two')
+            root.error('junk')
+            root.error('three')
+        log.check_present(
+            ('root', 'WARNING', 'two'),
+        )
+
+    def test_single_item_not_ok(self):
+        with LogCapture() as log:
+            root.info('one')
+            root.error('junk')
+            root.error('three')
+        with ShouldAssert(dedent("""\
+                sequence not as expected:
+                
+                same:
+                ()
+                
+                expected:
+                (('root', 'WARNING', 'two'),)
+                
+                actual:
+                (('root', 'INFO', 'one'), ('root', 'ERROR', 'junk'), ('root', 'ERROR', 'three'))""")):
+            log.check_present(
+                ('root', 'WARNING', 'two'),
+            )
+
+    def test_bad_params(self):
+        # not needed if we didn't have to support Python 2!
+        with ShouldAssert('order_matters is the only keyword parameter'):
+            LogCapture().check_present(foo='bar')
+
+    def test_multiple_identical_expected_order_matters(self):
+        with LogCapture() as log:
+            root.info('one')
+            root.info('one')
+            root.error('junk')
+            root.warning('two')
+            root.error('junk')
+            root.warning('two')
+        log.check_present(
+            ('root', 'INFO', 'one'),
+            ('root', 'INFO', 'one'),
+            ('root', 'WARNING', 'two'),
+            ('root', 'WARNING', 'two'),
+        )
+
+    def test_multiple_identical_expected_order_doesnt_matter_ok(self):
+        with LogCapture() as log:
+            root.info('one')
+            root.warning('two')
+            root.error('junk')
+            root.warning('two')
+            root.error('junk')
+            root.info('one')
+        log.check_present(
+            ('root', 'INFO', 'one'),
+            ('root', 'INFO', 'one'),
+            ('root', 'WARNING', 'two'),
+            ('root', 'WARNING', 'two'),
+            order_matters=False
+        )
+
+    def test_multiple_identical_expected_order_doesnt_matter_not_ok(self):
+        with LogCapture() as log:
+            root.error('junk')
+            root.info('one')
+            root.warning('two')
+            root.error('junk')
+            root.info('one')
+        with ShouldAssert(dedent("""\
+                entries not as expected:
+                
+                expected and found:
+                [('root', 'INFO', 'one'), ('root', 'WARNING', 'two'), ('root', 'INFO', 'one')]
+                
+                expected but not found:
+                [('root', 'WARNING', 'two')]
+                
+                other entries:
+                [('root', 'ERROR', 'junk'), ('root', 'ERROR', 'junk')]""")):
+            log.check_present(
+                ('root', 'INFO', 'one'),
+                ('root', 'INFO', 'one'),
+                ('root', 'WARNING', 'two'),
+                ('root', 'WARNING', 'two'),
+                order_matters=False
+            )
+
+    def test_entries_are_dictionaries(self):
+        def extract(record):
+            return {'level': record.levelname, 'message': record.getMessage()}
+
+        with LogCapture(attributes=extract) as log:
+            root.info('one')
+            root.error('junk')
+            root.warning('two')
+            root.error('junk')
+            root.info('one')
+        log.check_present(
+            {'level': 'INFO', 'message': 'one'},
+            {'level': 'INFO', 'message': 'one'},
+            {'level': 'WARNING', 'message': 'two'},
+            order_matters=False
+        )
+
+    def test_almost_same_order_matters(self):
+        with LogCapture() as log:
+            root.info('one')
+            root.error('junk')
+            root.warning('two')
+            root.error('junk')
+        with ShouldAssert(dedent("""\
+                sequence not as expected:
+                
+                same:
+                (('root', 'INFO', 'one'),)
+                
+                expected:
+                (('root', 'WARNING', 'two'), ('root', 'ERROR', 'three'))
+                
+                actual:
+                (('root', 'ERROR', 'junk'),
+                 ('root', 'WARNING', 'two'),
+                 ('root', 'ERROR', 'junk'))""")):
+            log.check_present(
+                ('root', 'INFO', 'one'),
+                ('root', 'WARNING', 'two'),
+                ('root', 'ERROR', 'three'),
+            )
+
+    def test_almost_same_order_doesnt_matter(self):
+        with LogCapture() as log:
+            root.info('one')
+            root.error('junk')
+            root.error('three')
+            root.error('junk')
+        with ShouldAssert(dedent("""\
+                entries not as expected:
+                
+                expected and found:
+                [('root', 'INFO', 'one'), ('root', 'ERROR', 'three')]
+                
+                expected but not found:
+                [('root', 'WARNING', 'two')]
+                
+                other entries:
+                [('root', 'ERROR', 'junk'), ('root', 'ERROR', 'junk')]""")):
+            log.check_present(
+                ('root', 'ERROR', 'three'),
+                ('root', 'INFO', 'one'),
+                ('root', 'WARNING', 'two'),
+                order_matters=False
+            )

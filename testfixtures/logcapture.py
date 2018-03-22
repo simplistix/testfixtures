@@ -2,6 +2,7 @@ from collections import defaultdict
 import atexit
 import logging
 import warnings
+from pprint import pformat
 
 from testfixtures.comparison import compare
 from testfixtures.utils import wrap
@@ -170,7 +171,7 @@ class LogCapture(logging.Handler):
 
         :param expected:
 
-          A sequence of values returns as specified in the ``attributes``
+          A sequence of entries of the structure specified by the ``attributes``
           passed to the constructor.
         """
         return compare(
@@ -178,6 +179,68 @@ class LogCapture(logging.Handler):
             actual=self.actual(),
             recursive=self.recursive_check
             )
+
+    def check_present(self, *expected, **kw):
+        """
+        This will check if the captured entries contain all of the expected
+        entries provided and raise an :class:`AssertionError` if not.
+        This will ignore entries that have been captured but that do not
+        match those in ``expected``.
+
+        :param expected:
+
+          A sequence of entries of the structure specified by the ``attributes``
+          passed to the constructor.
+
+        :param order_matters:
+
+          A keyword-only parameter that controls whether the order of the
+          captured entries is required to match those of the expected entries.
+          Defaults to ``True``.
+        """
+        order_matters = kw.pop('order_matters', True)
+        assert not kw, 'order_matters is the only keyword parameter'
+        actual = self.actual()
+        if order_matters:
+            matched_indices = [0]
+            matched = []
+            for entry in expected:
+                try:
+                    index = actual.index(entry, matched_indices[-1])
+                except ValueError:
+                    if len(matched_indices) > 1:
+                        matched_indices.pop()
+                        matched.pop()
+                    break
+                else:
+                    matched_indices.append(index+1)
+                    matched.append(entry)
+            else:
+                return
+
+            compare(expected,
+                    actual=matched+actual[matched_indices[-1]:],
+                    recursive=self.recursive_check)
+        else:
+            expected = list(expected)
+            matched = []
+            unmatched = []
+            for entry in actual:
+                try:
+                    index = expected.index(entry)
+                except ValueError:
+                    unmatched.append(entry)
+                else:
+                    matched.append(expected.pop(index))
+                if not expected:
+                    break
+            if expected:
+                raise AssertionError((
+                    'entries not as expected:\n\n'
+                    'expected and found:\n%s\n\n'
+                    'expected but not found:\n%s\n\n'
+                    'other entries:\n%s'
+                ) % (pformat(matched), pformat(expected), pformat(unmatched)))
 
     def __enter__(self):
         return self
