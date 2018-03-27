@@ -28,6 +28,9 @@ API Reference
 .. autoclass:: ShouldRaise
    :members:
 
+.. autoclass:: ShouldAssert
+   :members:
+
 .. autoclass:: ShouldWarn
    :members:
 
