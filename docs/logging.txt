@@ -175,7 +175,7 @@ The following example is useful for showing these:
 The check methods
 ~~~~~~~~~~~~~~~~~
 
-The :obj:`~testfixtures.LogCapture` has :meth:`~testfixtures.LogCapture.check`
+:obj:`~testfixtures.LogCapture` instances have :meth:`~testfixtures.LogCapture.check`
 and :meth:`~testfixtures.LogCapture.check_present` methods to make assertions about
 entries that have been logged.
 
