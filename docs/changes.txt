@@ -3,6 +3,45 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.0.0 (27 March 2018)
+---------------------
+
+- :func:`compare` will now handle objects that do not natively support equality or inequality
+  and will treat these objects as equal if they are of the same type and have the same attributes
+  as found using :func:`vars` or ``__slots__``. This is a change in behaviour which, while it could
+  conceivably cause tests that are currently failing to pass, should not cause any currently
+  passing tests to start failing.
+
+- Add support for writing to the ``stdin`` of :class:`~testfixtures.popen.MockPopen` instances.
+
+- The default behaviour of :class:`~testfixtures.popen.MockPopen` can now be controlled by
+  providing a callable.
+
+- :meth:`LogCapture.actual` is now part of the documented public interface.
+
+- Add :meth:`LogCapture.check_present` to help with assertions about a sub-set of messages logged
+  along with those that are logged in a non-deterministic order.
+
+- :class:`Comparison` now supports objects with ``__slots__``.
+
+- Added :class:`ShouldAssert` as a simpler tool for testing test helpers.
+
+- Changed the internals of the various decorators testfixtures provides such that they can
+  be used in conjunction with :func:`unittest.mock.patch` on the same test method or function.
+
+- Changed the internals of :class:`ShouldRaise` and :class:`Comparison` to make use of
+  :func:`compare` and so provide nested comparisons with better feedback. This finally
+  allows :class:`ShouldRaise` to deal with Django's
+  :class:`~django.core.exceptions.ValidationError`.
+
+- Added handling of self-referential structures to :func:`compare` by treating all but the first
+  occurence as equal. Another change needed to support Django's insane
+  :class:`~django.core.exceptions.ValidationError`.
+
+Thanks to Hamish Downer and Tim Davies for their work on :class:`~testfixtures.popen.MockPopen`.
+
+Thanks to Wim Glenn and Daniel Fortunov for their help reviewing some of the more major changes.
+
 5.4.0 (25 January 2018)
 -----------------------
 
@@ -31,7 +70,7 @@ Changes
 
 - Add support to :class:`~testfixtures.popen.MockPopen` for ``stderr=STDOUT``.
 
-Thanks to Tim Davies for his work on  :class:`~testfixtures.popen.MockPopen`.
+Thanks to Tim Davies for his work on :class:`~testfixtures.popen.MockPopen`.
 
 5.2.0 (3 September 2017)
 ------------------------
