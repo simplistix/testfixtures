@@ -403,7 +403,7 @@ class TestCheckPresent(object):
         )
 
     def test_single_item_not_ok(self):
-        with LogCapture() as log:
+        with LogCapture(attributes=['getMessage']) as log:
             root.info('one')
             root.error('junk')
             root.error('three')
@@ -414,13 +414,11 @@ class TestCheckPresent(object):
                 ()
                 
                 expected:
-                (('root', 'WARNING', 'two'),)
+                ('two',)
                 
                 actual:
-                (('root', 'INFO', 'one'), ('root', 'ERROR', 'junk'), ('root', 'ERROR', 'three'))""")):
-            log.check_present(
-                ('root', 'WARNING', 'two'),
-            )
+                ('one', 'junk', 'three')""")):
+            log.check_present('two')
 
     def test_bad_params(self):
         # not needed if we didn't have to support Python 2!
