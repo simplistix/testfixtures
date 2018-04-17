@@ -1532,3 +1532,9 @@ b
             'attributes differ:\n'
             "'y': 2 != 3"
         )
+
+    def test_empty_sets(self):
+        compare(set(), set())
+
+    def test_empty_sets_strict(self):
+        compare(set(), set(), strict=True)

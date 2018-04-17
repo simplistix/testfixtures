@@ -219,6 +219,8 @@ def compare_set(x, y, context):
     """
     x_not_y = x - y
     y_not_x = y - x
+    if not (y_not_x or x_not_y):
+        return
     lines = ['%s not as expected:' % x.__class__.__name__, '']
     x_label = context.x_label or 'first'
     y_label = context.y_label or 'second'
