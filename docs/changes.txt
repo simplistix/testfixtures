@@ -3,6 +3,12 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.0.1 (17 April 2018)
+---------------------
+
+- Fix a bug when comparing equal :class:`set` instances using :func:`compare`
+  when ``strict==True``.
+
 6.0.0 (27 March 2018)
 ---------------------
 
