@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 from functools import partial
 
@@ -69,7 +69,10 @@ class TestCompare(CompareHelper, TestCase):
         compare(o, o)
 
     def test_object_diff(self):
-        compare(object(), object())
+        self.check_raises(
+            object(), object(),
+            '<object object at ...> != <object object at ...>'
+        )
 
     def test_different_types(self):
         self.check_raises('x', 1, "'x' != 1")
@@ -1538,3 +1541,11 @@ b
 
     def test_empty_sets_strict(self):
         compare(set(), set(), strict=True)
+
+    def test_datetime_not_equal(self):
+        self.check_raises(
+            datetime(2001, 1, 1),
+            datetime(2001, 1, 2),
+            "datetime.datetime(2001, 1, 1, 0, 0) != "
+            "datetime.datetime(2001, 1, 2, 0, 0)"
+        )
