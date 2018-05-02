@@ -3,6 +3,12 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.0.2 (2 May 2018)
+------------------
+
+- Fix nasty bug where objects that had neither ``__dict__`` nor ``__slots__``
+  would always be considered equal by :func:`compare`.
+
 6.0.1 (17 April 2018)
 ---------------------
 
