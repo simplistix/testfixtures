@@ -29,7 +29,7 @@ script: coverage run -m pytest
 
 after_success:
   - coverage combine
-  - coveralls
+  - "COVERALLS_PARALLEL=true coveralls"
 
 jobs:
   include:
