@@ -21,17 +21,25 @@ class ShouldWarn(warnings.catch_warnings):
 
                     If no expected warnings are passed, you will need to inspect
                     the contents of the list returned by the context manager.
+
+    :param filters:
+      If passed, these are used to create a filter such that only warnings you
+      are interested in will be considered by this :class:`ShouldWarn`
+      instance. The names and meanings are the same as the parameters for
+      :func:`warnings.filterwarnings`.
+
     """
 
     _empty_okay = False
 
-    def __init__(self, *expected):
+    def __init__(self, *expected, **filters):
         super(ShouldWarn, self).__init__(record=True)
         self.expected = [C(e) for e in expected]
+        self.filters = filters
 
     def __enter__(self):
         self.recorded = super(ShouldWarn, self).__enter__()
-        warnings.simplefilter("always")
+        warnings.filterwarnings("always", **self.filters)
         return self.recorded
 
     def __exit__(self, exc_type, exc_val, exc_tb):

@@ -122,3 +122,24 @@ class ShouldWarnTests(TestCase):
 
         compare(expected=C(warnings.WarningMessage, **expected_attrs),
             actual=recorded[0])
+
+    def test_filter_present(self):
+        with ShouldWarn(DeprecationWarning,
+                        message="This function is deprecated."):
+            warnings.warn("This utility is deprecated.", DeprecationWarning)
+            warnings.warn("This function is deprecated.", DeprecationWarning)
+
+    def test_filter_missing(self):
+        if PY3:
+            type_repr = 'builtins.DeprecationWarning'
+        else:
+            type_repr = 'exceptions.DeprecationWarning'
+        with ShouldAssert(
+            "sequence not as expected:\n\n"
+            "same:\n[]\n\n"
+            "expected:\n[<C:{}>]\n\n"
+            "actual:\n[]".format(type_repr)
+        ):
+            with ShouldWarn(DeprecationWarning,
+                            message="This function is deprecated."):
+                warnings.warn("This utility is deprecated.", DeprecationWarning)
