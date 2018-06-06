@@ -3,6 +3,11 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.1.0 (6 Jun 2018)
+------------------
+
+- Support filtering for specific warnings with :class:`ShouldWarn`.
+
 6.0.2 (2 May 2018)
 ------------------
 
