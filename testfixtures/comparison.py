@@ -6,8 +6,8 @@ from types import GeneratorType
 
 from testfixtures import not_there
 from testfixtures.compat import (
-    ClassType, Unicode, basestring, mock_call, unittest_mock_call
-)
+    ClassType, Unicode, basestring, mock_call, unittest_mock_call,
+    PY3)
 from testfixtures.resolve import resolve
 from testfixtures.utils import indent
 
@@ -304,6 +304,14 @@ def compare_text(x, y, context):
     return message
 
 
+def compare_bytes(x, y, context):
+    if x == y:
+        return
+    labelled_x = context.label('x', repr(x))
+    labelled_y = context.label('y', repr(y))
+    return '\n%s\n!=\n%s' % (labelled_x, labelled_y)
+
+
 def compare_call(x, y, context):
     if x == y:
         return
@@ -336,6 +344,9 @@ _registry = {
     unittest_mock_call.__class__: compare_call,
     BaseException: compare_exception,
     }
+
+if PY3:
+    _registry[bytes] = compare_bytes
 
 
 def register(type, comparer):

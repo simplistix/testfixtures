@@ -100,6 +100,43 @@ class TestCompare(CompareHelper, TestCase):
             expected
             )
 
+    def test_bytes_different(self):
+        if PY2:
+            expected = (
+                "\n" 
+                "'12345678901'\n"
+                '!=\n'
+                "'12345678902'"
+            )
+        else:
+            expected = (
+                "\n" 
+                "b'12345678901'\n"
+                '!=\n'
+                "b'12345678902'"
+            )
+        self.check_raises(
+            BytesLiteral('12345678901'),
+            BytesLiteral('12345678902'),
+            expected
+            )
+
+    def test_bytes_same_strict(self):
+        compare(actual=b'', expected=b'', strict=True)
+
+    if PY3:
+        def test_moar_bytes_different(self):
+            self.check_raises(
+                actual=b'{"byte_pound":"b\'\\\\xa3\'"}',
+                expected=b'{"byte_pound":"b\\\'\\xa3\'"}',
+                message = (
+                    "\n"
+                    "b'{\"byte_pound\":\"b\\\\\\'\\\\xa3\\\'\"}' (expected)\n"
+                    '!=\n'
+                    "b'{\"byte_pound\":\"b\\\'\\\\\\\\xa3\\\'\"}' (actual)"
+                )
+            )
+
     def test_string_diff_short(self):
         self.check_raises(
             '\n'+('x'*9), '\n'+('y'*9),
