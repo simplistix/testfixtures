@@ -158,3 +158,10 @@ command and any standard input provided.  It should return an instance of
 .. literalinclude:: ../testfixtures/tests/test_popen_docs.py
    :pyobject: TestMyFunc.test_callable
    :dedent: 4
+
+You can use this to have a test where the first call fails and the
+second succeeds.
+
+.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+   :pyobject: TestMyFunc.test_callable_first_failure_second_pass
+   :dedent: 4

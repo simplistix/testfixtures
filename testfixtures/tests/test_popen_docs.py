@@ -169,3 +169,29 @@ class TestMyFunc(TestCase):
                        shell=True, stderr=PIPE, stdout=PIPE),
             call.Popen_instance.communicate()
         ], Popen.mock.method_calls)
+
+    def test_callable_first_failure_second_pass(self):
+        # set up
+        def command_will_fail_n_times(
+                num_failures=1,
+                returncode=1,
+                error_message=b'error message',
+                success_message=b'normal output'
+        ):
+            def _command_callable(**kwargs):
+                # we use an attribute on the function to keep count between calls
+                command_callable.call_count += 1
+                if command_callable.call_count <= num_failures:
+                    return PopenBehaviour(stdout=error_message, returncode=returncode)
+                else:
+                    return PopenBehaviour(stdout=success_message)
+            _command_callable.call_count = 0
+            return _command_callable
+
+        command_callable = command_will_fail_n_times(num_failures=1)
+        self.Popen.set_default(behaviour=command_callable)
+
+        # testing of results
+        with self.assertRaises(RuntimeError):
+            my_func()
+        compare(my_func(), b'normal output')
