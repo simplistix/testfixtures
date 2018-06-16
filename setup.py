@@ -34,7 +34,7 @@ setup(
     zip_safe=False,
     include_package_data=True,
     extras_require=dict(
-        test=['pytest', 'mock', 'sybil', 'coverage', 'coveralls',
+        test=['pytest>=3.6', 'mock', 'sybil', 'coverage', 'coveralls',
               'zope.component',
               'django<2;python_version<"3"',
               'django;python_version>="3"',
