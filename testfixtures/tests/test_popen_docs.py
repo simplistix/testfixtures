@@ -169,3 +169,42 @@ class TestMyFunc(TestCase):
                        shell=True, stderr=PIPE, stdout=PIPE),
             call.Popen_instance.communicate()
         ], Popen.mock.method_calls)
+
+    def test_multiple_responses(self):
+        # set up
+        behaviours = [
+            PopenBehaviour(stderr=b'e', returncode=1),
+            PopenBehaviour(stdout=b'o'),
+        ]
+
+        def behaviour(command, stdin):
+            return behaviours.pop(0)
+
+        self.Popen.set_command('svn ls -R foo', behaviour=behaviour)
+
+        # testing of error:
+        with ShouldRaise(RuntimeError('something bad happened')):
+            my_func()
+        # testing of second call:
+        compare(my_func(), b'o')
+
+    def test_count_down(self):
+        # set up
+        self.Popen.set_command('svn ls -R foo', behaviour=CustomBehaviour())
+        # testing of error:
+        with ShouldRaise(RuntimeError('something bad happened')):
+            my_func()
+        # testing of second call:
+        compare(my_func(), b'o')
+
+
+class CustomBehaviour(object):
+
+    def __init__(self, fail_count=1):
+        self.fail_count = fail_count
+
+    def __call__(self, command, stdin):
+        while self.fail_count > 0:
+            self.fail_count -= 1
+            return PopenBehaviour(stderr=b'e', returncode=1)
+        return PopenBehaviour(stdout=b'o')

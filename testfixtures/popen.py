@@ -59,16 +59,31 @@ class MockPopen(object):
 
             inst.__exit__ = __exit__
 
+    def _resolve_behaviour(self, stdout, stderr, returncode,
+                           pid, poll_count, behaviour):
+        if behaviour is None:
+            return PopenBehaviour(
+                stdout, stderr, returncode, pid, poll_count
+            )
+        else:
+            return behaviour
+
     def set_command(self, command, stdout=b'', stderr=b'', returncode=0,
-                    pid=1234, poll_count=3):
+                    pid=1234, poll_count=3, behaviour=None):
         """
         Set the behaviour of this mock when it is used to simulate the
         specified command.
 
         :param command: A string representing the command to be simulated.
+
+        If supplied, ``behaviour`` must be either a :class:`PopenBehaviour`
+        instance or a callable that takes the ``command`` string representing
+        the command to be simulated and the ``stdin`` for that command and
+        returns a :class:`PopenBehaviour` instance.
         """
-        self.commands[command] = PopenBehaviour(stdout, stderr, returncode,
-                                                pid, poll_count)
+        self.commands[command] = self._resolve_behaviour(
+            stdout, stderr, returncode, pid, poll_count, behaviour
+        )
 
     def set_default(self, stdout=b'', stderr=b'', returncode=0,
                     pid=1234, poll_count=3, behaviour=None):
@@ -82,12 +97,9 @@ class MockPopen(object):
         the command to be simulated and the ``stdin`` for that command and
         returns a :class:`PopenBehaviour` instance.
         """
-        if behaviour is None:
-            self.default_behaviour = PopenBehaviour(
-                stdout, stderr, returncode, pid, poll_count
-            )
-        else:
-            self.default_behaviour = behaviour
+        self.default_behaviour = self._resolve_behaviour(
+            stdout, stderr, returncode, pid, poll_count, behaviour
+        )
 
     def __call__(self, *args, **kw):
         return self.mock.Popen(*args, **kw)
