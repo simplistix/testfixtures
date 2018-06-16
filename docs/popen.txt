@@ -129,6 +129,30 @@ the following example:
    :pyobject: TestMyFunc.test_poll_until_result
    :dedent: 4
 
+Multiple process executions
+---------------------------
+
+If your code needs to call the same command but have different behaviour
+on each call, then you can pass a callable behaviour like this:
+
+.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+   :pyobject: TestMyFunc.test_multiple_responses
+   :dedent: 4
+
+If you need to keep state across calls, such as accumulating ``stdin`` on
+failing for a configurable number of calls, then wrap that behaviour up
+into a class:
+
+.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+   :pyobject: CustomBehaviour
+
+This can then be used like this:
+
+.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+   :pyobject: TestMyFunc.test_count_down
+   :dedent: 4
+
+
 Using default behaviour
 -----------------------
 
