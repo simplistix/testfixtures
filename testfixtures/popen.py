@@ -55,7 +55,8 @@ class MockPopen(object):
             def __exit__(self, exc_type, exc_val, exc_tb):
                 inst.wait()
                 for stream in inst.stdout, inst.stderr:
-                    stream.close()
+                    if stream:
+                        stream.close()
 
             inst.__exit__ = __exit__
 
@@ -154,20 +155,35 @@ class MockPopen(object):
 
         self.mock.Popen_instance.pid = behaviour.pid
         self.mock.Popen_instance.returncode = None
+        if PY3:
+            self.mock.Popen_instance.args = args
 
         return self.mock.Popen_instance
 
-    def wait(self):
-        "Simulate calls to :meth:`subprocess.Popen.wait`"
-        self.mock.Popen_instance.returncode = self.returncode
-        return self.returncode
+    if PY3:
+        def wait(self, timeout=None):
+            "Simulate calls to :meth:`subprocess.Popen.wait`"
+            self.mock.Popen_instance.returncode = self.returncode
+            return self.returncode
 
-    def communicate(self, input=None):
-        "Simulate calls to :meth:`subprocess.Popen.communicate`"
-        self.wait()
-        i = self.mock.Popen_instance
-        return (i.stdout and i.stdout.read(),
-                i.stderr and i.stderr.read())
+        def communicate(self, input=None, timeout=None):
+            "Simulate calls to :meth:`subprocess.Popen.communicate`"
+            self.wait()
+            i = self.mock.Popen_instance
+            return (i.stdout and i.stdout.read(),
+                    i.stderr and i.stderr.read())
+    else:
+        def wait(self):
+            "Simulate calls to :meth:`subprocess.Popen.wait`"
+            self.mock.Popen_instance.returncode = self.returncode
+            return self.returncode
+
+        def communicate(self, input=None):
+            "Simulate calls to :meth:`subprocess.Popen.communicate`"
+            self.wait()
+            i = self.mock.Popen_instance
+            return (i.stdout and i.stdout.read(),
+                    i.stderr and i.stderr.read())
 
     def poll(self):
         "Simulate calls to :meth:`subprocess.Popen.poll`"
