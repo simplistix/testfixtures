@@ -522,9 +522,6 @@ class Tests(TestCase):
             call.Popen('a command', start_new_session=True),
         ], Popen.mock.method_calls)
 
-    def test_calling_process_with_check_call(self):
-        Popen = MockPopen()
-
 
 class IntegrationTests(TestCase):
 
