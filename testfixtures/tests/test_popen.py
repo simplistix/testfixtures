@@ -1,8 +1,9 @@
+import subprocess
 from subprocess import PIPE, STDOUT
 from unittest import TestCase
 
 from .mock import call
-from testfixtures import ShouldRaise, compare
+from testfixtures import ShouldRaise, compare, Replacer
 
 from testfixtures.popen import MockPopen, PopenBehaviour
 from testfixtures.compat import BytesLiteral, PY2
@@ -520,3 +521,29 @@ class Tests(TestCase):
         compare([
             call.Popen('a command', start_new_session=True),
         ], Popen.mock.method_calls)
+
+
+class IntegrationTests(TestCase):
+
+    def setUp(self):
+        self.popen = MockPopen()
+        replacer = Replacer()
+        replacer.replace('testfixtures.tests.test_popen.subprocess.Popen', self.popen)
+        self.addCleanup(replacer.restore)
+
+    def test_command_called_with_check_call_check_returncode(self):
+        self.popen.set_command('ls')
+        compare(0, subprocess.check_call(['ls']))
+
+    def test_command_called_with_check_output_check_stdout_returned(self):
+        self.popen.set_command('ls', stdout=b'abc')
+        compare(b'abc', subprocess.check_output(['ls']))
+
+    def test_command_called_with_check_output_stderr_to_stdout_check_returned(self):
+        self.popen.set_command('ls', stderr=b'xyz')
+        compare(b'xyz', subprocess.check_output(['ls'], stderr=STDOUT))
+
+    def test_command_called_with_check_call_failing_command_check_exception(self):
+        self.popen.set_command('ls', returncode=1)
+        with self.assertRaises(subprocess.CalledProcessError):
+            subprocess.check_output(['ls'])
