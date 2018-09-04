@@ -4,6 +4,10 @@ language: python
 sudo: false
 
 env:
+  global:
+    # travis encrypt COVERALLS_REPO_TOKEN=...
+    secure: "UOGwoOV0DuItLsE4yDnnm+UnYbmNUVJ+vU+ePEN17kRkFZyF9GYg+ZXr0uCAAdMC3okVaj6QrCk3OEDlUN8YKJzBIfn3pC3DB9CRneOWLwh+/D+iE6dtjBz+2MWthPFs3YLWlJYmF2TUrcj7ZI+DBAAbnm4JftX/uJi/ndht7Lo="
+  matrix:
   - DJANGO_VERSION=latest
   - DJANGO_VERSION=1.10
   - DJANGO_VERSION=1.9
@@ -41,7 +45,7 @@ jobs:
       after_success: skip
 
       install: "pip install -U coveralls-check"
-      script: "coveralls-check $TRAVIS_COMMIT"
+      script: "coveralls-check $TRAVIS_COMMIT --parallel-build-number $TRAVIS_BUILD_NUMBER --repo-token $COVERALLS_REPO_TOKEN"
 
     - stage: release
       if: tag IS present
