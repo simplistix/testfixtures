@@ -3,6 +3,19 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.3.0 (4 Sep 2018)
+------------------
+
+- Allow the behaviour specified with :meth:`~testfixtures.popen.MockPopen.set_command` to be a
+  callable meaning that mock behaviour can now be dynamic based on the command executed and whatever
+  was sent to ``stdin``.
+
+- Make :class:`~testfixtures.popen.MockPopen` more accurately reflect :class:`subprocess.Popen`
+  on Python 3 by adding ``timeout`` parameters to :meth:`~testfixtures.popen.MockPopen.wait` and
+  :meth:`~testfixtures.popen.MockPopen.communicate` along with some other smaller changes.
+
+Thanks to Tim Davies for his work on :class:`~testfixtures.popen.MockPopen`.
+
 6.2.0 (14 Jun 2018)
 -------------------
 
