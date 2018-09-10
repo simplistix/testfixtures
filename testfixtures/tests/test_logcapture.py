@@ -423,7 +423,7 @@ class TestCheckPresent(object):
     def test_bad_params(self):
         # not needed if we didn't have to support Python 2!
         with ShouldAssert('order_matters is the only keyword parameter'):
-            LogCapture().check_present(foo='bar')
+            LogCapture(install=False).check_present(foo='bar')
 
     def test_multiple_identical_expected_order_matters(self):
         with LogCapture() as log:
