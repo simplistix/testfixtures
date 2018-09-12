@@ -1,7 +1,11 @@
-language: python
+group: travis_latest
+dist: xenial
+sudo: true
+cache:
+  directories:
+    - $HOME/.cache/pip
 
-# for container-y goodness:
-sudo: false
+language: python
 
 env:
   global:
@@ -9,14 +13,16 @@ env:
     secure: "UOGwoOV0DuItLsE4yDnnm+UnYbmNUVJ+vU+ePEN17kRkFZyF9GYg+ZXr0uCAAdMC3okVaj6QrCk3OEDlUN8YKJzBIfn3pC3DB9CRneOWLwh+/D+iE6dtjBz+2MWthPFs3YLWlJYmF2TUrcj7ZI+DBAAbnm4JftX/uJi/ndht7Lo="
   matrix:
   - DJANGO_VERSION=latest
-  - DJANGO_VERSION=1.10
+  - DJANGO_VERSION=1.11
   - DJANGO_VERSION=1.9
 
 python:
-  - "3.6"
   - "2.7"
+  - "3.6"
+  - "3.7"
 
 matrix:
+
   exclude:
   - env: DJANGO_VERSION=latest
     python: "2.7"
@@ -25,7 +31,7 @@ matrix:
 install: 
 - "pip install --upgrade pip setuptools"
 - "pip install -Ue .[test]"
-- sh -c "if [ $DJANGO_VERSION = '1.10' ]; then pip install 'django<1.11'; fi"
+- sh -c "if [ $DJANGO_VERSION = '1.11' ]; then pip install 'django<1.12'; fi"
 - sh -c "if [ $DJANGO_VERSION = '1.9' ]; then pip install 'django<1.10'; fi"
 
 # command to run tests, e.g. python setup.py test
