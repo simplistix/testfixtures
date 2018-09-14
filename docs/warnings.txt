@@ -40,7 +40,7 @@ attributes differ:
 </C>]
 <BLANKLINE>
 actual:
-[UserWarning("sorry dave, I can't let you do that",)]
+[UserWarning("sorry dave, I can't let you do that"...)]
 
 You can check multiple warnings in a particular piece of code:
 
@@ -62,7 +62,7 @@ them into a list as follows:
 >>> len(captured)
 1
 >>> captured[0].message
-DeprecationWarning('foo',)
+DeprecationWarning('foo'...)
 >>> captured[0].lineno
 42
 
@@ -88,4 +88,4 @@ expected:
 []
 <BLANKLINE>
 actual:
-[UserWarning('woah dude',)]
+[UserWarning('woah dude'...)]

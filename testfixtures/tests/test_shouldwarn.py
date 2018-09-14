@@ -6,13 +6,18 @@ from testfixtures import (
     ShouldWarn, compare, ShouldRaise, ShouldNotWarn,
     Comparison as C
 )
-from testfixtures.compat import PY3, PY_36_PLUS
+from testfixtures.compat import PY3, PY_36_PLUS, PY_37_PLUS
 from testfixtures.shouldraise import ShouldAssert
 
 if PY3:
     warn_module = 'builtins'
 else:
     warn_module = 'exceptions'
+
+if PY_37_PLUS:
+    comma = ''
+else:
+    comma = ','
 
 
 class ShouldWarnTests(TestCase):
@@ -28,7 +33,7 @@ class ShouldWarnTests(TestCase):
             "sequence not as expected:\n\n"
             "same:\n[]\n\n"
             "expected:\n[]\n\n"
-            "actual:\n[UserWarning('foo',)]"
+            "actual:\n[UserWarning('foo'"+comma+")]"
         ):
             with warnings.catch_warnings(record=True) as backstop:
                 with ShouldNotWarn():
@@ -74,7 +79,7 @@ class ShouldWarnTests(TestCase):
             "same:\n[]\n\n"
             "expected:\n"
             "[<C(failed):"+warn_module+".DeprecationWarning>wrong type</C>]\n\n"
-            "actual:\n[UserWarning('foo',)]"
+            "actual:\n[UserWarning('foo'"+comma+")]"
         ):
             with ShouldWarn(DeprecationWarning):
                 warnings.warn('foo')
@@ -93,7 +98,7 @@ class ShouldWarnTests(TestCase):
             "<C(failed):"+warn_module+".DeprecationWarning>\n"
             "attributes differ:\n"
             "'args': ('bar',) (Comparison) != ('foo',) (actual)\n</C>]\n\n"
-            "actual:\n[DeprecationWarning('foo',)]"
+            "actual:\n[DeprecationWarning('foo'"+comma+")]"
         ):
             with ShouldWarn(DeprecationWarning('bar')):
                 warnings.warn_explicit(

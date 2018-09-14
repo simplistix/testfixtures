@@ -3,7 +3,7 @@ from textwrap import dedent
 from testfixtures import Comparison as C, ShouldRaise, should_raise
 from unittest import TestCase
 
-from ..compat import PY3, PY_36_PLUS
+from ..compat import PY3, PY_36_PLUS, PY_37_PLUS
 from ..shouldraise import ShouldAssert
 
 
@@ -54,9 +54,11 @@ class TestShouldRaise(TestCase):
     def test_wrong_exception(self):
         def to_test():
             raise ValueError('bar')
-        with ShouldAssert(
-            "ValueError('foo',) (expected) != ValueError('bar',) (raised)"
-        ):
+        if PY_37_PLUS:
+            expected = "ValueError('foo') (expected) != ValueError('bar') (raised)"
+        else:
+            expected = "ValueError('foo',) (expected) != ValueError('bar',) (raised)"
+        with ShouldAssert(expected):
             should_raise(ValueError('foo'))(to_test)()
 
     def test_only_exception_class(self):
@@ -67,7 +69,10 @@ class TestShouldRaise(TestCase):
     def test_wrong_exception_class(self):
         def to_test():
             raise ValueError('bar')
-        if PY3:
+        if PY_37_PLUS:
+            message = ("<class 'KeyError'> (expected) != "
+                       "ValueError('bar') (raised)")
+        elif PY3:
             message = ("<class 'KeyError'> (expected) != "
                        "ValueError('bar',) (raised)")
         else:
@@ -164,9 +169,11 @@ class TestShouldRaise(TestCase):
             raise ValueError('foo bar')
 
     def test_with_exception_supplied_wrong_args(self):
-        with ShouldAssert(
-            "ValueError('foo',) (expected) != ValueError('bar',) (raised)"
-        ):
+        if PY_37_PLUS:
+            expected = "ValueError('foo') (expected) != ValueError('bar') (raised)"
+        else:
+            expected = "ValueError('foo',) (expected) != ValueError('bar',) (raised)"
+        with ShouldAssert(expected):
             with ShouldRaise(ValueError('foo')):
                 raise ValueError('bar')
 
@@ -175,7 +182,11 @@ class TestShouldRaise(TestCase):
             raise ValueError('foo bar')
 
     def test_with_no_exception_when_expected(self):
-        with ShouldAssert("ValueError('foo',) (expected) != None (raised)"):
+        if PY_37_PLUS:
+            expected = "ValueError('foo') (expected) != None (raised)"
+        else:
+            expected = "ValueError('foo',) (expected) != None (raised)"
+        with ShouldAssert(expected):
             with ShouldRaise(ValueError('foo')):
                 pass
 
@@ -221,9 +232,11 @@ class TestShouldRaise(TestCase):
                 # NB: we forgot to turn our KeyError into an attribute error
                 return self[name]
 
-        with ShouldAssert(
-            "AttributeError('foo',) (expected) != KeyError('foo',) (raised)"
-        ):
+        if PY_37_PLUS:
+            expected = "AttributeError('foo') (expected) != KeyError('foo') (raised)"
+        else:
+            expected = "AttributeError('foo',) (expected) != KeyError('foo',) (raised)"
+        with ShouldAssert(expected):
             with ShouldRaise(AttributeError('foo')):
                 Dodgy().foo
 
@@ -249,9 +262,11 @@ class TestShouldRaise(TestCase):
             pass
 
     def test_unless_true_not_okay(self):
-        with ShouldAssert(
-            "AttributeError('foo',) raised, no exception expected"
-        ):
+        if PY_37_PLUS:
+            expected = "AttributeError('foo') raised, no exception expected"
+        else:
+            expected = "AttributeError('foo',) raised, no exception expected"
+        with ShouldAssert(expected):
             with ShouldRaise(unless=True):
                 raise AttributeError('foo')
 

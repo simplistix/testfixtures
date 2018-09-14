@@ -19,7 +19,7 @@ from testfixtures import (
 from testfixtures.compat import (
     class_type_name, exception_module, PY3, xrange,
     BytesLiteral, UnicodeLiteral,
-    PY2
+    PY2, PY_37_PLUS
 )
 from testfixtures.comparison import compare_sequence
 from unittest import TestCase
@@ -52,7 +52,7 @@ class CompareHelper(object):
             if message is not None:
                 # handy for debugging, but can't be relied on for tests!
                 compare(actual, expected=message, show_whitespace=True)
-                assert actual==message
+                assert actual == message
             else:
                 if not regex.match(actual):  # pragma: no cover
                     raise AssertionError(
@@ -202,10 +202,16 @@ class TestCompare(CompareHelper, TestCase):
     def test_exception_diff(self):
         e1 = ValueError('some message')
         e2 = ValueError('some other message')
-        self.check_raises(
-            e1, e2,
-            "ValueError('some message',) != ValueError('some other message',)"
-            )
+        if PY_37_PLUS:
+            self.check_raises(
+                e1, e2,
+                "ValueError('some message') != ValueError('some other message')"
+                )
+        else:
+            self.check_raises(
+                e1, e2,
+                "ValueError('some message',) != ValueError('some other message',)"
+                )
 
     def test_exception_diff_c_wrapper(self):
         e1 = ValueError('some message')
@@ -213,13 +219,14 @@ class TestCompare(CompareHelper, TestCase):
         self.check_raises(
             C(e1), e2,
             ("\n"
-             "<C(failed):{0}.ValueError>\n"
+             "<C(failed):{}.ValueError>\n"
              "attributes differ:\n"
              "'args': ('some message',) (Comparison) "
              "!= ('some other message',) (actual)\n"
              "</C>"
-             " != ValueError('some other message',)"
-             ).format(exception_module))
+             " != ValueError('some other message'{})"
+             ).format(exception_module,
+                      '' if PY_37_PLUS else ','))
 
     def test_sequence_long(self):
         self.check_raises(
