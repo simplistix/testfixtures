@@ -38,7 +38,7 @@ causing the tests in which it occurs to fail:
 ...     the_thrower()
 Traceback (most recent call last):
 ...
-AssertionError: ValueError('Is good!',) (expected) != ValueError('Not good!',) (raised)
+AssertionError: ValueError('Is good!'...) (expected) != ValueError('Not good!'...) (raised)
 
 If you're not concerned about anything more than the type of the
 exception that's raised, you can check as follows:
