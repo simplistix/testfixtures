@@ -40,7 +40,7 @@ Tests that exercises this code using :class:`~testfixtures.popen.MockPopen`
 could be written as follows:
 
 .. literalinclude:: ../testfixtures/tests/test_popen_docs.py
-   :lines: 16-52
+   :lines: 16-55
 
 
 Passing input to processes
