@@ -9,7 +9,7 @@ def my_func():
     out, err = process.communicate()
     if process.returncode:
         raise RuntimeError('something bad happened')
-    return out
+    return (process, out)
 
 dotted_path = 'testfixtures.tests.test_popen_docs.Popen'
 
@@ -33,14 +33,17 @@ class TestMyFunc(TestCase):
         self.Popen.set_command('svn ls -R foo', stdout=b'o', stderr=b'e')
 
         # testing of results
-        compare(my_func(), b'o')
+        (process, out) = my_func()
+        compare(out, b'o')
 
         # testing calls were in the right order and with the correct parameters:
         compare([
             call.Popen('svn ls -R foo',
                        shell=True, stderr=PIPE, stdout=PIPE),
-            call.Popen_instance.communicate()
             ], Popen.mock.method_calls)
+        compare([
+            call.communicate()
+            ], process.method_calls)
 
     def test_example_bad_returncode(self):
         # set up
@@ -61,8 +64,10 @@ class TestMyFunc(TestCase):
         # test call list
         compare([
                 call.Popen('a command', shell=True, stderr=-1, stdout=-1),
-                call.Popen_instance.communicate('foo'),
                 ], Popen.mock.method_calls)
+        compare([
+                call.communicate('foo')
+                ], process.method_calls)
 
     def test_read_from_stdout_and_stderr(self):
         # setup
@@ -88,9 +93,11 @@ class TestMyFunc(TestCase):
         # test call list
         compare([
                 call.Popen('a command', shell=True, stdin=PIPE),
-                call.Popen_instance.stdin.write('some text'),
-                call.Popen_instance.stdin.close(),
                 ], Popen.mock.method_calls)
+        compare([
+                call.stdin.write('some text'),
+                call.stdin.close()
+                ], process.method_calls)
 
     def test_wait_and_return_code(self):
         # setup
@@ -105,8 +112,10 @@ class TestMyFunc(TestCase):
         # test call list
         compare([
                 call.Popen('a command'),
-                call.Popen_instance.wait(),
                 ], Popen.mock.method_calls)
+        compare([
+                call.wait(),
+                ], process.method_calls)
 
     def test_send_signal(self):
         # setup
@@ -118,8 +127,10 @@ class TestMyFunc(TestCase):
         # result checking
         compare([
                 call.Popen('a command', shell=True, stderr=-1, stdout=-1),
-                call.Popen_instance.send_signal(0),
                 ], Popen.mock.method_calls)
+        compare([
+                call.send_signal(0)
+                ], process.method_calls)
 
     def test_poll_until_result(self):
         # setup
@@ -135,24 +146,29 @@ class TestMyFunc(TestCase):
         compare(process.returncode, 3)
         compare([
                 call.Popen('a command'),
-                call.Popen_instance.poll(),
-                call.Popen_instance.poll(),
-                call.Popen_instance.poll(),
                 ], Popen.mock.method_calls)
+        compare([
+                call.poll(),
+                call.poll(),
+                call.poll()
+                ], process.method_calls)
 
     def test_default_behaviour(self):
         # set up
         self.Popen.set_default(stdout=b'o', stderr=b'e')
 
         # testing of results
-        compare(my_func(), b'o')
+        (process, out) = my_func()
+        compare(out, b'o')
 
         # testing calls were in the right order and with the correct parameters:
         compare([
             call.Popen('svn ls -R foo',
                        shell=True, stderr=PIPE, stdout=PIPE),
-            call.Popen_instance.communicate()
             ], Popen.mock.method_calls)
+        compare([
+            call.communicate()
+            ], process.method_calls)
 
     def test_callable(self):
         # set up
@@ -161,14 +177,17 @@ class TestMyFunc(TestCase):
         self.Popen.set_default(behaviour=command_callable)
 
         # testing of results
-        compare(my_func(), b'stdout')
+        (process, out) = my_func()
+        compare(out, b'stdout')
 
         # testing calls were in the right order and with the correct parameters:
         compare([
             call.Popen('svn ls -R foo',
                        shell=True, stderr=PIPE, stdout=PIPE),
-            call.Popen_instance.communicate()
         ], Popen.mock.method_calls)
+        compare([
+            call.communicate()
+        ], process.method_calls)
 
     def test_multiple_responses(self):
         # set up
@@ -186,7 +205,7 @@ class TestMyFunc(TestCase):
         with ShouldRaise(RuntimeError('something bad happened')):
             my_func()
         # testing of second call:
-        compare(my_func(), b'o')
+        compare(my_func()[1], b'o')
 
     def test_count_down(self):
         # set up
@@ -195,7 +214,7 @@ class TestMyFunc(TestCase):
         with ShouldRaise(RuntimeError('something bad happened')):
             my_func()
         # testing of second call:
-        compare(my_func(), b'o')
+        compare(my_func()[1], b'o')
 
 
 class CustomBehaviour(object):

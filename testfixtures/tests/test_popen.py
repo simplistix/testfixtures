@@ -31,9 +31,9 @@ class Tests(TestCase):
         compare(process.returncode, 0)
         # test call list
         compare([
-                call.Popen('a command', stderr=-1, stdout=-1),
-                call.Popen_instance.communicate(),
-                ], Popen.mock.method_calls)
+            call.Popen('a command', stderr=-1, stdout=-1),
+        ], Popen.mock.method_calls)
+        compare([call.communicate()], process.method_calls)
 
     def test_command_max_args(self):
 
@@ -52,9 +52,9 @@ class Tests(TestCase):
         compare(process.returncode, 1)
         # test call list
         compare([
-                call.Popen('a command', stderr=-1, stdout=-1),
-                call.Popen_instance.communicate(),
-                ], Popen.mock.method_calls)
+            call.Popen('a command', stderr=-1, stdout=-1),
+        ], Popen.mock.method_calls)
+        compare([call.communicate()], process.method_calls)
 
     def test_callable_default_behaviour(self):
         def some_callable(command, stdin):
@@ -81,8 +81,9 @@ class Tests(TestCase):
         compare(process.wait(), 0)
         compare([
                 call.Popen(['a', 'command'], stderr=-1, stdout=-1),
-                call.Popen_instance.wait(),
                 ], Popen.mock.method_calls)
+        compare([call.wait()],
+            process.method_calls)
 
     def test_communicate_with_input(self):
         # setup
@@ -93,9 +94,9 @@ class Tests(TestCase):
         out, err = process.communicate('foo')
         # test call list
         compare([
-                call.Popen('a command', shell=True, stderr=-1, stdout=-1),
-                call.Popen_instance.communicate('foo'),
-                ], Popen.mock.method_calls)
+            call.Popen('a command', shell=True, stderr=-1, stdout=-1),
+        ], Popen.mock.method_calls)
+        compare([call.communicate('foo')], process.method_calls)
 
     def test_read_from_stdout(self):
         # setup
@@ -177,8 +178,10 @@ class Tests(TestCase):
         # test call list
         compare([
                 call.Popen('a command', shell=True, stdin=PIPE),
-                call.Popen_instance.stdin.write('some text'),
                 ], Popen.mock.method_calls)
+        compare([
+                call.stdin.write('some text')
+                ], process.method_calls)
 
     def test_wait_and_return_code(self):
         # setup
@@ -193,25 +196,53 @@ class Tests(TestCase):
         # test call list
         compare([
                 call.Popen('a command'),
-                call.Popen_instance.wait(),
                 ], Popen.mock.method_calls)
+        compare([
+                call.wait(),
+                ], process.method_calls)
 
     def test_multiple_uses(self):
         Popen = MockPopen()
         Popen.set_command('a command', b'a')
         Popen.set_command('b command', b'b')
-        process = Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
-        out, err = process.communicate('foo')
+        process_a = Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
+        out, err = process_a.communicate('foo')
         compare(out, b'a')
-        process = Popen(['b', 'command'], stdout=PIPE, stderr=PIPE, shell=True)
-        out, err = process.communicate('foo')
+        process_b = Popen(['b', 'command'], stdout=PIPE, stderr=PIPE, shell=True)
+        out, err = process_b.communicate('foo')
         compare(out, b'b')
         compare([
                 call.Popen('a command', shell=True, stderr=-1, stdout=-1),
-                call.Popen_instance.communicate('foo'),
                 call.Popen(['b', 'command'], shell=True, stderr=-1, stdout=-1),
-                call.Popen_instance.communicate('foo'),
                 ], Popen.mock.method_calls)
+        compare([call.communicate('foo')], process_a.method_calls)
+        compare([call.communicate('foo')], process_b.method_calls)
+
+    def test_parallel_uses(self):
+        Popen = MockPopen()
+        Popen.set_command('a command', b'a', returncode=1)
+        Popen.set_command('b command', b'b', returncode=2)
+        process_a = Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
+        process_b = Popen(['b', 'command'], stdout=PIPE, stderr=PIPE, shell=True)
+        out, err = process_a.communicate('foo')
+        compare(out, b'a')
+        compare(process_a.wait(), 1)
+
+        out, err = process_b.communicate('bar')
+        compare(out, b'b')
+        compare(process_b.wait(), 2)
+        compare([
+                call.Popen('a command', shell=True, stderr=-1, stdout=-1),
+                call.Popen(['b', 'command'], shell=True, stderr=-1, stdout=-1),
+                ], Popen.mock.method_calls)
+        compare([
+            call.communicate('foo'),
+            call.wait()
+        ], process_a.method_calls)
+        compare([
+            call.communicate('bar'),
+            call.wait()
+        ], process_b.method_calls)
 
     def test_send_signal(self):
         # setup
@@ -223,8 +254,10 @@ class Tests(TestCase):
         # result checking
         compare([
                 call.Popen('a command', shell=True, stderr=-1, stdout=-1),
-                call.Popen_instance.send_signal(0),
                 ], Popen.mock.method_calls)
+        compare([
+                call.send_signal(0)
+                ], process.method_calls)
 
     def test_terminate(self):
         # setup
@@ -236,8 +269,10 @@ class Tests(TestCase):
         # result checking
         compare([
                 call.Popen('a command', shell=True, stderr=-1, stdout=-1),
-                call.Popen_instance.terminate(),
                 ], Popen.mock.method_calls)
+        compare([
+                call.terminate()
+                ], process.method_calls)
 
     def test_kill(self):
         # setup
@@ -249,8 +284,8 @@ class Tests(TestCase):
         # result checking
         compare([
                 call.Popen('a command', shell=True, stderr=-1, stdout=-1),
-                call.Popen_instance.kill(),
                 ], Popen.mock.method_calls)
+        compare([call.kill()], process.method_calls)
 
     def test_all_signals(self):
         # setup
@@ -264,10 +299,12 @@ class Tests(TestCase):
         # test call list
         compare([
                 call.Popen('a command'),
-                call.Popen_instance.send_signal(signal.SIGINT),
-                call.Popen_instance.terminate(),
-                call.Popen_instance.kill(),
                 ], Popen.mock.method_calls)
+        compare([
+                call.send_signal(signal.SIGINT),
+                call.terminate(),
+                call.kill(),
+                ], process.method_calls)
 
     def test_poll_no_setup(self):
         # setup
@@ -282,11 +319,13 @@ class Tests(TestCase):
         # result checking
         compare([
                 call.Popen('a command', shell=True, stderr=-1, stdout=-1),
-                call.Popen_instance.poll(),
-                call.Popen_instance.poll(),
-                call.Popen_instance.wait(),
-                call.Popen_instance.poll(),
                 ], Popen.mock.method_calls)
+        compare([
+                call.poll(),
+                call.poll(),
+                call.wait(),
+                call.poll()
+                ], process.method_calls)
 
     def test_poll_setup(self):
         # setup
@@ -301,11 +340,13 @@ class Tests(TestCase):
         # result checking
         compare([
                 call.Popen('a command', shell=True, stderr=-1, stdout=-1),
-                call.Popen_instance.poll(),
-                call.Popen_instance.poll(),
-                call.Popen_instance.wait(),
-                call.Popen_instance.poll(),
                 ], Popen.mock.method_calls)
+        compare([
+                call.poll(),
+                call.poll(),
+                call.wait(),
+                call.poll()
+                ], process.method_calls)
 
     def test_poll_until_result(self):
         # setup
@@ -321,10 +362,12 @@ class Tests(TestCase):
         compare(process.returncode, 3)
         compare([
                 call.Popen('a command'),
-                call.Popen_instance.poll(),
-                call.Popen_instance.poll(),
-                call.Popen_instance.poll(),
                 ], Popen.mock.method_calls)
+        compare([
+                call.poll(),
+                call.poll(),
+                call.poll(),
+                ], process.method_calls)
 
     def test_command_not_specified(self):
         Popen = MockPopen()
@@ -352,8 +395,8 @@ class Tests(TestCase):
         # test call list
         compare([
             call.Popen('a command', stderr=-1, stdout=-1),
-            call.Popen_instance.communicate(),
         ], Popen.mock.method_calls)
+        compare([call.communicate()], process.method_calls)
 
     def test_default_command_max_args(self):
         Popen = MockPopen()
@@ -372,8 +415,8 @@ class Tests(TestCase):
         # test call list
         compare([
             call.Popen('a command', stderr=-1, stdout=-1),
-            call.Popen_instance.communicate(),
         ], Popen.mock.method_calls)
+        compare([call.communicate()], process.method_calls)
 
     def test_invalid_parameters(self):
         Popen = MockPopen()
@@ -471,8 +514,8 @@ class Tests(TestCase):
         # test call list
         compare([
                 call.Popen('a command'),
-                call.Popen_instance.communicate(),
                 ], Popen.mock.method_calls)
+        compare([call.communicate()], process.method_calls)
 
     def test_use_as_context_manager(self):
         # setup
@@ -507,9 +550,11 @@ class Tests(TestCase):
             # test call list
             compare([
                 call.Popen('a command', stderr=-1, stdout=-1),
-                call.Popen_instance.communicate(),
-                call.Popen_instance.wait(),
             ], Popen.mock.method_calls)
+            compare([
+                call.communicate(),
+                call.wait(),
+            ], process.method_calls)
 
     def test_start_new_session(self):
         # setup
