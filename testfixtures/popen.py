@@ -85,6 +85,8 @@ class MockPopenInstance(object):
 
         if stdin == PIPE:
             self.Popen_instance.stdin = Mock()
+        else:
+            self.Popen_instance.stdin = None
 
         self.Popen_instance.pid = behaviour.pid
         self.Popen_instance.returncode = None
