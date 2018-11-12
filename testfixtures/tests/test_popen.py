@@ -97,6 +97,24 @@ class Tests(TestCase):
                 call.Popen_instance.communicate('foo'),
                 ], Popen.mock.method_calls)
 
+    def test_communicate_with_timeout(self):
+        Popen = MockPopen()
+        Popen.set_command('a command', returncode=3)
+        process = Popen('a command')
+        if PY2:
+            with ShouldRaise(TypeError):
+                process.communicate(timeout=1)
+            with ShouldRaise(TypeError):
+                process.communicate('foo', 1)
+        else:
+            process.communicate(timeout=1)
+            process.communicate('foo', 1)
+            compare([
+                call.Popen('a command'),
+                call.Popen_instance.communicate(timeout=1),
+                call.Popen_instance.communicate('foo', 1),
+            ], expected=Popen.mock.method_calls)
+
     def test_read_from_stdout(self):
         # setup
         Popen = MockPopen()
@@ -195,6 +213,24 @@ class Tests(TestCase):
                 call.Popen('a command'),
                 call.Popen_instance.wait(),
                 ], Popen.mock.method_calls)
+
+    def test_wait_timeout(self):
+        Popen = MockPopen()
+        Popen.set_command('a command', returncode=3)
+        process = Popen('a command')
+        if PY2:
+            with ShouldRaise(TypeError):
+                process.wait(timeout=1)
+            with ShouldRaise(TypeError):
+                process.wait(1)
+        else:
+            process.wait(timeout=1)
+            process.wait(1)
+            compare([
+                call.Popen('a command'),
+                call.Popen_instance.wait(timeout=1),
+                call.Popen_instance.wait(1)
+            ], expected=Popen.mock.method_calls)
 
     def test_multiple_uses(self):
         Popen = MockPopen()
