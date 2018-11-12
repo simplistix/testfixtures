@@ -414,7 +414,7 @@ class Tests(TestCase):
     def test_invalid_parameters(self):
         Popen = MockPopen()
         with ShouldRaise(TypeError(
-                "Popen() got an unexpected keyword argument 'foo'"
+                "__init__() got an unexpected keyword argument 'foo'"
         )):
             Popen(foo='bar')
 
@@ -422,15 +422,14 @@ class Tests(TestCase):
         Popen = MockPopen()
         Popen.set_command('command')
         process = Popen('command')
-        with ShouldRaise(
-                AttributeError("Mock object has no attribute 'foo'")):
+        with ShouldRaise(AttributeError):
             process.foo()
 
     def test_invalid_attribute(self):
         Popen = MockPopen()
         Popen.set_command('command')
         process = Popen('command')
-        with ShouldRaise(AttributeError("Mock object has no attribute 'foo'")):
+        with ShouldRaise(AttributeError):
             process.foo
 
     def test_invalid_communicate_call(self):
@@ -557,6 +556,15 @@ class Tests(TestCase):
         compare([
             call.Popen('a command', start_new_session=True),
         ], Popen.mock.method_calls)
+
+    def test_simultaneous_processes(self):
+        Popen = MockPopen()
+        Popen.set_command('a command', b'a', returncode=1)
+        Popen.set_command('b command', b'b', returncode=2)
+        process_a = Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
+        process_b = Popen(['b', 'command'], stdout=PIPE, stderr=PIPE, shell=True)
+        compare(process_a.wait(), expected=1)
+        compare(process_b.wait(), expected=2)
 
 
 class IntegrationTests(TestCase):

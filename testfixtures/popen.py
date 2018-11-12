@@ -1,3 +1,4 @@
+from functools import wraps
 from itertools import chain
 from subprocess import Popen as Popen, STDOUT, PIPE
 from tempfile import TemporaryFile
@@ -25,6 +26,137 @@ class PopenBehaviour(object):
         self.poll_count = poll_count
 
 
+def record(func):
+    @wraps(func)
+    def recorder(self, *args, **kw):
+        getattr(self.class_instance_mock, func.__name__)(*args, **kw)
+        return func(self, *args, **kw)
+    return recorder
+
+
+class MockPopenInstance(object):
+
+    def __init__(self, mock_class, args, bufsize=0, executaable=None,
+                 stdin=None, stdout=None, stderr=None,
+                 preexec_fn=None, close_fds=False, shell=False, cwd=None,
+                 env=None, universal_newlines=False,
+                 startupinfo=None, creationflags=0, restore_signals=True,
+                 start_new_session=False, pass_fds=(),
+                 encoding=None, errors=None):
+        self.mock = Mock()
+        self.class_instance_mock = mock_class.mock.Popen_instance
+
+        if isinstance(args, basestring):
+            cmd = args
+        else:
+            cmd = ' '.join(args)
+
+        behaviour = mock_class.commands.get(cmd, mock_class.default_behaviour)
+        if behaviour is None:
+            raise KeyError('Nothing specified for command %r' % cmd)
+
+        if callable(behaviour):
+            behaviour = behaviour(command=cmd, stdin=stdin)
+
+        self.behaviour = behaviour
+
+        stdout_value = behaviour.stdout
+        stderr_value = behaviour.stderr
+
+        if stderr == STDOUT:
+            line_iterator = chain.from_iterable(zip_longest(
+                stdout_value.splitlines(True),
+                stderr_value.splitlines(True)
+            ))
+            stdout_value = b''.join(l for l in line_iterator if l)
+            stderr_value = None
+
+        self.poll_count = behaviour.poll_count
+        for name, option, mock_value in (
+            ('stdout', stdout, stdout_value),
+            ('stderr', stderr, stderr_value)
+        ):
+            value = None
+            if option is PIPE:
+                value = TemporaryFile()
+                value.write(mock_value)
+                value.flush()
+                value.seek(0)
+            setattr(self, name, value)
+
+        if stdin == PIPE:
+            self.stdin = self.class_instance_mock.stdin
+
+        self.pid = behaviour.pid
+        self.returncode = None
+        if PY3:
+            self.args = args
+
+    if PY3:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            self.wait()
+            for stream in self.stdout, self.stderr:
+                if stream:
+                    stream.close()
+
+        @record
+        def wait(self, timeout=None):
+            "Simulate calls to :meth:`subprocess.Popen.wait`"
+            self.returncode = self.behaviour.returncode
+            return self.returncode
+
+        @record
+        def communicate(self, input=None, timeout=None):
+            "Simulate calls to :meth:`subprocess.Popen.communicate`"
+            self.returncode = self.behaviour.returncode
+            return (self.stdout and self.stdout.read(),
+                    self.stderr and self.stderr.read())
+    else:
+        @record
+        def wait(self):
+            "Simulate calls to :meth:`subprocess.Popen.wait`"
+            self.returncode = self.behaviour.returncode
+            return self.returncode
+
+        @record
+        def communicate(self, input=None):
+            "Simulate calls to :meth:`subprocess.Popen.communicate`"
+            self.returncode = self.behaviour.returncode
+            return (self.stdout and self.stdout.read(),
+                    self.stderr and self.stderr.read())
+
+    @record
+    def poll(self):
+        "Simulate calls to :meth:`subprocess.Popen.poll`"
+        while self.poll_count and self.returncode is None:
+            self.poll_count -= 1
+            return None
+        # This call to wait() is NOT how poll() behaves in reality.
+        # poll() NEVER sets the returncode.
+        # The returncode is *only* ever set by process completion.
+        # The following is an artifact of the fixture's implementation.
+        self.returncode = self.behaviour.returncode
+        return self.returncode
+
+    @record
+    def send_signal(self, signal):
+        "Simulate calls to :meth:`subprocess.Popen.send_signal`"
+        pass
+
+    @record
+    def terminate(self):
+        "Simulate calls to :meth:`subprocess.Popen.terminate`"
+        pass
+
+    @record
+    def kill(self):
+        "Simulate calls to :meth:`subprocess.Popen.kill`"
+        pass
+
+
 class MockPopen(object):
     """
     A specialised mock for testing use of :class:`subprocess.Popen`.
@@ -37,28 +169,7 @@ class MockPopen(object):
 
     def __init__(self):
         self.commands = {}
-        self.mock = mock = Mock()
-        self.mock.Popen.side_effect = self.Popen
-        mock.Popen_instance = Mock(spec=Popen)
-        inst = mock.Popen.return_value = mock.Popen_instance
-        inst.communicate.side_effect = self.communicate
-        inst.wait.side_effect = self.wait
-        inst.send_signal.side_effect = self.send_signal
-        inst.terminate.side_effect = self.terminate
-        inst.kill.side_effect = self.kill
-        inst.poll.side_effect = self.poll
-        if PY3:
-            def __enter__(self):
-                return inst
-            inst.__enter__ = __enter__
-
-            def __exit__(self, exc_type, exc_val, exc_tb):
-                inst.wait()
-                for stream in inst.stdout, inst.stderr:
-                    if stream:
-                        stream.close()
-
-            inst.__exit__ = __exit__
+        self.mock = Mock()
 
     def _resolve_behaviour(self, stdout, stderr, returncode,
                            pid, poll_count, behaviour):
@@ -103,111 +214,8 @@ class MockPopen(object):
         )
 
     def __call__(self, *args, **kw):
-        return self.mock.Popen(*args, **kw)
-
-    def Popen(self, args, bufsize=0, executable=None,
-              stdin=None, stdout=None, stderr=None,
-              preexec_fn=None, close_fds=False, shell=False, cwd=None,
-              env=None, universal_newlines=False,
-              startupinfo=None, creationflags=0, restore_signals=True,
-              start_new_session=False, pass_fds=(), encoding=None, errors=None):
-
-        if isinstance(args, basestring):
-            cmd = args
-        else:
-            cmd = ' '.join(args)
-
-        behaviour = self.commands.get(cmd, self.default_behaviour)
-        if behaviour is None:
-            raise KeyError('Nothing specified for command %r' % cmd)
-
-        if callable(behaviour):
-            behaviour = behaviour(command=cmd, stdin=stdin)
-
-        self.returncode = behaviour.returncode
-
-        stdout_value = behaviour.stdout
-        stderr_value = behaviour.stderr
-
-        if stderr == STDOUT:
-            line_iterator = chain.from_iterable(zip_longest(
-                stdout_value.splitlines(True),
-                stderr_value.splitlines(True)
-            ))
-            stdout_value = b''.join(l for l in line_iterator if l)
-            stderr_value = None
-
-        self.poll_count = behaviour.poll_count
-        for name, option, mock_value in (
-            ('stdout', stdout, stdout_value),
-            ('stderr', stderr, stderr_value)
-        ):
-            value = None
-            if option is PIPE:
-                value = TemporaryFile()
-                value.write(mock_value)
-                value.flush()
-                value.seek(0)
-            setattr(self.mock.Popen_instance, name, value)
-
-        if stdin == PIPE:
-            self.mock.Popen_instance.stdin = Mock()
-
-        self.mock.Popen_instance.pid = behaviour.pid
-        self.mock.Popen_instance.returncode = None
-        if PY3:
-            self.mock.Popen_instance.args = args
-
-        return self.mock.Popen_instance
-
-    if PY3:
-        def wait(self, timeout=None):
-            "Simulate calls to :meth:`subprocess.Popen.wait`"
-            self.mock.Popen_instance.returncode = self.returncode
-            return self.returncode
-
-        def communicate(self, input=None, timeout=None):
-            "Simulate calls to :meth:`subprocess.Popen.communicate`"
-            self.wait()
-            i = self.mock.Popen_instance
-            return (i.stdout and i.stdout.read(),
-                    i.stderr and i.stderr.read())
-    else:
-        def wait(self):
-            "Simulate calls to :meth:`subprocess.Popen.wait`"
-            self.mock.Popen_instance.returncode = self.returncode
-            return self.returncode
-
-        def communicate(self, input=None):
-            "Simulate calls to :meth:`subprocess.Popen.communicate`"
-            self.wait()
-            i = self.mock.Popen_instance
-            return (i.stdout and i.stdout.read(),
-                    i.stderr and i.stderr.read())
-
-    def poll(self):
-        "Simulate calls to :meth:`subprocess.Popen.poll`"
-        while self.poll_count and self.mock.Popen_instance.returncode is None:
-            self.poll_count -= 1
-            return None
-        # This call to wait() is NOT how poll() behaves in reality.
-        # poll() NEVER sets the returncode.
-        # The returncode is *only* ever set by process completion.
-        # The following is an artifact of the fixture's implementation.
-        return self.wait()
-
-    # These are here to check parameter types
-    def send_signal(self, signal):
-        "Simulate calls to :meth:`subprocess.Popen.send_signal`"
-        pass
-
-    def terminate(self):
-        "Simulate calls to :meth:`subprocess.Popen.terminate`"
-        pass
-
-    def kill(self):
-        "Simulate calls to :meth:`subprocess.Popen.kill`"
-        pass
+        self.mock.Popen(*args, **kw)
+        return MockPopenInstance(self, *args, **kw)
 
 
 set_command_params = """
