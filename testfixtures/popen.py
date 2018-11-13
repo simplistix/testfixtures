@@ -1,14 +1,14 @@
-from functools import wraps
+from functools import wraps, partial
 from itertools import chain
-from subprocess import Popen as Popen, STDOUT, PIPE
+from subprocess import STDOUT, PIPE
 from tempfile import TemporaryFile
-from testfixtures.compat import basestring, PY3, zip_longest
+from testfixtures.compat import basestring, PY3, zip_longest, reduce
 from testfixtures.utils import extend_docstring
 
 try:
-    from unittest.mock import Mock
+    from unittest.mock import Mock, call
 except ImportError:
-    from mock import Mock
+    from mock import Mock, call
 
 
 class PopenBehaviour(object):
@@ -29,14 +29,15 @@ class PopenBehaviour(object):
 def record(func):
     @wraps(func)
     def recorder(self, *args, **kw):
-        getattr(self.class_instance_mock, func.__name__)(*args, **kw)
+        self._record((func.__name__,), *args, **kw)
         return func(self, *args, **kw)
     return recorder
 
 
 class MockPopenInstance(object):
 
-    def __init__(self, mock_class, args, bufsize=0, executaable=None,
+    def __init__(self, mock_class, root_call,
+                 args, bufsize=0, executaable=None,
                  stdin=None, stdout=None, stderr=None,
                  preexec_fn=None, close_fds=False, shell=False, cwd=None,
                  env=None, universal_newlines=False,
@@ -45,6 +46,9 @@ class MockPopenInstance(object):
                  encoding=None, errors=None):
         self.mock = Mock()
         self.class_instance_mock = mock_class.mock.Popen_instance
+        self.root_call = root_call
+        self.calls = []
+        self.all_calls = mock_class.all_calls
 
         if isinstance(args, basestring):
             cmd = args
@@ -85,12 +89,24 @@ class MockPopenInstance(object):
             setattr(self, name, value)
 
         if stdin == PIPE:
-            self.stdin = self.class_instance_mock.stdin
+            self.stdin = Mock()
+            for method in 'write', 'close':
+                record_writes = partial(self._record, ('stdin', method))
+                getattr(self.stdin, method).side_effect = record_writes
 
         self.pid = behaviour.pid
         self.returncode = None
         if PY3:
             self.args = args
+
+    def _record(self, names, *args, **kw):
+        for mock in self.class_instance_mock, self.mock:
+            reduce(getattr, names, mock)(*args, **kw)
+        for base_call, store in (
+            (call, self.calls),
+            (self.root_call, self.all_calls)
+        ):
+            store.append(reduce(getattr, names, base_call)(*args, **kw))
 
     if PY3:
         def __enter__(self):
@@ -170,6 +186,7 @@ class MockPopen(object):
     def __init__(self):
         self.commands = {}
         self.mock = Mock()
+        self.all_calls = []
 
     def _resolve_behaviour(self, stdout, stderr, returncode,
                            pid, poll_count, behaviour):
@@ -215,7 +232,9 @@ class MockPopen(object):
 
     def __call__(self, *args, **kw):
         self.mock.Popen(*args, **kw)
-        return MockPopenInstance(self, *args, **kw)
+        root_call = call.Popen(*args, **kw)
+        self.all_calls.append(root_call)
+        return MockPopenInstance(self, root_call, *args, **kw)
 
 
 set_command_params = """

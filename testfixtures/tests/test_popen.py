@@ -193,10 +193,21 @@ class Tests(TestCase):
         process = Popen('a command', stdin=PIPE, shell=True)
         process.stdin.write('some text')
         # test call list
-        compare([
-                call.Popen('a command', shell=True, stdin=PIPE),
-                call.Popen_instance.stdin.write('some text'),
-                ], Popen.mock.method_calls)
+        compare(Popen.mock.method_calls, expected=[
+            call.Popen('a command', shell=True, stdin=PIPE),
+            call.Popen_instance.stdin.write('some text'),
+        ])
+        compare(Popen.all_calls, expected=[
+            call.Popen('a command', shell=True, stdin=PIPE),
+            call.Popen('a command', shell=True, stdin=PIPE).stdin.write('some text'),
+        ])
+        compare(process.mock.method_calls, expected=[
+            call.stdin.write('some text'),
+        ])
+        compare(process.calls, expected=[
+            call.stdin.write('some text'),
+        ])
+        repr(call.stdin.write('some text'))
 
     def test_wait_and_return_code(self):
         # setup
@@ -565,6 +576,20 @@ class Tests(TestCase):
         process_b = Popen(['b', 'command'], stdout=PIPE, stderr=PIPE, shell=True)
         compare(process_a.wait(), expected=1)
         compare(process_b.wait(), expected=2)
+        a_call = call.Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
+        b_call = call.Popen(['b', 'command'], stdout=PIPE, stderr=PIPE, shell=True)
+        compare(Popen.all_calls, expected=[
+                a_call,
+                b_call,
+                a_call.wait(),
+                b_call.wait(),
+        ])
+        compare(process_a.mock.method_calls, expected=[
+            call.wait()
+        ])
+        compare(process_b.mock.method_calls, expected=[
+            call.wait()
+        ])
 
 
 class IntegrationTests(TestCase):
