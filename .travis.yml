@@ -41,11 +41,15 @@ after_success:
   - coverage combine
   - "COVERALLS_PARALLEL=true coveralls"
 
+# tell coveralls so we can ge a post back for PRs
+notifications:
+  webhooks: https://coveralls.io/webhook
+
 jobs:
   include:
 
     - stage: coverage
-      if: type != cron
+      if: type != pull_request
       python: 3.6
       env: DJANGO_VERSION=latest
       after_success: skip
