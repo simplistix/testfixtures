@@ -41,11 +41,21 @@ after_success:
   - coverage combine
   - "COVERALLS_PARALLEL=true coveralls"
 
+# tell coveralls so we can ge a post back for PRs
 notifications:
   webhooks: https://coveralls.io/webhook
 
 jobs:
   include:
+
+    - stage: coverage
+      if: type != pull_request
+      python: 3.6
+      env: DJANGO_VERSION=latest
+      after_success: skip
+
+      install: "pip install -U coveralls-check"
+      script: "coveralls-check $TRAVIS_COMMIT --parallel-build-number $TRAVIS_BUILD_NUMBER --repo-token $COVERALLS_REPO_TOKEN"
 
     - stage: release
       if: tag IS present
