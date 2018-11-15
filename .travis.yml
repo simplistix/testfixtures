@@ -41,6 +41,9 @@ after_success:
   - coverage combine
   - "COVERALLS_PARALLEL=true coveralls"
 
+notifications:
+  webhooks: https://coveralls.io/webhook
+
 jobs:
   include:
 
