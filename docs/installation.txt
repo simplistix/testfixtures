@@ -17,7 +17,7 @@ then you should do one of the following:
 
   .. invisible-code-block: python
 
-     from mock import Mock
+     from testfixtures.mock import Mock
      setup = Mock()
 
   .. code-block:: python

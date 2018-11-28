@@ -6,7 +6,7 @@ from collections import namedtuple
 
 from testfixtures.shouldraise import ShouldAssert
 from testfixtures.tests.sample1 import SampleClassA, SampleClassB, Slotted
-from .mock import Mock, call
+from testfixtures.mock import Mock, call
 from re import compile
 from testfixtures import (
     Comparison as C,

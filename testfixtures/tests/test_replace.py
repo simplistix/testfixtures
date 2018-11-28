@@ -1,5 +1,3 @@
-from .mock import Mock
-
 from testfixtures import (
     Replacer,
     Replace,

@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from .mock import Mock, MagicMock, patch, DEFAULT
+from testfixtures.mock import Mock, MagicMock, patch, DEFAULT
 
 from testfixtures import wrap, compare, log_capture
 

@@ -3,7 +3,7 @@ from tempfile import mkdtemp
 from unittest import TestCase
 from warnings import catch_warnings
 
-from .mock import Mock
+from testfixtures.mock import Mock
 
 from testfixtures import (
     TempDirectory, Replacer, ShouldRaise, compare, OutputCapture
@@ -202,7 +202,7 @@ class TempDirectoryTests(TestCase):
 
     def test_atexit(self):
         # http://bugs.python.org/issue25532
-        from .mock import call
+        from testfixtures.mock import call
 
         m = Mock()
         with Replacer() as r:

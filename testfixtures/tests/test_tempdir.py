@@ -1,9 +1,9 @@
 import os
 
 from testfixtures.shouldraise import ShouldAssert
-from .mock import Mock
+from testfixtures.mock import Mock
 from tempfile import mkdtemp
-from testfixtures import Replacer, ShouldRaise, TempDirectory, compare, tempdir
+from testfixtures import Replacer, TempDirectory, compare, tempdir
 from unittest import TestCase
 
 from ..rmtree import rmtree

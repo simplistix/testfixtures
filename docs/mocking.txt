@@ -65,7 +65,7 @@ manager can be used instead:
 
 .. code-block:: python
 
-  from mock import Mock
+  from testfixtures.mock import Mock
   from testfixtures import Replacer
 
   def test_function():
@@ -106,7 +106,7 @@ decorator will see this and pass the replacement in it's place:
 
 .. code-block:: python
 
-  from mock import Mock, call
+  from testfixtures.mock import Mock, call
   from testfixtures import compare, replace
 
   @replace('testfixtures.tests.sample1.X.y', Mock())
@@ -240,7 +240,7 @@ shown in the following :class:`~unittest.TestCase`:
 
     from testfixtures.tests.sample2 import dump
     from testfixtures import replace
-    from mock import Mock, call
+    from testfixtures.mock import Mock, call
 
     class Tests(unittest.TestCase):
 
