@@ -11,16 +11,8 @@ defaults = {DEFAULT}
 
 
 try:
-    from mock import DEFAULT
+    from .mock import DEFAULT
 except ImportError:  # pragma: no cover
-    pass
-else:
-    defaults.add(DEFAULT)
-
-
-try:
-    from unittest.mock import DEFAULT
-except ImportError:
     pass
 else:
     defaults.add(DEFAULT)
