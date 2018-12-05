@@ -59,3 +59,9 @@ class TestMock(CompareHelper):
             '!=\n'
             "'call.baz.bar()'"
         )
+
+    def test_non_root_params_not_equal(self):
+        m = Mock()
+        m.foo(x=1).bar()
+        # surprising and annoying (and practically unsolvable :-/):
+        assert m.mock_calls[-1] == call.foo(y=2).bar()
