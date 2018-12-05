@@ -317,10 +317,9 @@ def compare_call(x, y, context):
         return
     x_name, x_args, x_kw = x
     y_name, y_args, y_kw = y
-    context.different(x_name, y_name, ' function name')
-    context.different(x_args, y_args, ' args')
-    context.different(x_kw, y_kw, ' kw')
-    return 'mock.call not as expected:'
+    if x_name == y_name and x_args == y_args and x_kw == y_kw:
+        return compare_call(x.parent, y.parent, context)
+    return compare_text(repr(x), repr(y), context)
 
 
 def _short_repr(obj):
