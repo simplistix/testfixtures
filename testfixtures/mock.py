@@ -1,10 +1,11 @@
 from __future__ import absolute_import
 
 try:
-    from mock import Mock, call, patch, MagicMock, DEFAULT, ANY
+    from mock import *
     from mock.mock import _Call
 except ImportError:
-    from unittest.mock import Mock, call, patch, MagicMock, DEFAULT, _Call, ANY
+    from unittest.mock import *
+    from unittest.mock import _Call
 
 
 def __eq__(self, other):
