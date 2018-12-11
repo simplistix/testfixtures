@@ -1,4 +1,4 @@
-from testfixtures.mock import Mock, call
+from testfixtures.mock import Mock, call, ANY
 
 from .test_compare import CompareHelper
 
@@ -33,6 +33,33 @@ class TestCall(CompareHelper):
             '!=\n'
             "'call.foo(x=2)'"
         )
+
+    def test_any(self):
+        assert call == ANY
+
+    def test_no_len(self):
+        assert not call == object()
+
+    def test_two_elements(self):
+        m = Mock()
+        m(x=1)
+        assert m.call_args == ((), {'x': 1})
+
+    def test_other_empty(self):
+        assert call == ()
+
+    def test_other_single(self):
+        assert call == ((),)
+        assert call == ({},)
+        assert call == ('',)
+
+    def test_other_double(self):
+        assert call == ('', (),)
+        assert call == ('', {},)
+
+    def test_other_quad(self):
+        assert not call == (1, 2, 3, 4)
+
 
 class TestMock(CompareHelper):
 
