@@ -111,10 +111,10 @@ the ``testfixtures.tests.sample1`` package:
 .. literalinclude:: ../testfixtures/tests/sample1.py
    :lines: 8-10,11-12
 
-We use the a :class:`~testfixtures.Replacer` as follows, which could
+We use a :class:`~testfixtures.Replace` as follows, which could
 appear in either a unit test or a doc test:
 
->>> from testfixtures import Replacer, test_datetime
+>>> from testfixtures import Replace, test_datetime
 >>> from testfixtures.tests.sample1 import str_now_1
 >>> with Replace('testfixtures.tests.sample1.datetime', test_datetime()):
 ...    str_now_1()
@@ -304,10 +304,10 @@ the ``testfixtures.tests.sample1`` package:
 .. literalinclude:: ../testfixtures/tests/sample1.py
    :lines: 30-34
 
-We use the a :class:`~testfixtures.Replacer` as follows, which could
+We use a :class:`~testfixtures.Replace` as follows, which could
 appear in either a unit test or a doc test:
 
->>> from testfixtures import Replacer, test_time
+>>> from testfixtures import Replace, test_time
 >>> from testfixtures.tests.sample1 import str_time
 >>> with Replace('testfixtures.tests.sample1.time', test_time()):
 ...    str_time()
