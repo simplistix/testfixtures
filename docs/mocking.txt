@@ -10,9 +10,17 @@ interacting components into testing of each individual component.
 The behaviour of components can then be tested individually, 
 irrespective of the behaviour of the components around it.
 
-There are a few implementations of mock objects in the python world. An
-excellent example and the one recommended for use with TestFixtures is
-the Mock package: http://pypi.python.org/pypi/mock/
+Python has a standard mock implementation in the form of :mod:`unittest.mock`
+which is also available as a `rolling backport`__ so that the latest features
+and bugfixes can be used in any version of Python.
+
+__ https://mock.readthedocs.io
+
+For convenience, TestFixtures provides a facade over both of these in the form
+of :mod:`testfixtures.mock`. The contents are identical and preference is given
+to the rolling backport if it is present. The facade also contains any bugfixes
+that are critical to the operation of functionality provided by TestFixtures.
+
 
 Methods of replacement
 ----------------------

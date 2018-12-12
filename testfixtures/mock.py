@@ -1,3 +1,16 @@
+"""
+testfixtures.mock
+-----------------
+
+A facade for either :mod:`unittest.mock` or its `rolling backport`__, if it is
+installed, with a preference for the latter as it may well have newer functionality
+and bugfixes.
+
+The facade also contains any bugfixes that are critical to the operation of
+functionality provided by TestFixtures.
+
+__ https://mock.readthedocs.io
+"""
 from __future__ import absolute_import
 
 try:

@@ -357,3 +357,5 @@ API Reference
       This is identical to :func:`compare`, but with ``ignore=True``
       automatically set to make comparing django :class:`~django.db.models.Model`
       instances easier.
+
+.. automodule:: testfixtures.mock
