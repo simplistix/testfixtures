@@ -5,10 +5,7 @@ from tempfile import TemporaryFile
 from testfixtures.compat import basestring, PY3, zip_longest, reduce
 from testfixtures.utils import extend_docstring
 
-try:
-    from unittest.mock import Mock, call
-except ImportError:
-    from mock import Mock, call
+from .mock import Mock, call
 
 
 class PopenBehaviour(object):
