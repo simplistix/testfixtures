@@ -2,7 +2,7 @@ import subprocess
 from subprocess import PIPE, STDOUT
 from unittest import TestCase
 
-from .mock import call
+from testfixtures.mock import call
 from testfixtures import ShouldRaise, compare, Replacer
 
 from testfixtures.popen import MockPopen, PopenBehaviour

@@ -1,7 +1,7 @@
 from textwrap import dedent
 from unittest import TestCase
 
-from .mock import Mock
+from testfixtures.mock import Mock
 from sybil.document import Document
 
 from testfixtures import compare, Comparison as C, TempDirectory

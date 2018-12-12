@@ -516,7 +516,7 @@ Thanks to Matthias Lehmann for the import error reports.
 
   .. invisible-code-block: python
 
-     from mock import MagicMock
+     from testfixtures.mock import MagicMock
      should_raise = x = MagicMock()
 
   .. code-block:: python

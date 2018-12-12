@@ -15,6 +15,7 @@ env:
   - DJANGO_VERSION=latest
   - DJANGO_VERSION=1.11
   - DJANGO_VERSION=1.9
+  - MOCK_BACKPORT=true
 
 python:
   - "2.7"
@@ -26,13 +27,22 @@ matrix:
   exclude:
   - env: DJANGO_VERSION=latest
     python: "2.7"
+  - env: MOCK_BACKPORT=true
+    python: "2.7"
 
 # command to install dependencies
 install: 
+# remove crap from Travis image:
+- "pip uninstall -y mock nose"
+# make sure we have the latest and greated:
 - "pip install --upgrade pip setuptools"
+# install the right versions of dependencies:
 - "pip install -Ue .[test]"
-- sh -c "if [ $DJANGO_VERSION = '1.11' ]; then pip install 'django<1.12'; fi"
-- sh -c "if [ $DJANGO_VERSION = '1.9' ]; then pip install 'django<1.10'; fi"
+- sh -c "if [ $DJANGO_VERSION = '1.11' ]; then pip install -U 'django<1.12'; fi"
+- sh -c "if [ $DJANGO_VERSION = '1.9' ]; then pip install -U 'django<1.10'; fi"
+- sh -c "if [ ${MOCK_BACKPORT:-'false'} = 'true' ]; then pip install -U 'mock'; fi"
+# show what we have:
+- "pip freeze"
 
 # command to run tests, e.g. python setup.py test
 script: coverage run -m pytest

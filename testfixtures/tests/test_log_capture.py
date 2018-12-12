@@ -4,10 +4,10 @@ from logging import getLogger
 from unittest import TestCase
 
 from testfixtures.shouldraise import ShouldAssert
-from .mock import patch
+from testfixtures.mock import patch
 
 from testfixtures import (
-    log_capture, compare, Comparison as C, LogCapture, ShouldRaise
+    log_capture, compare, Comparison as C, LogCapture
 )
 
 root = getLogger()

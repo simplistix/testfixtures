@@ -6,7 +6,7 @@ from collections import namedtuple
 
 from testfixtures.shouldraise import ShouldAssert
 from testfixtures.tests.sample1 import SampleClassA, SampleClassB, Slotted
-from .mock import Mock, call
+from testfixtures.mock import Mock, call
 from re import compile
 from testfixtures import (
     Comparison as C,
@@ -1459,29 +1459,11 @@ b
             "second:\n"
             "[call.bar(1, 3, x=7, y=4)]"
             "\n\n"
-            'While comparing [0]: mock.call not as expected:\n'
-            '\n'
-            "While comparing [0] function name: 'foo' != 'bar'\n"
-            '\n'
-            'While comparing [0] args: sequence not as expected:\n'
-            '\n'
-            'same:\n'
-            '(1,)\n'
-            '\n'
-            'first:\n'
-            '(2,)\n'
-            '\n'
-            'second:\n'
-            '(3,)\n'
-            '\n'
-            'While comparing [0] kw: dict not as expected:\n'
-            '\n'
-            'same:\n'
-            "['y']\n"
-            '\n'
-            'values differ:\n'
-            "'x': 3 != 7"
-            )
+            'While comparing [0]: \n'
+            "'call.foo(1, 2, x=3, y=4)'\n"
+            '!=\n'
+            "'call.bar(1, 3, x=7, y=4)'"
+        )
 
     def test_compare_arbitrary_nested_same(self):
         compare(SampleClassA([SampleClassB()]),
