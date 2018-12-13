@@ -1346,7 +1346,7 @@ b
 
     def test_invalid_zero_args(self):
         with ShouldRaise(TypeError(
-                'Exactly two objects needed, you supplied: []'
+                'Exactly two objects needed, you supplied:'
         )):
             compare()
 
@@ -1361,6 +1361,12 @@ b
                 "Exactly two objects needed, you supplied: ['x', 'y', 'z']"
         )):
             compare('x', 'y', 'z')
+
+    def test_invalid_because_of_typo(self):
+        with ShouldRaise(TypeError(
+                "Exactly two objects needed, you supplied: ['x'] {'expceted': 'z'}"
+        )):
+            compare('x', expceted='z')
 
     def test_dont_raise(self):
         self.assertEqual(compare('x', 'y', raises=False), "'x' != 'y'")

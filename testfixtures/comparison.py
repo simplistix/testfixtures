@@ -416,10 +416,12 @@ class CompareContext(object):
             possible.append(actual)
 
         if len(possible) != 2:
-            raise TypeError(
-                'Exactly two objects needed, you supplied: ' +
-                repr(possible)
-            )
+            message = 'Exactly two objects needed, you supplied:'
+            if possible:
+                message += ' {}'.format(possible)
+            if self.options:
+                message += ' {}'.format(self.options)
+            raise TypeError(message)
 
         return possible
 
