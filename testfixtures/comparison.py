@@ -401,6 +401,8 @@ class CompareContext(object):
 
         self.options = options
         self.unused_options = set(options)
+        self.unused_options.discard('expected')
+        self.unused_options.discard('actual')
         self.message = ''
         self.breadcrumbs = []
         self._seen = set()
