@@ -32,6 +32,20 @@ def record(func):
 
 
 class MockPopenInstance(object):
+    """
+    A mock process as returned by :class:`MockPopen`.
+    """
+
+    #: A :class:`~unittest.mock.Mock` representing the pipe into this process.
+    #: This is only set if ``stdin=PIPE`` is passed the constructor.
+    #: The mock records writes and closes in :attr:`MockPopen.all_calls`.
+    stdin = None
+
+    #: A file representing standard output from this process.
+    stdout = None
+
+    #: A file representing error output from this process.
+    stderr = None
 
     def __init__(self, mock_class, root_call,
                  args, bufsize=0, executaable=None,
@@ -43,7 +57,11 @@ class MockPopenInstance(object):
                  encoding=None, errors=None):
         self.mock = Mock()
         self.class_instance_mock = mock_class.mock.Popen_instance
+        #: A :func:`unittest.mock.call` representing the call made to instantiate
+        #: this mock process.
         self.root_call = root_call
+        #: The calls made on this mock process, represented using
+        #: :func:`~unittest.mock.call` instances.
         self.calls = []
         self.all_calls = mock_class.all_calls
 
@@ -92,6 +110,7 @@ class MockPopenInstance(object):
                 getattr(self.stdin, method).side_effect = record_writes
 
         self.pid = behaviour.pid
+        #: The return code of this mock process.
         self.returncode = None
         if PY3:
             self.args = args
@@ -175,7 +194,7 @@ class MockPopen(object):
     A specialised mock for testing use of :class:`subprocess.Popen`.
     An instance of this class can be used in place of the
     :class:`subprocess.Popen` and is often inserted where it's needed using
-    :func:`mock.patch` or a :class:`Replacer`.
+    :func:`unittest.mock.patch` or a :class:`~testfixtures.Replacer`.
     """
 
     default_behaviour = None
@@ -183,6 +202,8 @@ class MockPopen(object):
     def __init__(self):
         self.commands = {}
         self.mock = Mock()
+        #: All calls made using this mock and the objects it returns, represented using
+        #: :func:`~unittest.mock.call` instances.
         self.all_calls = []
 
     def _resolve_behaviour(self, stdout, stderr, returncode,
@@ -201,11 +222,6 @@ class MockPopen(object):
         specified command.
 
         :param command: A string representing the command to be simulated.
-
-        If supplied, ``behaviour`` must be either a :class:`PopenBehaviour`
-        instance or a callable that takes the ``command`` string representing
-        the command to be simulated and the ``stdin`` for that command and
-        returns a :class:`PopenBehaviour` instance.
         """
         self.commands[command] = self._resolve_behaviour(
             stdout, stderr, returncode, pid, poll_count, behaviour
@@ -217,11 +233,6 @@ class MockPopen(object):
         Set the behaviour of this mock when it is used to simulate commands
         that have no explicit behavior specified using
         :meth:`~MockPopen.set_command` or :meth:`~MockPopen.set_callable`.
-
-        If supplied, ``behaviour`` must be either a :class:`PopenBehaviour`
-        instance or a callable that takes the ``command`` string representing
-        the command to be simulated and the ``stdin`` for that command and
-        returns a :class:`PopenBehaviour` instance.
         """
         self.default_behaviour = self._resolve_behaviour(
             stdout, stderr, returncode, pid, poll_count, behaviour
@@ -251,6 +262,11 @@ set_command_params = """
     Specifies the number of times :meth:`MockPopen.poll` can be
     called before :attr:`MockPopen.returncode` is set and returned
     by :meth:`MockPopen.poll`.
+
+If supplied, ``behaviour`` must be either a :class:`PopenBehaviour`
+instance or a callable that takes the ``command`` string representing
+the command to be simulated and the ``stdin`` for that command and
+returns a :class:`PopenBehaviour` instance.
 """
 
 

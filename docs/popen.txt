@@ -26,6 +26,11 @@ is an attempt to provide just such a mock.
 .. note:: To use :class:`~testfixtures.popen.MockPopen`, you must have the
           :mod:`mock` package installed or be using Python 3.3 or later.
 
+.. warning::
+   Previous versions of this mock made use of :attr:`~unittest.mock.Mock.mock_calls`.
+   These are deceptively incapable of recording some information important in the use
+   of this mock, so please switch to making assertions about
+   :attr:`~MockPopen.all_calls` and :attr:`~MockPopenInstance.calls` instead.
 
 Example usage
 -------------
@@ -36,7 +41,7 @@ test:
 .. literalinclude:: ../testfixtures/tests/test_popen_docs.py
    :lines: 4-12
 
-Tests that exercises this code using :class:`~testfixtures.popen.MockPopen`
+Tests that exercise this code using :class:`~testfixtures.popen.MockPopen`
 could be written as follows:
 
 .. literalinclude:: ../testfixtures/tests/test_popen_docs.py
@@ -60,7 +65,8 @@ when you check the calls on the mock as shown in this example:
 Reading from ``stdout`` and ``stderr``
 --------------------------------------
 
-The ``.stdout`` and ``.stderr`` attributes of the mock returned by
+The :attr:`~MockPopenInstance.stdout` and :attr:`~MockPopenInstance.stderr`
+attributes of the mock returned by
 :class:`~testfixtures.popen.MockPopen` will be file-like objects as with
 the real :class:`~subprocess.Popen` and can be read as shown in this example:
 
@@ -73,14 +79,15 @@ the real :class:`~subprocess.Popen` and can be read as shown in this example:
     While these streams behave a lot like the streams of a real
     :class:`~subprocess.Popen` object, they do not exhibit the deadlocking
     behaviour that can occur when the two streams are read as in the example
-    above. Be very careful when reading ``.stdout`` and ``.stderr`` and
-    consider using :class:`~subprocess.Popen.communicate` instead.
+    above. Be very careful when reading :attr:`~MockPopenInstance.stdout` and
+    :attr:`~MockPopenInstance.stderr` and
+    consider using :meth:`~subprocess.Popen.communicate` instead.
 
 
 Writing to ``stdin``
 --------------------
-
-If you set ``stdin=PIPE`` in your call to ``Popen`` then the ``stdin``
+If you set ``stdin=PIPE`` in your call to :class:`~subprocess.Popen` then the
+:attr:`~MockPopenInstance.stdin`
 attribute of the mock returned by :class:`~testfixtures.popen.MockPopen`
 will be a mock and you can then examine the write calls to it as shown
 in this example:
@@ -105,8 +112,9 @@ following example:
 Checking for signal sending
 ---------------------------
 
-Calls to ``.send_signal()``, ``.terminate()`` and  ``.kill()`` are all recorded
-by the mock returned by :class:`~testfixtures.popen.MockPopen`
+Calls to :meth:`~MockPopenInstance.send_signal`,
+:meth:`MockPopenInstance.terminate` and :meth:`MockPopenInstance.kill` are all
+recorded by the mock returned by :class:`~testfixtures.popen.MockPopen`
 but otherwise do nothing as shown in the following example, which doesn't
 make sense for a real test of sub-process usage but does show how the mock
 behaves:
@@ -121,16 +129,18 @@ Polling a process
 The :meth:`~subprocess.Popen.poll` method is often used as part of a loop
 in order to do other work while waiting for a sub-process to complete.
 The mock returned by :class:`~testfixtures.popen.MockPopen` supports this
-by allowing the ``.poll()`` method to be called a number of times before
-the ``returncode`` is set using the ``poll_count`` parameter as shown in
+by allowing the :meth:`~MockPopenInstance.poll` method to
+be called a number of times before
+the :attr:`~MockPopenInstance.returncode` is set using the
+``poll_count`` parameter as shown in
 the following example:
 
 .. literalinclude:: ../testfixtures/tests/test_popen_docs.py
    :pyobject: TestMyFunc.test_poll_until_result
    :dedent: 4
 
-Multiple process executions
----------------------------
+Different behaviour on sequential processes
+-------------------------------------------
 
 If your code needs to call the same command but have different behaviour
 on each call, then you can pass a callable behaviour like this:
@@ -139,7 +149,8 @@ on each call, then you can pass a callable behaviour like this:
    :pyobject: TestMyFunc.test_multiple_responses
    :dedent: 4
 
-If you need to keep state across calls, such as accumulating ``stdin`` on
+If you need to keep state across calls, such as accumulating
+:attr:`~MockPopenInstance.stdin` or
 failing for a configurable number of calls, then wrap that behaviour up
 into a class:
 
@@ -168,17 +179,26 @@ following example:
    :pyobject: TestMyFunc.test_default_behaviour
    :dedent: 4
 
-Using a callable to define behavior
------------------------------------
 
-If you're testing a command which will be called multiple times and will return
-different output each time, you can pass a callable to
-:class:`~MockPopen.set_default`.
+Tracking multiple simultaneous processes
+----------------------------------------
 
-The callable will be called each time a command is invoked and will be passed the
-command and any standard input provided.  It should return an instance of
-:class:`~PopenBehaviour`.
+Conversely, if you're testing something that spins up multiple subprocesses
+and manages their simultaneous execution, you will want to explicitly define the
+behaviour of each process using :class:`~MockPopen.set_command` and then make
+assertions about each process using :attr:`~MockPopen.all_calls`.
+
+For example, suppose we wanted to test this function:
 
 .. literalinclude:: ../testfixtures/tests/test_popen_docs.py
-   :pyobject: TestMyFunc.test_callable
+   :pyobject: process_in_batches
+
+Then you could test it as follows:
+
+.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+   :pyobject: TestMyFunc.test_multiple_processes
    :dedent: 4
+
+Note that the order of all calls is explicitly recorded. If the order of these calls
+is non-deterministic due to your method of process management, you will need to
+do more work and be very careful when testing.
