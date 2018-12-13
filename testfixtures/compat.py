@@ -26,6 +26,7 @@ if PY_VERSION > (3, 0):
     from io import StringIO
     xrange = range
     from itertools import zip_longest
+    from functools import reduce
 
 else:
 
@@ -46,6 +47,7 @@ else:
     from StringIO import StringIO
     xrange = xrange
     from itertools import izip_longest as zip_longest
+    reduce = reduce
 
 try:
     from mock import call as mock_call

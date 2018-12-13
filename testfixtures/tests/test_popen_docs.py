@@ -36,11 +36,11 @@ class TestMyFunc(TestCase):
         compare(my_func(), b'o')
 
         # testing calls were in the right order and with the correct parameters:
-        compare([
-            call.Popen('svn ls -R foo',
-                       shell=True, stderr=PIPE, stdout=PIPE),
-            call.Popen_instance.communicate()
-            ], Popen.mock.method_calls)
+        process = call.Popen('svn ls -R foo', shell=True, stderr=PIPE, stdout=PIPE)
+        compare(Popen.all_calls, expected=[
+            process,
+            process.communicate()
+        ])
 
     def test_example_bad_returncode(self):
         # set up
@@ -59,10 +59,10 @@ class TestMyFunc(TestCase):
         process = Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
         out, err = process.communicate('foo')
         # test call list
-        compare([
-                call.Popen('a command', shell=True, stderr=-1, stdout=-1),
-                call.Popen_instance.communicate('foo'),
-                ], Popen.mock.method_calls)
+        compare(Popen.all_calls, expected=[
+                process.root_call,
+                process.root_call.communicate('foo'),
+        ])
 
     def test_read_from_stdout_and_stderr(self):
         # setup
@@ -72,10 +72,6 @@ class TestMyFunc(TestCase):
         process = Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
         compare(process.stdout.read(), b'foo')
         compare(process.stderr.read(), b'bar')
-        # test call list
-        compare([
-                call.Popen('a command', shell=True, stderr=PIPE, stdout=PIPE),
-                ], Popen.mock.method_calls)
 
     def test_write_to_stdin(self):
         # setup
@@ -86,11 +82,11 @@ class TestMyFunc(TestCase):
         process.stdin.write('some text')
         process.stdin.close()
         # test call list
-        compare([
-                call.Popen('a command', shell=True, stdin=PIPE),
-                call.Popen_instance.stdin.write('some text'),
-                call.Popen_instance.stdin.close(),
-                ], Popen.mock.method_calls)
+        compare(Popen.all_calls, expected=[
+            process.root_call,
+            process.root_call.stdin.write('some text'),
+            process.root_call.stdin.close(),
+        ])
 
     def test_wait_and_return_code(self):
         # setup
@@ -103,10 +99,10 @@ class TestMyFunc(TestCase):
         compare(process.wait(), 3)
         compare(process.returncode, 3)
         # test call list
-        compare([
-                call.Popen('a command'),
-                call.Popen_instance.wait(),
-                ], Popen.mock.method_calls)
+        compare(Popen.all_calls, expected=[
+            call.Popen('a command'),
+            call.Popen('a command').wait(),
+        ])
 
     def test_send_signal(self):
         # setup
@@ -116,10 +112,10 @@ class TestMyFunc(TestCase):
         process = Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
         process.send_signal(0)
         # result checking
-        compare([
-                call.Popen('a command', shell=True, stderr=-1, stdout=-1),
-                call.Popen_instance.send_signal(0),
-                ], Popen.mock.method_calls)
+        compare(Popen.all_calls, expected=[
+            process.root_call,
+            process.root_call.send_signal(0),
+        ])
 
     def test_poll_until_result(self):
         # setup
@@ -133,12 +129,12 @@ class TestMyFunc(TestCase):
             pass
         # result checking
         compare(process.returncode, 3)
-        compare([
-                call.Popen('a command'),
-                call.Popen_instance.poll(),
-                call.Popen_instance.poll(),
-                call.Popen_instance.poll(),
-                ], Popen.mock.method_calls)
+        compare(Popen.all_calls, expected=[
+            process.root_call,
+            process.root_call.poll(),
+            process.root_call.poll(),
+            process.root_call.poll(),
+        ])
 
     def test_default_behaviour(self):
         # set up
@@ -148,27 +144,12 @@ class TestMyFunc(TestCase):
         compare(my_func(), b'o')
 
         # testing calls were in the right order and with the correct parameters:
-        compare([
-            call.Popen('svn ls -R foo',
-                       shell=True, stderr=PIPE, stdout=PIPE),
-            call.Popen_instance.communicate()
-            ], Popen.mock.method_calls)
-
-    def test_callable(self):
-        # set up
-        def command_callable(command, stdin):
-            return PopenBehaviour(stdout=b'stdout')
-        self.Popen.set_default(behaviour=command_callable)
-
-        # testing of results
-        compare(my_func(), b'stdout')
-
-        # testing calls were in the right order and with the correct parameters:
-        compare([
-            call.Popen('svn ls -R foo',
-                       shell=True, stderr=PIPE, stdout=PIPE),
-            call.Popen_instance.communicate()
-        ], Popen.mock.method_calls)
+        root_call = call.Popen('svn ls -R foo',
+                               shell=True, stderr=PIPE, stdout=PIPE)
+        compare(Popen.all_calls, expected=[
+            root_call,
+            root_call.communicate()
+        ])
 
     def test_multiple_responses(self):
         # set up
@@ -197,6 +178,24 @@ class TestMyFunc(TestCase):
         # testing of second call:
         compare(my_func(), b'o')
 
+    def test_multiple_processes(self):
+        # set up
+        self.Popen.set_command('process --batch=0', stdout=b'42')
+        self.Popen.set_command('process --batch=1', stdout=b'13')
+
+        # testing of results
+        compare(process_in_batches(2), expected=55)
+
+        # testing of process management:
+        p1 = call.Popen('process --batch=0', shell=True, stderr=PIPE, stdout=PIPE)
+        p2 = call.Popen('process --batch=1', shell=True, stderr=PIPE, stdout=PIPE)
+        compare(Popen.all_calls, expected=[
+            p1,
+            p2,
+            p1.communicate(),
+            p2.communicate(),
+        ])
+
 
 class CustomBehaviour(object):
 
@@ -208,3 +207,15 @@ class CustomBehaviour(object):
             self.fail_count -= 1
             return PopenBehaviour(stderr=b'e', returncode=1)
         return PopenBehaviour(stdout=b'o')
+
+
+def process_in_batches(n):
+    processes = []
+    for i in range(n):
+        processes.append(Popen('process --batch='+str(i),
+                               stdout=PIPE, stderr=PIPE, shell=True))
+    total = 0
+    for process in processes:
+        out, err = process.communicate()
+        total += int(out)
+    return total

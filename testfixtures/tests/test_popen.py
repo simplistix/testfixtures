@@ -97,6 +97,24 @@ class Tests(TestCase):
                 call.Popen_instance.communicate('foo'),
                 ], Popen.mock.method_calls)
 
+    def test_communicate_with_timeout(self):
+        Popen = MockPopen()
+        Popen.set_command('a command', returncode=3)
+        process = Popen('a command')
+        if PY2:
+            with ShouldRaise(TypeError):
+                process.communicate(timeout=1)
+            with ShouldRaise(TypeError):
+                process.communicate('foo', 1)
+        else:
+            process.communicate(timeout=1)
+            process.communicate('foo', 1)
+            compare([
+                call.Popen('a command'),
+                call.Popen_instance.communicate(timeout=1),
+                call.Popen_instance.communicate('foo', 1),
+            ], expected=Popen.mock.method_calls)
+
     def test_read_from_stdout(self):
         # setup
         Popen = MockPopen()
@@ -175,10 +193,21 @@ class Tests(TestCase):
         process = Popen('a command', stdin=PIPE, shell=True)
         process.stdin.write('some text')
         # test call list
-        compare([
-                call.Popen('a command', shell=True, stdin=PIPE),
-                call.Popen_instance.stdin.write('some text'),
-                ], Popen.mock.method_calls)
+        compare(Popen.mock.method_calls, expected=[
+            call.Popen('a command', shell=True, stdin=PIPE),
+            call.Popen_instance.stdin.write('some text'),
+        ])
+        compare(Popen.all_calls, expected=[
+            call.Popen('a command', shell=True, stdin=PIPE),
+            call.Popen('a command', shell=True, stdin=PIPE).stdin.write('some text'),
+        ])
+        compare(process.mock.method_calls, expected=[
+            call.stdin.write('some text'),
+        ])
+        compare(process.calls, expected=[
+            call.stdin.write('some text'),
+        ])
+        repr(call.stdin.write('some text'))
 
     def test_wait_and_return_code(self):
         # setup
@@ -195,6 +224,24 @@ class Tests(TestCase):
                 call.Popen('a command'),
                 call.Popen_instance.wait(),
                 ], Popen.mock.method_calls)
+
+    def test_wait_timeout(self):
+        Popen = MockPopen()
+        Popen.set_command('a command', returncode=3)
+        process = Popen('a command')
+        if PY2:
+            with ShouldRaise(TypeError):
+                process.wait(timeout=1)
+            with ShouldRaise(TypeError):
+                process.wait(1)
+        else:
+            process.wait(timeout=1)
+            process.wait(1)
+            compare([
+                call.Popen('a command'),
+                call.Popen_instance.wait(timeout=1),
+                call.Popen_instance.wait(1)
+            ], expected=Popen.mock.method_calls)
 
     def test_multiple_uses(self):
         Popen = MockPopen()
@@ -378,7 +425,7 @@ class Tests(TestCase):
     def test_invalid_parameters(self):
         Popen = MockPopen()
         with ShouldRaise(TypeError(
-                "Popen() got an unexpected keyword argument 'foo'"
+                "__init__() got an unexpected keyword argument 'foo'"
         )):
             Popen(foo='bar')
 
@@ -386,15 +433,14 @@ class Tests(TestCase):
         Popen = MockPopen()
         Popen.set_command('command')
         process = Popen('command')
-        with ShouldRaise(
-                AttributeError("Mock object has no attribute 'foo'")):
+        with ShouldRaise(AttributeError):
             process.foo()
 
     def test_invalid_attribute(self):
         Popen = MockPopen()
         Popen.set_command('command')
         process = Popen('command')
-        with ShouldRaise(AttributeError("Mock object has no attribute 'foo'")):
+        with ShouldRaise(AttributeError):
             process.foo
 
     def test_invalid_communicate_call(self):
@@ -521,6 +567,29 @@ class Tests(TestCase):
         compare([
             call.Popen('a command', start_new_session=True),
         ], Popen.mock.method_calls)
+
+    def test_simultaneous_processes(self):
+        Popen = MockPopen()
+        Popen.set_command('a command', b'a', returncode=1)
+        Popen.set_command('b command', b'b', returncode=2)
+        process_a = Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
+        process_b = Popen(['b', 'command'], stdout=PIPE, stderr=PIPE, shell=True)
+        compare(process_a.wait(), expected=1)
+        compare(process_b.wait(), expected=2)
+        a_call = call.Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
+        b_call = call.Popen(['b', 'command'], stdout=PIPE, stderr=PIPE, shell=True)
+        compare(Popen.all_calls, expected=[
+                a_call,
+                b_call,
+                a_call.wait(),
+                b_call.wait(),
+        ])
+        compare(process_a.mock.method_calls, expected=[
+            call.wait()
+        ])
+        compare(process_b.mock.method_calls, expected=[
+            call.wait()
+        ])
 
 
 class IntegrationTests(TestCase):
