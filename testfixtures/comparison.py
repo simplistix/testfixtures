@@ -400,6 +400,7 @@ class CompareContext(object):
         self.y_label = options.pop('y_label', self.y_label)
 
         self.options = options
+        self.unused_options = set(options)
         self.message = ''
         self.breadcrumbs = []
         self._seen = set()
@@ -426,7 +427,12 @@ class CompareContext(object):
         return possible
 
     def get_option(self, name, default=None):
+        self.unused_options.discard(name)
         return self.options.get(name, default)
+
+    def raise_unused_options(self):
+        if self.unused_options:
+            raise TypeError(self.unused_options)
 
     def label(self, side, value):
         r = str(value)
@@ -563,6 +569,7 @@ def compare(*args, **kw):
     x, y = context.extract_args(args)
 
     if not context.different(x, y, not_there):
+        context.raise_unused_options()
         return
 
     message = context.message

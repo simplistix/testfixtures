@@ -1581,3 +1581,9 @@ b
             "datetime.datetime(2001, 1, 1, 0, 0) != "
             "datetime.datetime(2001, 1, 2, 0, 0)"
         )
+
+    def test_unused_option(self):
+        with ShouldRaise(TypeError(
+                "xxx"
+        )):
+            compare('x', 'x', unused='z')
