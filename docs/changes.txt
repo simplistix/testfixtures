@@ -3,6 +3,25 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.4.0 (19 Dec 2018)
+-------------------
+
+- Add official support for Python 3.7.
+
+- Drop official support for Python 3.5.
+
+- Introduce a facade for :mod:`unittest.mock` at :mod:`testfixtures.mock`, including an
+  important bug fix for :func:`~unittest.mock.call` objects.
+
+- Better feedback when :func:`~unittest.mock.call` comparisons fail when using :func:`compare`.
+
+- A re-working of :class:`~testfixtures.popen.MockPopen` to enable it to handle multiple
+  processes being active at the same time.
+
+- Fixes to :doc:`datetime` documentation.
+
+Thanks to Augusto Wagner Andreoli for his work on the :doc:`datetime` documentation.
+
 6.3.0 (4 Sep 2018)
 ------------------
 
