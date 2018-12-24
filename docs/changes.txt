@@ -3,6 +3,12 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.4.1 (24 Dec 2018)
+-------------------
+
+- Fix bug when using :func:`unittest.mock.patch` and any of the testfixtures decorators
+  at the same time and where the object being patched in was not hashable.
+
 6.4.0 (19 Dec 2018)
 -------------------
 
