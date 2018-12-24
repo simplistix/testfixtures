@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from testfixtures.mock import Mock, MagicMock, patch, DEFAULT
 
-from testfixtures import wrap, compare, log_capture
+from testfixtures import wrap, compare, log_capture, LogCapture
 
 
 class TestWrap(TestCase):
@@ -239,7 +239,18 @@ class TestWrap(TestCase):
         @log_capture()
         def patched(log, X):
             from testfixtures.tests.sample1 import X as imported_X
+            assert isinstance(log, LogCapture)
             assert isinstance(X, MagicMock)
             assert imported_X is X
+
+        patched()
+
+    def test_patch_with_dict(self):
+        @patch('testfixtures.tests.sample1.X', {'x': 1})
+        @log_capture()
+        def patched(log):
+            assert isinstance(log, LogCapture)
+            from testfixtures.tests.sample1 import X
+            assert X == {'x': 1}
 
         patched()

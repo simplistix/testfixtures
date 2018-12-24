@@ -7,7 +7,7 @@ from . import singleton
 from .compat import ClassType
 
 DEFAULT = singleton('DEFAULT')
-defaults = {DEFAULT}
+defaults = [DEFAULT]
 
 
 try:
@@ -15,7 +15,7 @@ try:
 except ImportError:  # pragma: no cover
     pass
 else:
-    defaults.add(DEFAULT)
+    defaults.append(DEFAULT)
 
 
 def generator(*args):
