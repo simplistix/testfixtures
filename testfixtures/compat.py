@@ -2,6 +2,7 @@
 import sys
 
 PY_VERSION = sys.version_info[:2]
+PY_VERSION_LONG = sys.version_info[:3]
 
 PY_36_PLUS = PY_VERSION >= (3, 6)
 PY_37_PLUS = PY_VERSION >= (3, 7)
@@ -27,6 +28,11 @@ if PY_VERSION > (3, 0):
     xrange = range
     from itertools import zip_longest
     from functools import reduce
+    if (3, 6, 8) <= PY_VERSION_LONG < (3, 7) or PY_VERSION_LONG >= (3, 7, 2):
+        # https://bugs.python.org/issue35357
+        mock_call_parent_attribute = '_mock_parent'
+    else:
+        mock_call_parent_attribute = 'parent'
 
 else:
 
@@ -48,6 +54,7 @@ else:
     xrange = xrange
     from itertools import izip_longest as zip_longest
     reduce = reduce
+    mock_call_parent_attribute = 'parent'
 
 try:
     from mock import call as mock_call

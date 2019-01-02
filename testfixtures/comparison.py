@@ -6,8 +6,8 @@ from types import GeneratorType
 
 from testfixtures import not_there
 from testfixtures.compat import (
-    ClassType, Unicode, basestring, mock_call, unittest_mock_call,
-    PY3)
+    ClassType, Unicode, basestring, mock_call, mock_call_parent_attribute,
+    unittest_mock_call, PY3)
 from testfixtures.resolve import resolve
 from testfixtures.utils import indent
 
@@ -318,7 +318,11 @@ def compare_call(x, y, context):
     x_name, x_args, x_kw = x
     y_name, y_args, y_kw = y
     if x_name == y_name and x_args == y_args and x_kw == y_kw:
-        return compare_call(x.parent, y.parent, context)
+        return compare_call(
+            getattr(x, mock_call_parent_attribute),
+            getattr(y, mock_call_parent_attribute),
+            context,
+        )
     return compare_text(repr(x), repr(y), context)
 
 

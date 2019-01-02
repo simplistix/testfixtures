@@ -20,6 +20,8 @@ except ImportError:
     from unittest.mock import *
     from unittest.mock import _Call
 
+from testfixtures.compat import mock_call_parent_attribute
+
 
 def __eq__(self, other):
     if other is ANY:
@@ -35,8 +37,9 @@ def __eq__(self, other):
     else:
         self_name, self_args, self_kwargs = self
 
-    if (getattr(self, 'parent', None) and getattr(other, 'parent', None)
-            and self.parent != other.parent):
+    our_parent = getattr(self, mock_call_parent_attribute, None)
+    other_parent = getattr(other, mock_call_parent_attribute, None)
+    if our_parent and other_parent and our_parent != other_parent:
         return False
 
     other_name = ''
