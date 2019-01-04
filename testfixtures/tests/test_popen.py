@@ -591,6 +591,14 @@ class Tests(TestCase):
             call.wait()
         ])
 
+    def test_pass_executable(self):
+        Popen = MockPopen()
+        Popen.set_command('a command', b'a', returncode=1)
+        Popen('a command', executable='/foo/bar')
+        compare(Popen.all_calls, expected=[
+            call.Popen('a command', executable='/foo/bar')
+        ])
+
 
 class IntegrationTests(TestCase):
 

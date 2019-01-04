@@ -48,7 +48,7 @@ class MockPopenInstance(object):
     stderr = None
 
     def __init__(self, mock_class, root_call,
-                 args, bufsize=0, executaable=None,
+                 args, bufsize=0, executable=None,
                  stdin=None, stdout=None, stderr=None,
                  preexec_fn=None, close_fds=False, shell=False, cwd=None,
                  env=None, universal_newlines=False,
