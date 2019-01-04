@@ -13,12 +13,16 @@ __ https://mock.readthedocs.io
 """
 from __future__ import absolute_import
 
+import sys
+
 try:
     from mock import *
     from mock.mock import _Call
+    from mock.mock import version_info as backport_version
 except ImportError:
     from unittest.mock import *
     from unittest.mock import _Call
+    backport_version = None
 
 
 def __eq__(self, other):
@@ -75,5 +79,9 @@ def __eq__(self, other):
     # this order is important for ANY to work!
     return (other_args, other_kwargs) == (self_args, self_kwargs)
 
-
-_Call.__eq__ = __eq__
+if (
+    (3, 6, 0) <= sys.version_info[:3] <= (3, 6, 7) or
+    (3, 7, 0) <= sys.version_info[:3] <= (3, 7, 1) or
+    backport_version is not None and backport_version[:3] < (2, 1, 0)
+):
+    _Call.__eq__ = __eq__
