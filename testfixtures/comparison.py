@@ -10,6 +10,7 @@ from testfixtures.compat import (
     PY3)
 from testfixtures.resolve import resolve
 from testfixtures.utils import indent
+from testfixtures.mock import parent_name
 
 
 def compare_simple(x, y, context):
@@ -318,7 +319,7 @@ def compare_call(x, y, context):
     x_name, x_args, x_kw = x
     y_name, y_args, y_kw = y
     if x_name == y_name and x_args == y_args and x_kw == y_kw:
-        return compare_call(x.parent, y.parent, context)
+        return compare_call(getattr(x, parent_name), getattr(y, parent_name), context)
     return compare_text(repr(x), repr(y), context)
 
 
