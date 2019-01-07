@@ -86,5 +86,5 @@ if (
 ):
     _Call.__eq__ = __eq__
     parent_name = 'parent'
-else:
+else:  # pragma: no cover
     parent_name = '_mock_parent'
