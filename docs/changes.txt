@@ -3,6 +3,15 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.4.2 (9 Jan 2019)
+------------------
+
+- Fixed typo in the ``executable`` parameter name for :class:`~testfixtures.popen.MockPopen`.
+
+- Fixed :func:`~unittest.mock.call` patching to only patch when needed.
+
+- Fixed :func:`compare` with :func:`~unittest.mock.call` objects for the latest Python releases.
+
 6.4.1 (24 Dec 2018)
 -------------------
 
