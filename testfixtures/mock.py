@@ -28,7 +28,7 @@ except ImportError:
     try:
         from unittest.mock import *
         from unittest.mock import _Call
-    except ImportError:
+    except ImportError:  # pragma: no cover
         pass
 try:
     from unittest.mock import call as unittest_mock_call
