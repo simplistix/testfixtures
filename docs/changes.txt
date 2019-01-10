@@ -3,6 +3,13 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.4.3 (10 Jan 2019)
+-------------------
+
+- Fix problems on Python 2 when the rolling backport of `mock`__ was not installed.
+
+__ https://mock.readthedocs.io
+
 6.4.2 (9 Jan 2019)
 ------------------
 
