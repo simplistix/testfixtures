@@ -18,11 +18,24 @@ import sys
 try:
     from mock import *
     from mock.mock import _Call
+    from mock.mock import call as mock_call
     from mock.mock import version_info as backport_version
 except ImportError:
-    from unittest.mock import *
-    from unittest.mock import _Call
     backport_version = None
+    class MockCall:
+        pass
+    mock_call = MockCall()
+    try:
+        from unittest.mock import *
+        from unittest.mock import _Call
+    except ImportError:
+        pass
+try:
+    from unittest.mock import call as unittest_mock_call
+except ImportError:
+    class UnittestMockCall:
+        pass
+    unittest_mock_call = UnittestMockCall()
 
 
 def __eq__(self, other):

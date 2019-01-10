@@ -48,17 +48,3 @@ else:
     xrange = xrange
     from itertools import izip_longest as zip_longest
     reduce = reduce
-
-try:
-    from mock import call as mock_call
-except ImportError:  # pragma: no cover
-    class MockCall:
-        pass
-    mock_call = MockCall()
-
-try:
-    from unittest.mock import call as unittest_mock_call
-except ImportError:
-    class UnittestMockCall:
-        pass
-    unittest_mock_call = UnittestMockCall()

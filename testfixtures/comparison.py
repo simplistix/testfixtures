@@ -5,12 +5,10 @@ from re import compile, MULTILINE
 from types import GeneratorType
 
 from testfixtures import not_there
-from testfixtures.compat import (
-    ClassType, Unicode, basestring, mock_call, unittest_mock_call,
-    PY3)
+from testfixtures.compat import ClassType, Unicode, basestring, PY3
 from testfixtures.resolve import resolve
 from testfixtures.utils import indent
-from testfixtures.mock import parent_name
+from testfixtures.mock import parent_name, mock_call, unittest_mock_call
 
 
 def compare_simple(x, y, context):
