@@ -42,7 +42,8 @@ setup(
               'zope.component',
               'django<2;python_version<"3"',
               'django;python_version>="3"',
-              'pytest-django'],
+              'pytest-django',
+              'twisted'],
         build=['sphinx', 'pkginfo', 'setuptools-git', 'wheel', 'twine']
     )
 )

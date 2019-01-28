@@ -358,3 +358,7 @@ API Reference
       instances easier.
 
 .. automodule:: testfixtures.mock
+
+.. automodule:: testfixtures.twisted
+   :member-order: bysource
+   :members:
