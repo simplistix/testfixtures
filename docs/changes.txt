@@ -3,6 +3,11 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.5.0 (28 Jan 2019)
+-------------------
+
+- Experimental support for making assertions about events logged with Twisted's logging framework.
+
 6.4.3 (10 Jan 2019)
 -------------------
 

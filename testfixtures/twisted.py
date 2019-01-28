@@ -68,7 +68,7 @@ class LogCapture(object):
     def make(cls, testcase, **kw):
         """
         Instantiate, install and add a cleanup for a :class:`LogCapture`.
-        
+
         :param testcase: This must be an instance of :class:`twisted.trial.unittest.TestCase`.
         :param kw: Any other parameters are passed directly to the :class:`LogCapture` constructor.
         :return: The :class:`LogCapture` instantiated by this method.
