@@ -2,7 +2,7 @@ import atexit
 import warnings
 
 from zope.component import getSiteManager
-from zope.component.registry import Components
+from zope.interface.registry import Components
 
 
 class TestComponents:
