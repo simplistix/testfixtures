@@ -111,7 +111,7 @@ class LogCapture(logging.Handler):
         framework for the named loggers.
 
         This will re-instate any existing handlers for those loggers
-        that were removed during installation and retore their level
+        that were removed during installation and restore their level
         that prior to installation.
         """
         if self in self.instances:
