@@ -20,7 +20,7 @@ def compare_simple(x, y, context):
 
 
 def _extract_attrs(obj):
-    has_slots = getattr(obj, '__slots__', None)
+    has_slots = getattr(obj, '__slots__', not_there) is not not_there
     if has_slots:
         slots = set()
         for cls in type(obj).__mro__:

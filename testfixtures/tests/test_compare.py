@@ -1604,3 +1604,16 @@ b
             'attributes differ:\n'
             "'a': 1 != 2"
         )
+
+    def test_empty_child_slots(self):
+
+        class Parent(object):
+            __slots__ = ('a',)
+
+            def __init__(self, a):
+                self.a = a
+
+        class Child(Parent):
+            __slots__ = ()
+
+        compare(Child(1), Child(1))
