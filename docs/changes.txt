@@ -3,6 +3,12 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.5.1 (18 Feb 2019)
+-------------------
+
+- Fix bug when :func:`compare` was used with objects that had ``__slots__`` inherited from a
+  base class.
+
 6.5.0 (28 Jan 2019)
 -------------------
 
