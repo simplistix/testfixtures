@@ -1581,3 +1581,26 @@ b
             "datetime.datetime(2001, 1, 1, 0, 0) != "
             "datetime.datetime(2001, 1, 2, 0, 0)"
         )
+
+    def test_inherited_slots(self):
+
+        class Parent(object):
+            __slots__ = ('a',)
+
+        class Child(Parent):
+            __slots__ = ('b',)
+
+            def __init__(self, a, b):
+                self.a, self.b = a, b
+
+        self.check_raises(
+            Child(1, 'x'),
+            Child(2, 'x'),
+            'Child not as expected:\n'
+            '\n'
+            'attributes same:\n'
+            "['b']\n"
+            '\n'
+            'attributes differ:\n'
+            "'a': 1 != 2"
+        )
