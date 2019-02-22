@@ -19,7 +19,7 @@ def compare_simple(x, y, context):
         return context.label('x', repr(x)) + ' != ' + context.label('y', repr(y))
 
 
-def _extract_attrs(obj):
+def _extract_attrs(obj, ignore=None):
     has_slots = getattr(obj, '__slots__', not_there) is not not_there
     if has_slots:
         slots = set()
@@ -38,17 +38,29 @@ def _extract_attrs(obj):
         else:
             if isinstance(obj, BaseException):
                 attrs['args'] = obj.args
+    if ignore is not None:
+        if isinstance(ignore, dict):
+            ignore = ignore.get(type(obj), ())
+        for attr in ignore:
+            attrs.pop(attr, None)
     return attrs
 
 
 def compare_object(x, y, context):
     """
     Compare the two supplied objects based on their type and attributes.
+
+    :param ignore_attributes:
+
+       Either a sequence of strings containing attribute names to be ignored
+       when comparing or a mapping of type to sequence of strings containing
+       attribute names to be ignored when comparing that type.
     """
+    ignore_attributes = context.get_option('ignore_attributes', ())
     if type(x) is not type(y) or isinstance(x, ClassType):
         return compare_simple(x, y, context)
-    x_attrs = _extract_attrs(x)
-    y_attrs = _extract_attrs(y)
+    x_attrs = _extract_attrs(x, ignore_attributes)
+    y_attrs = _extract_attrs(y, ignore_attributes)
     if x_attrs is None or y_attrs is None:
         return compare_simple(x, y, context)
     if x_attrs != y_attrs:

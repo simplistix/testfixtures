@@ -1617,3 +1617,38 @@ b
             __slots__ = ()
 
         compare(Child(1), Child(1))
+
+
+class TestIgnore(CompareHelper):
+
+    class Parent(object):
+        def __init__(self, id):
+            self.id = id
+        def __repr__(self):
+            return '<{}:{}>'.format(type(self).__name__, self.id)
+
+    class Child(Parent): pass
+
+    def test_ignore_attributes(self):
+        compare(self.Parent(1), self.Parent(2), ignore_attributes={'id'})
+
+    def test_ignore_attributes_different_types(self):
+        self.check_raises(
+            self.Parent(1),
+            self.Child(2),
+            '<Parent:1> != <Child:2>',
+            ignore_attributes={'id'}
+        )
+
+    def test_ignore_attributes_per_type(self):
+        ignore = {self.Parent: {'id'}}
+        compare(self.Parent(1), self.Parent(2), ignore_attributes=ignore)
+        self.check_raises(
+            self.Child(1),
+            self.Child(2),
+            'Child not as expected:\n'
+            '\n'
+            'attributes differ:\n'
+            "'id': 1 != 2",
+            ignore_attributes=ignore
+        )
