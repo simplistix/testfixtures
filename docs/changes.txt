@@ -3,6 +3,12 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.6.0 (22 Feb 2019)
+-------------------
+
+- Add the ability to ignore attributes of particular object types when using
+  :func:`compare`.
+
 6.5.2 (18 Feb 2019)
 -------------------
 
