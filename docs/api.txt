@@ -48,6 +48,10 @@ API Reference
 
 .. autofunction:: testfixtures.comparison.compare_simple
 
+.. autofunction:: testfixtures.comparison.compare_object
+
+.. autofunction:: testfixtures.comparison.compare_exception
+
 .. autofunction:: testfixtures.comparison.compare_with_type
 
 .. autofunction:: testfixtures.comparison.compare_sequence
