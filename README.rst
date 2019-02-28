@@ -10,9 +10,9 @@
 .. _Docs: http://testfixtures.readthedocs.org/en/latest/
 
 
-TestFixtures
+Testfixtures
 ============
 
-TestFixtures is a collection of helpers and mock objects that are useful when
-writing unit tests or doc tests.
+Testfixtures is a collection of helpers and mock objects that are useful when
+writing automated tests in Python.
 
