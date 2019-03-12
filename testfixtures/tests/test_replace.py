@@ -246,6 +246,18 @@ class TestReplace(TestCase):
 
         test_something()
 
+    def test_replace_delattr_not_there_restored(self):
+
+        from testfixtures.tests import sample1
+
+        @replace('testfixtures.tests.sample1.foo',
+                 not_there, strict=False)
+        def test_something(obj):
+            sample1.foo = 'bar'
+
+        test_something()
+        self.failIf(hasattr(sample1, 'foo'))
+
     def test_replace_delattr_cant_remove(self):
         with Replacer() as r:
             with ShouldRaise(TypeError(
@@ -295,6 +307,19 @@ class TestReplace(TestCase):
                  not_there, strict=False)
         def test_something(obj):
             self.failIf('badkey' in someDict)
+
+        test_something()
+
+        self.assertEqual(sorted(someDict.keys()), ['complex_key', 'key'])
+
+    def test_replace_dict_ensure_key_not_there_restored(self):
+
+        from testfixtures.tests.sample1 import someDict
+
+        @replace('testfixtures.tests.sample1.someDict.badkey',
+                 not_there, strict=False)
+        def test_something(obj):
+            someDict['badkey'] = 'some test value'
 
         test_something()
 
