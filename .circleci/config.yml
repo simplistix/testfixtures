@@ -1,0 +1,77 @@
+version: 2.1
+
+orbs:
+  python: cjw296/python-ci@1.1
+
+common: &common
+  jobs:
+    - python/pip-run-tests:
+        name: python27
+        image: circleci/python:2.7
+    - python/pip-run-tests:
+        name: python36
+        image: circleci/python:3.6
+    - python/pip-run-tests:
+        name: python37
+        image: circleci/python:3.7
+    - python/pip-run-tests:
+        name: python36-mock-backport
+        image: circleci/python:3.6
+        extra_packages: "mock"
+    - python/pip-run-tests:
+        name: python37-mock-backport
+        image: circleci/python:3.7
+        extra_packages: "mock"
+    - python/pip-run-tests:
+        name: python27-django-1-9
+        image: circleci/python:2.7
+        extra_packages: "'django<1.10'"
+    - python/pip-run-tests:
+        name: python36-django-1-11
+        image: circleci/python:3.6
+        extra_packages: "'django<1.12'"
+    - python/pip-run-tests:
+        name: python37-django-1-11
+        image: circleci/python:3.7
+        extra_packages: "'django<1.12'"
+    - python/pip-run-tests:
+        name: python36-django-latest
+        image: circleci/python:3.6
+    - python/pip-run-tests:
+        name: python37-django-latest
+        image: circleci/python:3.7
+
+    - python/coverage:
+        name: coverage
+        requires:
+          - python27
+          - python36
+          - python37
+          - python36-mock-backport
+          - python37-mock-backport
+          - python27-django-1-9
+          - python36-django-1-11
+          - python37-django-1-11
+          - python36-django-latest
+          - python37-django-latest
+
+    - python/release:
+        name: release
+        config: .carthorse.yml
+        requires:
+          - coverage
+        filters:
+          branches:
+            only: master
+
+workflows:
+  push:
+    <<: *common
+  periodic:
+    <<: *common
+    triggers:
+      - schedule:
+          cron: "0 1 * * *"
+          filters:
+            branches:
+              only: master
