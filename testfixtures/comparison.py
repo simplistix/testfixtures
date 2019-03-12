@@ -1,5 +1,6 @@
 from collections import Iterable
 from difflib import unified_diff
+from functools import partial
 from pprint import pformat
 from re import compile, MULTILINE
 from types import GeneratorType
@@ -61,7 +62,7 @@ def compare_object(x, y, context):
         return compare_simple(x, y, context)
     x_attrs = _extract_attrs(x, ignore_attributes)
     y_attrs = _extract_attrs(y, ignore_attributes)
-    if x_attrs is None or y_attrs is None:
+    if x_attrs is None or y_attrs is None or not (ignore_attributes or (x_attrs and y_attrs)):
         return compare_simple(x, y, context)
     if x_attrs != y_attrs:
         return _compare_mapping(x_attrs, y_attrs, context, x,
@@ -336,6 +337,14 @@ def compare_call(x, y, context):
     return compare_text(repr(x), repr(y), context)
 
 
+def compare_partial(x, y, context):
+    x_attrs = dict(func=x.func, args=x.args, keywords=x.keywords)
+    y_attrs = dict(func=y.func, args=y.args, keywords=y.keywords)
+    if x_attrs != y_attrs:
+        return _compare_mapping(x_attrs, y_attrs, context, x,
+                                'attributes ', '.%s')
+
+
 def _short_repr(obj):
     repr_ = repr(obj)
     if len(repr_) > 30:
@@ -356,6 +365,7 @@ _registry = {
     mock_call.__class__: compare_call,
     unittest_mock_call.__class__: compare_call,
     BaseException: compare_exception,
+    partial: compare_partial,
     }
 
 if PY3:

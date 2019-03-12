@@ -1618,6 +1618,87 @@ b
 
         compare(Child(1), Child(1))
 
+    def test_partial_callable_different(self):
+
+        def foo(x): pass
+        def bar(y): pass
+
+        self.check_raises(
+            partial(foo),
+            partial(bar),
+            (
+                'partial not as expected:\n'
+                '\n'
+                'attributes same:\n'
+                "['args', 'keywords']\n"
+                '\n'
+                'attributes differ:\n'
+                "'func': {foo} != {bar}\n"
+                '\n'
+                'While comparing .func: {foo} != {bar}'
+            ).format(foo=hexsub(repr(foo)), bar=hexsub(repr(bar))))
+
+    def test_partial_args_different(self):
+
+        def foo(x): pass
+
+        self.check_raises(
+            partial(foo, 1),
+            partial(foo, 2),
+            'partial not as expected:\n'
+            '\n'
+            'attributes same:\n'
+            "['func', 'keywords']\n"
+            '\n'
+            'attributes differ:\n'
+            "'args': (1,) != (2,)\n"
+            '\n'
+            'While comparing .args: sequence not as expected:\n'
+            '\n'
+            'same:\n'
+            '()\n'
+            '\n'
+            'first:\n'
+            '(1,)\n'
+            '\n'
+            'second:\n'
+            '(2,)'
+        )
+
+    def test_partial_kw_different(self):
+
+        def foo(x): pass
+
+        self.check_raises(
+            partial(foo, x=1, y=3),
+            partial(foo, x=2, z=4),
+            'partial not as expected:\n'
+            '\n'
+            'attributes same:\n'
+            "['args', 'func']\n"
+            '\n'
+            'attributes differ:\n'
+            "'keywords': {'x': 1, 'y': 3} != {'x': 2, 'z': 4}\n"
+            '\n'
+            'While comparing .keywords: dict not as expected:\n'
+            '\n'
+            'in first but not second:\n'
+            "'y': 3\n"
+            '\n'
+            'in second but not first:\n'
+            "'z': 4\n"
+            '\n'
+            'values differ:\n'
+            "'x': 1 != 2"
+        )
+
+    def test_partial_equal(self):
+
+        def foo(x): pass
+
+        compare(partial(foo, 1, x=2), partial(foo, 1, x=2))
+
+
 
 class TestIgnore(CompareHelper):
 
