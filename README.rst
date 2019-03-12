@@ -1,10 +1,7 @@
-|Travis|_ |Coveralls|_ |Docs|_
+|CircleCI|_ |Docs|_
 
-.. |Travis| image:: https://api.travis-ci.org/Simplistix/testfixtures.svg?branch=master
-.. _Travis: https://travis-ci.org/Simplistix/testfixtures
-
-.. |Coveralls| image:: https://coveralls.io/repos/Simplistix/testfixtures/badge.svg?branch=master
-.. _Coveralls: https://coveralls.io/r/Simplistix/testfixtures?branch=master
+.. |CircleCI| image:: https://circleci.com/gh/Simplistix/testfixtures/tree/master.svg?style=shield
+.. _CircleCI: https://circleci.com/gh/Simplistix/testfixtures/tree/master
 
 .. |Docs| image:: https://readthedocs.org/projects/testfixtures/badge/?version=latest
 .. _Docs: http://testfixtures.readthedocs.org/en/latest/
