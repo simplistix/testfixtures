@@ -62,7 +62,7 @@ def compare_object(x, y, context):
         return compare_simple(x, y, context)
     x_attrs = _extract_attrs(x, ignore_attributes)
     y_attrs = _extract_attrs(y, ignore_attributes)
-    if x_attrs is None or y_attrs is None or not (ignore_attributes or (x_attrs and y_attrs)):
+    if x_attrs is None or y_attrs is None or not (x_attrs and y_attrs):
         return compare_simple(x, y, context)
     if x_attrs != y_attrs:
         return _compare_mapping(x_attrs, y_attrs, context, x,

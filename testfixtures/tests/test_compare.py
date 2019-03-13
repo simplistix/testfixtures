@@ -1699,35 +1699,38 @@ b
         compare(partial(foo, 1, x=2), partial(foo, 1, x=2))
 
 
-
 class TestIgnore(CompareHelper):
 
     class Parent(object):
-        def __init__(self, id):
+        def __init__(self, id, other):
             self.id = id
+            self.other = other
         def __repr__(self):
             return '<{}:{}>'.format(type(self).__name__, self.id)
 
     class Child(Parent): pass
 
     def test_ignore_attributes(self):
-        compare(self.Parent(1), self.Parent(2), ignore_attributes={'id'})
+        compare(self.Parent(1, 3), self.Parent(2, 3), ignore_attributes={'id'})
 
     def test_ignore_attributes_different_types(self):
         self.check_raises(
-            self.Parent(1),
-            self.Child(2),
+            self.Parent(1, 3),
+            self.Child(2, 3),
             '<Parent:1> != <Child:2>',
             ignore_attributes={'id'}
         )
 
     def test_ignore_attributes_per_type(self):
         ignore = {self.Parent: {'id'}}
-        compare(self.Parent(1), self.Parent(2), ignore_attributes=ignore)
+        compare(self.Parent(1, 3), self.Parent(2, 3), ignore_attributes=ignore)
         self.check_raises(
-            self.Child(1),
-            self.Child(2),
+            self.Child(1, 3),
+            self.Child(2, 3),
             'Child not as expected:\n'
+            '\n'
+            'attributes same:\n'
+            "['other']\n"
             '\n'
             'attributes differ:\n'
             "'id': 1 != 2",
