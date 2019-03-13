@@ -3,6 +3,15 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.6.1 (13 Mar 2019)
+-------------------
+
+- Fixed bugs where using :attr:`not_there` to ensure a key or attribute was not there
+  but would be set by a test would result in the test attribute or key being left behind.
+
+- Add support for comparing :func:`~functools.partial` instances and fix comparison of
+  functions and other objects where ``vars()`` returns an empty :class:`dict`.
+
 6.6.0 (22 Feb 2019)
 -------------------
 
