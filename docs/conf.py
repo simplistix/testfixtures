@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 import datetime
 import os
-import pkginfo
-import sys
 import time
 
+import pkg_resources
+
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-pkg_info = pkginfo.Develop(os.path.join(os.path.dirname(__file__), '..'))
 build_date = datetime.datetime.utcfromtimestamp(int(os.environ.get('SOURCE_DATE_EPOCH', time.time())))
 
 extensions = [
@@ -23,9 +22,9 @@ intersphinx_mapping = {
 # General
 source_suffix = '.txt'
 master_doc = 'index'
-project = pkg_info.name
+project = 'testfixtures'
 copyright = '2008-2015 Simplistix Ltd, 2016-%s Chris Withers' % build_date.year
-version = release = pkg_info.version
+version = release = pkg_resources.get_distribution(project).version
 exclude_trees = ['_build']
 exclude_patterns = ['description.txt']
 pygments_style = 'sphinx'

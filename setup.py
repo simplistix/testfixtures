@@ -43,6 +43,6 @@ setup(
               'django<2;python_version<"3"',
               'django;python_version>="3"',
               'twisted'],
-        build=['sphinx', 'pkginfo', 'setuptools-git', 'wheel', 'twine']
+        build=['sphinx', 'setuptools-git', 'wheel', 'twine']
     )
 )
