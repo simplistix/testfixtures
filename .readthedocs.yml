@@ -4,5 +4,5 @@ python:
   install:
     - method: pip
       path: .
-        extra_requirements:
-           - build
+      extra_requirements:
+        - build
