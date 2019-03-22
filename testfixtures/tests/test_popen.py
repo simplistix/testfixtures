@@ -599,6 +599,13 @@ class Tests(TestCase):
             call.Popen('a command', executable='/foo/bar')
         ])
 
+    def test_set_command_with_list(self):
+        Popen = MockPopen()
+        Popen.set_command(['a', 'command'])
+        Popen(['a', 'command'], stdout=PIPE, stderr=PIPE)
+        compare([call.Popen(['a',  'command'], stderr=-1, stdout=-1)],
+                actual=Popen.all_calls)
+
 
 class IntegrationTests(TestCase):
 

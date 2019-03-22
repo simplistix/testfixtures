@@ -1,3 +1,4 @@
+import pipes
 from functools import wraps, partial
 from itertools import chain
 from subprocess import STDOUT, PIPE
@@ -6,6 +7,12 @@ from testfixtures.compat import basestring, PY3, zip_longest, reduce
 from testfixtures.utils import extend_docstring
 
 from .mock import Mock, call
+
+
+def shell_join(command):
+    if not isinstance(command, basestring):
+        command = " ".join(pipes.quote(part) for part in command)
+    return command
 
 
 class PopenBehaviour(object):
@@ -65,10 +72,7 @@ class MockPopenInstance(object):
         self.calls = []
         self.all_calls = mock_class.all_calls
 
-        if isinstance(args, basestring):
-            cmd = args
-        else:
-            cmd = ' '.join(args)
+        cmd = shell_join(args)
 
         behaviour = mock_class.commands.get(cmd, mock_class.default_behaviour)
         if behaviour is None:
@@ -223,7 +227,7 @@ class MockPopen(object):
 
         :param command: A string representing the command to be simulated.
         """
-        self.commands[command] = self._resolve_behaviour(
+        self.commands[shell_join(command)] = self._resolve_behaviour(
             stdout, stderr, returncode, pid, poll_count, behaviour
         )
 
