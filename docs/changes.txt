@@ -3,6 +3,13 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.6.2 (22 Mar 2019)
+-------------------
+
+- :meth:`popen.MockPopen.set_command` is now symmetrical with
+  :class:`popen.MockPopen` process instantiation in that both can be called with
+  either lists or strings, in the same way as :class:`subprocess.Popen`.
+
 6.6.1 (13 Mar 2019)
 -------------------
 
