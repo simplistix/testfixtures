@@ -5,7 +5,7 @@ from subprocess import Popen, PIPE
 
 
 def my_func():
-    process = Popen('svn ls -R foo', stdout=PIPE, stderr=PIPE, shell=True)
+    process = Popen(['svn', 'ls', '-R', 'foo'], stdout=PIPE, stderr=PIPE)
     out, err = process.communicate()
     if process.returncode:
         raise RuntimeError('something bad happened')
@@ -36,7 +36,7 @@ class TestMyFunc(TestCase):
         compare(my_func(), b'o')
 
         # testing calls were in the right order and with the correct parameters:
-        process = call.Popen('svn ls -R foo', shell=True, stderr=PIPE, stdout=PIPE)
+        process = call.Popen(['svn', 'ls', '-R', 'foo'], stderr=PIPE, stdout=PIPE)
         compare(Popen.all_calls, expected=[
             process,
             process.communicate()
@@ -144,8 +144,8 @@ class TestMyFunc(TestCase):
         compare(my_func(), b'o')
 
         # testing calls were in the right order and with the correct parameters:
-        root_call = call.Popen('svn ls -R foo',
-                               shell=True, stderr=PIPE, stdout=PIPE)
+        root_call = call.Popen(['svn', 'ls', '-R', 'foo'],
+                               stderr=PIPE, stdout=PIPE)
         compare(Popen.all_calls, expected=[
             root_call,
             root_call.communicate()
