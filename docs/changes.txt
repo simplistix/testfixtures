@@ -3,6 +3,11 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.7.0 (11 Apr 2019)
+-------------------
+
+- Add :meth:`twisted.LogCapture.raise_logged_failure` debugging helper.
+
 6.6.2 (22 Mar 2019)
 -------------------
 
