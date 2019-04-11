@@ -64,6 +64,17 @@ class LogCapture(object):
         """
         compare(expected, actual=str(getattr(self.events[index]['log_failure'], attribute)))
 
+    def raise_logged_failure(self, start_index=0):
+        """
+        A debugging tool that raises the first failure encountered in captured logging.
+
+        :param start_index: The index into :attr:`events` from where to start looking for failures.
+        """
+        for event in self.events[start_index:]:
+            failure = event.get('log_failure')
+            if failure:
+                raise failure
+
     @classmethod
     def make(cls, testcase, **kw):
         """
