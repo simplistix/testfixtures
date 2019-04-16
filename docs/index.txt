@@ -1,8 +1,4 @@
-TestFixtures documentation
-==========================
-
-TestFixtures is a collection of helpers and mock objects that are
-useful when writing unit tests or doc tests.
+.. include:: ../README.rst
 
 The sections below describe the use of the various tools included:
 

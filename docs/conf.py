@@ -26,7 +26,6 @@ project = 'testfixtures'
 copyright = '2008-2015 Simplistix Ltd, 2016-%s Chris Withers' % build_date.year
 version = release = pkg_resources.get_distribution(project).version
 exclude_trees = ['_build']
-exclude_patterns = ['description.txt']
 pygments_style = 'sphinx'
 
 # Options for HTML output

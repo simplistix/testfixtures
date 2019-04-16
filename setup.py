@@ -16,9 +16,7 @@ setup(
     license='MIT',
     description=("A collection of helpers and mock objects "
                  "for unit tests and doc tests."),
-    long_description=open(os.path.join(base_dir,
-                                       'docs',
-                                       'description.txt')).read(),
+    long_description=open(os.path.join(base_dir, 'README.rst')).read(),
     url='https://github.com/Simplistix/testfixtures',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
