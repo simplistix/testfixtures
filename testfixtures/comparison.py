@@ -1,4 +1,3 @@
-from collections import Iterable
 from difflib import unified_diff
 from functools import partial
 from pprint import pformat
@@ -6,7 +5,7 @@ from re import compile, MULTILINE
 from types import GeneratorType
 
 from testfixtures import not_there
-from testfixtures.compat import ClassType, Unicode, basestring, PY3
+from testfixtures.compat import ClassType, Iterable, Unicode, basestring, PY3
 from testfixtures.resolve import resolve
 from testfixtures.utils import indent
 from testfixtures.mock import parent_name, mock_call, unittest_mock_call

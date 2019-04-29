@@ -27,6 +27,7 @@ if PY_VERSION > (3, 0):
     xrange = range
     from itertools import zip_longest
     from functools import reduce
+    from collections.abc import Iterable
 
 else:
 
@@ -48,3 +49,4 @@ else:
     xrange = xrange
     from itertools import izip_longest as zip_longest
     reduce = reduce
+    from collections import Iterable
