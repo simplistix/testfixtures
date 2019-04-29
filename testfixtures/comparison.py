@@ -1,4 +1,4 @@
-from collections import Iterable
+from collections.abc import Iterable
 from difflib import unified_diff
 from functools import partial
 from pprint import pformat
