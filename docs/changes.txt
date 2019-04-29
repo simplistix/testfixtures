@@ -3,6 +3,14 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.7.1 (29 Apr 2019)
+-------------------
+
+- Silence :class:`DeprecationWarning` relating to ``collections.abc`` on
+  Python 3.7.
+
+Thanks to Tom Hendrikx for the fix.
+
 6.7.0 (11 Apr 2019)
 -------------------
 
