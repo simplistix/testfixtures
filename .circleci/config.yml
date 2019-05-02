@@ -10,7 +10,8 @@ common: &common
         image: circleci/python:2.7
     - python/pip-run-tests:
         name: python36
-        image: circleci/python:3.6
+        # so we test the mock monkey patches:
+        image: circleci/python:3.6.6
     - python/pip-run-tests:
         name: python37
         image: circleci/python:3.7
