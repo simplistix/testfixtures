@@ -1,9 +1,10 @@
 from __future__ import print_function
 
 import sys
+from subprocess import call
 from unittest import TestCase
 
-from testfixtures import OutputCapture
+from testfixtures import OutputCapture, compare
 
 
 class TestOutputCapture(TestCase):
@@ -71,3 +72,17 @@ class TestOutputCapture(TestCase):
             self.assertFalse(sys.stderr is o_err)
         self.assertTrue(sys.stdout is o_out)
         self.assertTrue(sys.stderr is o_err)
+
+    def test_fd(self):
+        with OutputCapture(fd=True) as o:
+            call([sys.executable, '-c', "import sys; sys.stdout.write('out')"])
+            call([sys.executable, '-c', "import sys; sys.stderr.write('err')"])
+        compare(o.captured, expected=b'outerr')
+        o.compare(expected=b'outerr')
+
+    def test_fd_separate(self):
+        with OutputCapture(fd=True, separate=True) as o:
+            call([sys.executable, '-c', "import sys; sys.stdout.write('out')"])
+            call([sys.executable, '-c', "import sys; sys.stderr.write('err')"])
+        compare(o.captured, expected=b'')
+        o.compare(stdout=b'out', stderr=b'err')
