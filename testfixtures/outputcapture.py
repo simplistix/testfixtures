@@ -88,9 +88,10 @@ class OutputCapture(object):
     def _read(self, stream):
         if self.fd:
             stream.seek(0)
-            return stream.read()
+            value = stream.read()
             stream.seek(0)
             stream.truncate()
+            return value
         else:
             return stream.getvalue()
 
