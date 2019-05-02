@@ -3,6 +3,12 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.8.0 (2 May 2019)
+------------------
+
+- Allow :class:`OutputCapture` to capture the underlying file descriptors for
+  :attr:`sys.stdout` and :attr:`sys.stderr`.
+
 6.7.1 (29 Apr 2019)
 -------------------
 
