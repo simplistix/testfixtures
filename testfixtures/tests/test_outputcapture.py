@@ -73,15 +73,17 @@ class TestOutputCapture(TestCase):
         self.assertTrue(sys.stdout is o_out)
         self.assertTrue(sys.stderr is o_err)
 
-    def test_fd(self):
-        with OutputCapture(fd=True) as o:
+class TestOutputCaptureWithFixtures(object):
+
+    def test_fd(self, capfd):
+        with capfd.disabled(), OutputCapture(fd=True) as o:
             call([sys.executable, '-c', "import sys; sys.stdout.write('out')"])
             call([sys.executable, '-c', "import sys; sys.stderr.write('err')"])
         compare(o.captured, expected=b'outerr')
         o.compare(expected=b'outerr')
 
-    def test_fd_separate(self):
-        with OutputCapture(fd=True, separate=True) as o:
+    def test_fd_separate(self, capfd):
+        with capfd.disabled(), OutputCapture(fd=True, separate=True) as o:
             call([sys.executable, '-c', "import sys; sys.stdout.write('out')"])
             call([sys.executable, '-c', "import sys; sys.stderr.write('err')"])
         compare(o.captured, expected=b'')
