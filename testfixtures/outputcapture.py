@@ -51,8 +51,13 @@ class OutputCapture(object):
     def disable(self):
         "Disable the output capture if it is enabled."
         if self.fd:
-            os.dup2(self.original_stdout, sys.stdout.fileno())
-            os.dup2(self.original_stderr, sys.stderr.fileno())
+            for original, current in (
+                (self.original_stdout, sys.stdout),
+                (self.original_stderr, sys.stderr),
+            ):
+                os.dup2(original, current.fileno())
+                os.close(original)
+
         else:
             sys.stdout = self.original_stdout
             sys.stderr = self.original_stderr
@@ -84,6 +89,8 @@ class OutputCapture(object):
         if self.fd:
             stream.seek(0)
             return stream.read()
+            stream.seek(0)
+            stream.truncate()
         else:
             return stream.getvalue()
 
