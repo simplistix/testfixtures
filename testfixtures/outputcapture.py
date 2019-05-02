@@ -1,7 +1,6 @@
+import os
 import sys
 from tempfile import TemporaryFile
-
-from coverage.annotate import os
 
 from testfixtures.comparison import compare
 from testfixtures.compat import StringIO, Unicode

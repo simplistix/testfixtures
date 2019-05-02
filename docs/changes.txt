@@ -3,6 +3,11 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.8.1 (2 May 2019)
+------------------
+
+- Fix bogus import in :class:`OutputCapture`.
+
 6.8.0 (2 May 2019)
 ------------------
 
