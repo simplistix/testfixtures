@@ -39,7 +39,8 @@ common: &common
         image: circleci/python:3.7
     - python/pip-run-tests:
         name: python36-mock-backport
-        image: circleci/python:3.6
+        # so we test the mock monkey patches aren't used:
+        image: circleci/python:3.6.4
         extra_packages: "mock"
     - python/pip-run-tests:
         name: python37-mock-backport
