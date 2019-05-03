@@ -21,3 +21,4 @@ pip-selfcheck.json
 .coverage.*
 .cache
 .pytest*
+/build
