@@ -92,12 +92,15 @@ def __eq__(self, other):
     # this order is important for ANY to work!
     return (other_args, other_kwargs) == (self_args, self_kwargs)
 
+has_backport = backport_version is not None
+has_unittest_mock = sys.version_info >= (3, 3, 0)
+
 if (
-    (3, 6, 0) <= sys.version_info[:3] <= (3, 6, 7) or
-    (3, 7, 0) <= sys.version_info[:3] <= (3, 7, 1) or
-    backport_version is not None and backport_version[:3] < (2, 1, 0)
+    (has_backport and backport_version[:3] > (2, 0, 0)) or
+    (3, 6, 7) <= sys.version_info[:3] < (3, 7, 0) or
+    sys.version_info[:3] > (3, 7, 1)
 ):
+    parent_name = '_mock_parent'
+elif has_unittest_mock or has_backport:
     _Call.__eq__ = __eq__
     parent_name = 'parent'
-else:
-    parent_name = '_mock_parent'
