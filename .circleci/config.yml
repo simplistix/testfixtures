@@ -1,7 +1,29 @@
 version: 2.1
 
 orbs:
-  python: cjw296/python-ci@1.1
+  python: cjw296/python-ci@2
+
+jobs:
+  check-package:
+    parameters:
+      image:
+        type: string
+      extra_package:
+        type: string
+        default: ""
+      imports:
+        type: string
+        default: "testfixtures"
+    docker:
+      - image: << parameters.image >>
+    steps:
+      - python/check-package:
+          package: "mock"
+          extra_packages: <<  parameters.extra_package >>
+          test:
+          - run:
+              name: "Check Imports"
+              command: python -c "import << parameters.imports >>"
 
 common: &common
   jobs:
@@ -56,14 +78,73 @@ common: &common
           - python36-django-latest
           - python37-django-latest
 
+    - python/pip-docs:
+        name: docs
+        requires:
+          - coverage
+
+    - python/pip-setuptools-build-package:
+        name: package
+        requires:
+          - docs
+        filters:
+          branches:
+            only: master
+
+    - check-package:
+        name: check-package-python27
+        image: circleci/python:2.7
+        requires:
+          - package
+
+    - check-package:
+        name: check-package-python37
+        image: circleci/python:3.7
+        requires:
+          - package
+
+    - check-package:
+        name: check-package-python27-mock
+        image: circleci/python:2.7
+        extra_package: mock
+        imports: "testfixtures, testfixtures.mock"
+        requires:
+          - package
+
+    - check-package:
+        name: check-package-python37-mock
+        image: circleci/python:3.7
+        extra_package: mock
+        imports: "testfixtures, testfixtures.mock"
+        requires:
+          - package
+
+    - check-package:
+        name: check-package-python27-django
+        image: circleci/python:2.7
+        extra_package: django
+        imports: "testfixtures, testfixtures.django"
+        requires:
+          - package
+
+    - check-package:
+        name: check-package-python37-django
+        image: circleci/python:3.7
+        extra_package: django
+        imports: "testfixtures, testfixtures.django"
+        requires:
+          - package
+
     - python/release:
         name: release
         config: .carthorse.yml
         requires:
-          - coverage
-        filters:
-          branches:
-            only: master
+          - check-package-python27
+          - check-package-python27-mock
+          - check-package-python27-django
+          - check-package-python37
+          - check-package-python37-mock
+          - check-package-python37-django
 
 workflows:
   push:
