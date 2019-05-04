@@ -4,5 +4,6 @@ carthorse:
   when:
     - version-not-tagged
   actions:
+    - run: "sudo pip install -e .[build]"
     - run: "twine upload -u chrisw -p $PYPI_PASS dist/*"
     - create-tag
