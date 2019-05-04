@@ -3,6 +3,11 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.8.2 (4 May 2019)
+------------------
+
+- Fix handling of the latest releases of the :mod:`mock` backport.
+
 6.8.1 (2 May 2019)
 ------------------
 
