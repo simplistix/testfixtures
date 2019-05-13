@@ -1,7 +1,11 @@
 import sys
 from functools import wraps
-from inspect import getargspec
 from textwrap import dedent
+
+try:
+    from inspect import getfullargspec as getargspec
+except ImportError:
+    from inspect import getargspec
 
 from . import singleton
 from .compat import ClassType
@@ -61,7 +65,7 @@ def wrap(before, after=None):
             extra_args = []
             entered_patchers = []
 
-            to_add = len(getargspec(func)[0][len(args):])
+            to_add = len(getargspec(func).args[len(args):])
             added = 0
 
             exc_info = tuple()
