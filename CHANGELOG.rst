@@ -3,6 +3,27 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.9.0 (10 Jun 2019)
+-------------------
+
+- Fix deprecation warning relating to :func:`getargspec`.
+
+- Improve :doc:`mocking <mocking>` docs.
+
+- Add ``strip_whitespace`` option to :class:`OutputCapture`.
+
+- When ``separate`` is used with :class:`OutputCapture`, differences in ``stdout` and ``stderr``
+  are now given in the same :class:`AssertionError`.
+
+- :class:`ShouldRaise` no longer catches exceptions that are not of the required type.
+
+- Fixed a problem that resulted in unhelpful :func:`compare` failures when
+  :func:`~unittest.mock.call` was involved and Python 3.6.7 was used.
+
+Thanks to Łukasz Rogalski for the deprecation warning fix.
+
+Thanks to Wim Glenn for the :class:`ShouldRaise` idea.
+
 6.8.2 (4 May 2019)
 ------------------
 
