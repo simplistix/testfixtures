@@ -97,7 +97,7 @@ has_unittest_mock = sys.version_info >= (3, 3, 0)
 
 if (
     (has_backport and backport_version[:3] > (2, 0, 0)) or
-    (3, 6, 7) <= sys.version_info[:3] < (3, 7, 0) or
+    (3, 6, 7) < sys.version_info[:3] < (3, 7, 0) or
     sys.version_info[:3] > (3, 7, 1)
 ):
     parent_name = '_mock_parent'
