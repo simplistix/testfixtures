@@ -3,7 +3,7 @@ from textwrap import dedent
 from testfixtures import Comparison as C, ShouldRaise, should_raise
 from unittest import TestCase
 
-from ..compat import PY3, PY_36_PLUS, PY_37_PLUS
+from ..compat import PY3, PY_36_PLUS, PY_37_PLUS, PY2
 from ..shouldraise import ShouldAssert
 
 
@@ -67,19 +67,15 @@ class TestShouldRaise(TestCase):
         should_raise(ValueError)(to_test)()
 
     def test_wrong_exception_class(self):
+        expected_exception = ValueError('bar')
         def to_test():
-            raise ValueError('bar')
-        if PY_37_PLUS:
-            message = ("<class 'KeyError'> (expected) != "
-                       "ValueError('bar') (raised)")
-        elif PY3:
-            message = ("<class 'KeyError'> (expected) != "
-                       "ValueError('bar',) (raised)")
-        else:
-            message = ("<type 'exceptions.KeyError'> (expected) != "
-                       "ValueError('bar',) (raised)")
-        with ShouldAssert(message):
+            raise expected_exception
+        try:
             should_raise(KeyError)(to_test)()
+        except ValueError as actual_exception:
+            assert actual_exception is expected_exception
+        else:  # pragma: no cover
+            self.fail(('Wrong exception raised'))
 
     def test_no_supplied_or_raised(self):
         # effectvely we're saying "something should be raised!"
@@ -190,6 +186,15 @@ class TestShouldRaise(TestCase):
             with ShouldRaise(ValueError('foo')):
                 pass
 
+    def test_with_no_exception_when_expected_by_type(self):
+        if PY2:
+            expected = "<type 'exceptions.ValueError'> (expected) != None (raised)"
+        else:
+            expected = "<class 'ValueError'> (expected) != None (raised)"
+        with ShouldAssert(expected):
+            with ShouldRaise(ValueError):
+                pass
+
     def test_with_no_exception_when_neither_expected(self):
         with ShouldAssert("No exception raised!"):
             with ShouldRaise():
@@ -225,21 +230,6 @@ class TestShouldRaise(TestCase):
         with ShouldRaise(FileTypeError('X')):
             raise FileTypeError('X')
 
-    def test_assert_keyerror_raised(self):
-
-        class Dodgy(dict):
-            def __getattr__(self, name):
-                # NB: we forgot to turn our KeyError into an attribute error
-                return self[name]
-
-        if PY_37_PLUS:
-            expected = "AttributeError('foo') (expected) != KeyError('foo') (raised)"
-        else:
-            expected = "AttributeError('foo',) (expected) != KeyError('foo',) (raised)"
-        with ShouldAssert(expected):
-            with ShouldRaise(AttributeError('foo')):
-                Dodgy().foo
-
     def test_decorator_usage(self):
 
         @should_raise(ValueError('bad'))
@@ -262,13 +252,14 @@ class TestShouldRaise(TestCase):
             pass
 
     def test_unless_true_not_okay(self):
-        if PY_37_PLUS:
-            expected = "AttributeError('foo') raised, no exception expected"
-        else:
-            expected = "AttributeError('foo',) raised, no exception expected"
-        with ShouldAssert(expected):
+        expected_exception = AttributeError('foo')
+        try:
             with ShouldRaise(unless=True):
-                raise AttributeError('foo')
+                raise expected_exception
+        except AttributeError as actual_exception:
+            assert actual_exception is expected_exception
+        else:  # pragma: no cover
+            self.fail(('Wrong exception raised'))
 
     def test_unless_decorator_usage(self):
 

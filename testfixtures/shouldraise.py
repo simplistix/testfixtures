@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 from functools import wraps
-from testfixtures import Comparison, diff, compare
-from testfixtures.utils import match_type_or_instance
+from testfixtures import diff, compare
+from .compat import ClassType
 
 param_docs = """
 
@@ -42,19 +42,27 @@ class ShouldRaise(object):
     def __enter__(self):
         return self
 
-    def __exit__(self, type, actual, traceback):
+    def __exit__(self, type_, actual, traceback):
         __tracebackhide__ = True
         self.raised = actual
         if self.expected:
             if self.exception:
+                if actual is not None:
+                    if isinstance(self.exception, (ClassType, type)):
+                        actual = type(actual)
+                        if self.exception is not actual:
+                            return False
+                    else:
+                        if type(self.exception) is not type(actual):
+                            return False
                 compare(self.exception,
-                        match_type_or_instance(self.exception, actual),
+                        actual,
                         x_label='expected',
                         y_label='raised')
             elif not actual:
                 raise AssertionError('No exception raised!')
         elif actual:
-            raise AssertionError('%r raised, no exception expected' % actual)
+            return False
         return True
 
 

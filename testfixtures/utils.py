@@ -104,14 +104,6 @@ def extend_docstring(docstring, objs):
             pass
 
 
-def match_type_or_instance(expected, actual):
-    if isinstance(expected, (ClassType, type)):
-        type_actual = type(actual)
-        if expected is type_actual:
-            return type_actual
-    return actual
-
-
 def indent(text, indent_size = 2):
     indented = []
     for do_indent, line in enumerate(text.splitlines(True)):
