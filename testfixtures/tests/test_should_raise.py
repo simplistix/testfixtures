@@ -77,6 +77,17 @@ class TestShouldRaise(TestCase):
         else:  # pragma: no cover
             self.fail(('Wrong exception raised'))
 
+    def test_wrong_exception_type(self):
+        expected_exception = ValueError('bar')
+        def to_test():
+            raise expected_exception
+        try:
+            should_raise(KeyError('foo'))(to_test)()
+        except ValueError as actual_exception:
+            assert actual_exception is expected_exception
+        else:  # pragma: no cover
+            self.fail(('Wrong exception raised'))
+
     def test_no_supplied_or_raised(self):
         # effectvely we're saying "something should be raised!"
         # but we want to inspect s.raised rather than making
