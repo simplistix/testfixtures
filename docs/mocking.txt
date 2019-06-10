@@ -1,14 +1,19 @@
 Mocking out objects and methods
 ===============================
 
-Mocking is the process of replacing chunks of complex functionality
-that aren't the subject of the test with mock objects that allow you
-to check that the mocked out functionality is being used as expected. 
+.. py:currentmodule:: testfixtures
 
-In this way, you can break down testing of a complicated set of
-interacting components into testing of each individual component.
-The behaviour of components can then be tested individually, 
-irrespective of the behaviour of the components around it.
+Mocking is the process of replacing objects used in your code with ones
+that make testing easier, but only while the tests are running.
+
+This may mean replacing resources or dependencies, such as database
+connections or file paths, with ones that are isolated for testing.
+It may also mean replacing chunks of complex functionality
+that aren't the subject of the test with mock objects that allow you
+to check that the mocked out functionality is being used as expected.
+
+What to mock with
+-----------------
 
 Python has a standard mock implementation in the form of :mod:`unittest.mock`
 which is also available as a `rolling backport`__ so that the latest features
@@ -21,11 +26,22 @@ of :mod:`testfixtures.mock`. The contents are identical and preference is given
 to the rolling backport if it is present. The facade also contains any bugfixes
 that are critical to the operation of functionality provided by TestFixtures.
 
+TestFixtures also provides specialised mocks for dealing with
+:doc:`dates and times <datetime>` and :doc:`subprocesses <popen>`.
+
+How to mock
+-----------
+
+TestFixtures provides :class:`Replace`, :class:`Replacer` and the :func:`replace`
+decorator to mock out objects. These work in a similar way to
+:func:`unittest.mock.patch`, and have been around longer. They still provide a little
+more flexibility than :func:`~unittest.mock.patch`, so you whichever feels best in
+your codebase.
 
 Methods of replacement
 ----------------------
 
-TestFixtures provides three different methods of mocking out
+There are three different methods of mocking out
 functionality that can be used to replace functions, classes
 or even individual methods on a class. Consider the following module:
 
