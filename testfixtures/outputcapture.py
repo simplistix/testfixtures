@@ -21,6 +21,10 @@ class OutputCapture(object):
                to the file descriptors, but is more invasive, so only use it
                when you need it.
 
+    :param strip_whitespace:
+        When ``True``, which is the default, leading and training whitespace
+        is trimmed from both the expected and actual values when comparing.
+
     .. note:: If ``separate`` is passed as ``True``,
               :attr:`OutputCapture.captured` will be an empty string.
     """
@@ -28,9 +32,10 @@ class OutputCapture(object):
     original_stdout = None
     original_stderr = None
 
-    def __init__(self, separate=False, fd=False):
+    def __init__(self, separate=False, fd=False, strip_whitespace=True):
         self.separate = separate
         self.fd = fd
+        self.strip_whitespace = strip_whitespace
 
     def __enter__(self):
         if self.fd:
@@ -116,4 +121,7 @@ class OutputCapture(object):
         ):
             if self.fd and isinstance(_expected, Unicode):
                 _expected = _expected.encode()
-            compare(_expected.strip(), actual=captured.strip(), prefix=prefix)
+            if self.strip_whitespace:
+                _expected = _expected.strip()
+                captured = captured.strip()
+            compare(expected=_expected, actual=captured, prefix=prefix)

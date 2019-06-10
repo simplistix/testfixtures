@@ -5,14 +5,23 @@ from subprocess import call
 from unittest import TestCase
 
 from testfixtures import OutputCapture, compare
+from .test_compare import CompareHelper
 
-
-class TestOutputCapture(TestCase):
+class TestOutputCapture(CompareHelper, TestCase):
 
     def test_compare_strips(self):
         with OutputCapture() as o:
             print(' Bar! ')
         o.compare('Bar!')
+
+    def test_compare_doesnt_strip(self):
+        with OutputCapture(strip_whitespace=False) as o:
+            print(' Bar! ')
+        self.check_raises(
+            '\tBar!',
+            compare=o.compare,
+            message="'\\tBar!' (expected) != ' Bar! \\n' (actual)",
+        )
 
     def test_stdout_and_stderr(self):
         with OutputCapture() as o:

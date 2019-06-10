@@ -34,6 +34,7 @@ call_list_repr = repr(Mock().mock_calls.__class__)
 
 marker = object()
 
+_compare = compare
 
 class CompareHelper(object):
 
@@ -51,7 +52,7 @@ class CompareHelper(object):
             actual = hexsub(e.args[0])
             if message is not None:
                 # handy for debugging, but can't be relied on for tests!
-                compare(actual, expected=message, show_whitespace=True)
+                _compare(actual, expected=message, show_whitespace=True)
                 assert actual == message
             else:
                 if not regex.match(actual):  # pragma: no cover
