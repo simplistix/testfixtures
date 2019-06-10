@@ -45,6 +45,27 @@ class TestOutputCapture(CompareHelper, TestCase):
         o.compare(stdout="hello\nthere\n",
                   stderr="out\nnow\n")
 
+    def test_compare_both_at_once(self):
+        with OutputCapture(separate=True) as o:
+            print('hello', file=sys.stdout)
+            print('out', file=sys.stderr)
+        self.check_raises(
+            stdout="out\n",
+            stderr="hello\n",
+            compare=o.compare,
+            message=(
+                'dict not as expected:\n'
+                '\n'
+                'values differ:\n'
+                "'stderr': 'hello' (expected) != 'out' (actual)\n"
+                "'stdout': 'out' (expected) != 'hello' (actual)\n"
+                '\n'
+                "While comparing ['stderr']: 'hello' (expected) != 'out' (actual)\n"
+                '\n'
+                "While comparing ['stdout']: 'out' (expected) != 'hello' (actual)"
+            ),
+        )
+
     def test_original_restore(self):
         o_out, o_err = sys.stdout, sys.stderr
         with OutputCapture() as o:

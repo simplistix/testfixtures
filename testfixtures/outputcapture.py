@@ -114,8 +114,10 @@ class OutputCapture(object):
 
         :param stderr: A string containing the expected output to ``stderr``.
         """
+        expected_mapping = {}
+        actual_mapping = {}
         for prefix, _expected, captured in (
-                (None, expected, self.captured),
+                ('captured', expected, self.captured),
                 ('stdout', stdout, self._read(self.stdout)),
                 ('stderr', stderr, self._read(self.stderr)),
         ):
@@ -124,4 +126,10 @@ class OutputCapture(object):
             if self.strip_whitespace:
                 _expected = _expected.strip()
                 captured = captured.strip()
-            compare(expected=_expected, actual=captured, prefix=prefix)
+            if _expected != captured:
+                expected_mapping[prefix] = _expected
+                actual_mapping[prefix] = captured
+        if len(expected_mapping) == 1:
+            compare(expected=tuple(expected_mapping.values())[0],
+                    actual=tuple(actual_mapping.values())[0])
+        compare(expected=expected_mapping, actual=actual_mapping)
