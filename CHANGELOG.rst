@@ -10,9 +10,9 @@ Changes
 
 - Improve :doc:`mocking <mocking>` docs.
 
-- Add ``strip_whitespace`` option to :class:`OutputCapture`.
+- Added ``strip_whitespace`` option to :class:`OutputCapture`.
 
-- When ``separate`` is used with :class:`OutputCapture`, differences in ``stdout` and ``stderr``
+- When ``separate`` is used with :class:`OutputCapture`, differences in ``stdout`` and ``stderr``
   are now given in the same :class:`AssertionError`.
 
 - :class:`ShouldRaise` no longer catches exceptions that are not of the required type.
