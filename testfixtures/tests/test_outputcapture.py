@@ -82,7 +82,8 @@ class TestOutputCapture(CompareHelper, TestCase):
         self.assertTrue(sys.stdout is o_out)
         self.assertTrue(sys.stderr is o_err)
 
-class TestOutputCaptureWithFixtures(object):
+
+class TestOutputCaptureWithDescriptors(object):
 
     def test_fd(self, capfd):
         with capfd.disabled(), OutputCapture(fd=True) as o:
