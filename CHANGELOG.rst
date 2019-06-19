@@ -3,6 +3,12 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.10.0 (19 Jun 2019)
+-------------------
+
+- Better feedback where objects do not :func:`compare` equal but do have the same
+  representation.
+
 6.9.0 (10 Jun 2019)
 -------------------
 
