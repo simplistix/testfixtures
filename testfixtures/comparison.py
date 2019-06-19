@@ -16,7 +16,19 @@ def compare_simple(x, y, context):
     Returns a very simple textual difference between the two supplied objects.
     """
     if x != y:
-        return context.label('x', repr(x)) + ' != ' + context.label('y', repr(y))
+        repr_x = repr(x)
+        repr_y = repr(y)
+        if repr_x == repr_y:
+            x_attrs = _extract_attrs(x)
+            y_attrs = _extract_attrs(y)
+            diff = _compare_mapping(x_attrs, y_attrs, context, x,
+                                    'attributes ', '.%s')
+            if not diff:
+                return 'Both %s and %s appear as %r, but are not equal!' % (
+                    context.x_label or 'x', context.y_label or 'y', repr_x
+                )
+            return diff
+        return context.label('x', repr_x) + ' != ' + context.label('y', repr_y)
 
 
 def _extract_attrs(obj, ignore=None):

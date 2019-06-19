@@ -295,3 +295,33 @@ class TestShouldRaise(TestCase):
         ):
             with ShouldRaise(AnnoyingException(other='bar')):
                 raise AnnoyingException(other='baz')
+
+    def test_identical_reprs_but_args_different(self):
+        if PY2:
+            return
+
+        class MessageError(Exception):
+           def __init__(self, message, type=None):
+               self.message = message
+               self.type = type
+           def __repr__(self):
+               return 'MessageError({!r}, {!r})'.format(self.message, self.type)
+
+        with ShouldAssert(
+            "MessageError not as expected:\n\n"
+            'attributes same:\n'
+            "['message', 'type']\n\n"
+            "attributes differ:\n"
+            "'args': ('foo',) (expected) != ('foo', None) (raised)\n\n"
+            "While comparing .args: sequence not as expected:\n\n"
+            "same:\n"
+            "('foo',)\n\n"
+            "expected:\n"
+            "()\n\n"
+            "raised:\n"
+            "(None,)"
+        ):
+            with ShouldRaise(MessageError('foo')):
+                raise MessageError('foo', None)
+
+

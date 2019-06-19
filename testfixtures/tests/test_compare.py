@@ -1699,6 +1699,26 @@ b
 
         compare(partial(foo, 1, x=2), partial(foo, 1, x=2))
 
+    def test_repr_and_attributes_equal(self):
+
+        class Wut(object):
+            def __repr__(self):
+                return 'Wut'
+            def __eq__(self, other):
+                return False
+
+        self.check_raises(
+            Wut(),
+            Wut(),
+            "Both x and y appear as 'Wut', but are not equal!"
+        )
+
+        self.check_raises(
+            expected=Wut(),
+            actual=Wut(),
+            message="Both expected and actual appear as 'Wut', but are not equal!"
+        )
+
 
 class TestIgnore(CompareHelper):
 
