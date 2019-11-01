@@ -3,6 +3,11 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.10.1 (1 Nov 2019)
+-------------------
+
+- Fix edge case where string interning made dictionary comparison output much less useful.
+
 6.10.0 (19 Jun 2019)
 -------------------
 
