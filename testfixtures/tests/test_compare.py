@@ -1719,6 +1719,21 @@ b
             message="Both expected and actual appear as 'Wut', but are not equal!"
         )
 
+    def test_not_recursive(self):
+        self.check_raises(
+            {1: 'foo', 2: 'foo'},
+            {1: 'bar', 2: 'bar'},
+            "dict not as expected:\n"
+            "\n"
+            "values differ:\n"
+            "1: 'foo' != 'bar'\n"
+            "2: 'foo' != 'bar'\n"
+            "\n"
+            "While comparing [1]: 'foo' != 'bar'"
+            "\n\n"
+            "While comparing [2]: 'foo' != 'bar'"
+            )
+
 
 class TestIgnore(CompareHelper):
 

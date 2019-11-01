@@ -496,6 +496,9 @@ class CompareContext(object):
         return '\n\nWhile comparing %s: ' % ''.join(self.breadcrumbs[1:])
 
     def seen(self, x, y):
+        # don't get confused by string interning:
+        if isinstance(x, basestring) and isinstance(y, basestring):
+            return False
         key = id(x), id(y)
         if key in self._seen:
             return True
