@@ -32,24 +32,29 @@ def compare_simple(x, y, context):
 
 
 def _extract_attrs(obj, ignore=None):
+    try:
+        attrs = vars(obj).copy()
+    except TypeError:
+        attrs = None
+    else:
+        if isinstance(obj, BaseException):
+            attrs['args'] = obj.args
+
     has_slots = getattr(obj, '__slots__', not_there) is not not_there
     if has_slots:
         slots = set()
         for cls in type(obj).__mro__:
             slots.update(getattr(cls, '__slots__', ()))
-        attrs = {}
+        if slots and attrs is None:
+            attrs = {}
         for n in slots:
             value = getattr(obj, n, not_there)
             if value is not not_there:
                 attrs[n] = value
-    else:
-        try:
-            attrs = vars(obj).copy()
-        except TypeError:
-            return None
-        else:
-            if isinstance(obj, BaseException):
-                attrs['args'] = obj.args
+
+    if attrs is None:
+        return None
+
     if ignore is not None:
         if isinstance(ignore, dict):
             ignore = ignore.get(type(obj), ())

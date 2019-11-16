@@ -28,6 +28,7 @@ if PY_VERSION > (3, 0):
     from itertools import zip_longest
     from functools import reduce
     from collections.abc import Iterable
+    from abc import ABC
 
 else:
 
@@ -50,3 +51,5 @@ else:
     from itertools import izip_longest as zip_longest
     reduce = reduce
     from collections import Iterable
+    from abc import ABCMeta
+    ABC = ABCMeta('ABC', (object,), {}) # compatible with Python 2 *and* 3

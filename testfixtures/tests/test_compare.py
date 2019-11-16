@@ -19,7 +19,7 @@ from testfixtures import (
 from testfixtures.compat import (
     class_type_name, exception_module, PY3, xrange,
     BytesLiteral, UnicodeLiteral,
-    PY2, PY_37_PLUS
+    PY2, PY_37_PLUS, ABC
 )
 from testfixtures.comparison import compare_sequence
 from unittest import TestCase
@@ -1619,6 +1619,29 @@ b
 
         compare(Child(1), Child(1))
 
+    def test_slots_and_attrs(self):
+
+        class Parent(object):
+            __slots__ = ('a',)
+
+            def __init__(self, a):
+                self.a = a
+
+        class Child(Parent):
+            def __init__(self, a, b):
+                self.a = a
+                self.b = b
+
+        self.check_raises(Child(1, 2), Child(1, 3), message=(
+            'Child not as expected:\n'
+            '\n'
+            'attributes same:\n'
+            "['a']\n"
+            '\n'
+            'attributes differ:\n'
+            "'b': 2 != 3"
+        ))
+
     def test_partial_callable_different(self):
 
         def foo(x): pass
@@ -1772,3 +1795,57 @@ class TestIgnore(CompareHelper):
             "'id': 1 != 2",
             ignore_attributes=ignore
         )
+
+
+class BaseClass(ABC):
+    pass
+
+
+class MyDerivedClass(BaseClass):
+
+    def __init__(self, thing):
+        self.thing = thing
+
+
+class ConcreteBaseClass(object): pass
+
+
+class ConcreteDerivedClass(ConcreteBaseClass):
+
+    def __init__(self, thing):
+        self.thing = thing
+
+
+class TestBaseClasses(CompareHelper):
+
+    def test_abc_equal(self):
+        thing1 = MyDerivedClass(1)
+        thing2 = MyDerivedClass(1)
+
+        compare(thing1, thing2)
+
+    def test_abc_unequal(self):
+        thing1 = MyDerivedClass(1)
+        thing2 = MyDerivedClass(2)
+
+        self.check_raises(thing1, thing2, message=(
+            "MyDerivedClass not as expected:\n\n"
+            "attributes differ:\n"
+            "'thing': 1 != 2"
+        ))
+
+    def test_concrete_equal(self):
+        thing1 = ConcreteDerivedClass(1)
+        thing2 = ConcreteDerivedClass(1)
+
+        compare(thing1, thing2)
+
+    def test_concrete_unequal(self):
+        thing1 = ConcreteDerivedClass(1)
+        thing2 = ConcreteDerivedClass(2)
+
+        self.check_raises(thing1, thing2, message=(
+            "ConcreteDerivedClass not as expected:\n\n"
+            "attributes differ:\n"
+            "'thing': 1 != 2"
+        ))
