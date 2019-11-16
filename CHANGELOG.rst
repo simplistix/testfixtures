@@ -3,6 +3,12 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.10.2 (15 Nov 2019)
+--------------------
+
+- Fix bugs in :func:`compare` when comparing objects which have both ``__slots__``
+  and a ``__dict__``.
+
 6.10.1 (1 Nov 2019)
 -------------------
 
