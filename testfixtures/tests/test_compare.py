@@ -1624,9 +1624,6 @@ b
         class Parent(object):
             __slots__ = ('a',)
 
-            def __init__(self, a):
-                self.a = a
-
         class Child(Parent):
             def __init__(self, a, b):
                 self.a = a
