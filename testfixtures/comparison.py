@@ -74,7 +74,7 @@ def compare_object(x, y, context):
        attribute names to be ignored when comparing that type.
     """
     ignore_attributes = context.get_option('ignore_attributes', ())
-    if type(x) is not type(y) or isinstance(x, ClassType):
+    if type(x) is not type(y) or isinstance(x, (ClassType, type)):
         return compare_simple(x, y, context)
     x_attrs = _extract_attrs(x, ignore_attributes)
     y_attrs = _extract_attrs(y, ignore_attributes)

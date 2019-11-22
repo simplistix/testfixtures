@@ -748,6 +748,34 @@ class TestCompare(CompareHelper, TestCase):
             pass
         self.check_raises(X, Y, expected)
 
+    def test_new_style_classes_same(self):
+        class X(object):
+            pass
+        compare(X, X)
+
+    def test_new_style_classes_different(self):
+        if PY3:
+            expected = (
+                "<class 'testfixtures.tests.test_compare.TestCompare."
+                "test_new_style_classes_different.<locals>.X'>"
+                " != "
+                "<class 'testfixtures.tests.test_compare.TestCompare."
+                "test_new_style_classes_different.<locals>.Y'>"
+                )
+        else:
+            expected = (
+                "<class 'testfixtures.tests.test_compare.X'>"
+                " != "
+                "<class 'testfixtures.tests.test_compare.Y'>"
+                )
+
+        class X(object):
+            pass
+
+        class Y(object):
+            pass
+        self.check_raises(X, Y, expected)
+
     def test_show_whitespace(self):
         # does nothing! ;-)
         self.check_raises(
