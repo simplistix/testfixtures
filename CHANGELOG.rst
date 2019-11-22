@@ -3,6 +3,12 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.10.3 (22 Nov 2019)
+--------------------
+
+- Fix bug where new-style classes had their attributes checked with :func:`compare` even
+  when they were of different types.
+
 6.10.2 (15 Nov 2019)
 --------------------
 
