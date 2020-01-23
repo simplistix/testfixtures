@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from decimal import Decimal
 
 from functools import partial
 
@@ -83,6 +84,10 @@ class TestCompare(CompareHelper, TestCase):
 
     def test_number_different(self):
         self.check_raises(1, 2, '1 != 2')
+
+    def test_decimal_different(self):
+        self.check_raises(Decimal(1), Decimal(2),
+                          "Decimal('1') != Decimal('2')")
 
     def test_different_with_labels(self):
         self.check_raises(1, 2, '1 (expected) != 2 (actual)',
@@ -289,6 +294,30 @@ class TestCompare(CompareHelper, TestCase):
             "[3]\n\n"
             "second:\n"
             "[4]"
+            )
+
+    def test_list_different_float(self):
+        self.check_raises(
+            [1, 2, 3.0], [1, 2, 4.0],
+            "sequence not as expected:\n\n"
+            "same:\n"
+            "[1, 2]\n\n"
+            "first:\n"
+            "[3.0]\n\n"
+            "second:\n"
+            "[4.0]"
+            )
+
+    def test_list_different_decimal(self):
+        self.check_raises(
+            [1, 2, Decimal(3)], [1, 2, Decimal(4)],
+            "sequence not as expected:\n\n"
+            "same:\n"
+            "[1, 2]\n\n"
+            "first:\n"
+            "[Decimal('3')]\n\n"
+            "second:\n"
+            "[Decimal('4')]"
             )
 
     def test_list_totally_different(self):

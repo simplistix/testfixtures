@@ -1,3 +1,4 @@
+from decimal import Decimal
 from difflib import unified_diff
 from functools import partial
 from pprint import pformat
@@ -377,6 +378,7 @@ _registry = {
     Unicode: compare_text,
     int: compare_simple,
     float: compare_simple,
+    Decimal: compare_simple,
     GeneratorType: compare_generator,
     mock_call.__class__: compare_call,
     unittest_mock_call.__class__: compare_call,
