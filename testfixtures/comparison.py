@@ -457,6 +457,13 @@ class CompareContext(object):
         if actual is not not_there:
             possible.append(actual)
 
+        x = self.options.pop('x', not_there)
+        if x is not not_there:
+            possible.append(x)
+        y = self.options.pop('y', not_there)
+        if y is not not_there:
+            possible.append(y)
+
         if len(possible) != 2:
             message = 'Exactly two objects needed, you supplied:'
             if possible:
@@ -557,11 +564,13 @@ class CompareContext(object):
 
 def compare(*args, **kw):
     """
-    Compare the two arguments passed either positionally or using
-    explicit ``expected`` and ``actual`` keyword paramaters. An
-    :class:`AssertionError` will be raised if they are not the same.
-    The :class:`AssertionError` raised will attempt to provide
+    Compare two objects, raising an :class:`AssertionError` if they are not
+    the same. The :class:`AssertionError` raised will attempt to provide
     descriptions of the differences found.
+
+    The two objects to compare can be passed either positionally or using
+    explicit keyword arguments named ``x`` and ``y``, or ``expected`` and
+    ``actual``.
 
     Any other keyword parameters supplied will be passed to the functions
     that end up doing the comparison. See the API documentation below
@@ -574,6 +583,18 @@ def compare(*args, **kw):
     :param suffix: If provided, in the event of an :class:`AssertionError`
                    being raised, the suffix supplied will be appended to the
                    message in the :class:`AssertionError`.
+
+    :param x_label: If provided, in the event of an :class:`AssertionError`
+                    being raised, the object passed as the first positional
+                    argument, or ``x`` keyword argument, will be labelled
+                    with this string in the message in the
+                    :class:`AssertionError`.
+
+    :param x_label: If provided, in the event of an :class:`AssertionError`
+                    being raised, the object passed as the second positional
+                    argument, or ``y`` keyword argument, will be labelled
+                    with this string in the message in the
+                    :class:`AssertionError`.
 
     :param raises: If ``False``, the message that would be raised in the
                    :class:`AssertionError` will be returned instead of the
