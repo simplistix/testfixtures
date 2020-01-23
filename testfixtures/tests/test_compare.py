@@ -44,6 +44,11 @@ class CompareHelper(object):
         for value in x, y:
             if value is not marker:
                 args.append(value)
+        for value in 'x', 'y':
+            explicit = 'explicit_{}'.format(value)
+            if explicit in kw:
+                kw[value] = kw[explicit]
+                del kw[explicit]
         try:
             compare(*args, **kw)
         except Exception as e:
@@ -1353,13 +1358,18 @@ b
                           message="'x' (expected) != 'y' (actual)")
 
     def test_explicit_both(self):
-        self.check_raises(message="'x' (expected) != 'y' (actual)",
-                          expected='x', actual='y')
+        self.check_raises(expected='x', actual='y',
+                          message="'x' (expected) != 'y' (actual)")
+
+    def test_implicit_and_labels(self):
+        self.check_raises('x', 'y',
+                          x_label='x_label', y_label='y_label',
+                          message="'x' (x_label) != 'y' (y_label)")
 
     def test_explicit_and_labels(self):
-        self.check_raises(message="'x' (x_label) != 'y' (y_label)",
-                          expected='x', actual='y',
-                          x_label='x_label', y_label='y_label')
+        self.check_raises(explicit_x='x', explicit_y='y',
+                          x_label='x_label', y_label='y_label',
+                          message="'x' (x_label) != 'y' (y_label)")
 
     def test_invalid_two_args_expected(self):
         with ShouldRaise(TypeError(
