@@ -427,38 +427,70 @@ class TestC(TestCase):
             AClass(1, 2),
             )
 
-    def test_property_strict(self):
-        self.run_property_test(strict=True)
+    def test_property_equal_strict(self):
+        self.run_property_equal_test(strict=True)
 
-    def test_property_not_strict(self):
-        self.run_property_test(strict=False)
+    def test_property_equal_not_strict(self):
+        self.run_property_equal_test(strict=False)
 
-    def run_property_test(self, strict):
-        value = object()
-
+    def run_property_equal_test(self, strict):
         class SomeClass(object):
             @property
             def prop(self):
-                return value
+                return 1
 
         self.assertEqual(
-            C(SomeClass, prop=value, strict=strict),
+            C(SomeClass, prop=1, strict=strict),
             SomeClass()
         )
 
-    def test_method_strict(self):
-        self.run_property_test(strict=True)
+    def test_property_not_equal_strict(self):
+        self.run_property_not_equal_test(strict=True)
 
-    def test_method_not_strict(self):
-        self.run_property_test(strict=False)
+    def test_property_not_equal_not_strict(self):
+        self.run_property_not_equal_test(strict=False)
 
-    def run_method_test(self, strict):
+    def run_property_not_equal_test(self, strict):
+        class SomeClass(object):
+            @property
+            def prop(self):
+                return 1
+
+        self.assertNotEqual(
+            C(SomeClass, prop=2, strict=strict),
+            SomeClass()
+        )
+
+    def test_method_equal_strict(self):
+        self.run_method_equal_test(strict=True)
+
+    def test_method_equal_not_strict(self):
+        self.run_method_equal_test(strict=False)
+
+    def run_method_equal_test(self, strict):
         class SomeClass(object):
             def meth(self):
                 pass
 
+        instance = SomeClass()
         self.assertEqual(
-            C(SomeClass, meth=SomeClass.meth, strict=strict),
+            C(SomeClass, meth=instance.meth, strict=strict),
+            instance
+        )
+
+    def test_method_not_equal_strict(self):
+        self.run_method_not_equal_test(strict=True)
+
+    def test_method_not_equal_not_strict(self):
+        self.run_method_not_equal_test(strict=False)
+
+    def run_method_not_equal_test(self, strict):
+        class SomeClass(object):
+            def meth(self):
+                pass
+
+        self.assertNotEqual(
+            C(SomeClass, meth=object.__init__, strict=strict),
             SomeClass()
         )
 
