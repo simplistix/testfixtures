@@ -427,6 +427,41 @@ class TestC(TestCase):
             AClass(1, 2),
             )
 
+    def test_property_strict(self):
+        self.run_property_test(strict=True)
+
+    def test_property_not_strict(self):
+        self.run_property_test(strict=False)
+
+    def run_property_test(self, strict):
+        value = object()
+
+        class SomeClass(object):
+            @property
+            def prop(self):
+                return value
+
+        self.assertEqual(
+            C(SomeClass, prop=value, strict=strict),
+            SomeClass()
+        )
+
+    def test_method_strict(self):
+        self.run_property_test(strict=True)
+
+    def test_method_not_strict(self):
+        self.run_property_test(strict=False)
+
+    def run_method_test(self, strict):
+        class SomeClass(object):
+            def meth(self):
+                pass
+
+        self.assertEqual(
+            C(SomeClass, meth=SomeClass.meth, strict=strict),
+            SomeClass()
+        )
+
     def test_exception(self):
         self.assertEqual(
             ValueError('foo'),
