@@ -427,6 +427,85 @@ class TestC(TestCase):
             AClass(1, 2),
             )
 
+    def run_property_equal_test(self, strict):
+        class SomeClass(object):
+            @property
+            def prop(self):
+                return 1
+
+        self.assertEqual(
+            C(SomeClass, prop=1, strict=strict),
+            SomeClass()
+        )
+
+    def test_property_equal_strict(self):
+        self.run_property_equal_test(strict=True)
+
+    def test_property_equal_not_strict(self):
+        self.run_property_equal_test(strict=False)
+
+    def run_property_not_equal_test(self, strict):
+        class SomeClass(object):
+            @property
+            def prop(self):
+                return 1
+
+        c = C(SomeClass, prop=2, strict=strict)
+        self.assertNotEqual(c, SomeClass())
+        compare_repr(
+            c,
+            "\n"
+            "<C(failed):testfixtures.tests.test_comparison.SomeClass>\n"
+            "attributes differ:\n"
+            "'prop': 2 (Comparison) != 1 (actual)\n"
+            "</C>")
+
+    def test_property_not_equal_strict(self):
+        self.run_property_not_equal_test(strict=True)
+
+    def test_property_not_equal_not_strict(self):
+        self.run_property_not_equal_test(strict=False)
+
+    def run_method_equal_test(self, strict):
+        class SomeClass(object):
+            def method(self):
+                pass  # pragma: no cover
+
+        instance = SomeClass()
+        self.assertEqual(
+            C(SomeClass, method=instance.method, strict=strict),
+            instance
+        )
+
+    def test_method_equal_strict(self):
+        self.run_method_equal_test(strict=True)
+
+    def test_method_equal_not_strict(self):
+        self.run_method_equal_test(strict=False)
+
+    def run_method_not_equal_test(self, strict):
+        class SomeClass(object): pass
+        instance = SomeClass()
+        instance.method = min
+
+        c = C(SomeClass, method=max, strict=strict)
+        self.assertNotEqual(c, instance)
+        compare_repr(
+            c,
+            "\n"
+            "<C(failed):testfixtures.tests.test_comparison.SomeClass>\n"
+            "attributes differ:\n"
+            "'method': <built-in function max> (Comparison)"
+            " != <built-in function min> (actual)\n"
+            "</C>"
+        )
+
+    def test_method_not_equal_strict(self):
+        self.run_method_not_equal_test(strict=True)
+
+    def test_method_not_equal_not_strict(self):
+        self.run_method_not_equal_test(strict=False)
+
     def test_exception(self):
         self.assertEqual(
             ValueError('foo'),

@@ -697,15 +697,19 @@ class Comparison(object):
         if self.v is None:
             return True
 
+        remaining_keys = set(self.v.keys())
         if self.strict:
             v = _extract_attrs(other)
+            remaining_keys -= set(v.keys())
         else:
             v = {}
-            for k in self.v.keys():
-                try:
-                    v[k] = getattr(other, k)
-                except AttributeError:
-                    pass
+
+        while remaining_keys:
+            k = remaining_keys.pop()
+            try:
+                v[k] = getattr(other, k)
+            except AttributeError:
+                pass
 
         kw = {'x_label': 'Comparison', 'y_label': 'actual'}
         context = CompareContext(kw)
