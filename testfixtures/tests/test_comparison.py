@@ -469,12 +469,12 @@ class TestC(TestCase):
 
     def run_method_equal_test(self, strict):
         class SomeClass(object):
-            def meth(self):
-                pass
+            def method(self):
+                pass  # pragma: no cover
 
         instance = SomeClass()
         self.assertEqual(
-            C(SomeClass, meth=instance.meth, strict=strict),
+            C(SomeClass, method=instance.method, strict=strict),
             instance
         )
 
@@ -486,11 +486,11 @@ class TestC(TestCase):
 
     def run_method_not_equal_test(self, strict):
         class SomeClass(object):
-            def meth(self):
-                pass
+            def method(self):
+                pass  # pragma: no cover
 
         self.assertNotEqual(
-            C(SomeClass, meth=object.__init__, strict=strict),
+            C(SomeClass, method=object.__init__, strict=strict),
             SomeClass()
         )
 
