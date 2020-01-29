@@ -3,6 +3,20 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.11.0 (29 Jan 2019)
+--------------------
+
+- :class:`decimal.Decimal` now has better representation when :func:`compare` displays a failed
+  comparison, particularly on Python 2.
+
+- Add support to :func:`compare` for explicitly naming objects to be compared as ``x`` and ``y``.
+  This allows symmetry with the ``x_label`` and ``y_label`` parameters that are now documented.
+
+- Restore ability for :class:`Comparison` to compare properties and methods, although these uses
+  are not recommended.
+
+Thanks to Daniel Fortunov for all of the above.
+
 6.10.3 (22 Nov 2019)
 --------------------
 
@@ -21,7 +35,7 @@ Changes
 - Fix edge case where string interning made dictionary comparison output much less useful.
 
 6.10.0 (19 Jun 2019)
--------------------
+--------------------
 
 - Better feedback where objects do not :func:`compare` equal but do have the same
   representation.
