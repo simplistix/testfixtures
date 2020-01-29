@@ -3,7 +3,7 @@ Changes
 
 .. currentmodule:: testfixtures
 
-6.11.0 (29 Jan 2019)
+6.11.0 (29 Jan 2020)
 --------------------
 
 - :class:`decimal.Decimal` now has better representation when :func:`compare` displays a failed
