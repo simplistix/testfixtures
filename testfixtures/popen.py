@@ -1,9 +1,10 @@
 import pipes
 from functools import wraps, partial
+from io import TextIOWrapper
 from itertools import chain
 from subprocess import STDOUT, PIPE
 from tempfile import TemporaryFile
-from testfixtures.compat import basestring, PY3, zip_longest, reduce
+from testfixtures.compat import basestring, PY3, zip_longest, reduce, PY2
 from testfixtures.utils import extend_docstring
 
 from .mock import Mock, call
@@ -61,7 +62,7 @@ class MockPopenInstance(object):
                  env=None, universal_newlines=False,
                  startupinfo=None, creationflags=0, restore_signals=True,
                  start_new_session=False, pass_fds=(),
-                 encoding=None, errors=None):
+                 encoding=None, errors=None, text=None):
         self.mock = Mock()
         self.class_instance_mock = mock_class.mock.Popen_instance
         #: A :func:`unittest.mock.call` representing the call made to instantiate
@@ -105,6 +106,8 @@ class MockPopenInstance(object):
                 value.write(mock_value)
                 value.flush()
                 value.seek(0)
+                if PY3 and (universal_newlines or text or encoding):
+                    value = TextIOWrapper(value, encoding=encoding, errors=errors)
             setattr(self, name, value)
 
         if stdin == PIPE:

@@ -185,6 +185,54 @@ class Tests(TestCase):
                 call.Popen('a command', shell=True, stderr=PIPE, stdout=PIPE),
                 ], Popen.mock.method_calls)
 
+    def test_communicate_text_mode(self):
+        Popen = MockPopen()
+        Popen.set_command('a command', stdout=b'foo', stderr=b'bar')
+        # usage
+        process = Popen('a command', stdout=PIPE, stderr=PIPE, text=True)
+        actual = process.communicate()
+        # check
+        compare(actual, expected=(u'foo', u'bar'))
+
+    def test_communicate_universal_newlines(self):
+        Popen = MockPopen()
+        Popen.set_command('a command', stdout=b'foo', stderr=b'bar')
+        # usage
+        process = Popen('a command', stdout=PIPE, stderr=PIPE, universal_newlines=True)
+        actual = process.communicate()
+        # check
+        compare(actual, expected=(u'foo', u'bar'))
+
+    def test_communicate_encoding(self):
+        Popen = MockPopen()
+        Popen.set_command('a command', stdout=b'foo', stderr=b'bar')
+        # usage
+        process = Popen('a command', stdout=PIPE, stderr=PIPE, encoding='ascii')
+        actual = process.communicate()
+        # check
+        compare(actual, expected=(u'foo', u'bar'))
+
+    def test_communicate_encoding_with_errors(self):
+        Popen = MockPopen()
+        Popen.set_command('a command', stdout=b'\xa3', stderr=b'\xa3')
+        # usage
+        process = Popen('a command', stdout=PIPE, stderr=PIPE, encoding='ascii', errors='ignore')
+        actual = process.communicate()
+        # check
+        if PY2:
+            compare(actual, expected=(b'\xa3', b'\xa3'))
+        else:
+            compare(actual, expected=(u'', u''))
+
+    def test_read_from_stdout_and_stderr_text_mode(self):
+        Popen = MockPopen()
+        Popen.set_command('a command', stdout=b'foo', stderr=b'bar')
+        # usage
+        process = Popen('a command', stdout=PIPE, stderr=PIPE, text=True)
+        actual = process.stdout.read(), process.stderr.read()
+        # check
+        compare(actual, expected=(u'foo', u'bar'))
+
     def test_write_to_stdin(self):
         # setup
         Popen = MockPopen()
