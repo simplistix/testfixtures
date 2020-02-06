@@ -3,6 +3,12 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.12.0 (6 Feb 2020)
+-------------------
+
+- Add support for ``universal_newlines``, ``text``, ``encoding`` and ``errors`` to
+  :class:`popen.MockPopen`, but only for Python 3.
+
 6.11.0 (29 Jan 2020)
 --------------------
 
