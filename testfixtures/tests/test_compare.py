@@ -1806,6 +1806,21 @@ b
             message="Both expected and actual appear as 'Wut', but are not equal!"
         )
 
+    def test_string_with_slotted(self):
+
+        class Slotted(object):
+            __slots__ = ['foo']
+            def __init__(self, foo):
+                self.foo = foo
+            def __repr__(self):
+                return repr(self.foo)
+
+        self.check_raises(
+            'foo',
+            Slotted('foo'),
+            "'foo' (<class 'str'>) != 'foo' (%s)" % repr(Slotted)
+        )
+
     def test_not_recursive(self):
         self.check_raises(
             {1: 'foo', 2: 'foo'},

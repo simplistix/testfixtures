@@ -20,6 +20,8 @@ def compare_simple(x, y, context):
         repr_x = repr(x)
         repr_y = repr(y)
         if repr_x == repr_y:
+            if type(x) is not type(y):
+                return compare_with_type(x, y, context)
             x_attrs = _extract_attrs(x)
             y_attrs = _extract_attrs(y)
             diff = _compare_mapping(x_attrs, y_attrs, context, x,
