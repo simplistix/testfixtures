@@ -3,6 +3,12 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.12.1 (16 Feb 2020)
+--------------------
+
+- Fix a bug that occured when using :func:`compare` to compare a string with a
+  slotted object that had the same :func:`repr` as the string.
+
 6.12.0 (6 Feb 2020)
 -------------------
 
