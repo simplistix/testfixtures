@@ -1818,7 +1818,7 @@ b
         self.check_raises(
             'foo',
             Slotted('foo'),
-            "'foo' (<class 'str'>) != 'foo' (%s)" % repr(Slotted)
+            "'foo' (%s) != 'foo' (%s)" % (repr(str), repr(Slotted))
         )
 
     def test_not_recursive(self):
