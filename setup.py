@@ -13,6 +13,7 @@ optional = [
     'zope.component',
     'django<2;python_version<"3"',
     'django;python_version>="3"',
+    'sybil',
     'twisted'
 ]
 
@@ -44,7 +45,6 @@ setup(
         test=['pytest>=3.6',
               'pytest-cov',
               'pytest-django',
-              'sybil',
               ]+optional,
         docs=['sphinx']+optional,
         build=['setuptools-git', 'wheel', 'twine']
