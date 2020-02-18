@@ -1883,7 +1883,7 @@ class TestIgnore(CompareHelper):
 
 class TestCompareObject(object):
 
-    class Thing:
+    class Thing(object):
         def __init__(self, **kw):
             for k, v in kw.items():
                 setattr(self, k, v)
