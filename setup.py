@@ -8,6 +8,14 @@ from setuptools import setup, find_packages
 name = 'testfixtures'
 base_dir = os.path.dirname(__file__)
 
+optional = [
+    'mock;python_version<"3"',
+    'zope.component',
+    'django<2;python_version<"3"',
+    'django;python_version>="3"',
+    'twisted'
+]
+
 setup(
     name=name,
     version=open(os.path.join(base_dir, name, 'version.txt')).read().strip(),
@@ -36,13 +44,9 @@ setup(
         test=['pytest>=3.6',
               'pytest-cov',
               'pytest-django',
-              'mock;python_version<"3"',
               'sybil',
-              'zope.component',
-              'django<2;python_version<"3"',
-              'django;python_version>="3"',
-              'twisted'],
-        docs=['sphinx'],
+              ]+optional,
+        docs=['sphinx']+optional,
         build=['setuptools-git', 'wheel', 'twine']
     )
 )
