@@ -37,36 +37,41 @@ marker = object()
 
 _compare = compare
 
+
+def check_raises(x=marker, y=marker, message=None, regex=None,
+                 compare=compare, **kw):
+    args = []
+    for value in x, y:
+        if value is not marker:
+            args.append(value)
+    for value in 'x', 'y':
+        explicit = 'explicit_{}'.format(value)
+        if explicit in kw:
+            kw[value] = kw[explicit]
+            del kw[explicit]
+    try:
+        compare(*args, **kw)
+    except Exception as e:
+        if not isinstance(e, AssertionError):  # pragma: no cover
+            raise
+        actual = hexsub(e.args[0])
+        if message is not None:
+            # handy for debugging, but can't be relied on for tests!
+            _compare(actual, expected=message, show_whitespace=True)
+            assert actual == message
+        else:
+            if not regex.match(actual):  # pragma: no cover
+                raise AssertionError(
+                    '%r did not match %r' % (actual, regex.pattern)
+                )
+    else:
+        raise AssertionError('No exception raised!')
+
+
 class CompareHelper(object):
 
-    def check_raises(self, x=marker, y=marker, message=None, regex=None,
-                     compare=compare, **kw):
-        args = []
-        for value in x, y:
-            if value is not marker:
-                args.append(value)
-        for value in 'x', 'y':
-            explicit = 'explicit_{}'.format(value)
-            if explicit in kw:
-                kw[value] = kw[explicit]
-                del kw[explicit]
-        try:
-            compare(*args, **kw)
-        except Exception as e:
-            if not isinstance(e, AssertionError):  # pragma: no cover
-                raise
-            actual = hexsub(e.args[0])
-            if message is not None:
-                # handy for debugging, but can't be relied on for tests!
-                _compare(actual, expected=message, show_whitespace=True)
-                assert actual == message
-            else:
-                if not regex.match(actual):  # pragma: no cover
-                    raise AssertionError(
-                        '%r did not match %r' % (actual, regex.pattern)
-                    )
-        else:
-            raise AssertionError('No exception raised!')
+    def check_raises(self, *args, **kw):
+        check_raises(*args, **kw)
 
 
 class TestCompare(CompareHelper, TestCase):
