@@ -1,3 +1,8 @@
+"""
+testfixtures.comparison
+-----------------------
+"""
+
 from decimal import Decimal
 from difflib import unified_diff
 from functools import partial
@@ -587,7 +592,8 @@ def compare(*args, **kw):
     ``actual``.
 
     Any other keyword parameters supplied will be passed to the functions
-    that end up doing the comparison. See the API documentation below
+    that end up doing the comparison. See the
+    :mod:`API documentation below <testfixtures.comparison>`
     for details of these.
 
     :param prefix: If provided, in the event of an :class:`AssertionError`

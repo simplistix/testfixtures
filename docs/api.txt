@@ -3,6 +3,8 @@ API Reference
 
 .. currentmodule:: testfixtures
 
+.. autofunction:: compare(x, y, prefix=None, suffix=None, raises=True, recursive=True, strict=False, comparers=None, **kw)
+
 .. autoclass:: Comparison
 
 .. autoclass:: LogCapture
@@ -41,30 +43,6 @@ API Reference
 
 .. autoclass:: TempDirectory
    :members:
-
-.. autofunction:: compare(x, y, prefix=None, suffix=None, raises=True, recursive=True, strict=False, comparers=None, **kw)
-
-.. autofunction:: testfixtures.comparison.register
-
-.. autofunction:: testfixtures.comparison.compare_simple
-
-.. autofunction:: testfixtures.comparison.compare_object
-
-.. autofunction:: testfixtures.comparison.compare_exception
-
-.. autofunction:: testfixtures.comparison.compare_with_type
-
-.. autofunction:: testfixtures.comparison.compare_sequence
-
-.. autofunction:: testfixtures.comparison.compare_generator
-
-.. autofunction:: testfixtures.comparison.compare_tuple
-
-.. autofunction:: testfixtures.comparison.compare_dict
-
-.. autofunction:: testfixtures.comparison.compare_set
-
-.. autofunction:: testfixtures.comparison.compare_text
 
 .. autofunction:: diff
 
@@ -347,6 +325,32 @@ API Reference
 
    A singleton used to represent the absence of a particular attribute.
 
+
+.. automodule:: testfixtures.comparison
+
+.. autofunction:: testfixtures.comparison.register
+
+.. autofunction:: testfixtures.comparison.compare_simple
+
+.. autofunction:: testfixtures.comparison.compare_object
+
+.. autofunction:: testfixtures.comparison.compare_exception
+
+.. autofunction:: testfixtures.comparison.compare_with_type
+
+.. autofunction:: testfixtures.comparison.compare_sequence
+
+.. autofunction:: testfixtures.comparison.compare_generator
+
+.. autofunction:: testfixtures.comparison.compare_tuple
+
+.. autofunction:: testfixtures.comparison.compare_dict
+
+.. autofunction:: testfixtures.comparison.compare_set
+
+.. autofunction:: testfixtures.comparison.compare_text
+
+
 .. currentmodule:: testfixtures.popen
 
 .. automodule:: testfixtures.popen
@@ -361,7 +365,9 @@ API Reference
       automatically set to make comparing django :class:`~django.db.models.Model`
       instances easier.
 
+
 .. automodule:: testfixtures.mock
+
 
 .. automodule:: testfixtures.twisted
    :member-order: bysource
