@@ -59,14 +59,21 @@ def _extract_attrs(obj, ignore=None):
         return None
 
     if ignore is not None:
-        if isinstance(ignore, dict):
-            ignore = ignore.get(type(obj), ())
         for attr in ignore:
             attrs.pop(attr, None)
     return attrs
 
 
-def compare_object(x, y, context):
+def _attrs_to_ignore(context, ignore_attributes, obj):
+    ignore = context.get_option('ignore_attributes', ())
+    if isinstance(ignore, dict):
+        ignore = ignore.get(type(obj), ())
+    ignore = set(ignore)
+    ignore.update(ignore_attributes)
+    return ignore
+
+
+def compare_object(x, y, context, ignore_attributes=()):
     """
     Compare the two supplied objects based on their type and attributes.
 
@@ -75,12 +82,17 @@ def compare_object(x, y, context):
        Either a sequence of strings containing attribute names to be ignored
        when comparing or a mapping of type to sequence of strings containing
        attribute names to be ignored when comparing that type.
+
+       This may be specified as either a parameter to this function or in the
+       ``context``. If specified in both, they will both apply with precedence
+       given to whatever is specified is specified as a parameter.
+       If specified as a parameter to this fucntion, it may only be a list of
+       strings.
     """
-    ignore_attributes = context.get_option('ignore_attributes', ())
     if type(x) is not type(y) or isinstance(x, (ClassType, type)):
         return compare_simple(x, y, context)
-    x_attrs = _extract_attrs(x, ignore_attributes)
-    y_attrs = _extract_attrs(y, ignore_attributes)
+    x_attrs = _extract_attrs(x, _attrs_to_ignore(context, ignore_attributes, x))
+    y_attrs = _extract_attrs(y, _attrs_to_ignore(context, ignore_attributes, y))
     if x_attrs is None or y_attrs is None or not (x_attrs and y_attrs):
         return compare_simple(x, y, context)
     if x_attrs != y_attrs:

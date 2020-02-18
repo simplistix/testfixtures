@@ -22,7 +22,7 @@ from testfixtures.compat import (
     BytesLiteral, UnicodeLiteral,
     PY2, PY_37_PLUS, ABC
 )
-from testfixtures.comparison import compare_sequence
+from testfixtures.comparison import compare_sequence, compare_object
 from unittest import TestCase
 
 hexaddr = compile('0x[0-9A-Fa-f]+')
@@ -1879,6 +1879,34 @@ class TestIgnore(CompareHelper):
             "'id': 1 != 2",
             ignore_attributes=ignore
         )
+
+
+class TestCompareObject(object):
+
+    class Thing:
+        def __init__(self, **kw):
+            for k, v in kw.items():
+                setattr(self, k, v)
+
+    def test_ignore(self):
+        def compare_thing(x, y, context):
+            return compare_object(x, y, context, ignore_attributes=['y'])
+        compare(self.Thing(x=1, y=2), self.Thing(x=1, y=3),
+                comparers={self.Thing: compare_thing})
+
+    def test_ignore_dict_context_list_param(self):
+        def compare_thing(x, y, context):
+            return compare_object(x, y, context, ignore_attributes=['y'])
+        compare(self.Thing(x=1, y=2, z=3), self.Thing(x=1, y=4, z=5),
+                comparers={self.Thing: compare_thing},
+                ignore_attributes={self.Thing: ['z']})
+
+    def test_ignore_list_context_list_param(self):
+        def compare_thing(x, y, context):
+            return compare_object(x, y, context, ignore_attributes=['y'])
+        compare(self.Thing(x=1, y=2, z=3), self.Thing(x=1, y=4, z=5),
+                comparers={self.Thing: compare_thing},
+                ignore_attributes=['z'])
 
 
 class BaseClass(ABC):
