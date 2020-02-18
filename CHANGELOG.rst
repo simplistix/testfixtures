@@ -3,6 +3,13 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.13.0 (18 Feb 2020)
+--------------------
+
+- Allow any attributes that need to be ignored to be specified directly when calling
+  :func:`~testfixtures.comparison.compare_object`. This is handy when writing
+  comparers for :func:`compare`.
+
 6.12.1 (16 Feb 2020)
 --------------------
 
