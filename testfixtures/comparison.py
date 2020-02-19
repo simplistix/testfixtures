@@ -366,8 +366,17 @@ def compare_bytes(x, y, context):
 def compare_call(x, y, context):
     if x == y:
         return
-    x_name, x_args, x_kw = x
-    y_name, y_args, y_kw = y
+
+    def extract(call):
+        try:
+            name, args, kwargs = call
+        except ValueError:
+            name = None
+            args, kwargs = call
+        return name, args, kwargs
+
+    x_name, x_args, x_kw = extract(x)
+    y_name, y_args, y_kw = extract(y)
     if x_name == y_name and x_args == y_args and x_kw == y_kw:
         return compare_call(getattr(x, parent_name), getattr(y, parent_name), context)
     return compare_text(repr(x), repr(y), context)

@@ -1519,8 +1519,8 @@ b
         compare(m.mock_calls, m.mock_calls, strict=True)
 
     def test_calls_different(self):
-        m1 =Mock()
-        m2 =Mock()
+        m1 = Mock()
+        m2 = Mock()
         m1.foo(1, 2, x=3, y=4)
         m2.bar(1, 3, x=7, y=4)
 
@@ -1542,6 +1542,16 @@ b
             "'call.foo(1, 2, x=3, y=4)'\n"
             '!=\n'
             "'call.bar(1, 3, x=7, y=4)'"
+        )
+
+    def test_call_args_different(self):
+        m = Mock()
+        m.foo(1)
+
+        self.check_raises(
+            m.foo.call_args,
+            call(2),
+            "'call(1)' != 'call(2)'"
         )
 
     def test_compare_arbitrary_nested_same(self):
