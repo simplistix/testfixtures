@@ -3,6 +3,14 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.13.1 (20 Feb 2020)
+--------------------
+
+- Fix for using :func:`compare` to compare two-element :func:`~unittest.mock.call`
+  objects.
+
+Thanks to Daniel Fortunov for the fix.
+
 6.13.0 (18 Feb 2020)
 --------------------
 
