@@ -3,6 +3,11 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.14.0 (24 Feb 2020)
+--------------------
+
+- Add support for non-deterministic logging order when using :meth:`twisted.LogCapture`.
+
 6.13.1 (20 Feb 2020)
 --------------------
 
