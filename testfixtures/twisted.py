@@ -6,6 +6,8 @@ Tools for helping to test Twisted applications.
 """
 from __future__ import absolute_import
 
+from pprint import pformat
+
 from . import compare
 from twisted.logger import globalLogPublisher, formatEvent, LogLevel
 
@@ -40,19 +42,44 @@ class LogCapture(object):
         "Stop capturing."
         globalLogPublisher._observers = self.original_observers
 
-    def check(self, *expected):
+    def check(self, *expected, **kw):
         """
         Check captured events against those supplied. Please see the ``fields`` parameter
         to the constructor to see how "actual" events are built.
+
+        :param order_matters:
+          This defaults to ``True``. If ``False``, the order of expected logging versus
+          actual logging will be ignored.
         """
+        order_matters = kw.pop('order_matters', True)
+        assert not kw, 'order_matters is the only keyword parameter'
         actual = []
         for event in self.events:
-            actual_event = [field(event) if callable(field) else event.get(field)
-                            for field in self.fields]
+            actual_event = tuple(field(event) if callable(field) else event.get(field)
+                            for field in self.fields)
             if len(actual_event) == 1:
                 actual_event = actual_event[0]
             actual.append(actual_event)
-        compare(expected=expected, actual=actual)
+        if order_matters:
+            compare(expected=expected, actual=actual)
+        else:
+            expected = list(expected)
+            matched = []
+            unmatched = []
+            for entry in actual:
+                try:
+                    index = expected.index(entry)
+                except ValueError:
+                    unmatched.append(entry)
+                else:
+                    matched.append(expected.pop(index))
+            if expected:
+                raise AssertionError((
+                    'entries not as expected:\n\n'
+                    'expected and found:\n%s\n\n'
+                    'expected but not found:\n%s\n\n'
+                    'other entries:\n%s'
+                ) % (pformat(matched), pformat(expected), pformat(unmatched)))
 
     def check_failure_text(self, expected, index=-1, attribute='value'):
         """

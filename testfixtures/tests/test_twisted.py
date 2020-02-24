@@ -2,7 +2,7 @@ from twisted.logger import Logger, formatEvent
 from twisted.python.failure import Failure
 from twisted.trial.unittest import TestCase
 
-from testfixtures import compare, ShouldRaise
+from testfixtures import compare, ShouldRaise, StringComparison as S, ShouldAssert
 from testfixtures.twisted import LogCapture, INFO
 
 log = Logger()
@@ -80,3 +80,87 @@ class TestLogCapture(TestCase):
             capture.raise_logged_failure(start_index=1)
         compare(s.raised.value, expected=TypeError('all gone wrong'))
         self.flushLoggedErrors()
+
+    def test_order_doesnt_matter_ok(self):
+        capture = LogCapture.make(self)
+        log.info('Failed to send BAR')
+        log.info('Sent FOO, length 1234')
+        log.info('Sent 1 Messages')
+        capture.check(
+            (INFO, S('Sent FOO, length \d+')),
+            (INFO, 'Failed to send BAR'),
+            (INFO, 'Sent 1 Messages'),
+            order_matters=False
+        )
+
+    def test_order_doesnt_matter_failure(self):
+        capture = LogCapture.make(self)
+        log.info('Failed to send BAR')
+        log.info('Sent FOO, length 1234')
+        log.info('Sent 1 Messages')
+        with ShouldAssert(
+            "entries not as expected:\n"
+            "\n"
+            "expected and found:\n"
+            "[(<LogLevel=info>, 'Failed to send BAR'), (<LogLevel=info>, 'Sent 1 Messages')]\n"
+            "\n"
+            "expected but not found:\n"
+            "[(<LogLevel=info>, <S:Sent FOO, length abc>)]\n"
+            "\n"
+            "other entries:\n"
+            "[(<LogLevel=info>, 'Sent FOO, length 1234')]"
+        ):
+            capture.check(
+                (INFO, S('Sent FOO, length abc')),
+                (INFO, 'Failed to send BAR'),
+                (INFO, 'Sent 1 Messages'),
+                order_matters=False
+            )
+
+    def test_order_doesnt_matter_extra_in_expected(self):
+        capture = LogCapture.make(self)
+        log.info('Failed to send BAR')
+        log.info('Sent FOO, length 1234')
+        with ShouldAssert(
+            "entries not as expected:\n"
+            "\n"
+            "expected and found:\n"
+            "[(<LogLevel=info>, 'Failed to send BAR'),\n"
+            " (<LogLevel=info>, <S:Sent FOO, length 1234>)]\n"
+            "\n"
+            "expected but not found:\n"
+            "[(<LogLevel=info>, 'Sent 1 Messages')]\n"
+            "\n"
+            "other entries:\n"
+            "[]"
+        ):
+            capture.check(
+                (INFO, S('Sent FOO, length 1234')),
+                (INFO, 'Failed to send BAR'),
+                (INFO, 'Sent 1 Messages'),
+                order_matters=False
+            )
+
+    def test_order_doesnt_matter_extra_in_actual(self):
+        capture = LogCapture.make(self)
+        log.info('Failed to send BAR')
+        log.info('Sent FOO, length 1234')
+        log.info('Sent 1 Messages')
+        with ShouldAssert(
+            "entries not as expected:\n"
+            "\n"
+            "expected and found:\n"
+            "[(<LogLevel=info>, 'Failed to send BAR'), (<LogLevel=info>, 'Sent 1 Messages')]\n"
+            "\n"
+            "expected but not found:\n"
+            "[(<LogLevel=info>, <S:Sent FOO, length abc>)]\n"
+            "\n"
+            "other entries:\n"
+            "[(<LogLevel=info>, 'Sent FOO, length 1234')]"
+        ):
+            capture.check(
+                (INFO, S('Sent FOO, length abc')),
+                (INFO, 'Failed to send BAR'),
+                (INFO, 'Sent 1 Messages'),
+                order_matters=False
+            )
