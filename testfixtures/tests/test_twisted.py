@@ -3,6 +3,7 @@ from twisted.python.failure import Failure
 from twisted.trial.unittest import TestCase
 
 from testfixtures import compare, ShouldRaise, StringComparison as S, ShouldAssert
+from testfixtures.compat import PY3
 from testfixtures.twisted import LogCapture, INFO
 
 log = Logger()
@@ -108,7 +109,7 @@ class TestLogCapture(TestCase):
             "[(<LogLevel=info>, <S:Sent FOO, length abc>)]\n"
             "\n"
             "other entries:\n"
-            "[(<LogLevel=info>, 'Sent FOO, length 1234')]"
+            "[(<LogLevel=info>, {}'Sent FOO, length 1234')]".format('' if PY3 else 'u')
         ):
             capture.check(
                 (INFO, S('Sent FOO, length abc')),
@@ -156,7 +157,7 @@ class TestLogCapture(TestCase):
             "[(<LogLevel=info>, <S:Sent FOO, length abc>)]\n"
             "\n"
             "other entries:\n"
-            "[(<LogLevel=info>, 'Sent FOO, length 1234')]"
+            "[(<LogLevel=info>, {}'Sent FOO, length 1234')]".format('' if PY3 else 'u')
         ):
             capture.check(
                 (INFO, S('Sent FOO, length abc')),
