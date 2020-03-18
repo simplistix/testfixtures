@@ -4,12 +4,12 @@ testfixtures.popen
 """
 
 import pipes
+import io
 from functools import wraps, partial
-from io import TextIOWrapper
 from itertools import chain
 from subprocess import STDOUT, PIPE
 from tempfile import TemporaryFile
-from testfixtures.compat import basestring, PY3, zip_longest, reduce, PY2
+from testfixtures.compat import basestring, PY3, zip_longest, reduce
 from testfixtures.utils import extend_docstring
 
 from .mock import Mock, call
@@ -61,13 +61,14 @@ class MockPopenInstance(object):
     stderr = None
 
     def __init__(self, mock_class, root_call,
-                 args, bufsize=0, executable=None,
+                 args, bufsize=-1, executable=None,
                  stdin=None, stdout=None, stderr=None,
                  preexec_fn=None, close_fds=False, shell=False, cwd=None,
                  env=None, universal_newlines=False,
                  startupinfo=None, creationflags=0, restore_signals=True,
                  start_new_session=False, pass_fds=(),
-                 encoding=None, errors=None, text=None):
+                 encoding=None, errors=None, text=None
+                 ):
         self.mock = Mock()
         self.class_instance_mock = mock_class.mock.Popen_instance
         #: A :func:`unittest.mock.call` representing the call made to instantiate
@@ -89,8 +90,16 @@ class MockPopenInstance(object):
 
         self.behaviour = behaviour
 
-        stdout_value = behaviour.stdout
-        stderr_value = behaviour.stderr
+        if isinstance(behaviour.stdout, str):
+            stdout_value = bytes(behaviour.stdout, encoding)
+        else:
+            stdout_value = behaviour.stdout
+
+        if isinstance(behaviour.stderr, str):
+            stderr_value = bytes(behaviour.stderr, encoding)
+        else:
+            stderr_value = behaviour.stderr
+
 
         if stderr == STDOUT:
             line_iterator = chain.from_iterable(zip_longest(
@@ -111,8 +120,6 @@ class MockPopenInstance(object):
                 value.write(mock_value)
                 value.flush()
                 value.seek(0)
-                if PY3 and (universal_newlines or text or encoding):
-                    value = TextIOWrapper(value, encoding=encoding, errors=errors)
             setattr(self, name, value)
 
         if stdin == PIPE:
@@ -126,6 +133,17 @@ class MockPopenInstance(object):
         self.returncode = None
         if PY3:
             self.args = args
+
+        if text or universal_newlines or encoding:
+            line_buffering = True if bufsize == 1 else False
+            self.stdout = io.TextIOWrapper(self.stdout, write_through=True,
+                line_buffering=line_buffering, encoding=encoding,
+                errors=errors)
+            self.stderr = io.TextIOWrapper(self.stderr, write_through=True,
+                line_buffering=line_buffering, encoding=encoding,
+                errors=errors)
+
+
 
     def _record(self, names, *args, **kw):
         for mock in self.class_instance_mock, self.mock:
