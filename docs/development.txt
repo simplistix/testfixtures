@@ -3,15 +3,6 @@ Development
 
 .. highlight:: bash
 
-This package is developed using continuous integration which can be
-found here:
-
-https://travis-ci.org/Simplistix/testfixtures
-
-The latest development version of the documentation can be found here:
-
-http://testfixtures.readthedocs.org/en/latest/
-
 If you wish to contribute to this project, then you should fork the
 repository found here:
 
