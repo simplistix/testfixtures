@@ -377,9 +377,23 @@ def compare_call(x, y, context):
 
     x_name, x_args, x_kw = extract(x)
     y_name, y_args, y_kw = extract(y)
+
     if x_name == y_name and x_args == y_args and x_kw == y_kw:
         return compare_call(getattr(x, parent_name), getattr(y, parent_name), context)
-    return compare_text(repr(x), repr(y), context)
+
+    if repr(x) != repr(y):
+        return compare_text(repr(x), repr(y), context)
+
+    different = (
+        context.different(x_name, y_name, ' function name') or
+        context.different(x_args, y_args, ' args') or
+        context.different(x_kw, y_kw, ' kw')
+    )
+    if not different:
+        return
+
+    return 'mock.call not as expected:'
+
 
 
 def compare_partial(x, y, context):

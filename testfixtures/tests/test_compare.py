@@ -1554,44 +1554,62 @@ b
             "'call(1)' != 'call(2)'"
         )
 
-    def test_compare_arbitrary_nested_same(self):
-        compare(SampleClassA([SampleClassB()]),
-                SampleClassA([SampleClassB()]))
+    def test_calls_args_different_but_same_repr(self):
+        class Annoying(object):
+            def __init__(self, x):
+                self.x = x
+            def __repr__(self):
+                return '<annoying>'
+        m1 = Mock()
+        m2 = Mock()
+        m1.foo(Annoying(1))
+        m2.foo(Annoying(3))
 
-    def test_compare_different_vars(self):
-        obj1 = SampleClassB(1)
-        obj1.same = 42
-        obj1.foo = '1'
-        obj2 = SampleClassB(2)
-        obj2.same = 42
-        obj2.bar = '2'
         self.check_raises(
-            obj1, obj2,
-            "SampleClassB not as expected:\n"
-            "\n"
-            "attributes same:\n"
-            "['same']\n"
-            "\n"
-            'attributes in first but not second:\n'
-            "'foo': '1'\n"
-            "\n"
-            'attributes in second but not first:\n'
-            "'bar': '2'\n"
+            m1.mock_calls,
+            m2.mock_calls,
+            'sequence not as expected:\n'
             '\n'
-            'attributes differ:\n'
-            "'args': (1,) != (2,)\n"
+            'same:\n'
+            '[]\n'
             '\n'
-            "While comparing .args: sequence not as expected:\n"
+            'first:\n'
+            '[call.foo(<annoying>)]\n'
+            '\n'
+            'second:\n'
+            '[call.foo(<annoying>)]\n'
+            '\n'
+            'While comparing [0]: mock.call not as expected:\n'
+            '\n'
+            'While comparing [0] args: sequence not as expected:\n'
             '\n'
             'same:\n'
             '()\n'
             '\n'
             'first:\n'
-            '(1,)\n'
+            '(<annoying>,)\n'
             '\n'
             'second:\n'
-            '(2,)'
+            '(<annoying>,)\n'
+            '\n'
+            'While comparing [0] args[0]: Annoying not as expected:\n'
+            '\n'
+            'attributes differ:\n'
+            "'x': 1 != 3"
         )
+
+    def test_calls_nested_equal_sub_attributes(self):
+        class Annoying(object):
+            def __init__(self, x):
+                self.x = x
+            def __repr__(self):
+                return '<annoying>'
+        m1 = Mock()
+        m2 = Mock()
+        m1.foo(x=[Annoying(1)])
+        m2.foo(x=[Annoying(1)])
+
+        compare(m1.mock_calls, m2.mock_calls)
 
     def test_compare_arbitrary_nested_diff(self):
         class OurClass:
