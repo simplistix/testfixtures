@@ -3,6 +3,12 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.14.1 (20 Apr 2020)
+--------------------
+
+- Fix bugs in comparison of :func:`~unittest.mock.call` objects where the :func:`repr` of the
+  :func:`~unittest.mock.call` arguments were the same even when their attributes were not.
+
 6.14.0 (24 Feb 2020)
 --------------------
 
