@@ -12,7 +12,7 @@ this.
 Dates
 ~~~~~
 
-The testfixtures module provides the :func:`~testfixtures.test_date` function
+The testfixtures package provides the :func:`~testfixtures.test_date` function
 that returns a subclass of :class:`datetime.date` with a
 :meth:`~datetime.date.today` method that will return a
 consistent sequence of dates each time it is called.
@@ -99,7 +99,7 @@ this will be the set date plus the ``delta`` in effect:
 Datetimes
 ~~~~~~~~~
 
-The testfixtures module provides the :func:`~testfixtures.test_datetime`
+The testfixtures package provides the :func:`~testfixtures.test_datetime`
 function that returns a subclass of :class:`datetime.datetime` with
 a :meth:`~datetime.datetime.now` method that will return a
 consistent sequence of :obj:`~datetime.datetime` objects each time
@@ -294,7 +294,7 @@ Likewise, :meth:`~tdatetime.add` behaves the same way:
 Times
 ~~~~~
 
-The testfixtures module provides the :func:`~testfixtures.test_time`
+The testfixtures package provides the :func:`~testfixtures.test_time`
 function that, when called, returns a replacement for the
 :func:`time.time` function.
 
