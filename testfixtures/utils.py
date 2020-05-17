@@ -68,7 +68,7 @@ def wrap(before, after=None):
             to_add = len(getargspec(func).args[len(args):])
             added = 0
 
-            exc_info = tuple()
+            exc_info = (None, None, None)
             try:
                 for patching in patched.patchings:
                     arg = patching.__enter__()
