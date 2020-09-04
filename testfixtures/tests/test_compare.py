@@ -1508,6 +1508,25 @@ b
             ignore_eq=True
         )
 
+    def test_nested_django_orm_in_object(self):
+        class MyObject(object):
+            def __init__(self, orm):
+                self.orm = orm
+
+        self.check_raises(
+            message="MyObject not as expected:\n"
+                    "\n"
+                    "attributes differ:\n"
+                    "'orm': OrmObj: 1 (expected) != OrmObj: 2 (actual)\n"
+                    "\n"
+                    "While comparing .orm: OrmObj not as expected:\n"
+                    "\n"
+                    "attributes differ:\n"
+                    "'a': 1 (expected) != 2 (actual)",
+            expected=MyObject(self.OrmObj(1)),
+            actual=MyObject(self.OrmObj(2)),
+            ignore_eq=True)
+
     def test_mock_call_same(self):
         m = Mock()
         m.foo(1, 2, x=3)
