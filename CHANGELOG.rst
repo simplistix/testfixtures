@@ -3,6 +3,13 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.14.2 (4 Sep 2020)
+-------------------
+
+- Fix bug where ``ignore_eq`` had no effect on nested objects when using :func:`compare`.
+
+Thanks to Grégoire Payen de La Garanderie for the fix.
+
 6.14.1 (20 Apr 2020)
 --------------------
 
