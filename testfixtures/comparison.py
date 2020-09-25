@@ -633,7 +633,7 @@ def compare(*args, **kw):
                     with this string in the message in the
                     :class:`AssertionError`.
 
-    :param x_label: If provided, in the event of an :class:`AssertionError`
+    :param y_label: If provided, in the event of an :class:`AssertionError`
                     being raised, the object passed as the second positional
                     argument, or ``y`` keyword argument, will be labelled
                     with this string in the message in the
