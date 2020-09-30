@@ -74,7 +74,7 @@ class LogCapture(logging.Handler):
                 )
 
     def clear(self):
-        "Clear any entries that have been captured."
+        """Clear any entries that have been captured."""
         self.records = []
 
     def emit(self, record):
