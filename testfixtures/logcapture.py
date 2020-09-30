@@ -74,7 +74,7 @@ class LogCapture(logging.Handler):
                 )
 
     def clear(self):
-        "Clear any entries that have been captured."
+        """Clear any entries that have been captured."""
         self.records = []
 
     def emit(self, record):
@@ -94,7 +94,7 @@ class LogCapture(logging.Handler):
             self.old['levels'][name] = logger.level
             self.old['handlers'][name] = logger.handlers
             self.old['disabled'][name] = logger.disabled
-            self.old['progagate'][name] = logger.propagate
+            self.old['propagate'][name] = logger.propagate
             logger.setLevel(self.level)
             logger.handlers = [self]
             logger.disabled = False
@@ -120,7 +120,7 @@ class LogCapture(logging.Handler):
                 logger.setLevel(self.old['levels'][name])
                 logger.handlers = self.old['handlers'][name]
                 logger.disabled = self.old['disabled'][name]
-                logger.propagate = self.old['progagate'][name]
+                logger.propagate = self.old['propagate'][name]
             self.instances.remove(self)
 
     @classmethod
