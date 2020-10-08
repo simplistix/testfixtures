@@ -42,15 +42,21 @@ class LogCapture(logging.Handler):
 
       If ``True``, log messages will be compared recursively by
       :meth:`LogCapture.check`.
+
+    :param ensure_checks_above: The log level above which checks must be made for logged events.
+
     """
 
     instances = set()
     atexit_setup = False
     installed = False
+    default_ensure_checks_above = logging.NOTSET
 
     def __init__(self, names=None, install=True, level=1, propagate=None,
                  attributes=('name', 'levelname', 'getMessage'),
-                 recursive_check=False):
+                 recursive_check=False,
+                 ensure_checks_above=None
+                 ):
         logging.Handler.__init__(self)
         if not isinstance(names, tuple):
             names = (names, )
@@ -60,7 +66,12 @@ class LogCapture(logging.Handler):
         self.attributes = attributes
         self.recursive_check = recursive_check
         self.old = defaultdict(dict)
-        self.clear()
+        #: The log level above which checks must be made for logged events.
+        if ensure_checks_above is None:
+            self.ensure_checks_above = self.default_ensure_checks_above
+        else:
+            self.ensure_checks_above = ensure_checks_above
+        self.clear()  # declares self.records: List[LogRecord]
         if install:
             self.install()
 
@@ -73,11 +84,55 @@ class LogCapture(logging.Handler):
                 '%s' % ('\n'.join((str(i.names) for i in cls.instances)))
                 )
 
+    def __len__(self):
+        return len(self.records)
+
+    def __getitem__(self, index):
+        return self._actual_row(self.records[index])
+
+    def __contains__(self, what):
+        for i, item in enumerate(self):
+            if what == item:
+                self.records[i].checked = True
+                return True
+
     def clear(self):
         """Clear any entries that have been captured."""
         self.records = []
 
+    def mark_all_checked(self):
+        """
+        Mark all captured events as checked.
+        This should be called if you have made assertions about logging
+        other than through :class:`LogCapture` methods.
+        """
+        for record in self.records:
+            record.checked = True
+
+    def ensure_checked(self, level=None):
+        """
+        Ensure every entry logged above the specified `level` has been checked.
+        Raises an :class:`AssertionError` if this is not the case.
+
+        :param level: the logging level, defaults to :attr:`ensure_checks_above`.
+        :type level: Optional[int]
+        """
+        if level is None:
+            level = self.ensure_checks_above
+        if level == logging.NOTSET:
+            return
+        un_checked = []
+        for record in self.records:
+            if record.levelno >= level and not record.checked:
+                un_checked.append(self._actual_row(record))
+        if un_checked:
+            raise AssertionError((
+                    'Not asserted ERROR log(s): %s'
+                ) % (pformat(un_checked)))
+
     def emit(self, record):
+        # record: logging.LogRecord
+        record.checked = False
         self.records.append(record)
 
     def install(self):
@@ -130,11 +185,22 @@ class LogCapture(logging.Handler):
             i.uninstall()
 
     def _actual_row(self, record):
-        for a in self.attributes:
-            value = getattr(record, a, None)
-            if callable(value):
-                value = value()
-            yield value
+        # Convert a log record to a Tuple or attribute value according the attributes member.
+        # record: logging.LogRecord
+
+        if callable(self.attributes):
+            return self.attributes(record)
+        else:
+            values = []
+            for a in self.attributes:
+                value = getattr(record, a, None)
+                if callable(value):
+                    value = value()
+                values.append(value)
+            if len(values) == 1:
+                return values[0]
+            else:
+                return tuple(values)
 
     def actual(self):
         """
@@ -145,17 +211,13 @@ class LogCapture(logging.Handler):
         This can be useful for making more complex assertions about logged
         records. The actual records logged can also be inspected by using the
         :attr:`records` attribute.
+
+        :rtype: List
+
         """
         actual = []
         for r in self.records:
-            if callable(self.attributes):
-                actual.append(self.attributes(r))
-            else:
-                result = tuple(self._actual_row(r))
-                if len(result) == 1:
-                    actual.append(result[0])
-                else:
-                    actual.append(result)
+            actual.append(self._actual_row(r))
         return actual
 
     def __str__(self):
@@ -174,11 +236,13 @@ class LogCapture(logging.Handler):
           A sequence of entries of the structure specified by the ``attributes``
           passed to the constructor.
         """
-        return compare(
+        result = compare(
             expected,
             actual=self.actual(),
             recursive=self.recursive_check
             )
+        self.mark_all_checked()
+        return result
 
     def check_present(self, *expected, **kw):
         """
@@ -213,6 +277,7 @@ class LogCapture(logging.Handler):
                         matched.pop()
                     break
                 else:
+                    self.records[index].checked = True
                     matched_indices.append(index+1)
                     matched.append(entry)
             else:
@@ -225,12 +290,13 @@ class LogCapture(logging.Handler):
             expected = list(expected)
             matched = []
             unmatched = []
-            for entry in actual:
+            for i, entry in enumerate(actual):
                 try:
                     index = expected.index(entry)
                 except ValueError:
                     unmatched.append(entry)
                 else:
+                    self.records[i].checked = True
                     matched.append(expected.pop(index))
                 if not expected:
                     break
@@ -247,6 +313,7 @@ class LogCapture(logging.Handler):
 
     def __exit__(self, type, value, traceback):
         self.uninstall()
+        self.ensure_checked()
 
 
 class LogCaptureForDecorator(LogCapture):

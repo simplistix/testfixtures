@@ -1,5 +1,5 @@
 from __future__ import print_function
-from logging import getLogger
+from logging import getLogger, ERROR
 from textwrap import dedent
 from unittest import TestCase
 from warnings import catch_warnings
@@ -24,6 +24,57 @@ class TestLogCapture(TestCase):
         l.uninstall()
         root.info('after')
         assert str(l) == "root INFO\n  during"
+
+    def test_simple_strict(self):
+        log_capture = LogCapture(ensure_checks_above=ERROR)
+        root.error('during')
+        log_capture.uninstall()
+        with ShouldAssert("Not asserted ERROR log(s): [('root', 'ERROR', 'during')]"):
+            log_capture.ensure_checked()
+
+    def test_simple_strict_re_defaulted(self):
+        old = LogCapture.default_ensure_checks_above
+        try:
+            LogCapture.default_ensure_checks_above = ERROR
+            log_capture = LogCapture()
+            root.error('during')
+            log_capture.uninstall()
+            with ShouldAssert("Not asserted ERROR log(s): [('root', 'ERROR', 'during')]"):
+                log_capture.ensure_checked()
+        finally:
+            LogCapture.default_ensure_checks_above = old
+
+    def test_simple_strict_asserted(self):
+        log_capture = LogCapture(ensure_checks_above=ERROR)
+        root.error('during')
+        log_capture.uninstall()
+        log_capture.check(("root", "ERROR", "during"))
+        log_capture.ensure_checked()
+
+    def test_simple_strict_asserted_2(self):
+        log_capture = LogCapture(ensure_checks_above=ERROR)
+        root.error('during')
+        log_capture.uninstall()
+        assert ("root", "ERROR", "during") in log_capture
+        assert ("root", "INFO", "during") not in log_capture
+        log_capture.ensure_checked()
+
+    def test_simple_strict_asserted_3(self):
+        log_capture = LogCapture(ensure_checks_above=ERROR)
+        root.error('during')
+        log_capture.uninstall()
+        log_capture.mark_all_checked()
+        log_capture.ensure_checked()
+
+    def test_simple_strict_ctx(self):
+        with ShouldAssert("Not asserted ERROR log(s): [('root', 'ERROR', 'during')]"):
+            with LogCapture(ensure_checks_above=ERROR) as log_capture:
+                root.error('during')
+
+    def test_simple_strict_asserted_ctx(self):
+        with LogCapture(ensure_checks_above=ERROR) as log_capture:
+            root.error('during')
+            log_capture.check(("root", "ERROR", "during"))
 
     def test_specific_logger(self):
         l = LogCapture('one')
