@@ -3,6 +3,14 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.15.0 (9 Oct 2020)
+-------------------
+
+- Add support to :class:`LogCapture` for making sure log entries above a specified
+  level have been checked.
+
+Thanks to Zoltan Farkas for the implementation.
+
 6.14.2 (4 Sep 2020)
 -------------------
 
