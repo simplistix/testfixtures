@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from logging import getLogger
+from logging import getLogger, ERROR
 from unittest import TestCase
 
 from testfixtures.shouldraise import ShouldAssert
@@ -48,6 +48,11 @@ class TestLog_Capture(TestCase):
             C('logging.LogRecord'),
             C('logging.LogRecord'),
             ])
+
+    @log_capture(ensure_checks_above=ERROR)
+    def test_simple_strict(self, l):
+        root.error('during')
+        l.check(("root", "ERROR", "during"))
 
     def test_uninstall_properly(self):
         root = getLogger()
