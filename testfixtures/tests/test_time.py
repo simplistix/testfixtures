@@ -150,10 +150,7 @@ class TestTime(TestCase):
         with ShouldRaise(TypeError(
             "You don't want to use tzinfo with test_time"
                 )):
-            @replace('time.time',
-                     test_time(2001, 1, 2, 3, 4, 5, 6, SampleTZInfo()))
-            def myfunc():
-                pass  # pragma: no cover
+            test_time(2001, 1, 2, 3, 4, 5, 6, SampleTZInfo())
 
     @replace('time.time', test_time(2001, 1, 2))
     def test_min_number_args(self):
@@ -177,9 +174,7 @@ class TestTime(TestCase):
         with ShouldRaise(TypeError(
             "You don't want to use tzinfo with test_time"
                 )):
-            @replace('time.time', test_time(year=2001, tzinfo=SampleTZInfo()))
-            def myfunc():
-                pass  # pragma: no cover
+            test_time(year=2001, tzinfo=SampleTZInfo())
 
     def test_instance_tzinfo(self):
         from datetime import datetime

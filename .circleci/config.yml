@@ -70,6 +70,7 @@ common: &common
 
     - python/coverage:
         name: coverage
+        image: circleci/python:3.7
         requires:
           - python27
           - python36
