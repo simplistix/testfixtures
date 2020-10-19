@@ -201,24 +201,23 @@ However, in some applications it is important that
 return different times, as they would normally if the application is
 run anywhere other than the UTC timezone.
 
-The best way to understand how to use
-:func:`~testfixtures.test_datetime` in these situations is to think of
-the internal queue as being a queue of :class:`~datetime.datetime`
-objects at the current local time with a `tzinfo` of None, much as
-would be returned by :meth:`~datetime.datetime.now`. 
-If you pass in a `tz` parameter to
+For these situations, you can explicitly specify what timezone the
+internal queue of :class:`~datetime.datetime` objects should be
+interpreted in by passing in a `tzinfo` to
+:func:`~testfixtures.test_datetime`. (When not specified, this
+defaults to UTC -- which is why both :meth:`~tdatetime.now` and
+:meth:`~tdatetime.utcnow` return the same values in the simple case
+where a `tzinfo` is not specified.)
+
+In this case, :meth:`~tdatetime.now` will return the internal time as
+a naive time in the local timezone, and :meth:`~tdatetime.utcnow` will
+first convert the internal time to UTC, and then return that as a naive
+time. Just as the corresponding :class:`~datetime.datetime` methods do.
+
+Similarly, if you pass in a `tz` parameter to
 :meth:`~tdatetime.now` it will be applied to the value
 before it is returned in the same way as it would by
 :meth:`datetime.datetime.now`.
-
-If you pass in a `tzinfo` to :func:`~testfixtures.test_datetime`, this
-will be taken to indicate the timezone you intend for the local times
-that :meth:`~tdatetime.now` simulates.
-As such, that timezone will be used to compute values returned from
-:meth:`~tdatetime.utcnow` such that they would be :class:`test_datetime`
-objects in the UTC timezone with the `tzinfo` set to ``None``, as
-would be the case for a normal call to
-:meth:`datetime.datetime.utcnow`.
 
 For example, lets take a timezone as defined by the following class:
 
@@ -228,55 +227,52 @@ For example, lets take a timezone as defined by the following class:
   
   class ATZInfo(tzinfo):
 
-     def tzname(self, dt):
+      def tzname(self, dt):
           return 'A TimeZone'
         
-     def utcoffset(self, dt):
-          # In general, this timezone is 5 hours behind UTC
-          offset  = timedelta(hours=-5)
-          return offset+self.dst(dt)
-   
-     def dst(self, dt):
-          # However, between March and September, it is only
-          # 4 hours behind UTC
-          if 3 < dt.month < 9:
-              return timedelta(hours=1)
+      def utcoffset(self, dt):
+          # This timezone is always 5 hours behind UTC
+          return timedelta(hours=-5)
+
+      def dst(self, dt):
+          # There are no DST transitions
           return timedelta()
 
 If we create a :class:`~testfixtures.test_datetime` with this
-timezone and a delta of zero, so we can see affect of the timezone
-over multiple calls, the values returned by
-:meth:`~tdatetime.now` will be affected:
+timezone and a delta of zero, we can see the effect of the timezone
+over multiple calls:
 
 >>> datetime = test_datetime(2001, 1, 1, delta=0, tzinfo=ATZInfo())
 
-A normal call to :meth:`~tdatetime.now` will return the values passed
-to the constructor:
+A normal call to :meth:`~tdatetime.now` will return a naive
+:class:`~datetime.datetime` with the local time of midnight that was
+passed to the :class:`~testfixtures.test_datetime` constructor:
 
 >>> print(datetime.now())
 2001-01-01 00:00:00
 
-If we now ask for this time but in the timezone we passed to
-:class:`~testfixtures.test_datetime`, we will get the same hours,
-minutes and seconds but with a ``tzinfo`` attribute set:
+If we now explicitly specify this same timezone in the call to
+:meth:`~datetime.datetime.now` we again get midnight, but now
+in a timezone-aware :class:`~testfixtures.test_datetime` instance,
+with the ``tzinfo`` attribute set:
 
 >>> print(datetime.now(ATZInfo()))
 2001-01-01 00:00:00-05:00
 
-If we call :meth:`~tdatetime.utcnow`, we will get the time equivalent
-to the values passed to the constructor, but in the UTC timezone:
+If we call :meth:`~tdatetime.utcnow`, we will get the UTC equivalent
+time:
 
 >>> print(datetime.utcnow())
 2001-01-01 05:00:00
 
 The timezone passed in when the :class:`~testfixtures.test_datetime`
-is created has a similar effect on any items set:
+is created has the same effect on any times that are set:
 
->>> datetime.set(2011,5,1,10)
+>>> datetime.set(2011, 1, 1, 10)
 >>> print(datetime.now())
-2011-05-01 10:00:00
+2011-01-01 10:00:00
 >>> print(datetime.utcnow())
-2011-05-01 14:00:00
+2011-01-01 15:00:00
 
 Likewise, :meth:`~tdatetime.add` behaves the same way:
 
@@ -287,7 +283,7 @@ Likewise, :meth:`~tdatetime.add` behaves the same way:
 >>> print(datetime.now())
 2011-01-01 10:00:00
 >>> print(datetime.utcnow())
-2011-05-01 14:00:00
+2011-05-01 15:00:00
 >>> print(datetime.now())
 2011-10-01 10:00:00
 
