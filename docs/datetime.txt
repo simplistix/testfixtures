@@ -191,53 +191,24 @@ this will be the set value plus the ``delta`` in effect:
 .. _timezones:
 
 Timezones
------------------------------
+---------
 
-In many situations where you're mocking out
-:meth:`~datetime.datetime.now` or :meth:`~datetime.datetime.utcnow`
-you're not concerned about timezones, especially given that both
-methods will usually return :class:`~datetime.datetime` objects that
-have a `tzinfo` of ``None``.
-However, in some applications it is important that
-:meth:`~datetime.datetime.now` and :meth:`~datetime.datetime.utcnow`
-return different times, as they would normally if the application is
-run anywhere other than the UTC timezone.
-
-The best way to understand how to use
-:func:`~testfixtures.test_datetime` in these situations is to think of
-the internal queue as being a queue of :class:`~datetime.datetime`
-objects at the current local time with a `tzinfo` of None, much as
-would be returned by :meth:`~datetime.datetime.now`. 
-If you pass in a `tz` parameter to
-:meth:`~tdatetime.now` it will be applied to the value
-before it is returned in the same way as it would by
-:meth:`datetime.datetime.now`.
-
-If you pass in a `tzinfo` to :func:`~testfixtures.test_datetime`, this
-will be taken to indicate the timezone you intend for the local times
-that :meth:`~tdatetime.now` simulates.
-As such, that timezone will be used to compute values returned from
-:meth:`~tdatetime.utcnow` such that they would be :class:`test_datetime`
-objects in the UTC timezone with the `tzinfo` set to ``None``, as
-would be the case for a normal call to
-:meth:`datetime.datetime.utcnow`.
-
-For example, lets take a timezone as defined by the following class:
+For the examples in this section, we need to have a timezone to work with:
 
 .. code-block:: python
 
   from datetime import tzinfo, timedelta
-  
+
   class ATZInfo(tzinfo):
 
      def tzname(self, dt):
           return 'A TimeZone'
-        
+
      def utcoffset(self, dt):
           # In general, this timezone is 5 hours behind UTC
           offset  = timedelta(hours=-5)
           return offset+self.dst(dt)
-   
+
      def dst(self, dt):
           # However, between March and September, it is only
           # 4 hours behind UTC
@@ -245,53 +216,61 @@ For example, lets take a timezone as defined by the following class:
               return timedelta(hours=1)
           return timedelta()
 
-If we create a :class:`~testfixtures.test_datetime` with this
-timezone and a delta of zero, so we can see affect of the timezone
-over multiple calls, the values returned by
-:meth:`~tdatetime.now` will be affected:
+By default, the internal queue of datetimes in a :func:`~testfixtures.test_datetime`
+simulates local time in the UTC timezone:
 
->>> datetime = test_datetime(2001, 1, 1, delta=0, tzinfo=ATZInfo())
+>>> datetime = test_datetime(delta=0)
 
-A normal call to :meth:`~tdatetime.now` will return the values passed
-to the constructor:
+This means we get the following when the simulated date is 1st Jan 2001:
 
->>> print(datetime.now())
-2001-01-01 00:00:00
+>>> datetime.set(2001, 1, 1, 10, 0)
+>>> datetime.now()
+datetime.datetime(2001, 1, 1, 10, 0)
+>>> datetime.utcnow()
+datetime.datetime(2001, 1, 1, 10, 0)
+>>> datetime.now(ATZInfo())
+datetime.datetime(2001, 1, 1, 5, 0, tzinfo=<ATZInfo ...>)
 
-If we now ask for this time but in the timezone we passed to
-:class:`~testfixtures.test_datetime`, we will get the same hours,
-minutes and seconds but with a ``tzinfo`` attribute set:
+We get the following when the simulated date is 1st Apr 2001:
 
->>> print(datetime.now(ATZInfo()))
-2001-01-01 00:00:00-05:00
+>>> datetime.set(2001, 4, 1, 10, 0)
+>>> datetime.now()
+datetime.datetime(2001, 4, 1, 10, 0)
+>>> datetime.utcnow()
+datetime.datetime(2001, 4, 1, 10, 0)
+>>> datetime.now(ATZInfo())
+datetime.datetime(2001, 4, 1, 6, 0, tzinfo=<ATZInfo ...>)
 
-If we call :meth:`~tdatetime.utcnow`, we will get the time equivalent
-to the values passed to the constructor, but in the UTC timezone:
+If you wish to simulate a different local time, you should pass its :class:`datetime.tzinfo`
+to the :func:`~testfixtures.test_datetime` constructor:
 
->>> print(datetime.utcnow())
-2001-01-01 05:00:00
+>>> datetime = test_datetime(delta=0, tzinfo=ATZInfo())
 
-The timezone passed in when the :class:`~testfixtures.test_datetime`
-is created has a similar effect on any items set:
+This means we get the following when the simulated date is 1st Jan 2001:
 
->>> datetime.set(2011,5,1,10)
->>> print(datetime.now())
-2011-05-01 10:00:00
->>> print(datetime.utcnow())
-2011-05-01 14:00:00
+>>> datetime.set(2001, 1, 1, 10, 0)
+>>> datetime.now()
+datetime.datetime(2001, 1, 1, 10, 0)
+>>> datetime.utcnow()
+datetime.datetime(2001, 1, 1, 15, 0)
+>>> datetime.now(ATZInfo())
+datetime.datetime(2001, 1, 1, 10, 0, tzinfo=<ATZInfo ...>)
 
-Likewise, :meth:`~tdatetime.add` behaves the same way:
+We get the following when the simulated date is 1st Apr 2001:
 
->>> datetime = test_datetime(None, delta=0, tzinfo=ATZInfo())
->>> datetime.add(2011,1,1,10)
->>> datetime.add(2011,5,1,10)
->>> datetime.add(2011,10,1,10)
->>> print(datetime.now())
-2011-01-01 10:00:00
->>> print(datetime.utcnow())
-2011-05-01 14:00:00
->>> print(datetime.now())
-2011-10-01 10:00:00
+>>> datetime.set(2001, 4, 1, 10, 0)
+>>> datetime.now()
+datetime.datetime(2001, 4, 1, 10, 0)
+>>> datetime.utcnow()
+datetime.datetime(2001, 4, 1, 14, 0)
+>>> datetime.now(ATZInfo())
+datetime.datetime(2001, 4, 1, 10, 0, tzinfo=<ATZInfo ...>)
+
+.. warning::
+
+  For your own sanity, you should avoid using the ``tzinfo`` parameter or
+  passing :class:`~datetime.datetime` instances with non-``None`` :attr:`~datetime.datetime.tzinfo`
+  attributes when calling :meth:`~tdatetime.add` or :meth:`~tdatetime.set`.
 
 Times
 ~~~~~
