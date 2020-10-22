@@ -128,7 +128,7 @@ API Reference
      This will return the next supplied or calculated date from the
      internal queue, rather than the actual current date.
 
-.. function:: test_datetime(year=2001, month=1, day=1, hour=0, minute=0, second=0, microsecond=0,tzinfo=None, delta=None, delta_type='seconds', date_type=datetime.date, strict=False)
+.. function:: test_datetime(year=2001, month=1, day=1, hour=0, minute=0, second=0, microsecond=0, tzinfo=None, delta=None, delta_type='seconds', date_type=datetime.date, strict=False)
 
    A function that returns a mock object that can be used in place of
    the :class:`datetime.datetime` class but where the return value of
@@ -164,12 +164,7 @@ API Reference
    :param microsecond: An optional microsecond used to create the first datetime returned by
                 :meth:`~tdatetime.now`.
 
-   :param tzinfo: An optional tzinfo that will be used to indicate the
-                timezone intended for the values returned by
-                returned by :meth:`~tdatetime.now`. It will be used to
-                correctly calculate return values when `tz` is passed
-                to :meth:`~tdatetime.now` and when
-                :meth:`~tdatetime.utcnow` is called.
+   :param tzinfo: An optional :class:`datetime.tzinfo`, see :ref:`timezones`.
 
    :param delta: The size of the delta to use between values returned
                  from :meth:`~tdatetime.now`. If not specified,
@@ -232,16 +227,14 @@ API Reference
      This will return the next supplied or calculated datetime from the
      internal queue, rather than the actual current datetime.
 
-     If `tz` is supplied, it will be applied to the datetime that
-     would have have been returned from the internal queue, treating
-     that datetime as if it were in the UTC timezone.
+     If `tz` is supplied, see :ref:`timezones`.
 
    .. classmethod:: tdatetime.utcnow()
 
      This will return the next supplied or calculated datetime from the
      internal queue, rather than the actual current UTC datetime.
 
-     No timezone will be applied, even that supplied to the constructor.
+     If you care about timezones, see :ref:`timezones`.
 
    .. classmethod:: tdatetime.date()
 

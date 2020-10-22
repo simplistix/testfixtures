@@ -188,6 +188,8 @@ this will be the set value plus the ``delta`` in effect:
 '1978-08-01 00:00:00'
 '1978-08-01 00:00:02'
 
+.. _timezones:
+
 Timezones
 -----------------------------
 
