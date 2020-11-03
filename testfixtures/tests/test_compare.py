@@ -102,6 +102,12 @@ class TestCompare(CompareHelper, TestCase):
     def test_different_with_labels(self):
         self.check_raises(1, 2, '1 (expected) != 2 (actual)',
                           x_label='expected', y_label='actual')
+    
+    def test_multi_bool_same(self):
+        compare(MultiBooleanClass(1, 2), MultiBooleanClass(1,2))
+    
+    def test_multi_bool_different(self):
+        self.check_raises(MultiBooleanClass(2, 2), MultiBooleanClass(1,2), "MultiBooleanClass not as expected:\n\nattributes same:\n['b']\n\nattributes differ:\n'a': 2 != 1")
 
     def test_string_same(self):
         compare('x', 'x')
@@ -2008,3 +2014,14 @@ class TestBaseClasses(CompareHelper):
             "attributes differ:\n"
             "'thing': 1 != 2"
         ))
+
+class MultiBooleanClass:
+    def __init__(self, a, b):
+        self.a = a
+        self.b = b
+    
+    def __eq__(self, other):
+        if isinstance(other, MultiBooleanClass):
+            return [other.a == self.a, other.b == self.b]
+        else:
+            return [False, False]
