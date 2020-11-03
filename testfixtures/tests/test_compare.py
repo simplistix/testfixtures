@@ -109,6 +109,9 @@ class TestCompare(CompareHelper, TestCase):
     def test_multi_bool_different(self):
         self.check_raises(MultiBooleanClass(2, 2), MultiBooleanClass(1,2), "MultiBooleanClass not as expected:\n\nattributes same:\n['b']\n\nattributes differ:\n'a': 2 != 1")
 
+    def test_multi_bool_different_classes(self):
+        self.check_raises(MultiBooleanClass(2, 2), [1,2], "<testfixtures.tests.test_compare.MultiBooleanClass object at ...> != [1, 2]")
+
     def test_string_same(self):
         compare('x', 'x')
 
@@ -2025,3 +2028,9 @@ class MultiBooleanClass:
             return [other.a == self.a, other.b == self.b]
         else:
             return [False, False]
+
+    def __ne__(self, other):
+        if isinstance(other, MultiBooleanClass):
+            return [other.a == self.a, other.b == self.b]
+        else:
+            return [True, True]

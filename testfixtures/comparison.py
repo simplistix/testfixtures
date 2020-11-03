@@ -17,11 +17,23 @@ from testfixtures.utils import indent
 from testfixtures.mock import parent_name, mock_call, unittest_mock_call
 
 
+def _all(eq):
+    if isinstance(eq, bool):
+        return eq
+    elif len(eq) > 0:
+        return all(eq)
+
+def _any(neq):
+    if isinstance(neq, bool):
+        return neq
+    elif len(neq) > 0:
+        return any(neq)
+
 def compare_simple(x, y, context):
     """
     Returns a very simple textual difference between the two supplied objects.
     """
-    if x != y:
+    if _any(x != y):
         repr_x = repr(x)
         repr_y = repr(y)
         if repr_x == repr_y:
@@ -98,6 +110,7 @@ def compare_object(x, y, context, ignore_attributes=()):
         return compare_simple(x, y, context)
     x_attrs = _extract_attrs(x, _attrs_to_ignore(context, ignore_attributes, x))
     y_attrs = _extract_attrs(y, _attrs_to_ignore(context, ignore_attributes, y))
+
     if x_attrs is None or y_attrs is None or not (x_attrs and y_attrs):
         return compare_simple(x, y, context)
     if context.ignore_eq or x_attrs != y_attrs:
@@ -551,13 +564,6 @@ class CompareContext(object):
     def _separator(self):
         return '\n\nWhile comparing %s: ' % ''.join(self.breadcrumbs[1:])
 
-    def _all(self, eq):
-        if isinstance(eq, bool):
-            return eq
-        elif len(eq) > 1:
-            return all(eq)
-
-
     def seen(self, x, y):
         # don't get confused by string interning:
         if isinstance(x, basestring) and isinstance(y, basestring):
@@ -580,12 +586,11 @@ class CompareContext(object):
         self.message = ''
         current_message = ''
         try:
-
-            if not (self.strict or self.ignore_eq) and self._all(x == y):
+            if not (self.strict or self.ignore_eq) and _all(x == y):
                 return False
 
             comparer = self._lookup(x, y)
-
+    
             result = comparer(x, y, self)
             specific_comparer = comparer is not compare_simple
 
