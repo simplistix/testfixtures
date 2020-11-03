@@ -551,6 +551,13 @@ class CompareContext(object):
     def _separator(self):
         return '\n\nWhile comparing %s: ' % ''.join(self.breadcrumbs[1:])
 
+    def _all(self, eq):
+        if isinstance(eq, bool):
+            return eq
+        elif len(eq) > 1:
+            return all(eq)
+
+
     def seen(self, x, y):
         # don't get confused by string interning:
         if isinstance(x, basestring) and isinstance(y, basestring):
@@ -574,7 +581,7 @@ class CompareContext(object):
         current_message = ''
         try:
 
-            if not (self.strict or self.ignore_eq) and x == y:
+            if not (self.strict or self.ignore_eq) and self._all(x == y):
                 return False
 
             comparer = self._lookup(x, y)
