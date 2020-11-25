@@ -706,3 +706,131 @@ class TestC(TestCase):
         else:
             expected = "<C:<class '.'>>"
         self.assertEqual(repr(c), expected)
+
+
+class TestDictSubsetComparison(TestCase):
+    def test_exactMatch_passas(self):
+        expctd = dict(foo='foo', bar='bar')
+        actual = dict(foo='foo', bar='bar')
+        compare(DictSubsetComparison(expctd), actual=actual)
+
+    def test_differenceInExpectedKey_fails(self):
+        expctd = dict(foo='foo', bar='bar')
+        actual = dict(foo='foo', bar='different')
+        msg = """\
+<DictSubsetComparison(failed)>
+    dict not as expected:
+    
+    same:
+    ['foo']
+    
+    values differ:
+    'bar': 'bar' (expected) != 'different' (actual)
+    
+    While comparing ['bar']: 'bar' (expected) != 'different' (actual)
+</DictSubsetComparison> (expected) != {'foo': 'foo', 'bar': 'different'} (actual)"""
+        with ShouldRaise(AssertionError(msg)):
+            compare(DictSubsetComparison(expctd), actual=actual)
+
+    def test_missingExpectedKeyInActual_fails(self):
+        expctd = dict(foo='foo', bar='bar')
+        actual = dict(foo='foo')
+        msg = """\
+<DictSubsetComparison(failed)>
+    dict not as expected:
+    
+    same:
+    ['foo']
+    
+    in expected but not actual:
+    'bar': 'bar'
+</DictSubsetComparison> (expected) != {'foo': 'foo'} (actual)"""
+        with ShouldRaise(AssertionError(msg)):
+            compare(DictSubsetComparison(expctd), actual=actual)
+
+    def test_additionalKeyInActual_isIgnored(self):
+        expctd = dict(foo='foo')
+        actual = dict(foo='foo', additional='ignored')
+        compare(DictSubsetComparison(expctd), actual=actual)
+
+    def test_emptyDictExpected_ValueError(self):
+        msg = 'Expected cannot be an empty dict (because that will match anything!)'
+        with ShouldRaise(ValueError(msg)):
+            DictSubsetComparison({})
+
+    def test_subsetComparisonAppliesToNestedDictionaries(self):
+        expctd = dict(foo='foo', bar=DictSubsetComparison(dict(nested='expected')))
+        actual = dict(foo='foo', bar=dict(nested='expected', additional='ignored'))
+        compare(DictSubsetComparison(expctd), actual=actual)
+
+    def test_subsetComparisonAppliesToNestedDictionaries_failureCase(self):
+        expctd = dict(foo='foo', bar=DictSubsetComparison(dict(nested='expected')))
+        actual = dict(foo='foo', bar=dict(nested='actual'))
+        with ShouldRaise(AssertionError) as err:
+            compare(DictSubsetComparison(expctd), actual=actual)
+
+        compare(
+            str(err.raised),
+            expected="""\
+<DictSubsetComparison(failed)>
+    dict not as expected:
+    
+    same:
+    ['foo']
+    
+    values differ:
+    'bar': <DictSubsetComparison(failed)>
+        dict not as expected:
+        
+        values differ:
+        'nested': 'expected' (expected) != 'actual' (actual)
+        
+        While comparing ['nested']: 'expected' (expected) != 'actual' (actual)
+    </DictSubsetComparison> (expected) != {'nested': 'actual'} (actual)
+</DictSubsetComparison> (expected) != {'foo': 'foo', 'bar': {'nested': 'actual'}} (actual)"""
+        )
+
+    def test_largeDictinoary_producesReadableErrorMessage(self):
+        expctd = {'ipport': '10000', 'restate_on_reload': '1', 'process': 'fix_fooa1', 'send_routing_inst': '1', 'port_group': '', 'allowed_clearing': 'CFAA,CFAB', 'priv_profile_id': None, 'default_clearing': 'CFAA', 'port_id': 1, 'send_breaks': '2', 'put_capacity_on_oa': '1', 'name': '0001', 'report_working_price': '1', 'default_exec_inst': ''}
+        actual = {'ipport': '10000', 'name': '0001', 'process': 'fix_fooa1', 'port_group': '', 'machine': 'foolin', 'external_ip': '127.0.0.2', 'priv_profile_id': None, 'effective_ts': datetime.datetime(1970, 1, 1, 0, 0), 'password': 'passfoo', 'port_id': 1, 'add_ts': datetime.datetime(1970, 1, 1, 0, 0)}
+        with ShouldRaise(AssertionError) as err:
+            compare(DictSubsetComparison(expctd), actual=actual)
+
+        expectedError = """\
+<DictSubsetComparison(failed)>
+    dict not as expected:
+    
+    same:
+    ['ipport', 'name', 'port_group', 'port_id', 'priv_profile_id', 'process']
+    
+    in expected but not actual:
+    'allowed_clearing': 'CFAA,CFAB'
+    'default_clearing': 'CFAA'
+    'default_exec_inst': ''
+    'put_capacity_on_oa': '1'
+    'report_working_price': '1'
+    'restate_on_reload': '1'
+    'send_breaks': '2'
+    'send_routing_inst': '1'
+</DictSubsetComparison> (expected) != {'ipport': '10000', 'add_ts': datetime.datetime(1970, 1, 1, 0, 0), 'process': 'fix_fooa1', 'port_group': '', 'priv_profile_id': None, 'password': 'passfoo', 'port_id': 1, 'name': '0001', 'external_ip': '127.0.0.2', 'machine': 'foolin', 'effective_ts': datetime.datetime(1970, 1, 1, 0, 0)} (actual)"""
+
+        if PY3:
+            expectedError = """\
+<DictSubsetComparison(failed)>
+    dict not as expected:
+    
+    same:
+    ['ipport', 'name', 'port_group', 'port_id', 'priv_profile_id', 'process']
+    
+    in expected but not actual:
+    'allowed_clearing': 'CFAA,CFAB'
+    'default_clearing': 'CFAA'
+    'default_exec_inst': ''
+    'put_capacity_on_oa': '1'
+    'report_working_price': '1'
+    'restate_on_reload': '1'
+    'send_breaks': '2'
+    'send_routing_inst': '1'
+</DictSubsetComparison> (expected) != {'ipport': '10000', 'name': '0001', 'process': 'fix_fooa1', 'port_group': '', 'machine': 'foolin', 'external_ip': '127.0.0.2', 'priv_profile_id': None, 'effective_ts': datetime.datetime(1970, 1, 1, 0, 0), 'password': 'passfoo', 'port_id': 1, 'add_ts': datetime.datetime(1970, 1, 1, 0, 0)} (actual)"""
+
+        compare(str(err.raised), expected=expectedError)

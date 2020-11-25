@@ -8,6 +8,7 @@ from difflib import unified_diff
 from functools import partial
 from pprint import pformat
 from re import compile, MULTILINE
+from textwrap import dedent
 from types import GeneratorType
 
 from testfixtures import not_there
@@ -888,3 +889,44 @@ class RangeComparison:
 
     def __repr__(self):
         return '<Range: [%s, %s]>' % (self.lower_bound, self.upper_bound)
+
+
+class DictSubsetComparison(Comparison):
+    """
+    An object that can be used in comparisons of expected and actual
+    dictionaries which only compares the keys that are present in
+    the expected dictionary.
+
+    Example usage:
+        compare(
+            expected=DictSubsetComparison(dict(x='x')),
+            actual=dict(x='x', other='whatever'),
+        )
+    """
+    def __init__(self, expected):
+        if expected == {}:
+            raise ValueError('Expected cannot be an empty dict (because that will match anything!)')
+        self.expected = expected
+        self.diff = None
+
+    def __eq__(self, actual):
+        if not isinstance(actual, dict):
+            return
+
+        subset = {k: v for (k, v) in actual.items() if k in self.expected}
+        self.diff = compare(self.expected, actual=subset, raises=False)
+
+        return self.diff is None
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __repr__(self):
+        if self.diff is None:
+            return '{}({})'.format(self.__class__.__name__, repr(self.expected))
+        else:
+            return dedent("""\
+                <{className}(failed)>
+                {diff}
+                </{className}>"""
+                          ).format(className=self.__class__.__name__, diff=indent(self.diff))
