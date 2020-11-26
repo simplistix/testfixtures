@@ -752,7 +752,8 @@ class Comparison(object):
         self.expected_attributes = attribute_dict
 
     def __eq__(self, other):
-        if self.expected_type is not type(other):
+        # .__class__ is important for Py2 compatibility.
+        if self.expected_type is not other.__class__:
             self.failed = 'wrong type'
             return False
 
