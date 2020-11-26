@@ -1,7 +1,4 @@
 """
-testfixtures.twisted
---------------------
-
 Tools for helping to test Twisted applications.
 """
 from __future__ import absolute_import

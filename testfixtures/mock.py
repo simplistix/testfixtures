@@ -1,7 +1,4 @@
 """
-testfixtures.mock
------------------
-
 A facade for either :mod:`unittest.mock` or its `rolling backport`__, if it is
 installed, with a preference for the latter as it may well have newer functionality
 and bugfixes.

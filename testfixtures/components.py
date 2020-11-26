@@ -1,3 +1,6 @@
+"""
+Helpers for working with Zope and its components.
+"""
 import atexit
 import warnings
 

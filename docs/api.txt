@@ -3,23 +3,13 @@ API Reference
 
 .. currentmodule:: testfixtures
 
+
+Comparisons
+-----------
+
 .. autofunction:: compare(x, y, prefix=None, suffix=None, raises=True, recursive=True, strict=False, comparers=None, **kw)
 
 .. autoclass:: Comparison
-
-.. autoclass:: LogCapture
-   :members:
-
-.. autoclass:: OutputCapture
-   :members:
-
-.. autoclass:: Replace
-   :members:
-
-.. autoclass:: Replacer
-   :members:
-
-.. autofunction:: replace
 
 .. autoclass:: RoundComparison
    :members:
@@ -27,32 +17,59 @@ API Reference
 .. autoclass:: RangeComparison
    :members:
 
-.. autoclass:: ShouldRaise
-   :members:
-
-.. autofunction:: ShouldAssert
-
-.. autoclass:: ShouldWarn
-   :members:
-
-.. autoclass:: ShouldNotWarn
-   :members:
-
 .. autoclass:: StringComparison
    :members:
 
-.. autoclass:: TempDirectory
+
+testfixtures.comparison
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: testfixtures.comparison
+
+.. autofunction:: testfixtures.comparison.register
+
+.. autofunction:: testfixtures.comparison.compare_simple
+
+.. autofunction:: testfixtures.comparison.compare_object
+
+.. autofunction:: testfixtures.comparison.compare_exception
+
+.. autofunction:: testfixtures.comparison.compare_with_type
+
+.. autofunction:: testfixtures.comparison.compare_sequence
+
+.. autofunction:: testfixtures.comparison.compare_generator
+
+.. autofunction:: testfixtures.comparison.compare_tuple
+
+.. autofunction:: testfixtures.comparison.compare_dict
+
+.. autofunction:: testfixtures.comparison.compare_set
+
+.. autofunction:: testfixtures.comparison.compare_text
+
+.. currentmodule:: testfixtures
+
+Capturing
+---------
+
+.. autoclass:: LogCapture
    :members:
-
-.. autofunction:: diff
-
-.. autofunction:: generator
 
 .. autofunction:: log_capture
 
-.. autoclass:: should_raise
+.. autoclass:: OutputCapture
+   :members:
 
-.. autofunction:: tempdir
+Mocking
+-------
+.. autoclass:: Replace
+   :members:
+
+.. autoclass:: Replacer
+   :members:
+
+.. autofunction:: replace
 
 .. function:: test_date(year=2001, month=1, day=1, delta=None, delta_type='days', strict=False)
 
@@ -82,7 +99,7 @@ API Reference
                  from :meth:`~datetime.date.today`. If not specified,
                  it will increase by 1 with each call to
                  :meth:`~datetime.date.today`.
- 
+
    :param delta_type: The type of the delta to use between values returned
                       from :meth:`~datetime.date.today`. This can be
                       any keyword parameter accepted by the
@@ -96,7 +113,7 @@ API Reference
 
    The mock returned will behave exactly as the :class:`datetime.date`
    class with the exception of the following members:
-   
+
    .. method:: tdate.add(*args, **kw)
 
      This will add the :class:`datetime.date` created from the
@@ -170,7 +187,7 @@ API Reference
                  from :meth:`~tdatetime.now`. If not specified,
                  it will increase by 1 with each call to
                  :meth:`~tdatetime.now`.
- 
+
    :param delta_type: The type of the delta to use between values returned
                       from :meth:`~tdatetime.now`. This can be
                       any keyword parameter accepted by the
@@ -190,7 +207,7 @@ API Reference
 
    The mock returned will behave exactly as the :class:`datetime.datetime`
    class with the exception of the following members:
-   
+
    .. method:: tdatetime.add(*args, **kw)
 
      This will add the :class:`datetime.datetime` created from the
@@ -221,7 +238,7 @@ API Reference
    .. classmethod:: tdatetime.now([tz])
 
      :param tz: An optional timezone to apply to the returned time.
-                If supplied, it must be an instance of a 
+                If supplied, it must be an instance of a
                 :class:`~datetime.tzinfo` subclass.
 
      This will return the next supplied or calculated datetime from the
@@ -272,14 +289,14 @@ API Reference
    :param delta: The size of the delta to use between values returned.
                  If not specified, it will increase by 1 with each
                  call to the mock.
- 
+
    :param delta_type: The type of the delta to use between values
                       returned.  This can be
                       any keyword parameter accepted by the
                       :class:`~datetime.timedelta` constructor.
 
    The mock additionally has the following methods available on it:
-   
+
    .. method:: ttime.add(*args, **kw)
 
      This will add the time specified by the supplied parameters to the
@@ -307,47 +324,75 @@ API Reference
      to be returned by a call to the mock.
 
 
-.. autofunction:: wrap
+testfixtures.mock
+~~~~~~~~~~~~~~~~~
 
-.. autoclass:: testfixtures.components.TestComponents
+.. automodule:: testfixtures.mock
+
+
+testfixtures.popen
+~~~~~~~~~~~~~~~~~~
+
+.. automodule:: testfixtures.popen
    :members:
 
-.. autoclass:: testfixtures.sybil.FileParser
+.. currentmodule:: testfixtures
+
+Assertions
+----------
+
+.. autoclass:: ShouldRaise
+   :members:
+
+.. autoclass:: should_raise
+
+.. autofunction:: ShouldAssert
+
+.. autoclass:: ShouldWarn
+   :members:
+
+.. autoclass:: ShouldNotWarn
+   :members:
+
+
+Resources
+---------
+
+.. autoclass:: TempDirectory
+   :members:
+
+.. autofunction:: tempdir
+
+.. autofunction:: generator
+
+
+Helpers and Constants
+---------------------
+
+.. autofunction:: diff
+
+.. autofunction:: wrap
 
 .. data:: not_there
 
    A singleton used to represent the absence of a particular attribute.
 
 
-.. automodule:: testfixtures.comparison
+Framework Helpers
+-----------------
 
-.. autofunction:: testfixtures.comparison.register
+Framework-specific helpers provided by TestFixtures.
 
-.. autofunction:: testfixtures.comparison.compare_simple
+testfixtures.components
+~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autofunction:: testfixtures.comparison.compare_object
-
-.. autofunction:: testfixtures.comparison.compare_exception
-
-.. autofunction:: testfixtures.comparison.compare_with_type
-
-.. autofunction:: testfixtures.comparison.compare_sequence
-
-.. autofunction:: testfixtures.comparison.compare_generator
-
-.. autofunction:: testfixtures.comparison.compare_tuple
-
-.. autofunction:: testfixtures.comparison.compare_dict
-
-.. autofunction:: testfixtures.comparison.compare_set
-
-.. autofunction:: testfixtures.comparison.compare_text
-
-
-.. currentmodule:: testfixtures.popen
-
-.. automodule:: testfixtures.popen
+.. automodule:: testfixtures.components
+   :member-order: bysource
    :members:
+
+
+testfixtures.django
+~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: testfixtures.django
   :members:
@@ -358,9 +403,17 @@ API Reference
       automatically set to make comparing django :class:`~django.db.models.Model`
       instances easier.
 
+testfixtures.sybil
+~~~~~~~~~~~~~~~~~~
 
-.. automodule:: testfixtures.mock
 
+.. automodule:: testfixtures.sybil
+   :member-order: bysource
+   :members:
+
+
+testfixtures.twisted
+~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: testfixtures.twisted
    :member-order: bysource

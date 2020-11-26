@@ -1,8 +1,3 @@
-"""
-testfixtures.popen
-------------------
-"""
-
 import pipes
 from functools import wraps, partial
 from io import TextIOWrapper

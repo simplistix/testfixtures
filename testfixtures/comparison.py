@@ -1,8 +1,3 @@
-"""
-testfixtures.comparison
------------------------
-"""
-
 from decimal import Decimal
 from difflib import unified_diff
 from functools import partial
@@ -711,7 +706,7 @@ class Comparison(object):
     :param object_or_type: The object or class from which to create the
                            :class:`Comparison`.
 
-    :param attribute_dict: An optional dictionary containing attibutes
+    :param attribute_dict: An optional dictionary containing attributes
                            to place on the :class:`Comparison`.
 
     :param strict: If true, any expected attributes not present or extra
