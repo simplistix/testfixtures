@@ -741,36 +741,35 @@ class Comparison(object):
             c = object_or_type.__class__
             if attribute_dict is None:
                 attribute_dict = _extract_attrs(object_or_type)
-        self.c = c
-        self.v = attribute_dict
+        self.expected_type = c
+        self.expected_attributes = attribute_dict
         self.strict = strict
 
     def __eq__(self, other):
-        if self.c is not other.__class__:
+        if self.expected_type is not type(other):
             self.failed = 'wrong type'
             return False
 
-        if self.v is None:
+        if self.expected_attributes is None:
             return True
 
-        remaining_keys = set(self.v.keys())
+        attribute_names = set(self.expected_attributes.keys())
         if self.strict:
-            v = _extract_attrs(other)
-            remaining_keys -= set(v.keys())
+            actual_attributes = _extract_attrs(other)
+            attribute_names -= set(actual_attributes)
         else:
-            v = {}
+            actual_attributes = {}
 
-        while remaining_keys:
-            k = remaining_keys.pop()
+        for name in attribute_names:
             try:
-                v[k] = getattr(other, k)
+                actual_attributes[name] = getattr(other, name)
             except AttributeError:
                 pass
 
         kw = {'x_label': 'Comparison', 'y_label': 'actual'}
         context = CompareContext(kw)
-        self.failed = _compare_mapping(self.v,
-                                       v,
+        self.failed = _compare_mapping(self.expected_attributes,
+                                       actual_attributes,
                                        context,
                                        obj_for_class=not_there,
                                        prefix='attributes ',
@@ -782,19 +781,20 @@ class Comparison(object):
         return not(self == other)
 
     def __repr__(self):
-        name = getattr(self.c, '__module__', '')
+        name = getattr(self.expected_type, '__module__', '')
         if name:
             name += '.'
-        name += getattr(self.c, '__name__', '')
+        name += getattr(self.expected_type, '__name__', '')
         if not name:
-            name = repr(self.c)
+            name = repr(self.expected_type)
 
         text = ''
         if self.failed:
             text = self.failed
-        elif self.v:
+        elif self.expected_attributes:
+            # if we're not failed, show what we will expect:
             lines = []
-            for k, v in sorted(self.v.items()):
+            for k, v in sorted(self.expected_attributes.items()):
                 rv = repr(v)
                 if '\n' in rv:
                     rv = indent(rv)
