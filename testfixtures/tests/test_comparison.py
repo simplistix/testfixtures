@@ -1,7 +1,7 @@
 from unittest import TestCase
 import sys
 
-from testfixtures import Comparison as C, TempDirectory, compare, diff
+from testfixtures import Comparison as C, TempDirectory, compare, diff, Comparison
 from testfixtures.compat import PY2, PY3, exception_module
 from testfixtures.shouldraise import ShouldAssert
 from testfixtures.tests.sample1 import SampleClassA, a_function
@@ -104,16 +104,11 @@ class TestC(TestCase):
             AClass(1, 2),
             )
 
-    def test_example_not_strict(self):
-        # Here, we only care about the 'x' attribute of
-        # the AClass object, so we turn strict mode off.
-        # With strict mode off, only attributes specified
-        # in the Comparison object will be checked, and
-        # any others will be ignored.
+    def test_example_partial(self):
         self.assertEqual(
             C('testfixtures.tests.test_comparison.AClass',
               x=1,
-              strict=False),
+              partial=True),
             AClass(1, 2),
             )
 
@@ -227,9 +222,9 @@ class TestC(TestCase):
                      "</C>",
                      )
 
-    def test_repr_failed_not_in_self_strict(self):
+    def test_repr_failed_not_in_self(self):
         c = C('testfixtures.tests.test_comparison.AClass', y=2)
-        assert c != AClass((1, ), 2)
+        assert c != AClass(x=(1, ), y=2)
         compare_repr(c,
                      "\n"
                      "<C(failed):testfixtures.tests.test_comparison.AClass>\n"
@@ -240,10 +235,9 @@ class TestC(TestCase):
                      "</C>",
                      )
 
-    def test_repr_failed_not_in_self_not_strict(self):
-        c = C('testfixtures.tests.test_comparison.AClass',
-              x=1, y=2, z=(3, ))
-        assert c != AClass(1, 2)
+    def test_repr_failed_not_in_self_partial(self):
+        c = C('testfixtures.tests.test_comparison.AClass', x=1, y=2, z=(3, ), partial=True)
+        assert c != AClass(x=1, y=2)
         compare_repr(c,
                      "\n"
                      "<C(failed):testfixtures.tests.test_comparison.AClass>\n"
@@ -299,7 +293,7 @@ class TestC(TestCase):
     def test_repr_failed_nested_failed(self):
         left_side = [C(AClass, x=1, y=2),
                      C(BClass,
-                       x=C(AClass, x=1, strict=False),
+                       x=C(AClass, x=1, partial=True),
                        y=C(AClass, z=2))]
         right_side = [AClass(1, 2),
                       BClass(AClass(1, 2), AClass(1, 2))]
@@ -419,38 +413,38 @@ class TestC(TestCase):
             C(SampleClassA(), args=(1,))
             )
 
-    def test_object_not_strict(self):
+    def test_object_partial(self):
         # only attributes on comparison object
         # are used
         self.assertEqual(
-            C(AClass(1), strict=False),
+            C(AClass(1), partial=True),
             AClass(1, 2),
             )
 
-    def run_property_equal_test(self, strict):
+    def run_property_equal_test(self, partial):
         class SomeClass(object):
             @property
             def prop(self):
                 return 1
 
         self.assertEqual(
-            C(SomeClass, prop=1, strict=strict),
+            C(SomeClass, prop=1, partial=partial),
             SomeClass()
         )
 
-    def test_property_equal_strict(self):
-        self.run_property_equal_test(strict=True)
+    def test_property_equal(self):
+        self.run_property_equal_test(partial=False)
 
-    def test_property_equal_not_strict(self):
-        self.run_property_equal_test(strict=False)
+    def test_property_equal_partial(self):
+        self.run_property_equal_test(partial=True)
 
-    def run_property_not_equal_test(self, strict):
+    def run_property_not_equal_test(self, partial):
         class SomeClass(object):
             @property
             def prop(self):
                 return 1
 
-        c = C(SomeClass, prop=2, strict=strict)
+        c = C(SomeClass, prop=2, partial=partial)
         self.assertNotEqual(c, SomeClass())
         compare_repr(
             c,
@@ -460,35 +454,35 @@ class TestC(TestCase):
             "'prop': 2 (Comparison) != 1 (actual)\n"
             "</C>")
 
-    def test_property_not_equal_strict(self):
-        self.run_property_not_equal_test(strict=True)
+    def test_property_not_equal(self):
+        self.run_property_not_equal_test(partial=False)
 
-    def test_property_not_equal_not_strict(self):
-        self.run_property_not_equal_test(strict=False)
+    def test_property_not_equal_partial(self):
+        self.run_property_not_equal_test(partial=True)
 
-    def run_method_equal_test(self, strict):
+    def run_method_equal_test(self, partial):
         class SomeClass(object):
             def method(self):
                 pass  # pragma: no cover
 
         instance = SomeClass()
         self.assertEqual(
-            C(SomeClass, method=instance.method, strict=strict),
+            C(SomeClass, method=instance.method, partial=partial),
             instance
         )
 
-    def test_method_equal_strict(self):
-        self.run_method_equal_test(strict=True)
+    def test_method_equal(self):
+        self.run_method_equal_test(partial=False)
 
-    def test_method_equal_not_strict(self):
-        self.run_method_equal_test(strict=False)
+    def test_method_equal_partial(self):
+        self.run_method_equal_test(partial=True)
 
-    def run_method_not_equal_test(self, strict):
+    def run_method_not_equal_test(self, partial):
         class SomeClass(object): pass
         instance = SomeClass()
         instance.method = min
 
-        c = C(SomeClass, method=max, strict=strict)
+        c = C(SomeClass, method=max, partial=partial)
         self.assertNotEqual(c, instance)
         compare_repr(
             c,
@@ -500,11 +494,11 @@ class TestC(TestCase):
             "</C>"
         )
 
-    def test_method_not_equal_strict(self):
-        self.run_method_not_equal_test(strict=True)
+    def test_method_not_equal(self):
+        self.run_method_not_equal_test(partial=False)
 
-    def test_method_not_equal_not_strict(self):
-        self.run_method_not_equal_test(strict=False)
+    def test_method_not_equal_partial(self):
+        self.run_method_not_equal_test(partial=True)
 
     def test_exception(self):
         self.assertEqual(
@@ -549,7 +543,7 @@ class TestC(TestCase):
             f.close()
         if PY3:
             c = C('io.TextIOWrapper', name=path, mode='r', closed=False,
-                  strict=False)
+                  partial=True)
             assert f != c
             compare_repr(c,
                          "\n"
@@ -561,7 +555,7 @@ class TestC(TestCase):
                          "</C>",
                          )
         else:
-            c = C(file, name=path, mode='r', closed=False, strict=False)
+            c = C(file, name=path, mode='r', closed=False, partial=True)
             assert f != c
             compare_repr(c,
                          "\n"
@@ -582,12 +576,12 @@ class TestC(TestCase):
             self.assertEqual(
                 f,
                 C('io.TextIOWrapper', name=path, mode='r', closed=True,
-                  strict=False)
+                  partial=True)
                 )
         else:
             self.assertEqual(
                 f,
-                C(file, name=path, mode='r', closed=True, strict=False)
+                C(file, name=path, mode='r', closed=True, partial=True)
                 )
 
     def test_no___dict___strict(self):
@@ -599,13 +593,13 @@ class TestC(TestCase):
                         "'x': 1\n"
                         "</C>")
 
-    def test_no___dict___not_strict_same(self):
+    def test_no___dict___partial_same(self):
         x = X()
         x.x = 1
-        self.assertEqual(C(X, x=1, strict=False), x)
+        self.assertEqual(C(X, x=1, partial=True), x)
 
-    def test_no___dict___not_strict_missing_attr(self):
-        c = C(X, x=1, strict=False)
+    def test_no___dict___partial_missing_attr(self):
+        c = C(X, x=1, partial=True)
         assert c != X()
         compare_repr(c,
                      "\n"
@@ -615,10 +609,10 @@ class TestC(TestCase):
                      "</C>",
                      )
 
-    def test_no___dict___not_strict_different(self):
+    def test_no___dict___partial_different(self):
         x = X()
         x.x = 2
-        c = C(X, x=1, y=2, strict=False)
+        c = C(X, x=1, y=2, partial=True)
         assert c != x
         compare_repr(c,
                      "\n"
@@ -706,3 +700,39 @@ class TestC(TestCase):
         else:
             expected = "<C:<class '.'>>"
         self.assertEqual(repr(c), expected)
+
+    def test_missing_expected_attribute_strict(self):
+
+        class MyClass(object):
+            def __init__(self, **attrs):
+                self.__dict__.update(attrs)
+
+        c = Comparison(MyClass, b=2, c=3, strict=True)
+        assert c != MyClass(a=1, b=2)
+
+    def test_missing_expected_attribute_not_strict(self):
+
+        class MyClass(object):
+            def __init__(self, **attrs):
+                self.__dict__.update(attrs)
+
+        c = Comparison(MyClass, b=2, c=3, strict=False)
+        assert c != MyClass(a=1, b=2)
+
+    def test_extra_expected_attribute_strict(self):
+
+        class MyClass(object):
+            def __init__(self, **attrs):
+                self.__dict__.update(attrs)
+
+        c = Comparison(MyClass, a=1, strict=True)
+        assert c != MyClass(a=1, b=2)
+
+    def test_extra_expected_attribute_not_strict(self):
+
+        class MyClass(object):
+            def __init__(self, **attrs):
+                self.__dict__.update(attrs)
+
+        c = Comparison(MyClass, a=1, strict=False)
+        assert c == MyClass(a=1, b=2)

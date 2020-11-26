@@ -726,9 +726,9 @@ around, comparison can be done with it:
 True
 
 If you only care about certain attributes, this can also easily be
-achieved with the `strict` parameter: 
+achieved by doing a partial comparison:
 
->>> C(SomeClass, x=1, strict=False) == SomeClass(1, 2)
+>>> C(SomeClass, x=1, partial=True) == SomeClass(1, 2)
 True
 
 The above can be problematic if you want to compare an object with
@@ -736,13 +736,13 @@ attributes that share names with parameters to the :class:`~testfixtures.Compari
 constructor. For this reason, you can pass the attributes in a
 dictionary:
 
->>> compare(C(SomeClass, {'strict':3}, strict=False), SomeClass(1, 2))
+>>> compare(C(SomeClass, {'partial':3}, partial=True), SomeClass(1, 2))
 Traceback (most recent call last):
  ...
 AssertionError: 
 <C(failed):...SomeClass>
 attributes in Comparison but not actual:
-'strict': 3
+'partial': 3
 </C> != <...SomeClass...>
 
 Gotchas

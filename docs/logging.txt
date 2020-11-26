@@ -425,9 +425,9 @@ test such as the following:
                   stream=sys.stderr,
                   formatter=C('logging.Formatter',
                               _fmt='%(levelname)s %(message)s',
-                              strict=False),
+                              partial=True),
                   level=logging.NOTSET,
-                  strict=False)
+                  partial=True)
                 ], self.logger.handlers)
       
 

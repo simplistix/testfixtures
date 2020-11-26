@@ -709,12 +709,18 @@ class Comparison(object):
     :param attribute_dict: An optional dictionary containing attributes
                            to place on the :class:`Comparison`.
 
-    :param strict: If true, any expected attributes not present or extra
-                   attributes not expected on the object involved in the
-                   comparison will cause the comparison to fail.
+    :param partial:
+      If true, only the specified attributes will be checked and any extra attributes
+      of the object being compared with will be ignored.
 
     :param attributes: Any other keyword parameters passed will placed
                        as attributes on the :class:`Comparison`.
+
+    :param strict:
+
+      .. deprecated:: 6.16.0
+
+        Use ``partial`` instead.
     """
 
     failed = None
@@ -722,8 +728,9 @@ class Comparison(object):
     def __init__(self,
                  object_or_type,
                  attribute_dict=None,
-                 strict=True,
+                 partial=False,
                  **attributes):
+        self.partial = partial or not attributes.pop('strict', True)
         if attributes:
             if attribute_dict is None:
                 attribute_dict = attributes
@@ -743,7 +750,6 @@ class Comparison(object):
                 attribute_dict = _extract_attrs(object_or_type)
         self.expected_type = c
         self.expected_attributes = attribute_dict
-        self.strict = strict
 
     def __eq__(self, other):
         if self.expected_type is not type(other):
@@ -754,11 +760,11 @@ class Comparison(object):
             return True
 
         attribute_names = set(self.expected_attributes.keys())
-        if self.strict:
+        if self.partial:
+            actual_attributes = {}
+        else:
             actual_attributes = _extract_attrs(other)
             attribute_names -= set(actual_attributes)
-        else:
-            actual_attributes = {}
 
         for name in attribute_names:
             try:
@@ -774,7 +780,7 @@ class Comparison(object):
                                        obj_for_class=not_there,
                                        prefix='attributes ',
                                        breadcrumb='.%s',
-                                       check_y_not_x=self.strict)
+                                       check_y_not_x=not self.partial)
         return not self.failed
 
     def __ne__(self, other):
