@@ -679,18 +679,18 @@ was compared with and its representation changes to give information about what 
 >>> from testfixtures import Comparison as C
 >>> c = C(SomeClass, x=2)
 >>> print(repr(c))
-<C:...SomeClass>x: 2</C>
+<C:...SomeClass>x: 2</>
 >>> c == SomeClass(1, 2)
 False
 >>> print(repr(c))
 <BLANKLINE>
-<C(failed):...SomeClass>
+<C:...SomeClass(failed)>
 attributes in actual but not Comparison:
 'y': 2
 <BLANKLINE>
 attributes differ:
 'x': 2 (Comparison) != 1 (actual)
-</C>
+</C:...SomeClass>
 
 .. note:: 
 
@@ -740,10 +740,10 @@ dictionary:
 Traceback (most recent call last):
  ...
 AssertionError: 
-<C(failed):...SomeClass>
+<C:...SomeClass(failed)>
 attributes in Comparison but not actual:
 'partial': 3
-</C> != <...SomeClass...>
+</C:...SomeClass> != <...SomeClass...>
 
 Gotchas
 ~~~~~~~

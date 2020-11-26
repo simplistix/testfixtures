@@ -698,7 +698,34 @@ def compare(*args, **kw):
     return message
 
 
-class Comparison(object):
+class StatefulComparison(object):
+    """
+    A base class for stateful comparison objects.
+    """
+
+    failed = None
+
+    def __ne__(self, other):
+        return not(self == other)
+
+    def name(self):
+        return type(self).__name__
+
+    def body(self):
+        raise NotImplementedError()
+
+    def __repr__(self):
+        name = self.name()
+        body = self.failed or self.body()
+        prefix = '<%s%s>' % (name, self.failed and '(failed)' or '')
+        if '\n' in body:
+            return '\n'+prefix+'\n'+body.strip('\n')+'\n'+'</%s>' % name
+        elif body:
+            return prefix + body + '</>'
+        return prefix
+
+
+class Comparison(StatefulComparison):
     """
     These are used when you need to compare objects
     that do not natively support comparison.
@@ -722,8 +749,6 @@ class Comparison(object):
 
         Use ``partial`` instead.
     """
-
-    failed = None
 
     def __init__(self,
                  object_or_type,
@@ -784,21 +809,16 @@ class Comparison(object):
                                        check_y_not_x=not self.partial)
         return not self.failed
 
-    def __ne__(self, other):
-        return not(self == other)
+    def name(self):
+        name = 'C:'
+        module = getattr(self.expected_type, '__module__', None)
+        if module:
+            name = name + module + '.'
+        name += (getattr(self.expected_type, '__name__', None) or repr(self.expected_type))
+        return name
 
-    def __repr__(self):
-        name = getattr(self.expected_type, '__module__', '')
-        if name:
-            name += '.'
-        name += getattr(self.expected_type, '__name__', '')
-        if not name:
-            name = repr(self.expected_type)
-
-        text = ''
-        if self.failed:
-            text = self.failed
-        elif self.expected_attributes:
+    def body(self):
+        if self.expected_attributes:
             # if we're not failed, show what we will expect:
             lines = []
             for k, v in sorted(self.expected_attributes.items()):
@@ -806,19 +826,10 @@ class Comparison(object):
                 if '\n' in rv:
                     rv = indent(rv)
                 lines.append('%s: %s' % (k, rv))
-            text = '\n'.join(lines)
-            if len(lines) > 1:
-                text = '\n'+text
+            return '\n'.join(lines)
+        return ''
 
-        r = '<C%s:%s>' % (self.failed and '(failed)' or '', name)
-        if '\n' in text:
-            r = '\n'+r+text+'\n'
-        else:
-            r += text
-        if text:
-            r += '</C>'
 
-        return r
 
 
 class StringComparison:

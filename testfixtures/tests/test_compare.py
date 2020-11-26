@@ -235,14 +235,14 @@ class TestCompare(CompareHelper, TestCase):
         self.check_raises(
             C(e1), e2,
             ("\n"
-             "<C(failed):{}.ValueError>\n"
+             "<C:{module}.ValueError(failed)>\n"
              "attributes differ:\n"
              "'args': ('some message',) (Comparison) "
              "!= ('some other message',) (actual)\n"
-             "</C>"
-             " != ValueError('some other message'{})"
-             ).format(exception_module,
-                      '' if PY_37_PLUS else ','))
+             "</C:{module}.ValueError>"
+             " != ValueError('some other message'{message})"
+             ).format(module=exception_module,
+                      message='' if PY_37_PLUS else ','))
 
     def test_sequence_long(self):
         self.check_raises(

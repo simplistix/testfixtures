@@ -48,7 +48,7 @@ class ShouldWarnTests(TestCase):
         with ShouldAssert(
             "sequence not as expected:\n\n"
             "same:\n[]\n\n"
-            "expected:\n[<C:"+warn_module+".UserWarning>args: ('foo',)</C>]"
+            "expected:\n[<C:"+warn_module+".UserWarning>args: ('foo',)</>]"
             "\n\nactual:\n[]"
         ):
             with ShouldWarn(UserWarning('foo')):
@@ -78,7 +78,7 @@ class ShouldWarnTests(TestCase):
             "sequence not as expected:\n\n"
             "same:\n[]\n\n"
             "expected:\n"
-            "[<C(failed):"+warn_module+".DeprecationWarning>wrong type</C>]\n\n"
+            "[<C:"+warn_module+".DeprecationWarning(failed)>wrong type</>]\n\n"
             "actual:\n[UserWarning('foo'"+comma+")]"
         ):
             with ShouldWarn(DeprecationWarning):
@@ -95,9 +95,10 @@ class ShouldWarnTests(TestCase):
             "sequence not as expected:\n\n"
             "same:\n[]\n\n"
             "expected:\n[\n"
-            "<C(failed):"+warn_module+".DeprecationWarning>\n"
+            "<C:"+warn_module+".DeprecationWarning(failed)>\n"
             "attributes differ:\n"
-            "'args': ('bar',) (Comparison) != ('foo',) (actual)\n</C>]\n\n"
+            "'args': ('bar',) (Comparison) != ('foo',) (actual)\n"
+            "</C:"+warn_module+".DeprecationWarning>]\n\n"
             "actual:\n[DeprecationWarning('foo'"+comma+")]"
         ):
             with ShouldWarn(DeprecationWarning('bar')):
