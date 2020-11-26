@@ -4,7 +4,7 @@ installed, with a preference for the latter as it may well have newer functional
 and bugfixes.
 
 The facade also contains any bugfixes that are critical to the operation of
-functionality provided by TestFixtures.
+functionality provided by testfixtures.
 
 __ https://mock.readthedocs.io
 """

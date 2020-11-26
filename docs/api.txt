@@ -381,7 +381,7 @@ Helpers and Constants
 Framework Helpers
 -----------------
 
-Framework-specific helpers provided by TestFixtures.
+Framework-specific helpers provided by testfixtures.
 
 testfixtures.components
 ~~~~~~~~~~~~~~~~~~~~~~~

@@ -11,7 +11,7 @@ cleared up at the end of the tests.
 
 Methods of use
 --------------
-To help with this, TestFixtures provides the
+To help with this, testfixtures provides the
 :class:`TempDirectory` class that hides most of the
 boilerplate code you would need to write.
 
@@ -584,7 +584,7 @@ __ http://sybil.readthedocs.io
 The key differences between testing with Sybil and traditional
 doctests are that it is possible to plug in different types of parser,
 not just the "python console session" one, and so it is possible to
-test different types of examples. TestFixtures provides one these
+test different types of examples. testfixtures provides one these
 parsers to aid working with
 :class:`~testfixtures.TempDirectory` objects. This parser makes use of
 :rst:dir:`topic` directives with specific classes set to perform
@@ -604,7 +604,7 @@ constructor and the parser is passed to the
 
 The following example shows how to use Sybil's `pytest`__ integration to
 execute all of the examples below. These require not only the
-TestFixtures parser but also the Sybil parsers that give more
+testfixtures parser but also the Sybil parsers that give more
 traditional doctest behaviour, invisible code blocks
 that are useful for setting things up and checking examples without
 breaking up the flow of the documentation, and capturing of examples
@@ -657,7 +657,7 @@ technique:
 A note on encoding and line endings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-As currently implemented, the parser provided by TestFixtures only works
+As currently implemented, the parser provided by testfixtures only works
 with textual file content that can be encoded using the ASCII
 character set. This content will always be written with ``'\n'`` line
 separators and, when read, will always have its line endings

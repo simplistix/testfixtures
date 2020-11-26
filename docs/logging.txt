@@ -5,7 +5,7 @@ Testing logging
 
 Python includes a :mod:`logging` package, and while it is widely used, many
 people assume that logging calls do not need to be tested or find the prospect too daunting.
-To help with this, TestFixtures allows you to easily capture the
+To help with this, testfixtures allows you to easily capture the
 output of calls to Python's logging framework and make sure they were
 as expected. 
 
@@ -25,7 +25,7 @@ The context manager
 ~~~~~~~~~~~~~~~~~~~
 
 If you're using a version of Python where the ``with`` keyword is
-available, the context manager provided by TestFixtures can be used:
+available, the context manager provided by testfixtures can be used:
 
 >>> import logging
 >>> from testfixtures import LogCapture

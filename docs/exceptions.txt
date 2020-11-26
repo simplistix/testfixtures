@@ -5,7 +5,7 @@ Testing exceptions
 
 The :mod:`unittest` support for asserting that exceptions are raised
 when expected is fairly weak. Like many other Python testing
-libraries, TestFixtures has tools to help with this.
+libraries, testfixtures has tools to help with this.
 
 The :class:`ShouldRaise` context manager
 ----------------------------------------

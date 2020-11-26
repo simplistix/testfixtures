@@ -4,7 +4,7 @@ Testing warnings
 .. currentmodule:: testfixtures
 
 The :mod:`unittest` support for asserting that warnings are issued
-when expected is fairly convoluted, so TestFixtures has tools to help with this.
+when expected is fairly convoluted, so testfixtures has tools to help with this.
 
 The :class:`ShouldWarn` context manager
 ---------------------------------------

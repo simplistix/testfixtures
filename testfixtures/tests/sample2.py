@@ -2,7 +2,7 @@
 #     you update the line numbers in popen.txt!
 """
 A sample module containing the kind of code that
-TestFixtures helps with testing
+testfixtures helps with testing
 """
 
 from testfixtures.tests.sample1 import X, z

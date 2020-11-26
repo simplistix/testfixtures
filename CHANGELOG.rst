@@ -804,7 +804,7 @@ Thanks to Matthias Lehmann for the import error reports.
 -------------------------
 
 - Move to use `nose <http://readthedocs.org/docs/nose/>`__ for running
-  the TestFixtures unit tests.
+  the testfixtures unit tests.
 
 - Fixed a bug where :meth:`tdatetime.now` returned an instance of the
   wrong type when `tzinfo` was passed in 

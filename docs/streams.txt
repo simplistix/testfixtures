@@ -5,7 +5,7 @@ Testing output to streams
 
 In many situations, it's perfectly legitimate for output to be printed
 to one of the standard streams. To aid with testing this kind of
-output, TestFixtures provides the :class:`OutputCapture` helper.
+output, testfixtures provides the :class:`OutputCapture` helper.
 
 This helper is a context manager that captures output sent to
 ``sys.stdout`` and ``sys.stderr`` and provides a
