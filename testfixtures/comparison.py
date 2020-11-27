@@ -1,6 +1,6 @@
 from decimal import Decimal
 from difflib import unified_diff
-from functools import partial
+from functools import partial as partial_type
 from pprint import pformat
 from re import compile, MULTILINE
 from types import GeneratorType
@@ -438,7 +438,7 @@ _registry = {
     mock_call.__class__: compare_call,
     unittest_mock_call.__class__: compare_call,
     BaseException: compare_exception,
-    partial: compare_partial,
+    partial_type: compare_partial,
     }
 
 if PY3:
