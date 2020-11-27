@@ -7,7 +7,7 @@ from warnings import catch_warnings
 from testfixtures.shouldraise import ShouldAssert
 from testfixtures.mock import Mock
 
-from testfixtures import Replacer, LogCapture, compare
+from testfixtures import Replacer, LogCapture, compare, Replace
 
 root = getLogger()
 one = getLogger('one')
@@ -33,25 +33,29 @@ class TestLogCapture(TestCase):
             log_capture.ensure_checked()
 
     def test_simple_strict_re_defaulted(self):
-        old = LogCapture.default_ensure_checks_above
-        try:
+        with Replace('testfixtures.LogCapture.default_ensure_checks_above', ERROR):
             LogCapture.default_ensure_checks_above = ERROR
             log_capture = LogCapture()
             root.error('during')
             log_capture.uninstall()
             with ShouldAssert("Not asserted ERROR log(s): [('root', 'ERROR', 'during')]"):
                 log_capture.ensure_checked()
-        finally:
-            LogCapture.default_ensure_checks_above = old
 
-    def test_simple_strict_asserted(self):
+    def test_simple_strict_asserted_by_check(self):
         log_capture = LogCapture(ensure_checks_above=ERROR)
         root.error('during')
         log_capture.uninstall()
         log_capture.check(("root", "ERROR", "during"))
         log_capture.ensure_checked()
 
-    def test_simple_strict_asserted_2(self):
+    def test_simple_strict_asserted_by_check_present(self):
+        log_capture = LogCapture(ensure_checks_above=ERROR)
+        root.error('during')
+        log_capture.uninstall()
+        log_capture.check_present(("root", "ERROR", "during"))
+        log_capture.ensure_checked()
+
+    def test_simple_strict_asserted_by_containment(self):
         log_capture = LogCapture(ensure_checks_above=ERROR)
         root.error('during')
         log_capture.uninstall()
@@ -59,7 +63,7 @@ class TestLogCapture(TestCase):
         assert ("root", "INFO", "during") not in log_capture
         log_capture.ensure_checked()
 
-    def test_simple_strict_asserted_3(self):
+    def test_simple_strict_asserted_by_mark_all_checked(self):
         log_capture = LogCapture(ensure_checks_above=ERROR)
         root.error('during')
         log_capture.uninstall()
@@ -68,7 +72,7 @@ class TestLogCapture(TestCase):
 
     def test_simple_strict_ctx(self):
         with ShouldAssert("Not asserted ERROR log(s): [('root', 'ERROR', 'during')]"):
-            with LogCapture(ensure_checks_above=ERROR) as log_capture:
+            with LogCapture(ensure_checks_above=ERROR):
                 root.error('during')
 
     def test_simple_strict_asserted_ctx(self):
