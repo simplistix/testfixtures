@@ -705,8 +705,8 @@ class StatefulComparison(object):
 
     failed = None
 
-    def __ne__(self, other):
-        return not(self == other)
+    def __eq__(self, other):
+        return not(self != other)
 
     def name(self):
         return type(self).__name__
@@ -776,14 +776,14 @@ class Comparison(StatefulComparison):
         self.expected_type = c
         self.expected_attributes = attribute_dict
 
-    def __eq__(self, other):
+    def __ne__(self, other):
         # .__class__ is important for Py2 compatibility.
         if self.expected_type is not other.__class__:
             self.failed = 'wrong type'
-            return False
+            return True
 
         if self.expected_attributes is None:
-            return True
+            return False
 
         attribute_names = set(self.expected_attributes.keys())
         if self.partial:
@@ -807,7 +807,7 @@ class Comparison(StatefulComparison):
                                        prefix='attributes ',
                                        breadcrumb='.%s',
                                        check_y_not_x=not self.partial)
-        return not self.failed
+        return bool(self.failed)
 
     def name(self):
         name = 'C:'
