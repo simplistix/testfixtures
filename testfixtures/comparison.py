@@ -727,8 +727,8 @@ class StatefulComparison(object):
 
 class Comparison(StatefulComparison):
     """
-    These are used when you need to compare objects
-    that do not natively support comparison.
+    These are used when you need to compare an object's type, a subset of its attributes
+    or make equality checks with objects that do not natively support comparison.
 
     :param object_or_type: The object or class from which to create the
                            :class:`Comparison`.
