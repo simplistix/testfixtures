@@ -11,6 +11,9 @@ Comparisons
 
 .. autoclass:: Comparison
 
+.. autoclass:: Permutation
+   :members:
+
 .. autoclass:: RoundComparison
    :members:
 
@@ -18,6 +21,9 @@ Comparisons
    :members:
 
 .. autoclass:: SequenceComparison
+   :members:
+
+.. autoclass:: Subset
    :members:
 
 .. autoclass:: StringComparison

@@ -1,6 +1,6 @@
 from decimal import Decimal
 from difflib import unified_diff
-from functools import partial as partial_type
+from functools import partial as partial_type, partial
 from pprint import pformat
 from re import compile, MULTILINE
 from types import GeneratorType
@@ -940,6 +940,28 @@ class SequenceComparison(StatefulComparison):
 
         self.failed = '\n\n'.join(message)
         return True
+
+
+class Subset(SequenceComparison):
+    """
+    A shortcut for :class:`SequenceComparison` that checks if the
+    specified items are present in the sequence.
+    """
+
+    name_attrs = ()
+
+    def __init__(self, *expected):
+        super(Subset, self).__init__(*expected, ordered=False, partial=True)
+
+
+class Permutation(SequenceComparison):
+    """
+    A shortcut for :class:`SequenceComparison` that checks if the set of items
+    in the sequence is as expected, but without checking ordering.
+    """
+
+    def __init__(self, *expected):
+        super(Permutation, self).__init__(*expected, ordered=False, partial=False)
 
 
 class StringComparison:

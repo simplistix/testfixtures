@@ -1,4 +1,4 @@
-from testfixtures import SequenceComparison, generator, compare
+from testfixtures import SequenceComparison, generator, compare, Subset, Permutation
 
 
 class TestSequenceComparison(object):
@@ -328,3 +328,21 @@ class TestSequenceComparison(object):
             '[3, 2]\n'
             '</SequenceComparison(ordered=True, partial=False)>'
         ))
+
+
+class TestSubset(object):
+
+    def test_equal(self):
+        assert Subset({1}, {2}) == [{1}, {2}, {3}]
+
+    def test_unequal(self):
+        assert Subset({1}, {2}) != [{1}]
+
+
+class TestPermutation(object):
+
+    def test_equal(self):
+        assert Permutation({1}, {2}) == [{2}, {1}]
+
+    def test_unequal(self):
+        assert Permutation({1}) != [{2}, {1}]

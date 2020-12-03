@@ -884,6 +884,12 @@ in expected but not actual:
 [2]
 </SequenceComparison(ordered=True, partial=False)> (expected) != [{1}, {1}, {1, 2, 3}] (actual)
 
+There are also the :class:`Subset` and :class:`Permutation` shortcuts:
+
+>>> from testfixtures import Subset, Permutation
+>>> assert Subset({1}, {2}) == [{1}, {2}, {3}]
+>>> assert Permutation({1}, {2}) == [{2}, {1}]
+
 String Comparison objects
 -------------------------
 
