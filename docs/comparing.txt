@@ -827,6 +827,63 @@ Here's an example:
 
   :class:`RangeComparison` is inclusive of both the lower and upper bound.
 
+Sequence Comparison objects
+---------------------------
+
+When comparing sequences, you may not care about the order of items in the
+sequence. While this type of comparison can often be achieved by pouring
+the sequence into a :class:`set`, this may not be possible if the items in the
+sequence are unhashable, or part of a nested data structure.
+:class:`SequenceComparison` objects can be used in this case:
+
+>>> from testfixtures import compare, SequenceComparison as S
+>>> compare(expected={'k': S({1}, {2}, ordered=False)}, actual={'k': [{2}, {1}]})
+
+You may also only care about certain items being present in a sequence, but where
+it is important that those items are in the order you expected. This
+can also be achieved with :class:`SequenceComparison` objects:
+
+>>> compare(expected=S(1, 3, 5, partial=True), actual=[1, 2, 3, 4, 6])
+Traceback (most recent call last):
+ ...
+AssertionError:...
+<SequenceComparison(ordered=True, partial=True)(failed)>
+ignored:
+[2, 4, 6]
+<BLANKLINE>
+same:
+[1, 3]
+<BLANKLINE>
+expected:
+[5]
+<BLANKLINE>
+actual:
+[]
+</SequenceComparison(ordered=True, partial=True)> (expected) != [1, 2, 3, 4, 6] (actual)
+
+Where there are differences, they may be hard to spot. In this case, you can ask for a more
+detailed explanation of what wasn't as expected:
+
+>>> compare(expected=S({1}, {1, 2}, {1, 2, 3}, recursive=True), actual=[{1}, {1}, {1, 2, 3}])
+Traceback (most recent call last):
+ ...
+AssertionError:...
+<SequenceComparison(ordered=True, partial=False)(failed)>
+same:
+[{1}]
+<BLANKLINE>
+expected:
+[{1, 2}, {1, 2, 3}]
+<BLANKLINE>
+actual:
+[{1}, {1, 2, 3}]
+<BLANKLINE>
+While comparing [1]: set not as expected:
+<BLANKLINE>
+in expected but not actual:
+[2]
+</SequenceComparison(ordered=True, partial=False)> (expected) != [{1}, {1}, {1, 2, 3}] (actual)
+
 String Comparison objects
 -------------------------
 

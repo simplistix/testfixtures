@@ -4,8 +4,8 @@ import logging
 import warnings
 from pprint import pformat
 
-from testfixtures.comparison import compare
-from testfixtures.utils import wrap
+from .comparison import SequenceComparison, compare
+from .utils import wrap
 
 
 class LogCapture(logging.Handler):
@@ -265,48 +265,13 @@ class LogCapture(logging.Handler):
         order_matters = kw.pop('order_matters', True)
         assert not kw, 'order_matters is the only keyword parameter'
         actual = self.actual()
-        if order_matters:
-            matched_indices = [0]
-            matched = []
-            for entry in expected:
-                try:
-                    index = actual.index(entry, matched_indices[-1])
-                except ValueError:
-                    if len(matched_indices) > 1:
-                        matched_indices.pop()
-                        matched.pop()
-                    break
-                else:
-                    self.records[index].checked = True
-                    matched_indices.append(index+1)
-                    matched.append(entry)
-            else:
-                return
-
-            compare(expected,
-                    actual=matched+actual[matched_indices[-1]:],
-                    recursive=self.recursive_check)
-        else:
-            expected = list(expected)
-            matched = []
-            unmatched = []
-            for i, entry in enumerate(actual):
-                try:
-                    index = expected.index(entry)
-                except ValueError:
-                    unmatched.append(entry)
-                else:
-                    self.records[i].checked = True
-                    matched.append(expected.pop(index))
-                if not expected:
-                    break
-            if expected:
-                raise AssertionError((
-                    'entries not as expected:\n\n'
-                    'expected and found:\n%s\n\n'
-                    'expected but not found:\n%s\n\n'
-                    'other entries:\n%s'
-                ) % (pformat(matched), pformat(expected), pformat(unmatched)))
+        expected = SequenceComparison(
+            *expected, ordered=order_matters, partial=True, recursive=self.recursive_check
+        )
+        if expected != actual:
+            raise AssertionError(expected.failed)
+        for index in expected.checked_indices:
+            self.records[index].checked = True
 
     def __enter__(self):
         return self

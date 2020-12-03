@@ -17,6 +17,9 @@ Comparisons
 .. autoclass:: RangeComparison
    :members:
 
+.. autoclass:: SequenceComparison
+   :members:
+
 .. autoclass:: StringComparison
    :members:
 

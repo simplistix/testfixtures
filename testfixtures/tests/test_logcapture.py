@@ -48,12 +48,28 @@ class TestLogCapture(TestCase):
         log_capture.check(("root", "ERROR", "during"))
         log_capture.ensure_checked()
 
-    def test_simple_strict_asserted_by_check_present(self):
+    def test_simple_strict_asserted_by_check_present_ordered(self):
         log_capture = LogCapture(ensure_checks_above=ERROR)
         root.error('during')
         log_capture.uninstall()
         log_capture.check_present(("root", "ERROR", "during"))
         log_capture.ensure_checked()
+
+    def test_simple_strict_asserted_by_check_present_unordered(self):
+        log_capture = LogCapture(ensure_checks_above=ERROR)
+        root.error('during')
+        log_capture.uninstall()
+        log_capture.check_present(("root", "ERROR", "during"), order_matters=False)
+        log_capture.ensure_checked()
+
+    def test_simple_strict_not_asserted_by_check_present(self):
+        log_capture = LogCapture(ensure_checks_above=ERROR)
+        root.error('before')
+        root.error('during')
+        log_capture.uninstall()
+        log_capture.check_present(("root", "ERROR", "during"))
+        with ShouldAssert("Not asserted ERROR log(s): [('root', 'ERROR', 'before')]"):
+            log_capture.ensure_checked()
 
     def test_simple_strict_asserted_by_containment(self):
         log_capture = LogCapture(ensure_checks_above=ERROR)
@@ -339,16 +355,17 @@ class TestCheckPresent(object):
         with LogCapture() as log:
             root.error('junk')
         with ShouldAssert(dedent("""\
-                sequence not as expected:
+                ignored:
+                [('root', 'ERROR', 'junk')]
                 
                 same:
-                ()
+                []
                 
                 expected:
-                (('root', 'INFO', 'one'),)
+                [('root', 'INFO', 'one')]
                 
                 actual:
-                (('root', 'ERROR', 'junk'),)""")):
+                []""")):
             log.check_present(
                 ('root', 'INFO', 'one'),
             )
@@ -357,16 +374,14 @@ class TestCheckPresent(object):
         with LogCapture(recursive_check=True) as log:
             root.error('junk')
         with ShouldAssert(dedent("""\
-                sequence not as expected:
-                
                 same:
-                ()
+                []
                 
                 expected:
-                (('root', 'INFO', 'one'),)
+                [('root', 'INFO', 'one')]
                 
                 actual:
-                (('root', 'ERROR', 'junk'),)
+                [('root', 'ERROR', 'junk')]
                 
                 While comparing [0]: sequence not as expected:
                 
@@ -392,19 +407,17 @@ class TestCheckPresent(object):
             root.warning('two')
             root.error('j2')
         with ShouldAssert(dedent("""\
-                sequence not as expected:
+                ignored:
+                [('root', 'ERROR', 'j1'), ('root', 'ERROR', 'j2')]
                 
                 same:
-                (('root', 'INFO', 'one'),)
+                [('root', 'INFO', 'one')]
                 
                 expected:
-                (('root', 'WARNING', 'two'), ('root', 'ERROR', 'three'))
+                [('root', 'WARNING', 'two'), ('root', 'ERROR', 'three')]
                 
                 actual:
-                (('root', 'ERROR', 'j1'),
-                 ('root', 'ERROR', 'three'),
-                 ('root', 'WARNING', 'two'),
-                 ('root', 'ERROR', 'j2'))""")):
+                [('root', 'ERROR', 'three'), ('root', 'WARNING', 'two')]""")):
             log.check_present(
                 ('root', 'INFO', 'one'),
                 ('root', 'WARNING', 'two'),
@@ -429,16 +442,11 @@ class TestCheckPresent(object):
         with LogCapture() as log:
             root.error('junk')
         with ShouldAssert(dedent("""\
-                entries not as expected:
+                ignored:
+                [('root', 'ERROR', 'junk')]
                 
-                expected and found:
-                []
-                
-                expected but not found:
-                [('root', 'INFO', 'one')]
-                
-                other entries:
-                [('root', 'ERROR', 'junk')]""")):
+                in expected but not actual:
+                [('root', 'INFO', 'one')]""")):
             log.check_present(
                 ('root', 'INFO', 'one'),
                 order_matters=False
@@ -461,16 +469,17 @@ class TestCheckPresent(object):
             root.error('junk')
             root.error('three')
         with ShouldAssert(dedent("""\
-                sequence not as expected:
+                ignored:
+                ['one', 'junk', 'three']
                 
                 same:
-                ()
+                []
                 
                 expected:
-                ('two',)
+                ['two']
                 
                 actual:
-                ('one', 'junk', 'three')""")):
+                []""")):
             log.check_present('two')
 
     def test_bad_params(self):
@@ -517,16 +526,14 @@ class TestCheckPresent(object):
             root.error('junk')
             root.info('one')
         with ShouldAssert(dedent("""\
-                entries not as expected:
+                ignored:
+                [('root', 'ERROR', 'junk'), ('root', 'ERROR', 'junk')]
                 
-                expected and found:
-                [('root', 'INFO', 'one'), ('root', 'WARNING', 'two'), ('root', 'INFO', 'one')]
+                same:
+                [('root', 'INFO', 'one'), ('root', 'INFO', 'one'), ('root', 'WARNING', 'two')]
                 
-                expected but not found:
-                [('root', 'WARNING', 'two')]
-                
-                other entries:
-                [('root', 'ERROR', 'junk'), ('root', 'ERROR', 'junk')]""")):
+                in expected but not actual:
+                [('root', 'WARNING', 'two')]""")):
             log.check_present(
                 ('root', 'INFO', 'one'),
                 ('root', 'INFO', 'one'),
@@ -559,18 +566,17 @@ class TestCheckPresent(object):
             root.warning('two')
             root.error('junk')
         with ShouldAssert(dedent("""\
-                sequence not as expected:
+                ignored:
+                [('root', 'ERROR', 'junk'), ('root', 'ERROR', 'junk')]
                 
                 same:
-                (('root', 'INFO', 'one'),)
+                [('root', 'INFO', 'one'), ('root', 'WARNING', 'two')]
                 
                 expected:
-                (('root', 'WARNING', 'two'), ('root', 'ERROR', 'three'))
+                [('root', 'ERROR', 'three')]
                 
                 actual:
-                (('root', 'ERROR', 'junk'),
-                 ('root', 'WARNING', 'two'),
-                 ('root', 'ERROR', 'junk'))""")):
+                []""")):
             log.check_present(
                 ('root', 'INFO', 'one'),
                 ('root', 'WARNING', 'two'),
@@ -584,16 +590,14 @@ class TestCheckPresent(object):
             root.error('three')
             root.error('junk')
         with ShouldAssert(dedent("""\
-                entries not as expected:
+                ignored:
+                [('root', 'ERROR', 'junk'), ('root', 'ERROR', 'junk')]
                 
-                expected and found:
-                [('root', 'INFO', 'one'), ('root', 'ERROR', 'three')]
+                same:
+                [('root', 'ERROR', 'three'), ('root', 'INFO', 'one')]
                 
-                expected but not found:
-                [('root', 'WARNING', 'two')]
-                
-                other entries:
-                [('root', 'ERROR', 'junk'), ('root', 'ERROR', 'junk')]""")):
+                in expected but not actual:
+                [('root', 'WARNING', 'two')]""")):
             log.check_present(
                 ('root', 'ERROR', 'three'),
                 ('root', 'INFO', 'one'),

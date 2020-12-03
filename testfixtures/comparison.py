@@ -144,7 +144,7 @@ def compare_with_type(x, y, context):
     return '{x} != {y}'.format(**to_render)
 
 
-def compare_sequence(x, y, context):
+def compare_sequence(x, y, context, prefix=True):
     """
     Returns a textual description of the differences between the two
     supplied sequences.
@@ -160,7 +160,7 @@ def compare_sequence(x, y, context):
     if l_x == l_y and i == l_x:
         return
 
-    return ('sequence not as expected:\n\n'
+    return (('sequence not as expected:\n\n' if prefix else '')+
             'same:\n%s\n\n'
             '%s:\n%s\n\n'
             '%s:\n%s') % (pformat(x[:i]),
@@ -703,16 +703,21 @@ class StatefulComparison(object):
     A base class for stateful comparison objects.
     """
 
-    failed = None
+    failed = ''
+    expected = None
+    name_attrs = ()
 
     def __eq__(self, other):
         return not(self != other)
 
     def name(self):
-        return type(self).__name__
+        name = type(self).__name__
+        if self.name_attrs:
+            name += '(%s)' % ', '.join('%s=%r' % (n, getattr(self, n)) for n in self.name_attrs)
+        return name
 
     def body(self):
-        raise NotImplementedError()
+        return pformat(self.expected)[1:-1]
 
     def __repr__(self):
         name = self.name()
@@ -830,6 +835,111 @@ class Comparison(StatefulComparison):
         return ''
 
 
+class SequenceComparison(StatefulComparison):
+    """
+    An object that can be used in comparisons of expected and actual
+    sequences.
+
+    :param expected: The items expected to be in the sequence.
+    :param ordered:
+      If the items are expected to be in the order specified.
+      Defaults to ``True``.
+    :param partial:
+      If any items not expected should be ignored.
+      Defaults to ``False``.
+    :param recursive:
+      If a difference is found, recursively compare the item where
+      the difference was found to highlight exactly what was different.
+      Defaults to ``False``.
+    """
+
+    name_attrs = ('ordered', 'partial')
+
+    def __init__(self, *expected, **kw):
+        self.expected = expected
+        # py2 :-(
+        self.ordered = kw.pop('ordered', True)
+        self.partial = kw.pop('partial', False)
+        self.recursive = kw.pop('recursive', False)
+        assert not kw, 'unexpected parameter'
+        self.checked_indices = set()
+
+    def __ne__(self, other):
+        try:
+            actual = original_actual = list(other)
+        except TypeError:
+            self.failed = 'bad type'
+            return True
+        expected = list(self.expected)
+        actual = list(actual)
+
+        matched = []
+        matched_expected_indices = []
+        matched_actual_indices = []
+
+        missing_from_expected = actual
+        missing_from_expected_indices = actual_indices = list(range(len(actual)))
+
+        missing_from_actual = []
+        missing_from_actual_indices = []
+
+        for e_i, e in enumerate(expected):
+            try:
+                i = actual.index(e)
+                a_i = actual_indices.pop(i)
+            except ValueError:
+                missing_from_actual.append(e)
+                missing_from_actual_indices.append(e_i)
+            else:
+                matched.append(missing_from_expected.pop(i))
+                matched_expected_indices.append(e_i)
+                matched_actual_indices.append(a_i)
+                self.checked_indices.add(a_i)
+
+        matches_in_order = matched_actual_indices == sorted(matched_actual_indices)
+        all_matched = not (missing_from_actual or missing_from_expected)
+        partial_match = self.partial and not missing_from_actual
+
+        if (matches_in_order or not self.ordered) and (all_matched or partial_match):
+            return False
+
+        expected_indices = matched_expected_indices+missing_from_actual_indices
+        actual_indices = matched_actual_indices
+
+        if self.partial:
+            # try to give a clue as to what didn't match:
+            if self.recursive and self.ordered and missing_from_expected:
+                actual_indices.append(missing_from_expected_indices.pop(0))
+                missing_from_expected.pop(0)
+
+            ignored = missing_from_expected
+            missing_from_expected = None
+        else:
+            actual_indices += missing_from_expected_indices
+            ignored = None
+
+        message = []
+
+        def add_section(name, content):
+            if content:
+                message.append(name+':\n'+pformat(content))
+
+        add_section('ignored', ignored)
+
+        if self.ordered:
+            message.append(compare(
+                expected=[self.expected[i] for i in sorted(expected_indices)],
+                actual=[original_actual[i] for i in sorted(actual_indices)],
+                recursive=self.recursive,
+                raises=False
+            ).split('\n\n', 1)[1])
+        else:
+            add_section('same', matched)
+            add_section('in expected but not actual', missing_from_actual)
+            add_section('in actual but not expected', missing_from_expected)
+
+        self.failed = '\n\n'.join(message)
+        return True
 
 
 class StringComparison:
