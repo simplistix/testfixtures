@@ -864,25 +864,27 @@ actual:
 Where there are differences, they may be hard to spot. In this case, you can ask for a more
 detailed explanation of what wasn't as expected:
 
->>> compare(expected=S({1}, {1, 2}, {1, 2, 3}, recursive=True), actual=[{1}, {1}, {1, 2, 3}])
+>>> compare(expected=S({1: 'a'}, {2: 'c'}, recursive=True), actual=[{1: 'a'}, {2: 'd'}])
 Traceback (most recent call last):
  ...
 AssertionError:...
 <SequenceComparison(ordered=True, partial=False)(failed)>
 same:
-[{1}]
+[{1: 'a'}]
 <BLANKLINE>
 expected:
-[{1, 2}, {1, 2, 3}]
+[{2: 'c'}]
 <BLANKLINE>
 actual:
-[{1}, {1, 2, 3}]
+[{2: 'd'}]
 <BLANKLINE>
-While comparing [1]: set not as expected:
+While comparing [1]: dict not as expected:
 <BLANKLINE>
-in expected but not actual:
-[2]
-</SequenceComparison(ordered=True, partial=False)> (expected) != [{1}, {1}, {1, 2, 3}] (actual)
+values differ:
+2: 'c' (expected) != 'd' (actual)
+<BLANKLINE>
+While comparing [1][2]: 'c' (expected) != 'd' (actual)
+</SequenceComparison(ordered=True, partial=False)> (expected) != [{1: 'a'}, {2: 'd'}] (actual)
 
 There are also the :class:`Subset` and :class:`Permutation` shortcuts:
 

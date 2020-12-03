@@ -285,32 +285,33 @@ class TestSequenceComparison(object):
         ))
 
     def test_unequal_nested_unhashable_unordered(self):
-        s = SequenceComparison({2}, {1}, {2}, {3}, ordered=False)
-        assert s != ({1}, {2}, {4})
+        s = SequenceComparison({2: True}, {1: True}, {2: True}, {3: True}, ordered=False)
+        assert s != ({1: True}, {2: True}, {4: True})
         compare(repr(s), expected=(
             '\n'
             '<SequenceComparison(ordered=False, partial=False)(failed)>\n'
             'same:\n'
-            "[{2}, {1}]\n\n"
+            "[{2: True}, {1: True}]\n\n"
             'in expected but not actual:\n'
-            "[{2}, {3}]\n\n"
+            "[{2: True}, {3: True}]\n\n"
             'in actual but not expected:\n'
-            "[{4}]\n"
+            "[{4: True}]\n"
             '</SequenceComparison(ordered=False, partial=False)>'
         ))
 
     def test_unequal_nested_unhashable_unordered_partial(self):
-        s = SequenceComparison({2}, {1}, {2}, {3}, ordered=False, partial=True)
-        assert s != ({1}, {2}, {4})
+        s = SequenceComparison({2: True}, {1: True}, {2: True}, {3: True},
+                               ordered=False, partial=True)
+        assert s != ({1: True}, {2: True}, {4: True})
         compare(repr(s), expected=(
             '\n'
             '<SequenceComparison(ordered=False, partial=True)(failed)>\n'
             'ignored:\n'
-            "[{4}]\n\n"
+            "[{4: True}]\n\n"
             'same:\n'
-            "[{2}, {1}]\n\n"
+            "[{2: True}, {1: True}]\n\n"
             'in expected but not actual:\n'
-            "[{2}, {3}]\n"
+            "[{2: True}, {3: True}]\n"
             '</SequenceComparison(ordered=False, partial=True)>'
         ))
 
