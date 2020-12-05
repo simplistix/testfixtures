@@ -330,6 +330,14 @@ class TestSequenceComparison(object):
             '</SequenceComparison(ordered=True, partial=False)>'
         ))
 
+    def test_partial_nothing_specified(self):
+        s = SequenceComparison(partial=True)
+        assert s == {}
+
+    def test_partial_wrong_type(self):
+        s = SequenceComparison(partial=True)
+        assert s != object()
+
 
 class TestSubset(object):
 
