@@ -7,6 +7,12 @@ class TestSequenceComparison(object):
         compare(repr(SequenceComparison(1, 2, 3)),
                 expected='<SequenceComparison(ordered=True, partial=False)>1, 2, 3</>')
 
+    def test_repr_long(self):
+        actual = repr(SequenceComparison('a', 'b', 'c'*1000))[:60]
+        compare(actual,
+                expected='\n'
+                         "<SequenceComparison(ordered=True, partial=False)>\n'a',\n 'b'")
+
     def test_repr_after_equal(self):
         s = SequenceComparison(1, 2, 3)
         assert s == (1, 2, 3)
