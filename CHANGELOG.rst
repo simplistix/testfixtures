@@ -3,6 +3,21 @@ Changes
 
 .. currentmodule:: testfixtures
 
+6.16.0 (9 Dec 2020)
+-------------------
+
+- Simplify and clarify the documentation of timezones when using :class:`test_datetime`.
+
+- :doc:`api` has been re-arranged to make it easier to browse.
+
+- The ``strict`` parameter to :class:`Comparison` has been deprecated in favour of ``partial``.
+
+- Add :class:`SequenceComparison`, :class:`Subset` and :class:`Permutation` objects.
+
+- Add :class:`MappingComparison` objects.
+
+- Officially support Python 3.9.
+
 6.15.0 (9 Oct 2020)
 -------------------
 
