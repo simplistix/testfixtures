@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from decimal import Decimal
 from difflib import unified_diff
 from functools import partial as partial_type, partial
@@ -6,7 +7,7 @@ from re import compile, MULTILINE
 from types import GeneratorType
 
 from testfixtures import not_there
-from testfixtures.compat import ClassType, Iterable, Unicode, basestring, PY3
+from testfixtures.compat import ClassType, Iterable, Unicode, basestring, PY3, PY2
 from testfixtures.resolve import resolve
 from testfixtures.utils import indent
 from testfixtures.mock import parent_name, mock_call, unittest_mock_call
@@ -962,6 +963,118 @@ class Permutation(SequenceComparison):
 
     def __init__(self, *expected):
         super(Permutation, self).__init__(*expected, ordered=False, partial=False)
+
+
+class MappingComparison(StatefulComparison):
+    """
+    An object that can be used in comparisons of expected and actual
+    mappings.
+
+    :param expected_mapping:
+      The mapping that should be matched expressed as either a sequence of
+      ``(key, value)`` tuples or a mapping.
+    :param expected_items: The items that should be matched.
+    :param ordered:
+      If the keys in the mapping are expected to be in the order specified.
+      Defaults to ``False``.
+    :param partial:
+      If any keys not expected should be ignored.
+      Defaults to ``False``.
+    :param recursive:
+      If a difference is found, recursively compare the value where
+      the difference was found to highlight exactly what was different.
+      Defaults to ``False``.
+    """
+
+    name_attrs = ('ordered', 'partial')
+
+    def __init__(self, *expected_mapping, **expected_items):
+        # py2 :-(
+        self.ordered = expected_items.pop('ordered', False)
+        self.partial = expected_items.pop('partial', False)
+        self.recursive = expected_items.pop('recursive', False)
+
+        if PY2 and self.ordered:
+            if expected_items:
+                raise TypeError('order undefined on Python 2')
+            elif expected_mapping and type(expected_mapping[0]) is dict:
+                raise TypeError('dict order undefined on Python 2')
+
+        if len(expected_mapping) == 1:
+            expected = OrderedDict(*expected_mapping)
+        else:
+            expected = OrderedDict(expected_mapping)
+        expected.update(expected_items)
+
+        self.expected = expected
+
+    def body(self):
+        # this can all go away and use the super class once py2 is gone :'(
+        parts = []
+        text_length = 0
+        for key, value in self.expected.items():
+            part = repr(key)+': '+pformat(value)
+            text_length += len(part)
+            parts.append(part)
+        if text_length > 60:
+            sep = ',\n'
+        else:
+            sep = ', '
+        return sep.join(parts)
+
+    def __ne__(self, other):
+        try:
+            actual_keys = other.keys()
+            actual_mapping = dict(other.items())
+        except AttributeError:
+            self.failed = 'bad type'
+            return True
+
+        expected_keys = self.expected.keys()
+        expected_mapping = self.expected
+
+        if self.partial:
+            ignored_keys = set(actual_keys) - set(expected_keys)
+            for key in ignored_keys:
+                del actual_mapping[key]
+            # preserve the order:
+            actual_keys = [k for k in actual_keys if k not in ignored_keys]
+        else:
+            ignored_keys = None
+
+        mapping_differences = compare(
+            expected=expected_mapping,
+            actual=actual_mapping,
+            recursive=self.recursive,
+            raises=False
+        )
+
+        if self.ordered:
+            key_differences = compare(
+                expected=list(expected_keys),
+                actual=list(actual_keys),
+                recursive=self.recursive,
+                raises=False
+            )
+        else:
+            key_differences = None
+
+        if key_differences or mapping_differences:
+
+            message = []
+
+            if ignored_keys:
+                message.append('ignored:\n'+pformat(sorted(ignored_keys)))
+
+            if mapping_differences:
+                message.append(mapping_differences.split('\n\n', 1)[1])
+
+            if key_differences:
+                message.append('wrong key order:\n\n'+key_differences.split('\n\n', 1)[1])
+
+            self.failed = '\n\n'.join(message)
+
+            return True
 
 
 class StringComparison:

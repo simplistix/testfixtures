@@ -11,6 +11,9 @@ Comparisons
 
 .. autoclass:: Comparison
 
+.. autoclass:: MappingComparison
+   :members:
+
 .. autoclass:: Permutation
    :members:
 

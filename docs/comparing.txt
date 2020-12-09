@@ -780,6 +780,79 @@ Gotchas
   >>> C(SomeClass) == C(SomeClass)
   False
 
+
+Mapping Comparison objects
+---------------------------
+
+When comparing mappings such as :class:`dict` and :class:`~collections.OrderedDict`,
+you may need to check the order of the keys is as you expect.
+:class:`MappingComparison` objects can be used for this:
+
+>>> from collections import OrderedDict
+>>> from testfixtures import compare, MappingComparison as M
+>>> compare(expected=M((('a', 1), ('c', 3), ('d', 2)), ordered=True),
+...         actual=OrderedDict((('a', 1), ('d', 2), ('c', 3))))
+Traceback (most recent call last):
+ ...
+AssertionError:...
+<MappingComparison(ordered=True, partial=False)(failed)>
+wrong key order:
+<BLANKLINE>
+same:
+['a']
+<BLANKLINE>
+expected:
+['c', 'd']
+<BLANKLINE>
+actual:
+['d', 'c']
+</MappingComparison(ordered=True, partial=False)> (expected) != OrderedDict([('a', 1), ('d', 2), ('c', 3)]) (actual)
+
+You may also only care about certain keys being present in a mapping. This
+can also be achieved with :class:`MappingComparison` objects:
+
+>>> compare(expected=M(a=1, d=2, partial=True), actual={'a': 1, 'c': 3})
+Traceback (most recent call last):
+ ...
+AssertionError:...
+<MappingComparison(ordered=False, partial=True)(failed)>
+ignored:
+['c']
+<BLANKLINE>
+same:
+['a']
+<BLANKLINE>
+in expected but not actual:
+'d': 2
+</MappingComparison(ordered=False, partial=True)> (expected) != {'a': 1, 'c': 3} (actual)
+
+Where there are differences, they may be hard to spot. In this case, you can ask for a more
+detailed explanation of what wasn't as expected:
+
+>>> compare(expected=M((('a', [1, 2]), ('d', [1, 3])), ordered=True, recursive=True),
+...         actual=OrderedDict((('a', [1, 2]), ('d', [1, 4]))))
+Traceback (most recent call last):
+ ...
+AssertionError:...
+<MappingComparison(ordered=True, partial=False)(failed)>
+same:
+['a']
+<BLANKLINE>
+values differ:
+'d': [1, 3] (expected) != [1, 4] (actual)
+<BLANKLINE>
+While comparing ['d']: sequence not as expected:
+<BLANKLINE>
+same:
+[1]
+<BLANKLINE>
+expected:
+[3]
+<BLANKLINE>
+actual:
+[4]
+</MappingComparison(ordered=True, partial=False)> (expected) != OrderedDict([('a', [1, 2]), ('d', [1, 4])]) (actual)
+
 Round Comparison objects
 -------------------------
 
