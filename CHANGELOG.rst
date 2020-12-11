@@ -1,8 +1,6 @@
 Changes
 =======
 
-.. currentmodule:: testfixtures
-
 6.16.0 (9 Dec 2020)
 -------------------
 
