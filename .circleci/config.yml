@@ -18,7 +18,7 @@ jobs:
       - image: << parameters.image >>
     steps:
       - python/check-package:
-          package: "mock"
+          package: "testfixtures"
           extra_packages: <<  parameters.extra_package >>
           test:
           - run:
