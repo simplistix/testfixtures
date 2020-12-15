@@ -305,7 +305,8 @@ def compare_set(x, y, context):
             ))
     return '\n'.join(lines)+'\n'
 
-trailing_whitespace_re = compile('\s+$', MULTILINE)
+
+trailing_whitespace_re = compile(r'\s+$', MULTILINE)
 
 
 def strip_blank_lines(text):
