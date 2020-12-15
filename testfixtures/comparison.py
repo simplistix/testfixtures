@@ -866,24 +866,30 @@ class SequenceComparison(StatefulComparison):
         self.recursive = kw.pop('recursive', False)
         assert not kw, 'unexpected parameter'
         self.checked_indices = set()
+        self.matched = None
+        self.missing_from_expected = None
+        self.missing_from_actual = None
 
     def __ne__(self, other):
         try:
             actual = original_actual = list(other)
         except TypeError:
             self.failed = 'bad type'
+            self.matched = None
+            self.missing_from_expected = None
+            self.missing_from_actual = None
             return True
         expected = list(self.expected)
         actual = list(actual)
 
-        matched = []
+        matched = self.matched = []
         matched_expected_indices = []
         matched_actual_indices = []
 
-        missing_from_expected = actual
+        missing_from_expected = self.missing_from_expected = actual
         missing_from_expected_indices = actual_indices = list(range(len(actual)))
 
-        missing_from_actual = []
+        missing_from_actual = self.missing_from_actual = []
         missing_from_actual_indices = []
 
         start = 0

@@ -350,6 +350,28 @@ class TestSequenceComparison(object):
         s = SequenceComparison(partial=True)
         assert s != object()
 
+    def test_missing_from_actual_attribute(self):
+        s = SequenceComparison(0, 1, 2, 3)
+        assert s != [1, 2]
+        assert s.missing_from_actual == [0, 3]
+
+    def test_missing_from_actual_attribute_initially_null(self):
+        s = SequenceComparison("abcd")
+        assert s.missing_from_actual is None
+
+    def test_missing_from_actual_attribute_reusable(self):
+        s = SequenceComparison(0, 1, 2, 3)
+        assert s != [1, 2]
+        assert s != [1, 2, 3]
+        assert s.missing_from_actual == [0]
+
+    def test_missing_from_actual_attribute_reset_after_failed_comparison(self):
+        s = SequenceComparison(0, 1, 2, 3)
+        assert s == [0, 1, 2, 3]
+        assert s.missing_from_actual == []
+        assert s != 1
+        assert s.missing_from_actual is None
+
 
 class TestSubset(object):
 

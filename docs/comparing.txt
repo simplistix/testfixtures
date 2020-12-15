@@ -959,6 +959,19 @@ values differ:
 While comparing [1][2]: 'c' (expected) != 'd' (actual)
 </SequenceComparison(ordered=True, partial=False)> (expected) != [{1: 'a'}, {2: 'd'}] (actual)
 
+:class:`SequenceComparison` objects remember the matches and differences
+of the most recent comparison operation:
+
+>>> s = S(1, 2, 3, 4)
+>>> s == [1, 2, 3, "four"]
+False
+>>> s.matched
+[1, 2, 3]
+>>> s.missing_from_expected
+['four']
+>>> s.missing_from_actual
+[4]
+
 There are also the :class:`Subset` and :class:`Permutation` shortcuts:
 
 >>> from testfixtures import Subset, Permutation
