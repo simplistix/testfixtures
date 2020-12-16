@@ -1,6 +1,15 @@
 Changes
 =======
 
+6.17.0 (16 Dec 2020)
+--------------------
+
+- Add simpler flag support to :class:`StringComparison`.
+
+- Fix deprecation warning about invalid escape sequence.
+
+Thanks to Wim Glenn for the deprecation warning fix.
+
 6.16.0 (9 Dec 2020)
 -------------------
 
