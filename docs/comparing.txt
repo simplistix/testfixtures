@@ -965,6 +965,8 @@ There are also the :class:`Subset` and :class:`Permutation` shortcuts:
 >>> assert Subset({1}, {2}) == [{1}, {2}, {3}]
 >>> assert Permutation({1}, {2}) == [{2}, {1}]
 
+.. _stringcomparison:
+
 String Comparison objects
 -------------------------
 
@@ -983,7 +985,29 @@ Here's an example:
 
   from testfixtures import compare, StringComparison as S
 
-  compare(S('Starting thread \d+'),'Starting thread 132356')
+  compare(expected=S('Starting thread \d+'), actual='Starting thread 132356')
+
+If you need to specify flags, this can be done in one of three ways:
+
+- As parameters:
+
+  .. code-block:: python
+
+    compare(expected=S(".*BaR", dotall=True, ignorecase=True), actual="foo\nbar")
+
+
+- As you would to :func:`re.compile`:
+
+  .. code-block:: python
+
+    import re
+    compare(expected=S(".*BaR", re.DOTALL|re.IGNORECASE), actual="foo\nbar")
+
+- Inline:
+
+  .. code-block:: python
+
+    compare(expected=S("(?s:.*bar)"), actual="foo\nbar")
 
 Differentiating chunks of text
 ------------------------------

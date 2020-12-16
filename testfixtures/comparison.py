@@ -1,10 +1,11 @@
 from collections import OrderedDict
 from decimal import Decimal
 from difflib import unified_diff
-from functools import partial as partial_type, partial
+from functools import partial as partial_type, partial, reduce
+from operator import __or__
 from pprint import pformat
-from re import compile, MULTILINE
 from types import GeneratorType
+import re
 
 from testfixtures import not_there
 from testfixtures.compat import ClassType, Iterable, Unicode, basestring, PY3, PY2
@@ -306,7 +307,7 @@ def compare_set(x, y, context):
     return '\n'.join(lines)+'\n'
 
 
-trailing_whitespace_re = compile(r'\s+$', MULTILINE)
+trailing_whitespace_re = re.compile(r'\s+$', re.MULTILINE)
 
 
 def strip_blank_lines(text):
@@ -1089,9 +1090,21 @@ class StringComparison:
                          :class:`StringComparison` is compared with
                          any :class:`basestring` instance.
 
+    :param flags: Flags passed to :func:`re.compile`.
+
+    :param flag_names: See the :ref:`examples <stringcomparison>`.
     """
-    def __init__(self, regex_source):
-        self.re = compile(regex_source)
+    def __init__(self, regex_source, flags=None, **flag_names):
+        args = [regex_source]
+
+        flags_ = []
+        if flags:
+            flags_.append(flags)
+        flags_.extend(getattr(re, f.upper()) for f in flag_names)
+        if flags_:
+            args.append(reduce(__or__, flags_))
+
+        self.re = re.compile(*args)
 
     def __eq__(self, other):
         if not isinstance(other, basestring):

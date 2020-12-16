@@ -1,3 +1,5 @@
+import re
+
 from testfixtures import StringComparison as S, compare
 from testfixtures.compat import PY2
 from unittest import TestCase
@@ -50,3 +52,12 @@ class Tests(TestCase):
 
         def test_cmp_no(self):
             self.failUnless(cmp(S('on \d+'), 'on xx'))
+
+    def test_flags_argument(self):
+        compare(S(".*bar", re.DOTALL), actual="foo\nbar")
+
+    def test_flags_parameter(self):
+        compare(S(".*bar", flags=re.DOTALL), actual="foo\nbar")
+
+    def test_flags_names(self):
+        compare(S(".*BaR", dotall=True, ignorecase=True), actual="foo\nbar")
