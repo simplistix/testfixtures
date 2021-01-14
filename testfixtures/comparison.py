@@ -886,9 +886,10 @@ class SequenceComparison(StatefulComparison):
         missing_from_actual = []
         missing_from_actual_indices = []
 
+        start = 0
         for e_i, e in enumerate(expected):
             try:
-                i = actual.index(e)
+                i = actual.index(e, start)
                 a_i = actual_indices.pop(i)
             except ValueError:
                 missing_from_actual.append(e)
@@ -898,6 +899,8 @@ class SequenceComparison(StatefulComparison):
                 matched_expected_indices.append(e_i)
                 matched_actual_indices.append(a_i)
                 self.checked_indices.add(a_i)
+                if self.ordered:
+                    start = i
 
         matches_in_order = matched_actual_indices == sorted(matched_actual_indices)
         all_matched = not (missing_from_actual or missing_from_expected)

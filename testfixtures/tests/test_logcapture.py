@@ -408,16 +408,16 @@ class TestCheckPresent(object):
             root.error('j2')
         with ShouldAssert(dedent("""\
                 ignored:
-                [('root', 'ERROR', 'j1'), ('root', 'ERROR', 'j2')]
+                [('root', 'ERROR', 'j1'), ('root', 'ERROR', 'three'), ('root', 'ERROR', 'j2')]
                 
                 same:
-                [('root', 'INFO', 'one')]
+                [('root', 'INFO', 'one'), ('root', 'WARNING', 'two')]
                 
                 expected:
-                [('root', 'WARNING', 'two'), ('root', 'ERROR', 'three')]
+                [('root', 'ERROR', 'three')]
                 
                 actual:
-                [('root', 'ERROR', 'three'), ('root', 'WARNING', 'two')]""")):
+                []""")):
             log.check_present(
                 ('root', 'INFO', 'one'),
                 ('root', 'WARNING', 'two'),

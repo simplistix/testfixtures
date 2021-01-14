@@ -46,6 +46,10 @@ class TestSequenceComparison(object):
         s = SequenceComparison(1, 2, ordered=False, partial=True)
         assert s == (2, 1, 4)
 
+    def test_equal_partial_ordered(self):
+        s = SequenceComparison(1, 2, 1, ordered=True, partial=True)
+        assert s == (1, 1, 2, 1)
+
     def test_equal_ordered_duplicates(self):
         s = SequenceComparison(1, 2, 2, ordered=True, partial=True)
         assert s == (1, 2, 2, 3)
@@ -141,12 +145,14 @@ class TestSequenceComparison(object):
         compare(repr(s), expected=(
             '\n'
             '<SequenceComparison(ordered=True, partial=True)(failed)>\n'
+            'ignored:\n'
+            '[4]\n\n'
             'same:\n'
             '[]\n\n'
             'expected:\n'
             '[1, 2]\n\n'
             'actual:\n'
-            '[2, 1, 4]\n'
+            '[2, 1]\n'
             '</SequenceComparison(ordered=True, partial=True)>'
         ))
 
@@ -172,13 +178,13 @@ class TestSequenceComparison(object):
             '\n'
             '<SequenceComparison(ordered=True, partial=True)(failed)>\n'
             'ignored:\n'
-            '[4]\n\n'
+            '[2, 4]\n\n'
             'same:\n'
-            "['a', 'b']\n\n"
+            "['a', 'b', 1]\n\n"
             'expected:\n'
-            '[1, 2]\n\n'
+            '[2]\n\n'
             'actual:\n'
-            '[2, 1]\n'
+            '[]\n'
             '</SequenceComparison(ordered=True, partial=True)>'
         ))
 
