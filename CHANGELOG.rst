@@ -1,6 +1,12 @@
 Changes
 =======
 
+6.17.1 (14 Jan 2020)
+--------------------
+
+- Fix bug where bug where duplicated entries in an ordered but partial
+  :class:`SequenceComparison` could result in a failed match.
+
 6.17.0 (16 Dec 2020)
 --------------------
 
