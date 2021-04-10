@@ -44,11 +44,6 @@ common: &common
         name: python39
         image: circleci/python:3.9
     - python/pip-run-tests:
-        name: python36-mock-backport
-        # so we test the mock monkey patches aren't used:
-        image: circleci/python:3.6.4
-        extra_packages: "mock"
-    - python/pip-run-tests:
         name: python39-mock-backport
         image: circleci/python:3.9
         extra_packages: "mock"
@@ -73,7 +68,6 @@ common: &common
           - python37
           - python38
           - python39
-          - python36-mock-backport
           - python39-mock-backport
           - python27-django-1-9
           - python36-django-1-11
