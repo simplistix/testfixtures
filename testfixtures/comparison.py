@@ -952,7 +952,8 @@ class SequenceComparison(StatefulComparison):
                 recursive=self.recursive,
                 raises=False
             ).split('\n\n', 1)[1])
-            matched[:] = matched[:i_fail]
+            if i_fail is not None:
+                del matched[i_fail:]
         else:
             add_section('same', matched)
             add_section('in expected but not actual', missing_from_actual)
