@@ -350,27 +350,66 @@ class TestSequenceComparison(object):
         s = SequenceComparison(partial=True)
         assert s != object()
 
-    def test_missing_from_actual_attribute(self):
+    def test_stateful_attributes_equality(self):
+        s = SequenceComparison(0, 1, 2, 3)
+        assert s == [0, 1, 2, 3]
+        assert s.missing_from_actual == []
+        assert s.missing_from_expected == []
+        assert s.matched == [0, 1, 2, 3]
+        assert s.in_expected_and_actual == [0, 1, 2, 3]
+
+    def test_stateful_attributes(self):
         s = SequenceComparison(0, 1, 2, 3)
         assert s != [1, 2]
         assert s.missing_from_actual == [0, 3]
+        assert s.missing_from_expected == []
+        assert s.matched == []
+        assert s.in_expected_and_actual == [1, 2]
 
-    def test_missing_from_actual_attribute_initially_null(self):
+    def test_stateful_attributes_initially_null(self):
         s = SequenceComparison("abcd")
         assert s.missing_from_actual is None
+        assert s.missing_from_expected is None
+        assert s.matched is None
+        assert s.in_expected_and_actual is None
 
-    def test_missing_from_actual_attribute_reusable(self):
+    def test_stateful_attributes_reusable(self):
         s = SequenceComparison(0, 1, 2, 3)
         assert s != [1, 2]
         assert s != [1, 2, 3]
         assert s.missing_from_actual == [0]
+        assert s.missing_from_expected == []
+        assert s.matched == []
+        assert s.in_expected_and_actual == [1, 2, 3]
 
-    def test_missing_from_actual_attribute_reset_after_failed_comparison(self):
+    def test_stateful_attributes_reset_after_failed_comparison(self):
         s = SequenceComparison(0, 1, 2, 3)
-        assert s == [0, 1, 2, 3]
-        assert s.missing_from_actual == []
+        assert s != [1, 5]
+        assert s.missing_from_actual == [0, 2, 3]
+        assert s.missing_from_expected == [5]
+        assert s.matched == []
+        assert s.in_expected_and_actual == [1]
         assert s != 1
         assert s.missing_from_actual is None
+        assert s.missing_from_expected is None
+        assert s.matched is None
+        assert s.in_expected_and_actual is None
+
+    def test_stateful_unordered(self):
+        s = SequenceComparison(0, 1, 2, 3, ordered=False)
+        assert s != [2, 0, 1]
+        assert s.missing_from_actual == [3]
+        assert s.missing_from_expected == []
+        assert s.matched == [0, 1, 2]
+        assert s.in_expected_and_actual == [0, 1, 2]
+
+    def test_stateful_ordered(self):
+        s = SequenceComparison(0, 1, 2, 3, 4)
+        assert s != [0, 1, 3, 5]
+        assert s.missing_from_actual == [2, 4]
+        assert s.missing_from_expected == [5]
+        assert s.matched == [0, 1]
+        assert s.in_expected_and_actual == [0, 1, 3]
 
 
 class TestSubset(object):

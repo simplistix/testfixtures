@@ -869,6 +869,7 @@ class SequenceComparison(StatefulComparison):
         self.matched = None
         self.missing_from_expected = None
         self.missing_from_actual = None
+        self.in_expected_and_actual = None
 
     def __ne__(self, other):
         try:
@@ -878,10 +879,12 @@ class SequenceComparison(StatefulComparison):
             self.matched = None
             self.missing_from_expected = None
             self.missing_from_actual = None
+            self.in_expected_and_actual = None
             return True
         expected = list(self.expected)
         actual = list(actual)
 
+        self.in_expected_and_actual = []
         matched = self.matched = []
         matched_expected_indices = []
         matched_actual_indices = []
@@ -893,15 +896,19 @@ class SequenceComparison(StatefulComparison):
         missing_from_actual_indices = []
 
         start = 0
+        i_fail = None
         for e_i, e in enumerate(expected):
             try:
                 i = actual.index(e, start)
                 a_i = actual_indices.pop(i)
             except ValueError:
+                if i_fail is None:
+                    i_fail = e_i
                 missing_from_actual.append(e)
                 missing_from_actual_indices.append(e_i)
             else:
                 matched.append(missing_from_expected.pop(i))
+                self.in_expected_and_actual.append(matched[-1])
                 matched_expected_indices.append(e_i)
                 matched_actual_indices.append(a_i)
                 self.checked_indices.add(a_i)
@@ -945,6 +952,7 @@ class SequenceComparison(StatefulComparison):
                 recursive=self.recursive,
                 raises=False
             ).split('\n\n', 1)[1])
+            matched[:] = matched[:i_fail]
         else:
             add_section('same', matched)
             add_section('in expected but not actual', missing_from_actual)
