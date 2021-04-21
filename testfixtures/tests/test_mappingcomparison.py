@@ -304,3 +304,8 @@ class TestMappingComparison(object):
         m = MappingComparison(partial=True)
         assert m != []
         check_repr(m, '<MappingComparison(ordered=False, partial=True)(failed)>bad type</>')
+
+    def test_boolean_return(self):
+        m = MappingComparison({'k': 'v'})
+        result = m != {'k': 'v'}
+        assert isinstance(result, bool)
