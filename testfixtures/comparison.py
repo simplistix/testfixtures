@@ -1080,6 +1080,7 @@ class MappingComparison(StatefulComparison):
             self.failed = '\n\n'.join(message)
 
             return True
+        return False
 
 
 class StringComparison:
