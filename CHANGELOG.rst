@@ -1,6 +1,12 @@
 Changes
 =======
 
+6.18.0 (15 Jul 2021)
+--------------------
+
+- Add support for lazy resolution of ``prefix`` and ``suffix`` when using
+  :func:`compare`.
+
 6.17.1 (14 Jan 2020)
 --------------------
 
