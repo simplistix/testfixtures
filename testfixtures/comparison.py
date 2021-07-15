@@ -620,6 +620,10 @@ class CompareContext(object):
             self.breadcrumbs.pop()
 
 
+def _resolve_lazy(source):
+    return str(source() if callable(source) else source)
+
+
 def compare(*args, **kw):
     """
     Compare two objects, raising an :class:`AssertionError` if they are not
@@ -637,11 +641,13 @@ def compare(*args, **kw):
 
     :param prefix: If provided, in the event of an :class:`AssertionError`
                    being raised, the prefix supplied will be prepended to the
-                   message in the :class:`AssertionError`.
+                   message in the :class:`AssertionError`. This may be a
+                   callable, in which case it will only be resolved if needed.
 
     :param suffix: If provided, in the event of an :class:`AssertionError`
                    being raised, the suffix supplied will be appended to the
-                   message in the :class:`AssertionError`.
+                   message in the :class:`AssertionError`. This may be a
+                   callable, in which case it will only be resolved if needed.
 
     :param x_label: If provided, in the event of an :class:`AssertionError`
                     being raised, the object passed as the first positional
@@ -692,9 +698,9 @@ def compare(*args, **kw):
 
     message = context.message
     if prefix:
-        message = prefix + ': ' + message
+        message = _resolve_lazy(prefix) + ': ' + message
     if suffix:
-        message += '\n' + suffix
+        message += '\n' + _resolve_lazy(suffix)
 
     if raises:
         raise AssertionError(message)

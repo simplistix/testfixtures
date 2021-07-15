@@ -38,6 +38,15 @@ marker = object()
 _compare = compare
 
 
+class Lazy:
+
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return self.message
+
+
 def check_raises(x=marker, y=marker, message=None, regex=None,
                  compare=compare, **kw):
     args = []
@@ -1036,6 +1045,17 @@ b
             prefix='file content'
             )
 
+    def test_prefix_callable(self):
+        with ShouldAssert('foo: 1 != 2'):
+            compare(1, 2, prefix=lambda: 'foo')
+
+    def test_prefix_stringable(self):
+        with ShouldAssert('foo: 1 != 2'):
+            compare(1, 2, prefix=Lazy('foo'))
+
+    def test_prefix_lazy(self):
+        compare(2, 2, prefix=Mock(side_effect=Exception('boom!')))
+
     def test_suffix(self):
         self.check_raises(
             1, 2,
@@ -1043,6 +1063,17 @@ b
             'additional context',
             suffix='additional context',
             )
+
+    def test_suffix_callable(self):
+        with ShouldAssert('1 != 2\n3'):
+            compare(1, 2, suffix=lambda: 3)
+
+    def test_suffix_stringable(self):
+        with ShouldAssert('1 != 2\nfoo'):
+            compare(1, 2, suffix=Lazy('foo'))
+
+    def test_suffix_lazy(self):
+        compare(2, 2, suffix=Mock(side_effect=Exception('boom!')))
 
     def test_labels_multiline(self):
         self.check_raises(
