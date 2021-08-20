@@ -1,6 +1,12 @@
 Changes
 =======
 
+6.18.1 (20 Aug 2021)
+--------------------
+
+- Fix bug when showing differences between mappings found by :func:`compare` when
+  mismatching values contained the same number more than once.
+
 6.18.0 (15 Jul 2021)
 --------------------
 
