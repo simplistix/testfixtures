@@ -568,8 +568,9 @@ class CompareContext(object):
         return '\n\nWhile comparing %s: ' % ''.join(self.breadcrumbs[1:])
 
     def seen(self, x, y):
-        # don't get confused by string interning:
-        if isinstance(x, basestring) and isinstance(y, basestring):
+        # don't get confused by interning:
+        singleton_types = basestring, int, float
+        if isinstance(x, singleton_types) and isinstance(y, singleton_types):
             return False
         key = id(x), id(y)
         if key in self._seen:

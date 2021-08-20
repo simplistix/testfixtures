@@ -399,6 +399,26 @@ class TestCompare(CompareHelper, TestCase):
             "'x': 1 != 2"
             )
 
+    def test_dict_identical_non_matching_ints(self):
+        self.check_raises(
+            dict(x=1, y=1), dict(x=2, y=2),
+            "dict not as expected:\n"
+            "\n"
+            "values differ:\n"
+            "'x': 1 != 2\n"
+            "'y': 1 != 2"
+            )
+
+    def test_dict_identical_non_matching_floats(self):
+        self.check_raises(
+            dict(x=1.0, y=1.0), dict(x=2.0, y=2.0),
+            "dict not as expected:\n"
+            "\n"
+            "values differ:\n"
+            "'x': 1.0 != 2.0\n"
+            "'y': 1.0 != 2.0"
+            )
+
     def test_dict_labels_specified(self):
         self.check_raises(
             dict(x=1, y=2), dict(x=2, z=3),
