@@ -35,16 +35,29 @@ common: &common
         # so we test the mock monkey patches:
         image: circleci/python:3.6.6
     - python/pip-run-tests:
-        name: python310
-        # docker changed their pattern after a7 :-/
-        image: circleci/python:3.10.0a7
+        name: python37
+        image: circleci/python:3.7
     - python/pip-run-tests:
-        name: python310-mock-backport
-        image: circleci/python:3.10.0a7
+        name: python38
+        image: circleci/python:3.8
+    - python/pip-run-tests:
+        name: python39
+        image: circleci/python:3.9
+    - python/pip-run-tests:
+        name: python39-mock-backport
+        image: circleci/python:3.9
         extra_packages: "mock"
     - python/pip-run-tests:
-        name: python310-django-latest
-        image: circleci/python:3.10.0a7
+        name: python27-django-1-9
+        image: circleci/python:2.7
+        extra_packages: "'django<1.10'"
+    - python/pip-run-tests:
+        name: python36-django-1-11
+        image: circleci/python:3.6
+        extra_packages: "'django<1.12'"
+    - python/pip-run-tests:
+        name: python39-django-latest
+        image: circleci/python:3.9
 
     - python/coverage:
         name: coverage
@@ -52,9 +65,13 @@ common: &common
         requires:
           - python27
           - python36
-          - python310
-          - python310-mock-backport
-          - python310-django-latest
+          - python37
+          - python38
+          - python39
+          - python39-mock-backport
+          - python27-django-1-9
+          - python36-django-1-11
+          - python39-django-latest
 
     - python/pip-docs:
         name: docs
@@ -76,8 +93,8 @@ common: &common
           - package
 
     - check-package:
-        name: check-package-python310
-        image: circleci/python:3.10.0a7
+        name: check-package-python39
+        image: circleci/python:3.9
         requires:
           - package
 
@@ -90,16 +107,16 @@ common: &common
           - package
 
     - check-package:
-        name: check-package-python310-mock
-        image: circleci/python:3.10.0a7
+        name: check-package-python39-mock
+        image: circleci/python:3.9
         extra_package: mock
         imports: "testfixtures, testfixtures.mock"
         requires:
           - package
 
     - check-package:
-        name: check-package-python310-django
-        image: circleci/python:3.10.0a7
+        name: check-package-python39-django
+        image: circleci/python:3.9
         extra_package: django
         imports: "testfixtures, testfixtures.django"
         requires:
@@ -111,9 +128,9 @@ common: &common
         requires:
           - check-package-python27
           - check-package-python27-mock
-          - check-package-python310
-          - check-package-python310-mock
-          - check-package-python310-django
+          - check-package-python39
+          - check-package-python39-mock
+          - check-package-python39-django
 
 workflows:
   push:
