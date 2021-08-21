@@ -6,7 +6,7 @@ from testfixtures.mock import call
 from testfixtures import ShouldRaise, compare, Replacer
 
 from testfixtures.popen import MockPopen, PopenBehaviour
-from testfixtures.compat import BytesLiteral, PY2
+from testfixtures.compat import BytesLiteral, PY2, PY_310_PLUS
 
 import signal
 
@@ -471,10 +471,11 @@ class Tests(TestCase):
         ], Popen.mock.method_calls)
 
     def test_invalid_parameters(self):
+        message = "__init__() got an unexpected keyword argument 'foo'"
+        if PY_310_PLUS:
+            message = "MockPopenInstance." + message
         Popen = MockPopen()
-        with ShouldRaise(TypeError(
-                "__init__() got an unexpected keyword argument 'foo'"
-        )):
+        with ShouldRaise(TypeError(message)):
             Popen(foo='bar')
 
     def test_invalid_method_or_attr(self):
@@ -492,39 +493,43 @@ class Tests(TestCase):
             process.foo
 
     def test_invalid_communicate_call(self):
+        message = "communicate() got an unexpected keyword argument 'foo'"
+        if PY_310_PLUS:
+            message = "MockPopenInstance." + message
         Popen = MockPopen()
         Popen.set_command('bar')
         process = Popen('bar')
-        with ShouldRaise(TypeError(
-                "communicate() got an unexpected keyword argument 'foo'"
-        )):
+        with ShouldRaise(TypeError(message)):
             process.communicate(foo='bar')
 
     def test_invalid_wait_call(self):
+        message = "wait() got an unexpected keyword argument 'foo'"
+        if PY_310_PLUS:
+            message = "MockPopenInstance." + message
         Popen = MockPopen()
         Popen.set_command('bar')
         process = Popen('bar')
-        with ShouldRaise(TypeError(
-                "wait() got an unexpected keyword argument 'foo'"
-        )):
+        with ShouldRaise(TypeError(message)):
             process.wait(foo='bar')
 
     def test_invalid_send_signal(self):
+        message = "send_signal() got an unexpected keyword argument 'foo'"
+        if PY_310_PLUS:
+            message = "MockPopenInstance." + message
         Popen = MockPopen()
         Popen.set_command('bar')
         process = Popen('bar')
-        with ShouldRaise(TypeError(
-                "send_signal() got an unexpected keyword argument 'foo'"
-        )):
+        with ShouldRaise(TypeError(message)):
             process.send_signal(foo='bar')
 
     def test_invalid_terminate(self):
+        message = "terminate() got an unexpected keyword argument 'foo'"
+        if PY_310_PLUS:
+            message = "MockPopenInstance." + message
         Popen = MockPopen()
         Popen.set_command('bar')
         process = Popen('bar')
-        with ShouldRaise(TypeError(
-                "terminate() got an unexpected keyword argument 'foo'"
-        )):
+        with ShouldRaise(TypeError(message)):
             process.terminate(foo='bar')
 
     def test_invalid_kill(self):
@@ -535,6 +540,8 @@ class Tests(TestCase):
             text = 'kill() takes exactly 1 argument (2 given)'
         else:
             text = 'kill() takes 1 positional argument but 2 were given'
+            if PY_310_PLUS:
+                text = "MockPopenInstance." + text
         with ShouldRaise(TypeError(text)):
             process.kill('moo')
 
@@ -546,6 +553,8 @@ class Tests(TestCase):
             text = 'poll() takes exactly 1 argument (2 given)'
         else:
             text = 'poll() takes 1 positional argument but 2 were given'
+            if PY_310_PLUS:
+                text = "MockPopenInstance." + text
         with ShouldRaise(TypeError(text)):
             process.poll('moo')
 
