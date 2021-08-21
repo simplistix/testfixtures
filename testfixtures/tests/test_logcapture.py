@@ -1,5 +1,5 @@
 from __future__ import print_function
-from logging import getLogger, ERROR
+from logging import getLogger, ERROR, Filter
 from textwrap import dedent
 from unittest import TestCase
 from warnings import catch_warnings
@@ -13,6 +13,11 @@ root = getLogger()
 one = getLogger('one')
 two = getLogger('two')
 child = getLogger('one.child')
+
+
+class DummyFilter(Filter):
+    def filter(self, _):
+        return True
 
 
 class TestLogCapture(TestCase):
@@ -135,6 +140,10 @@ class TestLogCapture(TestCase):
         root = getLogger()
         child = getLogger('child')
 
+        # Add a dummy filter so we can verify it is swapped out
+        # during the capture, and swapped back in after `uninstall`.
+        root.addFilter(DummyFilter())
+
         # Lets also record the handlers for these loggers before
         # we start the test:
 
@@ -145,6 +154,11 @@ class TestLogCapture(TestCase):
 
         old_root_level=root.level
         old_child_level=child.level
+
+        # Also record the filters:
+
+        old_root_filters = root.filters[:]
+        old_child_filters = child.filters[:]
 
         # Now the test:
 
@@ -159,6 +173,9 @@ class TestLogCapture(TestCase):
             assert root.level == 1
             assert child.level == 1
 
+            assert root.filters == []
+            assert child.filters == []
+
             child.info('2')
             assert str(l1) == (
                 "root INFO\n  1\n"
@@ -167,6 +184,11 @@ class TestLogCapture(TestCase):
             assert str(l2) == (
                 "child INFO\n  2"
             )
+
+            # Add a dummy filter to the child,
+            # which should be removed by `uninstall`.
+            child.addFilter(DummyFilter())
+
             l2.uninstall()
             l1.uninstall()
             assert root.level == 49
@@ -179,6 +201,10 @@ class TestLogCapture(TestCase):
         # the test:
         assert root.handlers == before_root
         assert child.handlers == before_child
+
+        # Also check the filters were restored:
+        assert root.filters == old_root_filters
+        assert child.filters == old_child_filters
 
     def test_uninstall_all(self):
         before_handlers_root = root.handlers[:]
