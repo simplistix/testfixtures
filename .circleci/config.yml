@@ -29,26 +29,26 @@ common: &common
   jobs:
     - python/pip-run-tests:
         name: python27
-        image: circleci/python:2.7
+        image: cimg/python:2.7
     - python/pip-run-tests:
         name: python36
         # so we test the mock monkey patches:
-        image: circleci/python:3.6.6
+        image: cimg/python:3.6.6
     - python/pip-run-tests:
         name: python310
         # docker changed their pattern after a7 :-/
-        image: circleci/python:3.10.0a7
+        image: cimg/python:3.10
     - python/pip-run-tests:
         name: python310-mock-backport
-        image: circleci/python:3.10.0a7
+        image: cimg/python:3.10
         extra_packages: "mock"
     - python/pip-run-tests:
         name: python310-django-latest
-        image: circleci/python:3.10.0a7
+        image: cimg/python:3.10
 
     - python/coverage:
         name: coverage
-        image: circleci/python:3.7
+        image: cimg/python:3.7
         requires:
           - python27
           - python36
@@ -71,19 +71,19 @@ common: &common
 
     - check-package:
         name: check-package-python27
-        image: circleci/python:2.7
+        image: cimg/python:2.7
         requires:
           - package
 
     - check-package:
         name: check-package-python310
-        image: circleci/python:3.10.0a7
+        image: cimg/python:3.10
         requires:
           - package
 
     - check-package:
         name: check-package-python27-mock
-        image: circleci/python:2.7
+        image: cimg/python:2.7
         extra_package: mock
         imports: "testfixtures, testfixtures.mock"
         requires:
@@ -91,7 +91,7 @@ common: &common
 
     - check-package:
         name: check-package-python310-mock
-        image: circleci/python:3.10.0a7
+        image: cimg/python:3.10
         extra_package: mock
         imports: "testfixtures, testfixtures.mock"
         requires:
@@ -99,7 +99,7 @@ common: &common
 
     - check-package:
         name: check-package-python310-django
-        image: circleci/python:3.10.0a7
+        image: cimg/python:3.10
         extra_package: django
         imports: "testfixtures, testfixtures.django"
         requires:
