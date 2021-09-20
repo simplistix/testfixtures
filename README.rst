@@ -3,8 +3,8 @@ Testfixtures
 
 |CircleCI|_ |Docs|_
 
-.. |CircleCI| image:: https://circleci.com/gh/Simplistix/testfixtures/tree/master.svg?style=shield
-.. _CircleCI: https://circleci.com/gh/Simplistix/testfixtures/tree/master
+.. |CircleCI| image:: https://circleci.com/gh/simplistix/testfixtures/tree/master.svg?style=shield
+.. _CircleCI: https://circleci.com/gh/simplistix/testfixtures/tree/master
 
 .. |Docs| image:: https://readthedocs.org/projects/testfixtures/badge/?version=latest
 .. _Docs: http://testfixtures.readthedocs.org/en/latest/
