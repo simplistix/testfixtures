@@ -147,10 +147,12 @@ class LogCapture(logging.Handler):
         for name in self.names:
             logger = logging.getLogger(name)
             self.old['levels'][name] = logger.level
+            self.old['filters'][name] = logger.filters
             self.old['handlers'][name] = logger.handlers
             self.old['disabled'][name] = logger.disabled
             self.old['propagate'][name] = logger.propagate
             logger.setLevel(self.level)
+            logger.filters = []
             logger.handlers = [self]
             logger.disabled = False
             if self.propagate is not None:
@@ -173,6 +175,7 @@ class LogCapture(logging.Handler):
             for name in self.names:
                 logger = logging.getLogger(name)
                 logger.setLevel(self.old['levels'][name])
+                logger.filters = self.old['filters'][name]
                 logger.handlers = self.old['handlers'][name]
                 logger.disabled = self.old['disabled'][name]
                 logger.propagate = self.old['propagate'][name]
