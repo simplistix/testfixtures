@@ -1,6 +1,14 @@
 Changes
 =======
 
+6.18.2 (21 Sep 2021)
+--------------------
+
+- Fix bug that meant :class:`LogCapture` didn't preserve or provide a clean testing environment
+  for filters.
+
+Thanks to Jesse Rittner for the fix.
+
 6.18.1 (20 Aug 2021)
 --------------------
 
