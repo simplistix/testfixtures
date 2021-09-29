@@ -1,6 +1,13 @@
 Changes
 =======
 
+6.18.3 (29 Sep 2021)
+--------------------
+
+- Fix bug when using :func:`compare` on two regular expressions that have very long patterns.
+
+Thanks to Christoph Ludwig for the report.
+
 6.18.2 (21 Sep 2021)
 --------------------
 
