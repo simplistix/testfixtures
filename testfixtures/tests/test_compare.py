@@ -1,3 +1,4 @@
+import re
 from datetime import date, datetime
 from decimal import Decimal
 
@@ -1937,6 +1938,16 @@ b
             "While comparing [1]: 'foo' != 'bar'"
             "\n\n"
             "While comparing [2]: 'foo' != 'bar'"
+            )
+
+    def test_regex(self):
+        if PY2:
+            return
+        shared_prefix = "a" * 199
+        self.check_raises(
+            re.compile(shared_prefix + "x"),
+            re.compile(shared_prefix + "y"),
+            'Both x and y appear as "re.compile(\''+'a'*199+')", but are not equal!'
             )
 
 
