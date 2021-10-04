@@ -98,7 +98,7 @@ class TestLog_Capture(TestCase):
     def test_decorator_returns_logcapture(self, l):
         # check for what we get, so we only have to write
         # tests in test_logcapture.py
-        self.failUnless(isinstance(l, LogCapture))
+        self.assertTrue(isinstance(l, LogCapture))
 
     def test_remove_existing_handlers(self):
         logger = getLogger()

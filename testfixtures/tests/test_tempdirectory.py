@@ -127,7 +127,7 @@ class TempDirectoryTests(TestCase):
         rmtree(d)
         td = TempDirectory(path=d)
         self.assertEqual(d, td.path)
-        self.failIf(os.path.exists(d))
+        self.assertFalse(os.path.exists(d))
 
     def test_deprecated_check(self):
         with TempDirectory() as d:
