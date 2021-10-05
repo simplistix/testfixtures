@@ -681,7 +681,7 @@ class TestC(TestCase):
         try:
             C('testfixtures.bonkers')
         except Exception as e:
-            self.failUnless(isinstance(e, AttributeError))
+            self.assertTrue(isinstance(e, AttributeError))
             self.assertEqual(
                 e.args,
                 ("'testfixtures.bonkers' could not be resolved", )

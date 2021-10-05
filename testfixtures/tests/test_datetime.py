@@ -136,7 +136,7 @@ class TestDateTime(TestCase):
         compare(t(2002, 1, 2, 3, 4, 5), d(2002, 1, 2, 3, 4, 5))
         from datetime import datetime
         dt = datetime(2001, 1, 1, 1, 0, 0)
-        self.failIf(dt.__class__ is d)
+        self.assertFalse(dt.__class__ is d)
         compare(dt, d(2001, 1, 1, 1, 0, 0))
 
     def test_date_return_type(self):
@@ -146,7 +146,7 @@ class TestDateTime(TestCase):
             dt = datetime(2001, 1, 1, 1, 0, 0)
             d = dt.date()
             compare(d, date(2001, 1, 1))
-            self.failUnless(d.__class__ is date)
+            self.assertTrue(d.__class__ is date)
 
     def test_date_return_type_picky(self):
         # type checking is a bitch :-/
@@ -159,7 +159,7 @@ class TestDateTime(TestCase):
             dt = datetime(2010, 8, 26, 14, 33, 13)
             d = dt.date()
             compare(d, date_type(2010, 8, 26))
-            self.failUnless(d.__class__ is date_type)
+            self.assertTrue(d.__class__ is date_type)
 
     # if you have an embedded `now` as above, *and* you need to supply
     # a list of required datetimes, then it's often simplest just to
@@ -328,10 +328,10 @@ class TestDateTime(TestCase):
         to_check.append(datetime.now(SampleTZInfo()))
 
         for inst in to_check:
-            self.failUnless(isinstance(inst, datetime), inst)
-            self.failUnless(inst.__class__ is datetime, inst)
-            self.failUnless(isinstance(inst, d), inst)
-            self.failIf(inst.__class__ is d, inst)
+            self.assertTrue(isinstance(inst, datetime), inst)
+            self.assertTrue(inst.__class__ is datetime, inst)
+            self.assertTrue(isinstance(inst, d), inst)
+            self.assertFalse(inst.__class__ is d, inst)
 
     @replace('datetime.datetime', test_datetime())
     def test_isinstance_default(self):
@@ -360,10 +360,10 @@ class TestDateTime(TestCase):
         to_check.append(datetime.now(SampleTZInfo()))
 
         for inst in to_check:
-            self.failIf(isinstance(inst, datetime), inst)
-            self.failIf(inst.__class__ is datetime, inst)
-            self.failUnless(isinstance(inst, d), inst)
-            self.failUnless(inst.__class__ is d, inst)
+            self.assertFalse(isinstance(inst, datetime), inst)
+            self.assertFalse(inst.__class__ is datetime, inst)
+            self.assertTrue(isinstance(inst, d), inst)
+            self.assertTrue(inst.__class__ is d, inst)
 
     def test_subsecond_deltas(self):
         datetime = test_datetime(delta=0.5)

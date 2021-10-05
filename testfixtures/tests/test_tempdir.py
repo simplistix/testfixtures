@@ -62,7 +62,7 @@ class TestTempDir(TestCase):
             m.return_value = d
             r.replace('testfixtures.tempdirectory.mkdtemp', m)
 
-            self.failUnless(os.path.exists(d))
+            self.assertTrue(os.path.exists(d))
 
             self.assertFalse(m.called)
 
@@ -77,7 +77,7 @@ class TestTempDir(TestCase):
             test_method()
 
             self.assertTrue(m.called)
-            self.failIf(os.path.exists(d))
+            self.assertFalse(os.path.exists(d))
 
         finally:
             r.restore()
@@ -93,7 +93,7 @@ class TestTempDir(TestCase):
     def test_decorator_returns_tempdirectory(self, d):
         # check for what we get, so we only have to write
         # tests in test_tempdirectory.py
-        self.failUnless(isinstance(d, TempDirectory))
+        self.assertTrue(isinstance(d, TempDirectory))
 
     def test_dont_create_or_cleanup_with_path(self):
         with Replacer() as r:

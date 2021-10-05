@@ -44,21 +44,21 @@ class TestReplace(TestCase):
         class ReplacementX(sample1.X):
             pass
 
-        self.failIf(OriginalX is ReplacementX)
-        self.failUnless(isinstance(sample1.X(), OriginalX))
+        self.assertFalse(OriginalX is ReplacementX)
+        self.assertTrue(isinstance(sample1.X(), OriginalX))
 
         @replace('testfixtures.tests.sample1.X', ReplacementX)
         def test_something():
-            self.failIf(OriginalX is ReplacementX)
-            self.failUnless(isinstance(sample1.X(), ReplacementX))
+            self.assertFalse(OriginalX is ReplacementX)
+            self.assertTrue(isinstance(sample1.X(), ReplacementX))
 
-        self.failIf(OriginalX is ReplacementX)
-        self.failUnless(isinstance(sample1.X(), OriginalX))
+        self.assertFalse(OriginalX is ReplacementX)
+        self.assertTrue(isinstance(sample1.X(), OriginalX))
 
         test_something()
 
-        self.failIf(OriginalX is ReplacementX)
-        self.failUnless(isinstance(sample1.X(), OriginalX))
+        self.assertFalse(OriginalX is ReplacementX)
+        self.assertTrue(isinstance(sample1.X(), OriginalX))
 
     def test_method(self):
 
@@ -69,7 +69,7 @@ class TestReplace(TestCase):
 
         @replace('testfixtures.tests.sample1.X.y', test_y)
         def test_something():
-            self.failUnless(isinstance(sample1.X().y(), sample1.X))
+            self.assertTrue(isinstance(sample1.X().y(), sample1.X))
 
         compare(sample1.X().y(), 'original y')
 
@@ -170,8 +170,8 @@ class TestReplace(TestCase):
 
         @replace('testfixtures.tests.sample1.z', o)
         def test_something(r):
-            self.failUnless(r is o)
-            self.failUnless(sample1.z is o)
+            self.assertTrue(r is o)
+            self.assertTrue(sample1.z is o)
 
         test_something()
 
@@ -192,8 +192,8 @@ class TestReplace(TestCase):
 
         @replace('testfixtures.tests.sample1.bad', o, strict=False)
         def test_something(r):
-            self.failUnless(r is o)
-            self.failUnless(sample1.bad is o)
+            self.assertTrue(r is o)
+            self.assertTrue(sample1.bad is o)
 
         test_something()
 
@@ -206,12 +206,12 @@ class TestReplace(TestCase):
 
         @replace('testfixtures.tests.sample1.someDict.key', replacement)
         def test_something(obj):
-            self.failUnless(obj is replacement)
-            self.failUnless(someDict['key'] is replacement)
+            self.assertTrue(obj is replacement)
+            self.assertTrue(someDict['key'] is replacement)
 
         test_something()
 
-        self.failUnless(someDict['key'] is original)
+        self.assertTrue(someDict['key'] is original)
 
     def test_replace_delattr(self):
 
@@ -219,7 +219,7 @@ class TestReplace(TestCase):
 
         @replace('testfixtures.tests.sample1.someDict', not_there)
         def test_something(obj):
-            self.failIf(hasattr(sample1, 'someDict'))
+            self.assertFalse(hasattr(sample1, 'someDict'))
 
         test_something()
 
@@ -242,7 +242,7 @@ class TestReplace(TestCase):
         @replace('testfixtures.tests.sample1.foo',
                  not_there, strict=False)
         def test_something(obj):
-            self.failIf(hasattr(sample1, 'foo'))
+            self.assertFalse(hasattr(sample1, 'foo'))
 
         test_something()
 
@@ -256,7 +256,7 @@ class TestReplace(TestCase):
             sample1.foo = 'bar'
 
         test_something()
-        self.failIf(hasattr(sample1, 'foo'))
+        self.assertFalse(hasattr(sample1, 'foo'))
 
     def test_replace_delattr_cant_remove(self):
         with Replacer() as r:
@@ -280,7 +280,7 @@ class TestReplace(TestCase):
 
         @replace('testfixtures.tests.sample1.someDict.key', not_there)
         def test_something(obj):
-            self.failIf('key' in someDict)
+            self.assertFalse('key' in someDict)
 
         test_something()
 
@@ -292,7 +292,7 @@ class TestReplace(TestCase):
 
         @replace('testfixtures.tests.sample1.someDict.badkey', not_there)
         def test_something(obj):
-            self.failIf('badkey' in someDict)  # pragma: no cover
+            self.assertFalse('badkey' in someDict)  # pragma: no cover
 
         with ShouldRaise(AttributeError("Original 'badkey' not found")):
             test_something()
@@ -306,7 +306,7 @@ class TestReplace(TestCase):
         @replace('testfixtures.tests.sample1.someDict.badkey',
                  not_there, strict=False)
         def test_something(obj):
-            self.failIf('badkey' in someDict)
+            self.assertFalse('badkey' in someDict)
 
         test_something()
 
@@ -335,8 +335,8 @@ class TestReplace(TestCase):
                  replacement,
                  strict=False)
         def test_something(obj):
-            self.failUnless(obj is replacement)
-            self.failUnless(someDict['key2'] is replacement)
+            self.assertTrue(obj is replacement)
+            self.assertTrue(someDict['key2'] is replacement)
 
         test_something()
 
@@ -364,14 +364,14 @@ class TestReplace(TestCase):
         @replace('testfixtures.tests.sample1.someDict.complex_key.1',
                  replacement)
         def test_something(obj):
-            self.failUnless(obj is replacement)
+            self.assertTrue(obj is replacement)
             self.assertEqual(someDict['complex_key'], [1, obj, 3])
 
         test_something()
 
         self.assertEqual(someDict['complex_key'], [1, 2, 3])
 
-        self.failUnless(original is someDict['complex_key'][1])
+        self.assertTrue(original is someDict['complex_key'][1])
 
     def test_replacer_del(self):
         r = Replacer()

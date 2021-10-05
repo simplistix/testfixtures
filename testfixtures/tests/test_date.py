@@ -66,7 +66,7 @@ class TestDate(TestCase):
         compare(t(2002, 1, 2), d(2002, 1, 2))
         from datetime import date
         dt = date(2003, 2, 1)
-        self.failIf(dt.__class__ is d)
+        self.assertFalse(dt.__class__ is d)
         compare(dt, d(2003, 2, 1))
 
     def test_gotcha_import(self):
@@ -214,10 +214,10 @@ class TestDate(TestCase):
         to_check.append(date.today())
 
         for inst in to_check:
-            self.failUnless(isinstance(inst, date), inst)
-            self.failUnless(inst.__class__ is date, inst)
-            self.failUnless(isinstance(inst, d), inst)
-            self.failIf(inst.__class__ is d, inst)
+            self.assertTrue(isinstance(inst, date), inst)
+            self.assertTrue(inst.__class__ is date, inst)
+            self.assertTrue(isinstance(inst, d), inst)
+            self.assertFalse(inst.__class__ is d, inst)
 
     @replace('datetime.date', test_date())
     def test_isinstance_default(self):
@@ -242,10 +242,10 @@ class TestDate(TestCase):
         to_check.append(date.today())
 
         for inst in to_check:
-            self.failIf(isinstance(inst, date), inst)
-            self.failIf(inst.__class__ is date, inst)
-            self.failUnless(isinstance(inst, d), inst)
-            self.failUnless(inst.__class__ is d, inst)
+            self.assertFalse(isinstance(inst, date), inst)
+            self.assertFalse(inst.__class__ is date, inst)
+            self.assertTrue(isinstance(inst, d), inst)
+            self.assertTrue(inst.__class__ is d, inst)
 
     def test_tick_when_static(self):
         date = test_date(delta=0)
