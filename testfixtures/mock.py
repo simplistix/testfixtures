@@ -36,11 +36,12 @@ except ImportError:
 
 
 has_backport = backport_version is not None
-has_unittest_mock = sys.version_info >= (3, 3, 0)
 
 assert (
     (has_backport and backport_version[:3] > (2, 0, 0)) or
     (3, 6, 7) < sys.version_info[:3] < (3, 7, 0) or
     sys.version_info[:3] > (3, 7, 1)
-), 'Please upgrade Python or Mock Backport'
+), 'Please upgrade Python (you have {}) or Mock Backport (You have {})'.format(
+    sys.version_info, backport_version
+)
 parent_name = '_mock_parent'
