@@ -39,6 +39,7 @@ has_backport = backport_version is not None
 
 if not (
         (has_backport and backport_version[:3] > (2, 0, 0)) or
+        (sys.version_info < (3, 0, 0) and not has_backport) or
         (3, 6, 7) < sys.version_info[:3] < (3, 7, 0) or
         sys.version_info[:3] > (3, 7, 1)
 ):  # pragma: no cover
