@@ -155,7 +155,7 @@ class MockPopenInstance(object):
                     self.stderr and self.stderr.read())
     else:
         @record
-        def wait(self):
+        def wait(self):  # pragma: no cover
             "Simulate calls to :meth:`subprocess.Popen.wait`"
             self.returncode = self.behaviour.returncode
             return self.returncode
