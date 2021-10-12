@@ -8,7 +8,6 @@ except ImportError:
     from inspect import getargspec
 
 from . import singleton
-from .compat import ClassType
 
 DEFAULT = singleton('DEFAULT')
 defaults = [DEFAULT]
