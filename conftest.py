@@ -1,7 +1,7 @@
 from doctest import REPORT_NDIFF, ELLIPSIS
 
 from sybil import Sybil
-from sybil.parsers.doctest import DocTestParser, FIX_BYTE_UNICODE_REPR
+from sybil.parsers.doctest import DocTestParser
 from sybil.parsers.codeblock import PythonCodeBlockParser
 from sybil.parsers.capture import parse_captures
 from sybil.parsers.skip import skip
@@ -21,7 +21,7 @@ def sybil_teardown(namespace):
 
 pytest_collect_file = Sybil(
     parsers=[
-        DocTestParser(optionflags=REPORT_NDIFF|ELLIPSIS|FIX_BYTE_UNICODE_REPR),
+        DocTestParser(optionflags=REPORT_NDIFF|ELLIPSIS),
         PythonCodeBlockParser(),
         parse_captures,
         FileParser('tempdir'),

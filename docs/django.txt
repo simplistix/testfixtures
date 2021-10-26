@@ -23,7 +23,7 @@ Traceback (most recent call last):
 AssertionError: SampleModel not as expected:
 <BLANKLINE>
 same:
-[u'id']
+['id']
 <BLANKLINE>
 values differ:
 'value': 1 != 2
@@ -38,7 +38,7 @@ Traceback (most recent call last):
 AssertionError: SampleModel not as expected:
 <BLANKLINE>
 same:
-[u'id']
+['id']
 <BLANKLINE>
 values differ:
 'value': 1 != 2
@@ -70,7 +70,7 @@ Traceback (most recent call last):
 AssertionError: SampleModel not as expected:
 <BLANKLINE>
 same:
-['created', u'id', 'value']
+['created', 'id', 'value']
 <BLANKLINE>
 values differ:
 'not_editable': 1 != 2
