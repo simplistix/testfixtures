@@ -612,7 +612,7 @@ from the documentation to use for use in other forms of testing:
 
 __ https://docs.pytest.org/en/latest/
 
-.. literalinclude:: ../testfixtures/tests/conftest.py
+.. literalinclude:: ../conftest.py
 
 Writing files
 ~~~~~~~~~~~~~

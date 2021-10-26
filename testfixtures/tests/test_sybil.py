@@ -77,9 +77,7 @@ class TestFileParser(TestCase):
             .. topic:: file.txt
              :class: write-file
             
-              .. code-block:: python
-            
-              print "hello"
+              print("hello")
               out = 'there'
             
               foo = 'bar'
@@ -89,7 +87,7 @@ class TestFileParser(TestCase):
             expected=[
                 C(FileBlock,
                   path='file.txt',
-                  content='.. code-block:: python\n\nprint "hello"'
+                  content='print("hello")'
                           '\nout = \'there\'\n\nfoo = \'bar\'\n',
                   action='write'),
             ])
