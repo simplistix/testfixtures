@@ -5,7 +5,6 @@ import warnings
 from re import compile
 from tempfile import mkdtemp
 from testfixtures.comparison import compare
-from testfixtures.compat import basestring
 from testfixtures.utils import wrap
 
 from .rmtree import rmtree
@@ -274,7 +273,7 @@ class TempDirectory:
 
     def _join(self, name):
         # make things platform independent
-        if isinstance(name, basestring):
+        if isinstance(name, str):
             name = name.split('/')
         relative = os.sep.join(name).rstrip(os.sep)
         if relative.startswith(os.sep):
@@ -326,7 +325,7 @@ class TempDirectory:
 
         :returns: The full path of the file written.
         """
-        if isinstance(filepath, basestring):
+        if isinstance(filepath, str):
             filepath = filepath.split('/')
         if len(filepath) > 1:
             dirpath = self._join(filepath[:-1])

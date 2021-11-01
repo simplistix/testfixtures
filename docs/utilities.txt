@@ -24,10 +24,6 @@ If you need to turn a simple sequence into a generator, the
 >>> generator(1,2,3)
 <generator object ...>
 
-.. invisible-code-block: python
-
-  from __future__ import print_function
-
 Iterating over this generator will return the arguments passed to the
 :func:`generator` function:
 

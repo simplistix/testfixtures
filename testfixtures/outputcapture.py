@@ -1,9 +1,9 @@
 import os
 import sys
+from io import StringIO
 from tempfile import TemporaryFile
 
 from testfixtures.comparison import compare
-from testfixtures.compat import StringIO, Unicode
 
 
 class OutputCapture(object):
@@ -121,7 +121,7 @@ class OutputCapture(object):
                 ('stdout', stdout, self._read(self.stdout)),
                 ('stderr', stderr, self._read(self.stderr)),
         ):
-            if self.fd and isinstance(_expected, Unicode):
+            if self.fd and isinstance(_expected, str):
                 _expected = _expected.encode()
             if self.strip_whitespace:
                 _expected = _expected.strip()

@@ -1,6 +1,5 @@
 from calendar import timegm
 from datetime import datetime, timedelta, date
-from testfixtures.compat import new_class
 
 
 @classmethod
@@ -84,7 +83,7 @@ def utcnow(cls):
     return r
 
 
-def test_factory(n, type, default, args, kw, tz=None, **to_patch):
+def test_factory(n, base_type, default, args, kw, tz=None, **to_patch):
     q = []
     to_patch['_q'] = q
     to_patch['_tzta'] = tz
@@ -94,12 +93,12 @@ def test_factory(n, type, default, args, kw, tz=None, **to_patch):
     to_patch['__add__'] = __add__
     if '__new__' not in to_patch:
         to_patch['__new__'] = __new__
-    class_ = new_class(n, (type, ), to_patch)
+    class_ = type(n, (base_type,), to_patch)
     strict = kw.pop('strict', False)
     if strict:
         class_._cls = class_
     else:
-        class_._cls = type
+        class_._cls = base_type
     if args != (None, ):
         if not (args or kw):
             args = default

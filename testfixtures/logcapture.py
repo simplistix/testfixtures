@@ -247,7 +247,7 @@ class LogCapture(logging.Handler):
         self.mark_all_checked()
         return result
 
-    def check_present(self, *expected, **kw):
+    def check_present(self, *expected, order_matters: bool = True):
         """
         This will check if the captured entries contain all of the expected
         entries provided and raise an :class:`AssertionError` if not.
@@ -265,8 +265,6 @@ class LogCapture(logging.Handler):
           captured entries is required to match those of the expected entries.
           Defaults to ``True``.
         """
-        order_matters = kw.pop('order_matters', True)
-        assert not kw, 'order_matters is the only keyword parameter'
         actual = self.actual()
         expected = SequenceComparison(
             *expected, ordered=order_matters, partial=True, recursive=self.recursive_check

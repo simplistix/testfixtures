@@ -1,4 +1,5 @@
 import re
+from abc import ABC
 from datetime import date, datetime
 from decimal import Decimal
 
@@ -18,11 +19,7 @@ from testfixtures import (
     generator,
     singleton,
     )
-from testfixtures.compat import (
-    class_type_name, exception_module, PY3, xrange,
-    BytesLiteral, UnicodeLiteral,
-    PY2, PY_37_PLUS, ABC
-)
+from testfixtures.compat import PY_37_PLUS
 from testfixtures.comparison import compare_sequence, compare_object
 from unittest import TestCase
 
@@ -117,51 +114,35 @@ class TestCompare(CompareHelper, TestCase):
         compare('x', 'x')
 
     def test_unicode_string_different(self):
-        if PY2:
-            expected = "u'a' != 'b'"
-        else:
-            expected = "'a' != b'b'"
-        self.check_raises(
-            UnicodeLiteral('a'), BytesLiteral('b'),
-            expected
-            )
+        self.check_raises('a', b'b', "'a' != b'b'")
 
     def test_bytes_different(self):
-        if PY2:
-            expected = (
-                "\n" 
-                "'12345678901'\n"
-                '!=\n'
-                "'12345678902'"
-            )
-        else:
-            expected = (
-                "\n" 
-                "b'12345678901'\n"
-                '!=\n'
-                "b'12345678902'"
-            )
+        expected = (
+            "\n"
+            "b'12345678901'\n"
+            '!=\n'
+            "b'12345678902'"
+        )
         self.check_raises(
-            BytesLiteral('12345678901'),
-            BytesLiteral('12345678902'),
+            b'12345678901',
+            b'12345678902',
             expected
             )
 
     def test_bytes_same_strict(self):
         compare(actual=b'', expected=b'', strict=True)
 
-    if PY3:
-        def test_moar_bytes_different(self):
-            self.check_raises(
-                actual=b'{"byte_pound":"b\'\\\\xa3\'"}',
-                expected=b'{"byte_pound":"b\\\'\\xa3\'"}',
-                message = (
-                    "\n"
-                    "b'{\"byte_pound\":\"b\\\\\\'\\\\xa3\\\'\"}' (expected)\n"
-                    '!=\n'
-                    "b'{\"byte_pound\":\"b\\\'\\\\\\\\xa3\\\'\"}' (actual)"
-                )
+    def test_moar_bytes_different(self):
+        self.check_raises(
+            actual=b'{"byte_pound":"b\'\\\\xa3\'"}',
+            expected=b'{"byte_pound":"b\\\'\\xa3\'"}',
+            message = (
+                "\n"
+                "b'{\"byte_pound\":\"b\\\\\\'\\\\xa3\\\'\"}' (expected)\n"
+                '!=\n'
+                "b'{\"byte_pound\":\"b\\\'\\\\\\\\xa3\\\'\"}' (actual)"
             )
+        )
 
     def test_string_diff_short(self):
         self.check_raises(
@@ -245,14 +226,13 @@ class TestCompare(CompareHelper, TestCase):
         self.check_raises(
             C(e1), e2,
             ("\n"
-             "<C:{module}.ValueError(failed)>\n"
+             "<C:builtins.ValueError(failed)>\n"
              "attributes differ:\n"
              "'args': ('some message',) (Comparison) "
              "!= ('some other message',) (actual)\n"
-             "</C:{module}.ValueError>"
+             "</C:builtins.ValueError>"
              " != ValueError('some other message'{message})"
-             ).format(module=exception_module,
-                      message='' if PY_37_PLUS else ','))
+             ).format(message='' if PY_37_PLUS else ','))
 
     def test_sequence_long(self):
         self.check_raises(
@@ -491,18 +471,13 @@ class TestCompare(CompareHelper, TestCase):
             )
 
     def test_dict_consistent_ordering_types_same(self):
-        if PY3:
-            same = "[6, None]\n"
-        else:
-            same = "[None, 6]\n"
-
         self.check_raises(
             {None: 1, 6: 2, 1: 3},
             {None: 1, 6: 2, 1: 4},
             "dict not as expected:\n"
             "\n"+
             'same:\n'+
-            same+
+            "[6, None]\n"+
             "\n"
             "values differ:\n"
             "1: 3 != 4"
@@ -732,11 +707,11 @@ class TestCompare(CompareHelper, TestCase):
         compare(generator(1, 2, 3), (1, 2, 3))
 
     def test_iterable_with_iterable_same(self):
-        compare(xrange(1, 4), xrange(1, 4))
+        compare(range(1, 4), range(1, 4))
 
     def test_iterable_with_iterable_different(self):
         self.check_raises(
-            xrange(1, 4), xrange(1, 3),
+            range(1, 4), range(1, 3),
             "sequence not as expected:\n"
             "\n"
             "same:\n"
@@ -750,33 +725,29 @@ class TestCompare(CompareHelper, TestCase):
             )
 
     def test_iterable_and_generator(self):
-        compare(xrange(1, 4), generator(1, 2, 3))
+        compare(range(1, 4), generator(1, 2, 3))
 
     def test_iterable_and_generator_strict(self):
         expected = compile(
-            "x?range\(1, 4\) \(<(class|type) 'x?range'>\) != "
+            "range\(1, 4\) \(<(class|type) 'x?range'>\) != "
             "<generator object (generator )?at... "
             "\(<(class|type) 'generator'>\)"
             )
         self.check_raises(
-            xrange(1, 4), generator(1, 2, 3),
+            range(1, 4), generator(1, 2, 3),
             regex=expected,
             strict=True,
             )
 
     def test_generator_and_iterable(self):
-        compare(generator(1, 2, 3), xrange(1, 4))
+        compare(generator(1, 2, 3), range(1, 4))
 
     def test_tuple_and_list(self):
         compare((1, 2, 3), [1, 2, 3])
 
     def test_tuple_and_list_strict(self):
-        if PY2:
-            expected = ("(1, 2, 3) (<type 'tuple'>) != "
-                        "[1, 2, 3] (<type 'list'>)")
-        else:
-            expected = ("(1, 2, 3) (<class 'tuple'>) != "
-                        "[1, 2, 3] (<class 'list'>)")
+        expected = ("(1, 2, 3) (<class 'tuple'>) != "
+                    "[1, 2, 3] (<class 'list'>)")
 
         self.check_raises(
             (1, 2, 3), [1, 2, 3],
@@ -794,21 +765,14 @@ class TestCompare(CompareHelper, TestCase):
             pass
         compare(X, X)
 
-    def test_old_style_classes_different(self):
-        if PY3:
-            expected = (
-                "<class 'testfixtures.tests.test_compare.TestCompare."
-                "test_old_style_classes_different.<locals>.X'>"
-                " != "
-                "<class 'testfixtures.tests.test_compare.TestCompare."
-                "test_old_style_classes_different.<locals>.Y'>"
-                )
-        else:
-            expected = (
-                "<class testfixtures.tests.test_compare.X at ...>"
-                " != "
-                "<class testfixtures.tests.test_compare.Y at ...>"
-                )
+    def test_default_style_classes_different(self):
+        expected = (
+            "<class 'testfixtures.tests.test_compare.TestCompare."
+            "test_default_style_classes_different.<locals>.X'>"
+            " != "
+            "<class 'testfixtures.tests.test_compare.TestCompare."
+            "test_default_style_classes_different.<locals>.Y'>"
+            )
 
         class X:
             pass
@@ -823,20 +787,13 @@ class TestCompare(CompareHelper, TestCase):
         compare(X, X)
 
     def test_new_style_classes_different(self):
-        if PY3:
-            expected = (
-                "<class 'testfixtures.tests.test_compare.TestCompare."
-                "test_new_style_classes_different.<locals>.X'>"
-                " != "
-                "<class 'testfixtures.tests.test_compare.TestCompare."
-                "test_new_style_classes_different.<locals>.Y'>"
-                )
-        else:
-            expected = (
-                "<class 'testfixtures.tests.test_compare.X'>"
-                " != "
-                "<class 'testfixtures.tests.test_compare.Y'>"
-                )
+        expected = (
+            "<class 'testfixtures.tests.test_compare.TestCompare."
+            "test_new_style_classes_different.<locals>.X'>"
+            " != "
+            "<class 'testfixtures.tests.test_compare.TestCompare."
+            "test_new_style_classes_different.<locals>.Y'>"
+            )
 
         class X(object):
             pass
@@ -1037,8 +994,8 @@ b
         m.aCall()
         self.check_raises(
             [call.aCall()], m.method_calls,
-            ("[call.aCall()] (<{0} 'list'>) != [call.aCall()] "
-             "({1})").format(class_type_name, call_list_repr),
+            ("[call.aCall()] (<class 'list'>) != [call.aCall()] "
+             f"({call_list_repr})"),
             strict=True,
             )
 
@@ -1048,9 +1005,9 @@ b
         self.check_raises(
             [call.call('Y'*20)], m.method_calls,
             ("[call.call('YYYYYYYYYYYYYYYYYY... "
-             "(<{0} 'list'>) != "
+             "(<class 'list'>) != "
              "[call.call('XXXXXXXXXXXXXXXXXX... "
-             "({1})").format(class_type_name, call_list_repr),
+             f"({call_list_repr})"),
             strict=True,
             )
 
@@ -1382,10 +1339,7 @@ b
             )
 
     def test_strict_nested_different(self):
-        if PY2:
-            expected = "[1, 2] (<type 'list'>) != (1, 3) (<type 'tuple'>)"
-        else:
-            expected = "[1, 2] (<class 'list'>) != (1, 3) (<class 'tuple'>)"
+        expected = "[1, 2] (<class 'list'>) != (1, 3) (<class 'tuple'>)"
 
         self.check_raises(
             (1, 2, [1, 2]), (1, 2, (1, 3)),
@@ -1941,8 +1895,6 @@ b
             )
 
     def test_regex(self):
-        if PY2:
-            return
         shared_prefix = "a" * 199
         self.check_raises(
             re.compile(shared_prefix + "x"),

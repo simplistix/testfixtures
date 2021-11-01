@@ -1,8 +1,6 @@
 """
 Tools for helping to test Twisted applications.
 """
-from __future__ import absolute_import
-
 from pprint import pformat
 
 from . import compare
@@ -39,7 +37,7 @@ class LogCapture(object):
         "Stop capturing."
         globalLogPublisher._observers = self.original_observers
 
-    def check(self, *expected, **kw):
+    def check(self, *expected, order_matters: bool = True):
         """
         Check captured events against those supplied. Please see the ``fields`` parameter
         to the constructor to see how "actual" events are built.
@@ -48,8 +46,6 @@ class LogCapture(object):
           This defaults to ``True``. If ``False``, the order of expected logging versus
           actual logging will be ignored.
         """
-        order_matters = kw.pop('order_matters', True)
-        assert not kw, 'order_matters is the only keyword parameter'
         actual = []
         for event in self.events:
             actual_event = tuple(field(event) if callable(field) else event.get(field)

@@ -1,5 +1,4 @@
 from functools import partial
-from testfixtures.compat import ClassType
 from testfixtures.resolve import resolve, not_there
 from testfixtures.utils import wrap, extend_docstring
 
@@ -51,7 +50,7 @@ class Replacer:
 
         replacement_to_use = replacement
 
-        if isinstance(container, (type, ClassType)):
+        if isinstance(container, type):
 
             if not_same_descriptor(t_obj, replacement, classmethod):
                 replacement_to_use = classmethod(replacement)

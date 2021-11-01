@@ -2,10 +2,7 @@ import sys
 from functools import wraps
 from textwrap import dedent
 
-try:
-    from inspect import getfullargspec as getargspec
-except ImportError:
-    from inspect import getargspec
+from inspect import getfullargspec
 
 from . import singleton
 
@@ -64,7 +61,7 @@ def wrap(before, after=None):
             extra_args = []
             entered_patchers = []
 
-            to_add = len(getargspec(func).args[len(args):])
+            to_add = len(getfullargspec(func).args[len(args):])
             added = 0
 
             exc_info = (None, None, None)
@@ -97,10 +94,7 @@ def wrap(before, after=None):
 
 def extend_docstring(docstring, objs):
     for obj in objs:
-        try:
-            obj.__doc__ = dedent(obj.__doc__) + docstring
-        except (AttributeError, TypeError):  # python 2 or pypy 4.0.1 :-(
-            pass
+        obj.__doc__ = dedent(obj.__doc__) + docstring
 
 
 def indent(text, indent_size = 2):

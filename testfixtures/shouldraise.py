@@ -1,7 +1,6 @@
 from contextlib import contextmanager
 from functools import wraps
 from testfixtures import diff, compare
-from .compat import ClassType
 
 param_docs = """
 
@@ -48,7 +47,7 @@ class ShouldRaise(object):
         if self.expected:
             if self.exception:
                 if actual is not None:
-                    if isinstance(self.exception, (ClassType, type)):
+                    if isinstance(self.exception, type):
                         actual = type(actual)
                         if self.exception is not actual:
                             return False
