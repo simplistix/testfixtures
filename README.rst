@@ -23,36 +23,35 @@ comparison and comparison of deeply nested datastructures.
 **Mocking out objects and methods**
 
 Easy to use ways of stubbing out objects, classes or individual
-methods for both doc tests and unit tests. Special helpers are
-provided for testing with dates and times.
+methods. Specialised helpers and mock objects are provided, including sub-processes,
+dates and times.
 
 **Testing logging**
 
-Helpers for capturing logging output in both doc tests and
-unit tests.
+Helpers for capturing logging and checking what has been logged is what is expected.
 
 **Testing stream output**
 
-Helpers for capturing stream output, such as that from print
-statements, and making assertion about it.
+Helpers for capturing stream output, such as that from print function calls or even
+stuff written directly to file descriptors, and making assertions about it.
 
 **Testing with files and directories**
 
-Support for creating and checking files and directories in sandboxes
-for both doc tests and unit tests.
+Support for creating and checking both files and directories in sandboxes
+including support for other common path libraries.
 
 **Testing exceptions and warnings**
 
 Easy to use ways of checking that a certain exception is raised,
 or a warning is issued, even down the to the parameters provided.
 
-**Testing subprocesses**
-
-A handy mock for testing code that uses subprocesses.
-
 **Testing when using django**
 
 Helpers for comparing instances of django models.
+
+**Testing when using Twisted**
+
+Helpers for making assertions about logging when using Twisted.
 
 **Testing when using zope.component**
 
