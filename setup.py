@@ -45,7 +45,7 @@ setup(
               'pytest-cov',
               'pytest-django',
               ]+optional,
-        docs=['sphinx']+optional,
+        docs=['sphinx', 'furo']+optional,
         build=['setuptools-git', 'wheel', 'twine']
     )
 )

@@ -29,10 +29,7 @@ exclude_trees = ['_build']
 pygments_style = 'sphinx'
 
 # Options for HTML output
-if on_rtd:
-    html_theme = 'default'
-else:
-    html_theme = 'classic'
+html_theme = 'furo'
 htmlhelp_basename = project+'doc'
 
 # Options for LaTeX output
