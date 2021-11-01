@@ -45,17 +45,12 @@ class Lazy:
         return self.message
 
 
-def check_raises(x=marker, y=marker, message=None, regex=None,
+def check_raises(x_=marker, y_=marker, message=None, regex=None,
                  compare=compare, **kw):
     args = []
-    for value in x, y:
+    for value in x_, y_:
         if value is not marker:
             args.append(value)
-    for value in 'x', 'y':
-        explicit = 'explicit_{}'.format(value)
-        if explicit in kw:
-            kw[value] = kw[explicit]
-            del kw[explicit]
     try:
         compare(*args, **kw)
     except Exception as e:
@@ -1407,7 +1402,7 @@ b
                           message="'x' (x_label) != 'y' (y_label)")
 
     def test_explicit_and_labels(self):
-        self.check_raises(explicit_x='x', explicit_y='y',
+        self.check_raises(x='x', y='y',
                           x_label='x_label', y_label='y_label',
                           message="'x' (x_label) != 'y' (y_label)")
 

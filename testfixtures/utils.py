@@ -3,6 +3,7 @@ from functools import wraps
 from textwrap import dedent
 
 from inspect import getfullargspec
+from typing import Callable, Sequence
 
 from . import singleton
 
@@ -32,7 +33,7 @@ class Wrapping:
     attribute_name = None
     new = DEFAULT
 
-    def __init__(self, before, after):
+    def __init__(self, before: Callable[[], None], after: Callable[[], None]):
         self.before, self.after = before, after
 
     def __enter__(self):
@@ -43,7 +44,7 @@ class Wrapping:
             self.after()
 
 
-def wrap(before, after=None):
+def wrap(before: Callable[[], None], after: Callable[[], None] = None):
     """
     A decorator that causes the supplied callables to be called before
     or after the wrapped callable, as appropriate.
@@ -92,12 +93,12 @@ def wrap(before, after=None):
     return wrapper
 
 
-def extend_docstring(docstring, objs):
+def extend_docstring(docstring: str, objs: Sequence):
     for obj in objs:
         obj.__doc__ = dedent(obj.__doc__) + docstring
 
 
-def indent(text, indent_size = 2):
+def indent(text: str, indent_size: int = 2):
     indented = []
     for do_indent, line in enumerate(text.splitlines(True)):
         if do_indent:

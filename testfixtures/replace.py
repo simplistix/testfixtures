@@ -1,4 +1,6 @@
 from functools import partial
+from typing import Any, TypeVar, Callable
+
 from testfixtures.resolve import resolve, not_there
 from testfixtures.utils import wrap, extend_docstring
 
@@ -7,6 +9,9 @@ import warnings
 
 def not_same_descriptor(x, y, descriptor):
     return isinstance(x, descriptor) and not isinstance(y, descriptor)
+
+
+R = TypeVar('R')
 
 
 class Replacer:
@@ -37,7 +42,7 @@ class Replacer:
             if method == 'i':
                 container[name] = value
 
-    def __call__(self, target, replacement, strict=True):
+    def __call__(self, target: str, replacement: R, strict: bool = True) -> R:
         """
         Replace the specified target with the supplied replacement.
         """
@@ -63,13 +68,13 @@ class Replacer:
             self.originals[target] = t_obj
         return replacement
 
-    def replace(self, target, replacement, strict=True):
+    def replace(self, target: str, replacement: Any, strict: bool = True) -> None:
         """
         Replace the specified target with the supplied replacement.
         """
         self(target, replacement, strict)
 
-    def restore(self):
+    def restore(self) -> None:
         """
         Restore all the original objects that have been replaced by
         calls to the :meth:`replace` method of this :class:`Replacer`.
@@ -95,7 +100,7 @@ class Replacer:
                 )
 
 
-def replace(target, replacement, strict=True):
+def replace(target: str, replacement: Any, strict: bool = True) -> Callable[[Callable], Callable]:
     """
     A decorator to replace a target object for the duration of a test
     function.
@@ -109,7 +114,7 @@ class Replace(object):
     A context manager that uses a :class:`Replacer` to replace a single target.
     """
 
-    def __init__(self, target, replacement, strict=True):
+    def __init__(self, target: str, replacement: Any, strict: bool = True):
         self.target = target
         self.replacement = replacement
         self.strict = strict
@@ -120,6 +125,7 @@ class Replace(object):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._replacer.restore()
+
 
 replace_params_doc = """
 :param target: A string containing the dotted-path to the

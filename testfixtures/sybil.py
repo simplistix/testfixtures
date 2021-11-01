@@ -2,7 +2,7 @@ import os
 import re
 import textwrap
 
-from sybil import Region
+from sybil import Region, Example, Document
 from testfixtures import diff
 
 FILEBLOCK_START = re.compile(r'^\.\.\s*topic::?\s*(.+)\b', re.MULTILINE)
@@ -25,10 +25,10 @@ class FileParser(object):
                  in the Sybil test namespace.
 
     """
-    def __init__(self, name):
+    def __init__(self, name: str):
         self.name = name
 
-    def __call__(self, document):
+    def __call__(self, document: Document):
         for start_match, end_match, source in document.find_region_sources(
             FILEBLOCK_START, FILEBLOCK_END
         ):
@@ -56,8 +56,8 @@ class FileParser(object):
                 self.evaluate
             )
 
-    def evaluate(self, example):
-        block = example.parsed
+    def evaluate(self, example: Example):
+        block: FileBlock = example.parsed
         dir = example.namespace[self.name]
         if block.action == 'read':
             actual = dir.read(block.path, 'ascii').replace(os.linesep, '\n')

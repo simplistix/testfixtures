@@ -1,4 +1,6 @@
 from collections import defaultdict
+from logging import LogRecord
+from typing import List, Union, Tuple, Sequence, Callable, Any
 import atexit
 import logging
 import warnings
@@ -50,16 +52,26 @@ class LogCapture(logging.Handler):
 
     """
 
+    #: The records captured by this :class:`LogCapture`.
+    records: List[LogRecord]
+
     instances = set()
     atexit_setup = False
     installed = False
     default_ensure_checks_above = logging.NOTSET
 
-    def __init__(self, names=None, install=True, level=1, propagate=None,
-                 attributes=('name', 'levelname', 'getMessage'),
-                 recursive_check=False,
-                 ensure_checks_above=None
-                 ):
+    def __init__(
+            self,
+            names: Union[str, Tuple[str]] = None,
+            install: bool = True,
+            level: int = 1,
+            propagate: bool = None,
+            attributes: Union[Sequence[str], Callable[[LogRecord], Any]] = (
+                    'name', 'levelname', 'getMessage'
+            ),
+            recursive_check: bool = False,
+            ensure_checks_above: int = None
+    ):
         logging.Handler.__init__(self)
         if not isinstance(names, tuple):
             names = (names, )
@@ -74,7 +86,7 @@ class LogCapture(logging.Handler):
             self.ensure_checks_above = self.default_ensure_checks_above
         else:
             self.ensure_checks_above = ensure_checks_above
-        self.clear()  # declares self.records: List[LogRecord]
+        self.clear()
         if install:
             self.install()
 
@@ -112,13 +124,12 @@ class LogCapture(logging.Handler):
         for record in self.records:
             record.checked = True
 
-    def ensure_checked(self, level=None):
+    def ensure_checked(self, level: int = None):
         """
         Ensure every entry logged above the specified `level` has been checked.
         Raises an :class:`AssertionError` if this is not the case.
 
         :param level: the logging level, defaults to :attr:`ensure_checks_above`.
-        :type level: Optional[int]
         """
         if level is None:
             level = self.ensure_checks_above
@@ -210,7 +221,7 @@ class LogCapture(logging.Handler):
             else:
                 return tuple(values)
 
-    def actual(self):
+    def actual(self) -> List:
         """
         The sequence of actual records logged, having had their attributes
         extracted as specified by the ``attributes`` parameter to the
@@ -219,9 +230,6 @@ class LogCapture(logging.Handler):
         This can be useful for making more complex assertions about logged
         records. The actual records logged can also be inspected by using the
         :attr:`records` attribute.
-
-        :rtype: List
-
         """
         actual = []
         for r in self.records:
@@ -244,13 +252,12 @@ class LogCapture(logging.Handler):
           A sequence of entries of the structure specified by the ``attributes``
           passed to the constructor.
         """
-        result = compare(
+        compare(
             expected,
             actual=self.actual(),
             recursive=self.recursive_check
             )
         self.mark_all_checked()
-        return result
 
     def check_present(self, *expected, order_matters: bool = True):
         """
@@ -295,7 +302,7 @@ class LogCaptureForDecorator(LogCapture):
         return self
 
 
-def log_capture(*names, **kw):
+def log_capture(*names: str, **kw):
     """
     A decorator for making a :class:`LogCapture` installed and
     available for the duration of a test function.

@@ -1,9 +1,10 @@
 from functools import partial
+from typing import Dict, Any, Sequence, Callable, Optional
 
 from django.db.models import Model
 
-from .comparison import _compare_mapping, register
 from . import compare as base_compare
+from .comparison import _compare_mapping, register, CompareContext, unspecified, Registry
 
 
 def instance_fields(instance):
@@ -19,7 +20,11 @@ def instance_fields(instance):
                 yield field
 
 
-def model_to_dict(instance, exclude, include_not_editable):
+def model_to_dict(
+        instance: Any,
+        exclude: Sequence[str],
+        include_not_editable: bool,
+) -> Dict[str, Any]:
     data = {}
     for f in instance_fields(instance):
         if f.name in exclude:
@@ -30,7 +35,7 @@ def model_to_dict(instance, exclude, include_not_editable):
     return data
 
 
-def compare_model(x, y, context):
+def compare_model(x, y, context: CompareContext):
     """
     Returns an informative string describing the differences between the two
     supplied Django model instances. The way in which this comparison is
@@ -53,7 +58,46 @@ def compare_model(x, y, context):
     args.append(x)
     return _compare_mapping(*args)
 
+
 register(Model, compare_model)
 
 
-compare = partial(base_compare, ignore_eq=True)
+def compare(
+        *args,
+        x: Any = unspecified,
+        y: Any = unspecified,
+        expected: Any = unspecified,
+        actual: Any = unspecified,
+        prefix: str = None,
+        suffix: str = None,
+        x_label: str = None,
+        y_label: str = None,
+        raises: bool = True,
+        recursive: bool = True,
+        strict: bool = False,
+        ignore_eq: bool = True,
+        comparers: Registry = None,
+        **options: Any
+) -> Optional[str]:
+    """
+    This is identical to :func:`~testfixtures.compare`, but with ``ignore=True``
+    automatically set to make comparing django :class:`~django.db.models.Model`
+    instances easier.
+    """
+    return base_compare(
+        *args,
+        x=x,
+        y=y,
+        expected=expected,
+        actual=actual,
+        prefix=prefix,
+        suffix=suffix,
+        x_label=x_label,
+        y_label=y_label,
+        raises=raises,
+        recursive=recursive,
+        strict=strict,
+        ignore_eq=ignore_eq,
+        comparers=comparers,
+        **options
+    )
