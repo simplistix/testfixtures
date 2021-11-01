@@ -6,13 +6,8 @@ from testfixtures import (
     ShouldWarn, compare, ShouldRaise, ShouldNotWarn,
     Comparison as C
 )
-from testfixtures.compat import PY3, PY_36_PLUS, PY_37_PLUS
+from testfixtures.compat import PY_37_PLUS
 from testfixtures.shouldraise import ShouldAssert
-
-if PY3:
-    warn_module = 'builtins'
-else:
-    warn_module = 'exceptions'
 
 if PY_37_PLUS:
     comma = ''
@@ -48,7 +43,7 @@ class ShouldWarnTests(TestCase):
         with ShouldAssert(
             "sequence not as expected:\n\n"
             "same:\n[]\n\n"
-            "expected:\n[<C:"+warn_module+".UserWarning>args: ('foo',)</>]"
+            "expected:\n[<C:builtins.UserWarning>args: ('foo',)</>]"
             "\n\nactual:\n[]"
         ):
             with ShouldWarn(UserWarning('foo')):
@@ -78,7 +73,7 @@ class ShouldWarnTests(TestCase):
             "sequence not as expected:\n\n"
             "same:\n[]\n\n"
             "expected:\n"
-            "[<C:"+warn_module+".DeprecationWarning(failed)>wrong type</>]\n\n"
+            "[<C:builtins.DeprecationWarning(failed)>wrong type</>]\n\n"
             "actual:\n[UserWarning('foo'"+comma+")]"
         ):
             with ShouldWarn(DeprecationWarning):
@@ -95,10 +90,10 @@ class ShouldWarnTests(TestCase):
             "sequence not as expected:\n\n"
             "same:\n[]\n\n"
             "expected:\n[\n"
-            "<C:"+warn_module+".DeprecationWarning(failed)>\n"
+            "<C:builtins.DeprecationWarning(failed)>\n"
             "attributes differ:\n"
             "'args': ('bar',) (Comparison) != ('foo',) (actual)\n"
-            "</C:"+warn_module+".DeprecationWarning>]\n\n"
+            "</C:builtins.DeprecationWarning>]\n\n"
             "actual:\n[DeprecationWarning('foo'"+comma+")]"
         ):
             with ShouldWarn(DeprecationWarning('bar')):
@@ -121,10 +116,8 @@ class ShouldWarnTests(TestCase):
             line=None,
             lineno=42,
             message=C(DeprecationWarning('foo')),
+            source=None
         )
-
-        if PY_36_PLUS:
-            expected_attrs['source'] = None
 
         compare(expected=C(warnings.WarningMessage, **expected_attrs),
             actual=recorded[0])
@@ -136,15 +129,11 @@ class ShouldWarnTests(TestCase):
             warnings.warn("This function is deprecated.", DeprecationWarning)
 
     def test_filter_missing(self):
-        if PY3:
-            type_repr = 'builtins.DeprecationWarning'
-        else:
-            type_repr = 'exceptions.DeprecationWarning'
         with ShouldAssert(
             "sequence not as expected:\n\n"
             "same:\n[]\n\n"
-            "expected:\n[<C:{}>]\n\n"
-            "actual:\n[]".format(type_repr)
+            "expected:\n[<C:builtins.DeprecationWarning>]\n\n"
+            "actual:\n[]"
         ):
             with ShouldWarn(DeprecationWarning,
                             message="This function is deprecated."):

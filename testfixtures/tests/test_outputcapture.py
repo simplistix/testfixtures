@@ -1,11 +1,10 @@
-from __future__ import print_function
-
 import sys
 from subprocess import call
 from unittest import TestCase
 
 from testfixtures import OutputCapture, compare
 from .test_compare import CompareHelper
+
 
 class TestOutputCapture(CompareHelper, TestCase):
 

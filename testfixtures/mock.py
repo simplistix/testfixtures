@@ -8,8 +8,6 @@ functionality provided by testfixtures.
 
 __ https://mock.readthedocs.io
 """
-from __future__ import absolute_import
-
 import sys
 
 try:
@@ -27,12 +25,6 @@ except ImportError:
         from unittest.mock import _Call
     except ImportError:  # pragma: no cover
         pass
-try:
-    from unittest.mock import call as unittest_mock_call
-except ImportError:
-    class UnittestMockCall:
-        pass
-    unittest_mock_call = UnittestMockCall()
 
 
 has_backport = backport_version is not None

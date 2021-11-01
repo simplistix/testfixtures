@@ -1,4 +1,3 @@
-from __future__ import print_function
 from logging import getLogger, ERROR, Filter
 from textwrap import dedent
 from unittest import TestCase
@@ -507,11 +506,6 @@ class TestCheckPresent(object):
                 actual:
                 []""")):
             log.check_present('two')
-
-    def test_bad_params(self):
-        # not needed if we didn't have to support Python 2!
-        with ShouldAssert('order_matters is the only keyword parameter'):
-            LogCapture(install=False).check_present(foo='bar')
 
     def test_multiple_identical_expected_order_matters(self):
         with LogCapture() as log:

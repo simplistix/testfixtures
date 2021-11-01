@@ -290,7 +290,7 @@ shown in the following :class:`~unittest.TestCase`:
 
 .. the result:
 
-   >>> from testfixtures.compat import StringIO
+   >>> from io import StringIO
    >>> suite = unittest.TestLoader().loadTestsFromTestCase(Tests)
    >>> unittest.TextTestRunner(verbosity=0,stream=StringIO()).run(suite)
    <unittest...TextTestResult run=2 errors=0 failures=0>

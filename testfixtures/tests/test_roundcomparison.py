@@ -2,8 +2,6 @@ from decimal import Decimal
 from testfixtures import RoundComparison as R, compare, ShouldRaise
 from unittest import TestCase
 
-from ..compat import PY2, PY3
-
 
 class Tests(TestCase):
 
@@ -64,30 +62,26 @@ class Tests(TestCase):
                 repr(R(0.123456, 5)))
 
     def test_str_negative(self):
-        if PY3:
-            expected = '<R:123500 to -2 digits>'
-        else:
-            expected = '<R:123500.0 to -2 digits>'
-        compare(expected, repr(R(123456, -2)))
+        compare('<R:123500 to -2 digits>', repr(R(123456, -2)))
 
     TYPE_ERROR_DECIMAL = TypeError(
         "Cannot compare <R:0.12346 to 5 digits> with <class 'decimal.Decimal'>"
         )
 
     def test_equal_yes_decimal_to_float_rhs(self):
-        with ShouldRaise(self.TYPE_ERROR_DECIMAL, unless=PY2):
+        with ShouldRaise(self.TYPE_ERROR_DECIMAL):
             self.assertTrue(Decimal("0.123457") == R(0.123456, 5))
 
     def test_equal_yes_decimal_to_float_lhs(self):
-        with ShouldRaise(self.TYPE_ERROR_DECIMAL, unless=PY2):
+        with ShouldRaise(self.TYPE_ERROR_DECIMAL):
             self.assertTrue(R(0.123456, 5) == Decimal("0.123457"))
 
     def test_equal_no_decimal_to_float_rhs(self):
-        with ShouldRaise(self.TYPE_ERROR_DECIMAL, unless=PY2):
+        with ShouldRaise(self.TYPE_ERROR_DECIMAL):
             self.assertFalse(Decimal("0.123453") == R(0.123456, 5))
 
     def test_equal_no_decimal_to_float_lhs(self):
-        with ShouldRaise(self.TYPE_ERROR_DECIMAL, unless=PY2):
+        with ShouldRaise(self.TYPE_ERROR_DECIMAL):
             self.assertFalse(R(0.123456, 5) == Decimal("0.123453"))
 
     TYPE_ERROR_FLOAT = TypeError(
@@ -95,27 +89,27 @@ class Tests(TestCase):
         )
 
     def test_equal_yes_float_to_decimal_rhs(self):
-        with ShouldRaise(self.TYPE_ERROR_FLOAT, unless=PY2):
+        with ShouldRaise(self.TYPE_ERROR_FLOAT):
             self.assertTrue(0.123457 == R(Decimal("0.123456"), 5))
 
     def test_equal_yes_float_to_decimal_lhs(self):
-        with ShouldRaise(self.TYPE_ERROR_FLOAT, unless=PY2):
+        with ShouldRaise(self.TYPE_ERROR_FLOAT):
             self.assertTrue(R(Decimal("0.123456"), 5) == 0.123457)
 
     def test_equal_no_float_to_decimal_rhs(self):
-        with ShouldRaise(self.TYPE_ERROR_FLOAT, unless=PY2):
+        with ShouldRaise(self.TYPE_ERROR_FLOAT):
             self.assertFalse(0.123453 == R(Decimal("0.123456"), 5))
 
     def test_equal_no_float_to_decimal_lhs(self):
-        with ShouldRaise(self.TYPE_ERROR_FLOAT, unless=PY2):
+        with ShouldRaise(self.TYPE_ERROR_FLOAT):
             self.assertFalse(R(Decimal("0.123456"), 5) == 0.123453)
 
     def test_integer_float(self):
-        with ShouldRaise(TypeError, unless=PY2):
+        with ShouldRaise(TypeError):
             1 == R(1.000001, 5)
 
     def test_float_integer(self):
-        with ShouldRaise(TypeError, unless=PY2):
+        with ShouldRaise(TypeError):
             R(1.000001, 5) == 1
 
     def test_equal_yes_integer_other_rhs(self):

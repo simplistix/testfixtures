@@ -2,7 +2,6 @@ from collections import OrderedDict
 from textwrap import dedent
 
 from testfixtures import MappingComparison, ShouldRaise, compare
-from testfixtures.compat import PY2, PY3
 
 
 def check_repr(obj, expected):
@@ -46,20 +45,12 @@ class TestMappingComparison(object):
         assert m == {'a': 1, 'b': 3}
 
     def test_equal_items_ordered(self):
-        if PY2:
-            with ShouldRaise(TypeError('order undefined on Python 2')):
-                MappingComparison(b=3, a=1, ordered=True)
-        else:
-            m = MappingComparison(b=3, a=1, ordered=True)
-            assert m == {'b': 3, 'a': 1}
+        m = MappingComparison(b=3, a=1, ordered=True)
+        assert m == {'b': 3, 'a': 1}
 
     def test_equal_ordered_and_dict_supplied(self):
-        if PY2:
-            with ShouldRaise(TypeError('dict order undefined on Python 2')):
-                MappingComparison({'b': 3, 'a': 1}, ordered=True)
-        else:
-            m = MappingComparison({'b': 3, 'a': 1}, ordered=True)
-            assert m == {'b': 3, 'a': 1}
+        m = MappingComparison({'b': 3, 'a': 1}, ordered=True)
+        assert m == {'b': 3, 'a': 1}
 
     def test_equal_ordered_dict_sequence_expected(self):
         m = MappingComparison((('a', 1), ('b', 3)), ordered=True)
@@ -164,24 +155,23 @@ class TestMappingComparison(object):
             </MappingComparison(ordered=True, partial=False)>
         ''')
 
-    def test_unequal_order_wrong_py3(self):
-        if PY3:
-            m = MappingComparison(b=3, a=1, ordered=True)
-            assert m != {'a': 1, 'b': 3}
-            check_repr(m, expected='''
-                <MappingComparison(ordered=True, partial=False)(failed)>
-                wrong key order:
-                
-                same:
-                []
-                
-                expected:
-                ['b', 'a']
-                
-                actual:
-                ['a', 'b']
-                </MappingComparison(ordered=True, partial=False)>
-            ''')
+    def test_unequal_order_wrong(self):
+        m = MappingComparison(b=3, a=1, ordered=True)
+        assert m != {'a': 1, 'b': 3}
+        check_repr(m, expected='''
+            <MappingComparison(ordered=True, partial=False)(failed)>
+            wrong key order:
+            
+            same:
+            []
+            
+            expected:
+            ['b', 'a']
+            
+            actual:
+            ['a', 'b']
+            </MappingComparison(ordered=True, partial=False)>
+        ''')
 
     def test_unequal_partial_keys_missing(self):
         m = MappingComparison({'a': 1, 'b': 2}, partial=True)

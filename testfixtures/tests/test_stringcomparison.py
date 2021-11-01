@@ -1,7 +1,6 @@
 import re
 
 from testfixtures import StringComparison as S, compare
-from testfixtures.compat import PY2
 from unittest import TestCase
 
 
@@ -43,15 +42,6 @@ class Tests(TestCase):
         c = S('c')
         compare(sorted(('d', c, 'e', a, 'a1', b)),
                 [a, 'a1', b, c, 'd', 'e'])
-
-    if PY2:
-        # cmp no longer exists in Python 3!
-
-        def test_cmp_yes(self):
-            self.assertFalse(cmp(S('on \d+'), 'on 4040'))
-
-        def test_cmp_no(self):
-            self.assertTrue(cmp(S('on \d+'), 'on xx'))
 
     def test_flags_argument(self):
         compare(S(".*bar", re.DOTALL), actual="foo\nbar")

@@ -1,4 +1,3 @@
-from  __future__ import absolute_import
 from functools import partial
 
 from django.db.models import Model

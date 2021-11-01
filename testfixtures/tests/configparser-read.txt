@@ -12,7 +12,6 @@ Here's an example configuration file:
 
 .. invisible-code-block: python
    
-  from testfixtures.compat import PY3
   # change to the temp directory
   import os
   original_dir = os.getcwd()
@@ -23,10 +22,7 @@ do the following:
 
 .. code-block:: python
 
-   if PY3:
-       from configparser import ConfigParser
-   else:
-       from ConfigParser import ConfigParser
+   from configparser import ConfigParser
    config = ConfigParser()
    config.read('example.cfg')
 

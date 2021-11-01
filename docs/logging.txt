@@ -434,7 +434,7 @@ test such as the following:
 .. the result:
 
    >>> import unittest
-   >>> from testfixtures.compat import StringIO
+   >>> from io import StringIO
    >>> suite = unittest.TestLoader().loadTestsFromTestCase(LoggingConfigurationTests)
    >>> stream = StringIO()
    >>> result = unittest.TextTestRunner(verbosity=0, stream=stream).run(suite)

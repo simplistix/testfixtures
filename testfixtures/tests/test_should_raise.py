@@ -3,7 +3,7 @@ from textwrap import dedent
 from testfixtures import Comparison as C, ShouldRaise, should_raise
 from unittest import TestCase
 
-from ..compat import PY3, PY_36_PLUS, PY_37_PLUS, PY2
+from ..compat import PY_37_PLUS
 from ..shouldraise import ShouldAssert
 
 
@@ -198,11 +198,7 @@ class TestShouldRaise(TestCase):
                 pass
 
     def test_with_no_exception_when_expected_by_type(self):
-        if PY2:
-            expected = "<type 'exceptions.ValueError'> (expected) != None (raised)"
-        else:
-            expected = "<class 'ValueError'> (expected) != None (raised)"
-        with ShouldAssert(expected):
+        with ShouldAssert("<class 'ValueError'> (expected) != None (raised)"):
             with ShouldRaise(ValueError):
                 pass
 
@@ -218,14 +214,7 @@ class TestShouldRaise(TestCase):
         assert e is s.raised
 
     def test_import_errors_1(self):
-        if PY3:
-            message = "No module named 'textfixtures'"
-        else:
-            message = 'No module named textfixtures.foo.bar'
-
-        exception = ModuleNotFoundError if PY_36_PLUS else ImportError
-
-        with ShouldRaise(exception(message)):
+        with ShouldRaise(ModuleNotFoundError("No module named 'textfixtures'")):
             import textfixtures.foo.bar
 
     def test_import_errors_2(self):
@@ -297,8 +286,6 @@ class TestShouldRaise(TestCase):
                 raise AnnoyingException(other='baz')
 
     def test_identical_reprs_but_args_different(self):
-        if PY2:
-            return
 
         class MessageError(Exception):
            def __init__(self, message, type=None):

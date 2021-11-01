@@ -8,15 +8,10 @@ from testfixtures.mock import Mock
 from testfixtures import (
     TempDirectory, Replacer, ShouldRaise, compare, OutputCapture
 )
-from ..compat import Unicode, PY3
 from ..rmtree import rmtree
 
-if PY3:
-    some_bytes = '\xa3'.encode('utf-8')
-    some_text = '\xa3'
-else:
-    some_bytes = '\xc2\xa3'
-    some_text = '\xc2\xa3'.decode('utf-8')
+some_bytes = '\xa3'.encode('utf-8')
+some_text = '\xa3'
 
 
 class TestTempDirectory(TestCase):
@@ -257,17 +252,9 @@ class TempDirectoryTests(TestCase):
                 compare(f.read(), b'\xc2\xa3')
 
     def test_write_unicode_bad(self):
-        if PY3:
-            expected = TypeError(
-                "a bytes-like object is required, not 'str'"
-                )
-        else:
-            expected = UnicodeDecodeError(
-                'ascii', '\xa3', 0, 1, 'ordinal not in range(128)'
-                )
         with TempDirectory() as d:
-            with ShouldRaise(expected):
-                d.write('test.file', Unicode('\xa3'))
+            with ShouldRaise(TypeError("a bytes-like object is required, not 'str'")):
+                d.write('test.file', u'\xa3')
 
     def test_just_empty_non_recursive(self):
         with TempDirectory() as d:

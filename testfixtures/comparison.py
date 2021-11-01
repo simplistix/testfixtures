@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from collections.abc import Iterable
 from decimal import Decimal
 from difflib import unified_diff
 from functools import partial as partial_type, partial, reduce
@@ -8,11 +9,10 @@ from types import GeneratorType
 import re
 
 from testfixtures import not_there
-from testfixtures.compat import ClassType, Iterable, Unicode, basestring, PY3, PY2
 from testfixtures.resolve import resolve
 from testfixtures.utils import indent
-from testfixtures.mock import parent_name, mock_call, unittest_mock_call
-
+from testfixtures.mock import parent_name, mock_call
+from unittest.mock import call as unittest_mock_call
 
 def diff(x, y, x_label='', y_label=''):
     """
@@ -111,7 +111,7 @@ def compare_object(x, y, context, ignore_attributes=()):
        If specified as a parameter to this fucntion, it may only be a list of
        strings.
     """
-    if type(x) is not type(y) or isinstance(x, (ClassType, type)):
+    if type(x) is not type(y) or isinstance(x, type):
         return compare_simple(x, y, context)
     x_attrs = _extract_attrs(x, _attrs_to_ignore(context, ignore_attributes, x))
     y_attrs = _extract_attrs(y, _attrs_to_ignore(context, ignore_attributes, y))
@@ -435,7 +435,7 @@ _registry = {
     list: compare_sequence,
     tuple: compare_tuple,
     str: compare_text,
-    Unicode: compare_text,
+    bytes: compare_bytes,
     int: compare_simple,
     float: compare_simple,
     Decimal: compare_simple,
@@ -445,9 +445,6 @@ _registry = {
     BaseException: compare_exception,
     partial_type: compare_partial,
     }
-
-if PY3:
-    _registry[bytes] = compare_bytes
 
 
 def register(type, comparer):
@@ -459,25 +456,13 @@ def register(type, comparer):
     _registry[type] = comparer
 
 
-def _mro(obj):
-    class_ = getattr(obj, '__class__', None)
-    if class_ is None:
-        # must be an old-style class object in Python 2!
-        return (obj, )
-    mro = getattr(class_, '__mro__', None)
-    if mro is None:
-        # instance of old-style class in Python 2!
-        return (class_, )
-    return mro
-
-
 def _shared_mro(x, y):
-    y_mro = set(_mro(y))
-    for class_ in _mro(x):
+    y_mro = set(type(y).__mro__)
+    for class_ in type(x).__mro__:
         if class_ in y_mro:
             yield class_
 
-_unsafe_iterables = basestring, dict
+_unsafe_iterables = str, bytes, dict
 
 
 class CompareContext(object):
@@ -571,7 +556,7 @@ class CompareContext(object):
 
     def seen(self, x, y):
         # don't get confused by interning:
-        singleton_types = basestring, int, float
+        singleton_types = str, bytes, int, float
         if isinstance(x, singleton_types) and isinstance(y, singleton_types):
             return False
         key = id(x), id(y)
@@ -778,13 +763,13 @@ class Comparison(StatefulComparison):
                 attribute_dict = attributes
             else:
                 attribute_dict.update(attributes)
-        if isinstance(object_or_type, basestring):
+        if isinstance(object_or_type, str):
             container, method, name, c = resolve(object_or_type)
             if c is not_there:
                 raise AttributeError(
                     '%r could not be resolved' % object_or_type
                 )
-        elif isinstance(object_or_type, (ClassType, type)):
+        elif isinstance(object_or_type, type):
             c = object_or_type
         else:
             c = object_or_type.__class__
@@ -1008,12 +993,6 @@ class MappingComparison(StatefulComparison):
         self.partial = expected_items.pop('partial', False)
         self.recursive = expected_items.pop('recursive', False)
 
-        if PY2 and self.ordered:
-            if expected_items:
-                raise TypeError('order undefined on Python 2')
-            elif expected_mapping and type(expected_mapping[0]) is dict:
-                raise TypeError('dict order undefined on Python 2')
-
         if len(expected_mapping) == 1:
             expected = OrderedDict(*expected_mapping)
         else:
@@ -1120,7 +1099,7 @@ class StringComparison:
         self.re = re.compile(*args)
 
     def __eq__(self, other):
-        if not isinstance(other, basestring):
+        if not isinstance(other, str):
             return
         if self.re.match(other):
             return True

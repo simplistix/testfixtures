@@ -1,11 +1,8 @@
-from unittest import TestCase
 import sys
+from unittest import TestCase
 
-from testfixtures import Comparison as C, TempDirectory, compare, diff, Comparison
-from testfixtures.compat import PY2, PY3, exception_module
-from testfixtures.shouldraise import ShouldAssert
+from testfixtures import Comparison as C, TempDirectory, diff, Comparison
 from testfixtures.tests.sample1 import SampleClassA, a_function
-import pytest
 
 
 class AClass:
@@ -117,13 +114,8 @@ class TestC(TestCase):
         e = ValueError('some message')
         x, y = C(e), C(e)
         assert x != y
-        compare_repr(x, "<C:{mod}.ValueError(failed)>wrong type</>".format(
-                            mod=exception_module))
-        compare_repr(
-            y,
-            "<C:{mod}.ValueError>args: ('some message',)</>".format(
-                mod=exception_module)
-        )
+        compare_repr(x, "<C:builtins.ValueError(failed)>wrong type</>")
+        compare_repr(y, "<C:builtins.ValueError>args: ('some message',)</>")
 
     def test_repr_module(self):
         compare_repr(C('datetime'), '<C:datetime>')
@@ -144,21 +136,13 @@ class TestC(TestCase):
                      )
 
     def test_repr_exception(self):
-        compare_repr(C(ValueError('something')),
-                     ("<C:{0}.ValueError>args: ('something',)</>"
-                      ).format(exception_module))
+        compare_repr(C(ValueError('something')), "<C:builtins.ValueError>args: ('something',)</>")
 
     def test_repr_exception_not_args(self):
-        if sys.version_info >= (3, 2, 4):
-            # in PY3, even args that aren't set still appear to be there
-            args = "args: (1, 2)\n"
-        else:
-            args = "args: ()\n"
-
         compare_repr(
             C(WeirdException(1, 2)),
             "\n<C:testfixtures.tests.test_comparison.WeirdException>\n"
-            + args +
+            "args: (1, 2)\n"
             "x: 1\n"
             "y: 2\n"
             "</C:testfixtures.tests.test_comparison.WeirdException>"
@@ -541,48 +525,29 @@ class TestC(TestCase):
             path = d.write('file', b'stuff')
             f = open(path)
             f.close()
-        if PY3:
-            c = C('io.TextIOWrapper', name=path, mode='r', closed=False,
-                  partial=True)
-            assert f != c
-            compare_repr(c,
-                         "\n"
-                         "<C:_io.TextIOWrapper(failed)>\n"
-                         "attributes same:\n"
-                         "['mode', 'name']\n\n"
-                         "attributes differ:\n"
-                         "'closed': False (Comparison) != True (actual)\n"
-                         "</C:_io.TextIOWrapper>",
-                         )
-        else:
-            c = C(file, name=path, mode='r', closed=False, partial=True)
-            assert f != c
-            compare_repr(c,
-                         "\n"
-                         "<C:__builtin__.file(failed)>\n"
-                         "attributes same:\n"
-                         "['mode', 'name']\n\n"
-                         "attributes differ:\n"
-                         "'closed': False (Comparison) != True (actual)\n"
-                         "</C:__builtin__.file>",
-                         )
+        c = C('io.TextIOWrapper', name=path, mode='r', closed=False,
+              partial=True)
+        assert f != c
+        compare_repr(c,
+                     "\n"
+                     "<C:_io.TextIOWrapper(failed)>\n"
+                     "attributes same:\n"
+                     "['mode', 'name']\n\n"
+                     "attributes differ:\n"
+                     "'closed': False (Comparison) != True (actual)\n"
+                     "</C:_io.TextIOWrapper>",
+                     )
 
     def test_file_same(self):
         with TempDirectory() as d:
             path = d.write('file', b'stuff')
             f = open(path)
             f.close()
-        if PY3:
-            self.assertEqual(
-                f,
-                C('io.TextIOWrapper', name=path, mode='r', closed=True,
-                  partial=True)
-                )
-        else:
-            self.assertEqual(
-                f,
-                C(file, name=path, mode='r', closed=True, partial=True)
-                )
+        self.assertEqual(
+            f,
+            C('io.TextIOWrapper', name=path, mode='r', closed=True,
+              partial=True)
+            )
 
     def test_no___dict___strict(self):
         c = C(X, x=1)
@@ -644,12 +609,8 @@ class TestC(TestCase):
 
         # This order is wrong, as it uses the class's __eq__:
         self.assertFalse(Annoying() == C(Annoying))
-        if PY2:
-            # although this, which is subtly different, does not:
-            self.assertFalse(Annoying() != C(Annoying))
-        else:
-            # but on PY3 __eq__ is used as a fallback:
-            self.assertTrue(Annoying() != C(Annoying))
+        # but on __eq__ is used as a fallback:
+        self.assertTrue(Annoying() != C(Annoying))
 
         # This is the right ordering:
         self.assertTrue(C(Annoying) == Annoying())
@@ -695,11 +656,7 @@ class TestC(TestCase):
         NoName.__name__ = ''
         NoName.__module__ = ''
         c = C(NoName)
-        if PY3:
-            expected = "<C:<class '.TestC.test_no_name.<locals>.NoName'>>"
-        else:
-            expected = "<C:<class '.'>>"
-        self.assertEqual(repr(c), expected)
+        self.assertEqual(repr(c), "<C:<class '.TestC.test_no_name.<locals>.NoName'>>")
 
     def test_missing_expected_attribute_strict(self):
 

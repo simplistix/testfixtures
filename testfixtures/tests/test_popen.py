@@ -6,7 +6,7 @@ from testfixtures.mock import call
 from testfixtures import ShouldRaise, compare, Replacer
 
 from testfixtures.popen import MockPopen, PopenBehaviour
-from testfixtures.compat import BytesLiteral, PY2, PY_310_PLUS
+from testfixtures.compat import PY_310_PLUS
 
 import signal
 
@@ -58,7 +58,7 @@ class Tests(TestCase):
 
     def test_callable_default_behaviour(self):
         def some_callable(command, stdin):
-            return PopenBehaviour(BytesLiteral(command), BytesLiteral(stdin), 1, 345, 0)
+            return PopenBehaviour(bytes(command, 'ascii'), bytes(stdin, 'ascii'), 1, 345, 0)
 
         Popen = MockPopen()
         Popen.set_default(behaviour=some_callable)
@@ -101,19 +101,13 @@ class Tests(TestCase):
         Popen = MockPopen()
         Popen.set_command('a command', returncode=3)
         process = Popen('a command')
-        if PY2:
-            with ShouldRaise(TypeError):
-                process.communicate(timeout=1)
-            with ShouldRaise(TypeError):
-                process.communicate('foo', 1)
-        else:
-            process.communicate(timeout=1)
-            process.communicate('foo', 1)
-            compare([
-                call.Popen('a command'),
-                call.Popen_instance.communicate(timeout=1),
-                call.Popen_instance.communicate('foo', 1),
-            ], expected=Popen.mock.method_calls)
+        process.communicate(timeout=1)
+        process.communicate('foo', 1)
+        compare([
+            call.Popen('a command'),
+            call.Popen_instance.communicate(timeout=1),
+            call.Popen_instance.communicate('foo', 1),
+        ], expected=Popen.mock.method_calls)
 
     def test_read_from_stdout(self):
         # setup
@@ -219,10 +213,7 @@ class Tests(TestCase):
         process = Popen('a command', stdout=PIPE, stderr=PIPE, encoding='ascii', errors='ignore')
         actual = process.communicate()
         # check
-        if PY2:
-            compare(actual, expected=(b'\xa3', b'\xa3'))
-        else:
-            compare(actual, expected=(u'', u''))
+        compare(actual, expected=(u'', u''))
 
     def test_read_from_stdout_and_stderr_text_mode(self):
         Popen = MockPopen()
@@ -277,19 +268,13 @@ class Tests(TestCase):
         Popen = MockPopen()
         Popen.set_command('a command', returncode=3)
         process = Popen('a command')
-        if PY2:
-            with ShouldRaise(TypeError):
-                process.wait(timeout=1)
-            with ShouldRaise(TypeError):
-                process.wait(1)
-        else:
-            process.wait(timeout=1)
-            process.wait(1)
-            compare([
-                call.Popen('a command'),
-                call.Popen_instance.wait(timeout=1),
-                call.Popen_instance.wait(1)
-            ], expected=Popen.mock.method_calls)
+        process.wait(timeout=1)
+        process.wait(1)
+        compare([
+            call.Popen('a command'),
+            call.Popen_instance.wait(timeout=1),
+            call.Popen_instance.wait(1)
+        ], expected=Popen.mock.method_calls)
 
     def test_multiple_uses(self):
         Popen = MockPopen()
@@ -536,12 +521,9 @@ class Tests(TestCase):
         Popen = MockPopen()
         Popen.set_command('bar')
         process = Popen('bar')
-        if PY2:
-            text = 'kill() takes exactly 1 argument (2 given)'
-        else:
-            text = 'kill() takes 1 positional argument but 2 were given'
-            if PY_310_PLUS:
-                text = "MockPopenInstance." + text
+        text = 'kill() takes 1 positional argument but 2 were given'
+        if PY_310_PLUS:
+            text = "MockPopenInstance." + text
         with ShouldRaise(TypeError(text)):
             process.kill('moo')
 
@@ -549,12 +531,9 @@ class Tests(TestCase):
         Popen = MockPopen()
         Popen.set_command('bar')
         process = Popen('bar')
-        if PY2:
-            text = 'poll() takes exactly 1 argument (2 given)'
-        else:
-            text = 'poll() takes 1 positional argument but 2 were given'
-            if PY_310_PLUS:
-                text = "MockPopenInstance." + text
+        text = 'poll() takes 1 positional argument but 2 were given'
+        if PY_310_PLUS:
+            text = "MockPopenInstance." + text
         with ShouldRaise(TypeError(text)):
             process.poll('moo')
 
@@ -581,38 +560,28 @@ class Tests(TestCase):
         # setup
         Popen = MockPopen()
         Popen.set_command('a command')
-        if PY2:
+        # usage
+        with Popen('a command', stdout=PIPE, stderr=PIPE) as process:
+            # process started, no return code
+            compare(process.pid, 1234)
+            compare(None, process.returncode)
 
-            process = Popen('a command')
-            with ShouldRaise(AttributeError):
-                process.__enter__
-            with ShouldRaise(AttributeError):
-                process.__exit__
+            out, err = process.communicate()
 
-        else:
+        # test the rest
+        compare(out, b'')
+        compare(err, b'')
+        compare(process.returncode, 0)
 
-            # usage
-            with Popen('a command', stdout=PIPE, stderr=PIPE) as process:
-                # process started, no return code
-                compare(process.pid, 1234)
-                compare(None, process.returncode)
+        compare(process.stdout.closed, expected=True)
+        compare(process.stderr.closed, expected=True)
 
-                out, err = process.communicate()
-
-            # test the rest
-            compare(out, b'')
-            compare(err, b'')
-            compare(process.returncode, 0)
-
-            compare(process.stdout.closed, expected=True)
-            compare(process.stderr.closed, expected=True)
-
-            # test call list
-            compare([
-                call.Popen('a command', stderr=-1, stdout=-1),
-                call.Popen_instance.communicate(),
-                call.Popen_instance.wait(),
-            ], Popen.mock.method_calls)
+        # test call list
+        compare([
+            call.Popen('a command', stderr=-1, stdout=-1),
+            call.Popen_instance.communicate(),
+            call.Popen_instance.wait(),
+        ], Popen.mock.method_calls)
 
     def test_start_new_session(self):
         # setup

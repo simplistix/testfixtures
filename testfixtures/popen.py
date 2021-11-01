@@ -1,17 +1,16 @@
 import pipes
-from functools import wraps, partial
+from functools import wraps, partial, reduce
 from io import TextIOWrapper
-from itertools import chain
+from itertools import chain, zip_longest
 from subprocess import STDOUT, PIPE
 from tempfile import TemporaryFile
-from testfixtures.compat import basestring, PY3, zip_longest, reduce, PY2
 from testfixtures.utils import extend_docstring
 
 from .mock import Mock, call
 
 
 def shell_join(command):
-    if not isinstance(command, basestring):
+    if not isinstance(command, str):
         command = " ".join(pipes.quote(part) for part in command)
     return command
 
@@ -106,7 +105,7 @@ class MockPopenInstance(object):
                 value.write(mock_value)
                 value.flush()
                 value.seek(0)
-                if PY3 and (universal_newlines or text or encoding):
+                if universal_newlines or text or encoding:
                     value = TextIOWrapper(value, encoding=encoding, errors=errors)
             setattr(self, name, value)
 
@@ -119,8 +118,7 @@ class MockPopenInstance(object):
         self.pid = behaviour.pid
         #: The return code of this mock process.
         self.returncode = None
-        if PY3:
-            self.args = args
+        self.args = args
 
     def _record(self, names, *args, **kw):
         for mock in self.class_instance_mock, self.mock:
@@ -131,41 +129,27 @@ class MockPopenInstance(object):
         ):
             store.append(reduce(getattr, names, base_call)(*args, **kw))
 
-    if PY3:
-        def __enter__(self):
-            return self
+    def __enter__(self):
+        return self
 
-        def __exit__(self, exc_type, exc_val, exc_tb):
-            self.wait()
-            for stream in self.stdout, self.stderr:
-                if stream:
-                    stream.close()
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.wait()
+        for stream in self.stdout, self.stderr:
+            if stream:
+                stream.close()
 
-        @record
-        def wait(self, timeout=None):
-            "Simulate calls to :meth:`subprocess.Popen.wait`"
-            self.returncode = self.behaviour.returncode
-            return self.returncode
+    @record
+    def wait(self, timeout=None):
+        "Simulate calls to :meth:`subprocess.Popen.wait`"
+        self.returncode = self.behaviour.returncode
+        return self.returncode
 
-        @record
-        def communicate(self, input=None, timeout=None):
-            "Simulate calls to :meth:`subprocess.Popen.communicate`"
-            self.returncode = self.behaviour.returncode
-            return (self.stdout and self.stdout.read(),
-                    self.stderr and self.stderr.read())
-    else:
-        @record
-        def wait(self):  # pragma: no cover
-            "Simulate calls to :meth:`subprocess.Popen.wait`"
-            self.returncode = self.behaviour.returncode
-            return self.returncode
-
-        @record
-        def communicate(self, input=None):
-            "Simulate calls to :meth:`subprocess.Popen.communicate`"
-            self.returncode = self.behaviour.returncode
-            return (self.stdout and self.stdout.read(),
-                    self.stderr and self.stderr.read())
+    @record
+    def communicate(self, input=None, timeout=None):
+        "Simulate calls to :meth:`subprocess.Popen.communicate`"
+        self.returncode = self.behaviour.returncode
+        return (self.stdout and self.stdout.read(),
+                self.stderr and self.stderr.read())
 
     @record
     def poll(self):

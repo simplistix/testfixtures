@@ -2,8 +2,6 @@ from decimal import Decimal
 from testfixtures import RangeComparison as R, ShouldRaise, compare
 from unittest import TestCase
 
-from ..compat import PY2, PY3
-
 
 class Tests(TestCase):
 
@@ -48,30 +46,20 @@ class Tests(TestCase):
                             (1, 2, 5))
 
     def test_not_numeric_rhs(self):
-        if PY2:
-            self.assertFalse('abc' == R(2, 5))
-            self.assertFalse({} == R(2, 5))
-            self.assertFalse([] == R(2, 5))
-        else:
-            with ShouldRaise(TypeError):
-                'abc' == R(2, 5)
-            with ShouldRaise(TypeError):
-                {} == R(2, 5)
-            with ShouldRaise(TypeError):
-                [] == R(2, 5)
+        with ShouldRaise(TypeError):
+            'abc' == R(2, 5)
+        with ShouldRaise(TypeError):
+            {} == R(2, 5)
+        with ShouldRaise(TypeError):
+            [] == R(2, 5)
 
     def test_not_numeric_lhs(self):
-        if PY2:
-            self.assertFalse(R(2, 5) == 'abc')
-            self.assertFalse(R(2, 5) == {})
-            self.assertFalse(R(2, 5) == [])
-        else:
-            with ShouldRaise(TypeError):
-                R(2, 5) == 'abc'
-            with ShouldRaise(TypeError):
-                R(2, 5) == {}
-            with ShouldRaise(TypeError):
-                R(2, 5) == []
+        with ShouldRaise(TypeError):
+            R(2, 5) == 'abc'
+        with ShouldRaise(TypeError):
+            R(2, 5) == {}
+        with ShouldRaise(TypeError):
+            R(2, 5) == []
 
     def test_repr(self):
         compare('<Range: [2, 5]>',
@@ -82,11 +70,7 @@ class Tests(TestCase):
                 str(R(2, 5)))
 
     def test_str_negative(self):
-        if PY3:
-            expected = '<Range: [2, 5]>'
-        else:
-            expected = '<Range: [2, 5]>'
-        compare(expected, repr(R(2, 5)))
+        compare('<Range: [2, 5]>', repr(R(2, 5)))
 
     def test_equal_yes_decimal_lhs(self):
         self.assertTrue(R(2, 5) == Decimal(3))
