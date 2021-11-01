@@ -5,12 +5,15 @@ from pathlib import Path
 
 from re import compile
 from tempfile import mkdtemp
-from typing import Union, Sequence, TYPE_CHECKING
+from typing import Union, Sequence, TYPE_CHECKING, Tuple, Callable
 
 from testfixtures.comparison import compare
 from testfixtures.utils import wrap
 
 from .rmtree import rmtree
+
+
+PathStrings = Union[str, Tuple[str]]
 
 
 if TYPE_CHECKING:
@@ -45,7 +48,14 @@ class TempDirectory:
     #: The absolute path of the :class:`TempDirectory` on disk
     path = None
 
-    def __init__(self, path=None, *, ignore=(), create=None, encoding=None):
+    def __init__(
+            self,
+            path: Union[str, Path, 'local'] = None,
+            *,
+            ignore: Sequence[str] = (),
+            create: bool = None,
+            encoding: str = None
+    ):
         self.ignore = []
         for regex in ignore:
             self.ignore.append(compile(regex))
@@ -63,7 +73,7 @@ class TempDirectory:
                 '%s' % ('\n'.join(i.path for i in cls.instances))
                 )
 
-    def create(self):
+    def create(self) -> 'TempDirectory':
         """
         Create a temporary directory for this instance to use if one
         has not already been created.
@@ -77,7 +87,7 @@ class TempDirectory:
             self.__class__.atexit_setup = True
         return self
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         """
         Delete the temporary directory and anything in it.
         This :class:`TempDirectory` cannot be used again unless
@@ -90,7 +100,7 @@ class TempDirectory:
             self.instances.remove(self)
 
     @classmethod
-    def cleanup_all(cls):
+    def cleanup_all(cls) -> None:
         """
         Delete all temporary directories associated with all
         :class:`TempDirectory` objects.
@@ -98,8 +108,13 @@ class TempDirectory:
         for i in tuple(cls.instances):
             i.cleanup()
 
-    def actual(self,
-               path=None, recursive=False, files_only=False, followlinks=False):
+    def actual(
+            self,
+            path: PathStrings = None,
+            recursive: bool = False,
+            files_only: bool = False,
+            followlinks: bool = False,
+    ):
         path = self._join(path) if path else self.path
 
         result = []
@@ -133,7 +148,7 @@ class TempDirectory:
             filtered.append(path)
         return filtered
 
-    def listdir(self, path=None, recursive=False):
+    def listdir(self, path: PathStrings = None, recursive: bool = False):
         """
         Print the contents of the specified directory.
 
@@ -162,8 +177,14 @@ class TempDirectory:
         for n in actual:
             print(n)
 
-    def compare(self, expected, path=None, files_only=False, recursive=True,
-                followlinks=False):
+    def compare(
+            self,
+            expected: Sequence[str],
+            path: PathStrings = None,
+            files_only: bool = False,
+            recursive: bool = True,
+            followlinks: bool = False,
+    ):
         """
         Compare the expected contents with the actual contents of the temporary
         directory. An :class:`AssertionError` will be raised if they are not the
@@ -218,7 +239,7 @@ class TempDirectory:
                 )
         return os.path.join(self.path, relative)
 
-    def makedir(self, dirpath):
+    def makedir(self, dirpath: PathStrings):
         """
         Make an empty directory at the specified path within the
         temporary directory. Any intermediate subdirectories that do
@@ -236,7 +257,7 @@ class TempDirectory:
         os.makedirs(thepath)
         return thepath
 
-    def write(self, filepath, data, encoding=None):
+    def write(self, filepath: PathStrings, data: Union[bytes, str], encoding: str = None):
         """
         Write the supplied data to a file at the specified path within
         the temporary directory. Any subdirectories specified that do
@@ -297,7 +318,7 @@ class TempDirectory:
     #:   Use :meth:`as_string` instead.
     getpath = as_string
 
-    def as_path(self, path: Union[str, Sequence[str]] = None) -> Path:
+    def as_path(self, path: PathStrings = None) -> Path:
         """
         Return the :class:`~pathlib.Path` that corresponds to the path
         relative to the temporary directory that is passed in.
@@ -310,7 +331,7 @@ class TempDirectory:
         """
         return Path(self.path if path is None else self._join(path))
 
-    def as_local(self, path: Union[str, Sequence[str]] = None) -> 'local':
+    def as_local(self, path: PathStrings = None) -> 'local':
         """
         Return the :class:`py.path.local` that corresponds to the path
         relative to the temporary directory that is passed in.
@@ -324,7 +345,7 @@ class TempDirectory:
         from py.path import local
         return local(self.path if path is None else self._join(path))
 
-    def read(self, filepath, encoding=None):
+    def read(self, filepath: PathStrings, encoding: str = None) -> Union[bytes, str]:
         """
         Reads the file at the specified path within the temporary
         directory.
@@ -360,7 +381,7 @@ class TempDirectory:
         self.cleanup()
 
 
-def tempdir(*args, **kw):
+def tempdir(*args, **kw) -> Callable[[Callable], Callable]:
     """
     A decorator for making a :class:`TempDirectory` available for the
     duration of a test function.

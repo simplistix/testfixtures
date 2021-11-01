@@ -3,6 +3,7 @@ Helpers for working with Zope and its components.
 """
 import atexit
 import warnings
+from typing import Set
 
 from zope.component import getSiteManager
 from zope.interface.registry import Components
@@ -16,14 +17,14 @@ class TestComponents:
     Instantiation will install an empty registry that will be returned
     by :func:`zope.component.getSiteManager`.
     """
-    __test__ = False
+    __test__: bool = False
 
-    instances = set()
-    atexit_setup = False
+    instances: Set['TestComponents'] = set()
+    atexit_setup: bool = False
 
     def __init__(self):
-        self.registry = Components('Testing')
-        self.old = getSiteManager.sethook(lambda: self.registry)
+        self.registry: Components = Components('Testing')
+        self.old: Components = getSiteManager.sethook(lambda: self.registry)
         self.instances.add(self)
         if not self.__class__.atexit_setup:
             atexit.register(self.atexit)

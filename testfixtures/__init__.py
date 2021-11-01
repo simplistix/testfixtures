@@ -8,7 +8,9 @@ class singleton(object):
 
     __str__ = __repr__
 
-not_there = singleton('not_there')
+
+not_there: singleton = singleton('not_there')
+
 
 from testfixtures.comparison import (
     Comparison, StringComparison, RoundComparison, compare, diff, RangeComparison,

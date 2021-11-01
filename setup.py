@@ -38,10 +38,12 @@ setup(
     ],
     packages=find_packages(),
     zip_safe=False,
+    package_data={'testfixtures': ['py.typed']},
     include_package_data=True,
     python_requires=">=3.6",
     extras_require=dict(
-        test=['pytest>=3.6',
+        test=['mypy',
+              'pytest>=3.6',
               'pytest-cov',
               'pytest-django',
               ]+optional,

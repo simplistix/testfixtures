@@ -2,6 +2,10 @@
 Tools for helping to test Twisted applications.
 """
 from pprint import pformat
+from typing import Union, Sequence, Callable
+from unittest import TestCase
+
+from constantly import NamedConstant
 
 from . import compare
 from twisted.logger import globalLogPublisher, formatEvent, LogLevel
@@ -20,7 +24,7 @@ class LogCapture(object):
       otherwise they will be a tuple of the specified fields.
     """
 
-    def __init__(self, fields=('log_level', formatEvent,)):
+    def __init__(self, fields: Sequence[Union[str, Callable]] = ('log_level', formatEvent,)):
         #: The list of events captured.
         self.events = []
         self.fields = fields
@@ -74,7 +78,7 @@ class LogCapture(object):
                     'other entries:\n%s'
                 ) % (pformat(matched), pformat(expected), pformat(unmatched)))
 
-    def check_failure_text(self, expected, index=-1, attribute='value'):
+    def check_failure_text(self, expected: str, index: int = -1, attribute: str = 'value'):
         """
         Check the string representation of an attribute of a logged :class:`Failure` is as expected.
 
@@ -84,7 +88,7 @@ class LogCapture(object):
         """
         compare(expected, actual=str(getattr(self.events[index]['log_failure'], attribute)))
 
-    def raise_logged_failure(self, start_index=0):
+    def raise_logged_failure(self, start_index: int = 0):
         """
         A debugging tool that raises the first failure encountered in captured logging.
 
@@ -96,7 +100,7 @@ class LogCapture(object):
                 raise failure
 
     @classmethod
-    def make(cls, testcase, **kw):
+    def make(cls, testcase: TestCase, **kw):
         """
         Instantiate, install and add a cleanup for a :class:`LogCapture`.
 
@@ -111,12 +115,12 @@ class LogCapture(object):
 
 
 #: Short reference to Twisted's ``LogLevel.debug``
-DEBUG = LogLevel.debug
+DEBUG: NamedConstant = LogLevel.debug
 #: Short reference to Twisted's ``LogLevel.info``
-INFO = LogLevel.info
+INFO: NamedConstant = LogLevel.info
 #: Short reference to Twisted's ``LogLevel.warn``
-WARN = LogLevel.warn
+WARN: NamedConstant = LogLevel.warn
 #: Short reference to Twisted's ``LogLevel.error``
-ERROR = LogLevel.error
+ERROR: NamedConstant = LogLevel.error
 #: Short reference to Twisted's ``LogLevel.critical``
-CRITICAL = LogLevel.critical
+CRITICAL: NamedConstant = LogLevel.critical

@@ -1,20 +1,25 @@
 from collections import OrderedDict
-from collections.abc import Iterable
+from collections.abc import Iterable as IterableABC
 from decimal import Decimal
 from difflib import unified_diff
-from functools import partial as partial_type, partial, reduce
+from functools import partial as partial_type, reduce
 from operator import __or__
 from pprint import pformat
+from typing import (
+    Dict, Any, Optional, Sequence, Generator, TypeVar, List, Mapping, Pattern, Union,
+    Callable, Iterable
+)
 from types import GeneratorType
 import re
 
-from testfixtures import not_there
+from testfixtures import not_there, singleton
 from testfixtures.resolve import resolve
 from testfixtures.utils import indent
 from testfixtures.mock import parent_name, mock_call
 from unittest.mock import call as unittest_mock_call
 
-def diff(x, y, x_label='', y_label=''):
+
+def diff(x: str, y: str, x_label: str = '', y_label: str = ''):
     """
     A shorthand function that uses :mod:`difflib` to return a
     string representing the differences between the two string
@@ -32,7 +37,7 @@ def diff(x, y, x_label='', y_label=''):
     )
 
 
-def compare_simple(x, y, context):
+def compare_simple(x, y, context: 'CompareContext'):
     """
     Returns a very simple textual difference between the two supplied objects.
     """
@@ -56,7 +61,7 @@ def compare_simple(x, y, context):
         return context.label('x', repr_x) + ' != ' + context.label('y', repr_y)
 
 
-def _extract_attrs(obj, ignore=None):
+def _extract_attrs(obj, ignore: Iterable[str] = None) -> Optional[Dict[str, Any]]:
     try:
         attrs = vars(obj).copy()
     except TypeError:
@@ -86,7 +91,9 @@ def _extract_attrs(obj, ignore=None):
     return attrs
 
 
-def _attrs_to_ignore(context, ignore_attributes, obj):
+def _attrs_to_ignore(
+        context: 'CompareContext', ignore_attributes: Iterable[str], obj
+) -> Iterable[str]:
     ignore = context.get_option('ignore_attributes', ())
     if isinstance(ignore, dict):
         ignore = ignore.get(type(obj), ())
@@ -95,7 +102,9 @@ def _attrs_to_ignore(context, ignore_attributes, obj):
     return ignore
 
 
-def compare_object(x, y, context, ignore_attributes=()):
+def compare_object(
+        x, y, context: 'CompareContext', ignore_attributes: Iterable[str] = ()
+) -> Optional[str]:
     """
     Compare the two supplied objects based on their type and attributes.
 
@@ -122,7 +131,9 @@ def compare_object(x, y, context, ignore_attributes=()):
                                 'attributes ', '.%s')
 
 
-def compare_exception(x, y, context):
+def compare_exception(
+        x: Exception, y: Exception, context: 'CompareContext'
+) -> Optional[str]:
     """
     Compare the two supplied exceptions based on their message, type and
     attributes.
@@ -132,7 +143,7 @@ def compare_exception(x, y, context):
     return compare_object(x, y, context)
 
 
-def compare_with_type(x, y, context):
+def compare_with_type(x, y, context: 'CompareContext') -> str:
     """
     Return a textual description of the difference between two objects
     including information about their types.
@@ -148,7 +159,9 @@ def compare_with_type(x, y, context):
     return '{x} != {y}'.format(**to_render)
 
 
-def compare_sequence(x, y, context, prefix=True):
+def compare_sequence(
+        x: Sequence, y: Sequence, context: 'CompareContext', prefix: bool = True
+) -> Optional[str]:
     """
     Returns a textual description of the differences between the two
     supplied sequences.
@@ -173,7 +186,7 @@ def compare_sequence(x, y, context, prefix=True):
                           )
 
 
-def compare_generator(x, y, context):
+def compare_generator(x: Generator, y: Generator, context: 'CompareContext') -> Optional[str]:
     """
     Returns a textual description of the differences between the two
     supplied generators.
@@ -191,7 +204,7 @@ def compare_generator(x, y, context):
     return compare_sequence(x, y, context)
 
 
-def compare_tuple(x, y, context):
+def compare_tuple(x: tuple, y: tuple, context: 'CompareContext') -> Optional[str]:
     """
     Returns a textual difference between two tuples or
     :func:`collections.namedtuple` instances.
@@ -212,7 +225,7 @@ def compare_tuple(x, y, context):
     return compare_sequence(x, y, context)
 
 
-def compare_dict(x, y, context):
+def compare_dict(x: dict, y: dict, context: 'CompareContext') -> Optional[str]:
     """
     Returns a textual description of the differences between the two
     supplied dictionaries.
@@ -220,13 +233,18 @@ def compare_dict(x, y, context):
     return _compare_mapping(x, y, context, x)
 
 
-def sorted_by_repr(sequence):
+Item = TypeVar('Item')
+
+
+def sorted_by_repr(sequence: Iterable[Item]) -> List[Item]:
     return sorted(sequence, key=lambda o: repr(o))
 
 
-def _compare_mapping(x, y, context, obj_for_class,
-                     prefix='', breadcrumb='[%r]',
-                     check_y_not_x=True):
+def _compare_mapping(
+        x: Mapping, y: Mapping, context: 'CompareContext', obj_for_class: Any,
+        prefix: str = '', breadcrumb: str = '[%r]',
+        check_y_not_x: bool = True
+) -> Optional[str]:
 
     x_keys = set(x.keys())
     y_keys = set(y.keys())
@@ -282,7 +300,7 @@ def _compare_mapping(x, y, context, obj_for_class,
     return '\n'.join(lines)
 
 
-def compare_set(x, y, context):
+def compare_set(x: set, y: set, context: 'CompareContext') -> Optional[str]:
     """
     Returns a textual description of the differences between the two
     supplied sets.
@@ -309,10 +327,10 @@ def compare_set(x, y, context):
     return '\n'.join(lines)+'\n'
 
 
-trailing_whitespace_re = re.compile(r'\s+$', re.MULTILINE)
+trailing_whitespace_re: Pattern = re.compile(r'\s+$', re.MULTILINE)
 
 
-def strip_blank_lines(text):
+def strip_blank_lines(text: str) -> str:
     result = []
     for line in text.split('\n'):
         if line and not line.isspace():
@@ -320,7 +338,7 @@ def strip_blank_lines(text):
     return '\n'.join(result)
 
 
-def split_repr(text):
+def split_repr(text: str) -> str:
     parts = text.split('\n')
     for i, part in enumerate(parts[:-1]):
         parts[i] = repr(part + '\n')
@@ -328,7 +346,7 @@ def split_repr(text):
     return '\n'.join(parts)
 
 
-def compare_text(x, y, context):
+def compare_text(x: str, y: str, context: 'CompareContext'):
     """
     Returns an informative string describing the differences between the two
     supplied strings. The way in which this comparison is performed
@@ -373,7 +391,7 @@ def compare_text(x, y, context):
     return message
 
 
-def compare_bytes(x, y, context):
+def compare_bytes(x: bytes, y: bytes, context: 'CompareContext') -> Optional[str]:
     if x == y:
         return
     labelled_x = context.label('x', repr(x))
@@ -381,7 +399,7 @@ def compare_bytes(x, y, context):
     return '\n%s\n!=\n%s' % (labelled_x, labelled_y)
 
 
-def compare_call(x, y, context):
+def compare_call(x, y, context: 'CompareContext') -> Optional[str]:
     if x == y:
         return
 
@@ -413,8 +431,7 @@ def compare_call(x, y, context):
     return 'mock.call not as expected:'
 
 
-
-def compare_partial(x, y, context):
+def compare_partial(x: partial_type, y: partial_type, context: 'CompareContext') -> Optional[str]:
     x_attrs = dict(func=x.func, args=x.args, keywords=x.keywords)
     y_attrs = dict(func=y.func, args=y.args, keywords=y.keywords)
     if x_attrs != y_attrs:
@@ -422,14 +439,17 @@ def compare_partial(x, y, context):
                                 'attributes ', '.%s')
 
 
-def _short_repr(obj):
+def _short_repr(obj) -> str:
     repr_ = repr(obj)
     if len(repr_) > 30:
         repr_ = repr_[:30] + '...'
     return repr_
 
 
-_registry = {
+Comparer = Callable[[Any, Any, 'CompareContext'], Optional[str]]
+Registry = Dict[type, Comparer]
+
+_registry: Registry = {
     dict: compare_dict,
     set: compare_set,
     list: compare_sequence,
@@ -447,13 +467,13 @@ _registry = {
     }
 
 
-def register(type, comparer):
+def register(type_: type, comparer: Comparer):
     """
     Register the supplied comparer for the specified type.
     This registration is global and will be in effect from the point
     this function is called until the end of the current process.
     """
-    _registry[type] = comparer
+    _registry[type_] = comparer
 
 
 def _shared_mro(x, y):
@@ -462,52 +482,50 @@ def _shared_mro(x, y):
         if class_ in y_mro:
             yield class_
 
+
 _unsafe_iterables = str, bytes, dict
 
 
 class CompareContext(object):
 
-    x_label = y_label = None
-
-    def __init__(self, options):
+    def __init__(
+            self,
+            x_label: Optional[str],
+            y_label: Optional[str],
+            recursive: bool = True,
+            strict: bool = False,
+            ignore_eq: bool = False,
+            comparers: Registry = None,
+            options: Dict[str, Any] = None,
+    ):
         self.registries = []
-        comparers = options.pop('comparers', None)
         if comparers:
             self.registries.append(comparers)
         self.registries.append(_registry)
 
-        self.recursive = options.pop('recursive', True)
-        self.strict = options.pop('strict', False)
-        self.ignore_eq = options.pop('ignore_eq', False)
-
-        if 'expected' in options or 'actual' in options:
-            self.x_label = 'expected'
-            self.y_label = 'actual'
-        self.x_label = options.pop('x_label', self.x_label)
-        self.y_label = options.pop('y_label', self.y_label)
-
-        self.options = options
-        self.message = ''
-        self.breadcrumbs = []
+        self.x_label = x_label
+        self.y_label = y_label
+        self.recursive: bool = recursive
+        self.strict: bool = strict
+        self.ignore_eq: bool = ignore_eq
+        self.options: Dict[str, Any] = options or {}
+        self.message: str = ''
+        self.breadcrumbs: List[str] = []
         self._seen = set()
 
-    def extract_args(self, args):
+    def extract_args(self, args: tuple, x: Any, y: Any, expected: Any, actual: Any) -> List:
 
         possible = []
-        expected = self.options.pop('expected', not_there)
-        if expected is not not_there:
-            possible.append(expected)
-        possible.extend(args)
-        actual = self.options.pop('actual', not_there)
-        if actual is not not_there:
-            possible.append(actual)
 
-        x = self.options.pop('x', not_there)
-        if x is not not_there:
-            possible.append(x)
-        y = self.options.pop('y', not_there)
-        if y is not not_there:
-            possible.append(y)
+        def append_if_specified(source):
+            if source is not unspecified:
+                possible.append(source)
+
+        append_if_specified(expected)
+        possible.extend(args)
+        append_if_specified(actual)
+        append_if_specified(x)
+        append_if_specified(y)
 
         if len(possible) != 2:
             message = 'Exactly two objects needed, you supplied:'
@@ -519,17 +537,17 @@ class CompareContext(object):
 
         return possible
 
-    def get_option(self, name, default=None):
+    def get_option(self, name: str, default=None):
         return self.options.get(name, default)
 
-    def label(self, side, value):
+    def label(self, side: str, value: Any) -> str:
         r = str(value)
         label = getattr(self, side+'_label')
         if label:
             r += ' ('+label+')'
         return r
 
-    def _lookup(self, x, y):
+    def _lookup(self, x: Any, y: Any) -> Comparer:
         if self.strict and type(x) is not type(y):
             return compare_with_type
 
@@ -540,7 +558,7 @@ class CompareContext(object):
                     return comparer
 
         # fallback for iterables
-        if ((isinstance(x, Iterable) and isinstance(y, Iterable)) and not
+        if ((isinstance(x, IterableABC) and isinstance(y, IterableABC)) and not
             (isinstance(x, _unsafe_iterables) or
              isinstance(y, _unsafe_iterables))):
             return compare_generator
@@ -551,10 +569,10 @@ class CompareContext(object):
 
         return compare_object
 
-    def _separator(self):
+    def _separator(self) -> str:
         return '\n\nWhile comparing %s: ' % ''.join(self.breadcrumbs[1:])
 
-    def seen(self, x, y):
+    def seen(self, x: Any, y: Any) -> bool:
         # don't get confused by interning:
         singleton_types = str, bytes, int, float
         if isinstance(x, singleton_types) and isinstance(y, singleton_types):
@@ -564,7 +582,7 @@ class CompareContext(object):
             return True
         self._seen.add(key)
 
-    def different(self, x, y, breadcrumb):
+    def different(self, x: Any, y: Any, breadcrumb: str) -> Union[bool, Optional[str]]:
 
         if self.seen(x, y):
             # a self-referential hierarchy; so lets say this one is
@@ -581,7 +599,7 @@ class CompareContext(object):
             if not (self.strict or self.ignore_eq) and x == y:
                 return False
 
-            comparer = self._lookup(x, y)
+            comparer: Comparer = self._lookup(x, y)
 
             result = comparer(x, y, self)
             specific_comparer = comparer is not compare_simple
@@ -612,7 +630,26 @@ def _resolve_lazy(source):
     return str(source() if callable(source) else source)
 
 
-def compare(*args, **kw):
+unspecified = singleton('unspecified')
+
+
+def compare(
+        *args,
+        x: Any = unspecified,
+        y: Any = unspecified,
+        expected: Any = unspecified,
+        actual: Any = unspecified,
+        prefix: str = None,
+        suffix: str = None,
+        x_label: str = None,
+        y_label: str = None,
+        raises: bool = True,
+        recursive: bool = True,
+        strict: bool = False,
+        ignore_eq: bool = False,
+        comparers: Registry = None,
+        **options: Any
+) -> Optional[str]:
     """
     Compare two objects, raising an :class:`AssertionError` if they are not
     the same. The :class:`AssertionError` raised will attempt to provide
@@ -620,12 +657,7 @@ def compare(*args, **kw):
 
     The two objects to compare can be passed either positionally or using
     explicit keyword arguments named ``x`` and ``y``, or ``expected`` and
-    ``actual``.
-
-    Any other keyword parameters supplied will be passed to the functions
-    that end up doing the comparison. See the
-    :mod:`API documentation below <testfixtures.comparison>`
-    for details of these.
+    ``actual``, or a mixture of these.
 
     :param prefix: If provided, in the event of an :class:`AssertionError`
                    being raised, the prefix supplied will be prepended to the
@@ -670,18 +702,22 @@ def compare(*args, **kw):
                       types to comparer functions for those types. These will
                       be added to the comparer registry for the duration
                       of this call.
+
+    Any other keyword parameters supplied will be passed to the functions
+    that end up doing the comparison. See the
+    :mod:`API documentation below <testfixtures.comparison>`
+    for details of these.
     """
 
     __tracebackhide__ = True
 
-    prefix = kw.pop('prefix', None)
-    suffix = kw.pop('suffix', None)
-    raises = kw.pop('raises', True)
-    context = CompareContext(kw)
+    if not (expected is unspecified and actual is unspecified):
+        x_label = x_label or 'expected'
+        y_label = y_label or 'actual'
 
-    x, y = context.extract_args(args)
-
-    if not context.different(x, y, not_there):
+    context = CompareContext(x_label, y_label, recursive, strict, ignore_eq, comparers, options)
+    x, y = context.extract_args(args, x, y, expected, actual)
+    if not context.different(x, y, ''):
         return
 
     message = context.message
@@ -700,23 +736,23 @@ class StatefulComparison(object):
     A base class for stateful comparison objects.
     """
 
-    failed = ''
-    expected = None
-    name_attrs = ()
+    failed: str = ''
+    expected: Any = None
+    name_attrs: Sequence[str] = ()
 
     def __eq__(self, other):
         return not(self != other)
 
-    def name(self):
+    def name(self) -> str:
         name = type(self).__name__
         if self.name_attrs:
             name += '(%s)' % ', '.join('%s=%r' % (n, getattr(self, n)) for n in self.name_attrs)
         return name
 
-    def body(self):
+    def body(self) -> str:
         return pformat(self.expected)[1:-1]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         name = self.name()
         body = self.failed or self.body()
         prefix = '<%s%s>' % (name, self.failed and '(failed)' or '')
@@ -749,9 +785,9 @@ class Comparison(StatefulComparison):
 
     def __init__(self,
                  object_or_type,
-                 attribute_dict=None,
-                 partial=False,
-                 **attributes):
+                 attribute_dict: Dict[str, Any] = None,
+                 partial: bool = False,
+                 **attributes: Any):
         self.partial = partial
         if attributes:
             if attribute_dict is None:
@@ -773,8 +809,7 @@ class Comparison(StatefulComparison):
         self.expected_type = c
         self.expected_attributes = attribute_dict
 
-    def __ne__(self, other):
-        # .__class__ is important for Py2 compatibility.
+    def __ne__(self, other: Any) -> bool:
         if self.expected_type is not other.__class__:
             self.failed = 'wrong type'
             return True
@@ -795,8 +830,7 @@ class Comparison(StatefulComparison):
             except AttributeError:
                 pass
 
-        kw = {'x_label': 'Comparison', 'y_label': 'actual'}
-        context = CompareContext(kw)
+        context = CompareContext(x_label='Comparison', y_label='actual')
         self.failed = _compare_mapping(self.expected_attributes,
                                        actual_attributes,
                                        context,
@@ -806,7 +840,7 @@ class Comparison(StatefulComparison):
                                        check_y_not_x=not self.partial)
         return bool(self.failed)
 
-    def name(self):
+    def name(self) -> str:
         name = 'C:'
         module = getattr(self.expected_type, '__module__', None)
         if module:
@@ -814,7 +848,7 @@ class Comparison(StatefulComparison):
         name += (getattr(self.expected_type, '__name__', None) or repr(self.expected_type))
         return name
 
-    def body(self):
+    def body(self) -> str:
         if self.expected_attributes:
             # if we're not failed, show what we will expect:
             lines = []
@@ -848,16 +882,16 @@ class SequenceComparison(StatefulComparison):
 
     name_attrs = ('ordered', 'partial')
 
-    def __init__(self, *expected, **kw):
+    def __init__(
+            self, *expected, ordered: bool = True, partial: bool = False, recursive: bool = False
+    ):
         self.expected = expected
-        # py2 :-(
-        self.ordered = kw.pop('ordered', True)
-        self.partial = kw.pop('partial', False)
-        self.recursive = kw.pop('recursive', False)
-        assert not kw, 'unexpected parameter'
+        self.ordered = ordered
+        self.partial = partial
+        self.recursive = recursive
         self.checked_indices = set()
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         try:
             actual = original_actual = list(other)
         except TypeError:
@@ -997,7 +1031,7 @@ class MappingComparison(StatefulComparison):
 
         self.expected = expected
 
-    def body(self):
+    def body(self) -> str:
         # this can all go away and use the super class once py2 is gone :'(
         parts = []
         text_length = 0
@@ -1011,7 +1045,7 @@ class MappingComparison(StatefulComparison):
             sep = ', '
         return sep.join(parts)
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         try:
             actual_keys = other.keys()
             actual_mapping = dict(other.items())
@@ -1082,7 +1116,7 @@ class StringComparison:
 
     :param flag_names: See the :ref:`examples <stringcomparison>`.
     """
-    def __init__(self, regex_source, flags=None, **flag_names):
+    def __init__(self, regex_source: str, flags: int = None, **flag_names: str):
         args = [regex_source]
 
         flags_ = []
@@ -1094,23 +1128,23 @@ class StringComparison:
 
         self.re = re.compile(*args)
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         if not isinstance(other, str):
-            return
+            return False
         if self.re.match(other):
             return True
         return False
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         return not self == other
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '<S:%s>' % self.re.pattern
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         return self.re.pattern < other
 
-    def __gt__(self, other):
+    def __gt__(self, other) -> bool:
         return self.re.pattern > other
 
 
@@ -1124,20 +1158,20 @@ class RoundComparison:
     :param precision: Number of decimal places to round to in order
                       to perform the comparison.
     """
-    def __init__(self, value, precision):
+    def __init__(self, value: float, precision: int):
         self.rounded = round(value, precision)
         self.precision = precision
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         other_rounded = round(other, self.precision)
         if type(self.rounded) is not type(other_rounded):
             raise TypeError('Cannot compare %r with %r' % (self, type(other)))
         return self.rounded == other_rounded
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         return not self == other
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '<R:%s to %i digits>' % (self.rounded, self.precision)
 
 
@@ -1154,11 +1188,11 @@ class RangeComparison:
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return self.lower_bound <= other <= self.upper_bound
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         return not self == other
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '<Range: [%s, %s]>' % (self.lower_bound, self.upper_bound)

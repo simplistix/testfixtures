@@ -1,6 +1,11 @@
 from contextlib import contextmanager
 from functools import wraps
+from typing import Union, Type, Callable
+
 from testfixtures import diff, compare
+
+ExceptionOrType = Union[Exception, Type[Exception]]
+
 
 param_docs = """
 
@@ -34,7 +39,7 @@ class ShouldRaise(object):
     #: Can be used to inspect specific attributes of the exception.
     raised = None
 
-    def __init__(self, exception=None, unless=False):
+    def __init__(self, exception: ExceptionOrType = None, unless: bool = False):
         self.exception = exception
         self.expected = not unless
 
@@ -73,11 +78,11 @@ class should_raise:
     raised.
     """ + param_docs
 
-    def __init__(self, exception=None, unless=None):
+    def __init__(self, exception: ExceptionOrType = None, unless: bool = None):
         self.exception = exception
         self.unless = unless
 
-    def __call__(self, target):
+    def __call__(self, target: Callable) -> Callable:
 
         @wraps(target)
         def _should_raise_wrapper(*args, **kw):
@@ -88,7 +93,7 @@ class should_raise:
 
 
 @contextmanager
-def ShouldAssert(expected_text):
+def ShouldAssert(expected_text: str):
     """
     A context manager to check that an :class:`AssertionError`
     is raised and its text is as expected.

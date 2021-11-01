@@ -5,11 +5,15 @@ from itertools import chain, zip_longest
 from subprocess import STDOUT, PIPE
 from tempfile import TemporaryFile
 from testfixtures.utils import extend_docstring
+from typing import Union, Callable, List, Optional, Sequence, Tuple, Dict
+from .mock import Mock, call, _Call as Call
 
-from .mock import Mock, call
+
+AnyStr = Union[str, bytes]
+Command = Union[str, Sequence[str]]
 
 
-def shell_join(command):
+def shell_join(command: Command) -> str:
     if not isinstance(command, str):
         command = " ".join(pipes.quote(part) for part in command)
     return command
@@ -21,8 +25,14 @@ class PopenBehaviour(object):
     simulating a particular command.
     """
 
-    def __init__(self, stdout=b'', stderr=b'', returncode=0, pid=1234,
-                 poll_count=3):
+    def __init__(
+            self,
+            stdout: bytes = b'',
+            stderr: bytes = b'',
+            returncode: int = 0,
+            pid: int = 1234,
+            poll_count: int = 3
+    ):
         self.stdout = stdout
         self.stderr = stderr
         self.returncode = returncode
@@ -30,7 +40,7 @@ class PopenBehaviour(object):
         self.poll_count = poll_count
 
 
-def record(func):
+def record(func) -> Callable:
     @wraps(func)
     def recorder(self, *args, **kw):
         self._record((func.__name__,), *args, **kw)
@@ -46,14 +56,15 @@ class MockPopenInstance(object):
     #: A :class:`~unittest.mock.Mock` representing the pipe into this process.
     #: This is only set if ``stdin=PIPE`` is passed the constructor.
     #: The mock records writes and closes in :attr:`MockPopen.all_calls`.
-    stdin = None
+    stdin: Mock = None
 
     #: A file representing standard output from this process.
-    stdout = None
+    stdout: TemporaryFile = None
 
     #: A file representing error output from this process.
-    stderr = None
+    stderr: TemporaryFile = None
 
+    # These are not types as instantiation of this class is an internal implementation detail.
     def __init__(self, mock_class, root_call,
                  args, bufsize=0, executable=None,
                  stdin=None, stdout=None, stderr=None,
@@ -62,15 +73,15 @@ class MockPopenInstance(object):
                  startupinfo=None, creationflags=0, restore_signals=True,
                  start_new_session=False, pass_fds=(),
                  encoding=None, errors=None, text=None):
-        self.mock = Mock()
-        self.class_instance_mock = mock_class.mock.Popen_instance
+        self.mock: Mock = Mock()
+        self.class_instance_mock: Mock = mock_class.mock.Popen_instance
         #: A :func:`unittest.mock.call` representing the call made to instantiate
         #: this mock process.
-        self.root_call = root_call
+        self.root_call: call = root_call
         #: The calls made on this mock process, represented using
         #: :func:`~unittest.mock.call` instances.
-        self.calls = []
-        self.all_calls = mock_class.all_calls
+        self.calls: List[Call] = []
+        self.all_calls: List[Call] = mock_class.all_calls
 
         cmd = shell_join(args)
 
@@ -81,7 +92,7 @@ class MockPopenInstance(object):
         if callable(behaviour):
             behaviour = behaviour(command=cmd, stdin=stdin)
 
-        self.behaviour = behaviour
+        self.behaviour: PopenBehaviour = behaviour
 
         stdout_value = behaviour.stdout
         stderr_value = behaviour.stderr
@@ -94,7 +105,7 @@ class MockPopenInstance(object):
             stdout_value = b''.join(l for l in line_iterator if l)
             stderr_value = None
 
-        self.poll_count = behaviour.poll_count
+        self.poll_count: int = behaviour.poll_count
         for name, option, mock_value in (
             ('stdout', stdout, stdout_value),
             ('stderr', stderr, stderr_value)
@@ -115,10 +126,10 @@ class MockPopenInstance(object):
                 record_writes = partial(self._record, ('stdin', method))
                 getattr(self.stdin, method).side_effect = record_writes
 
-        self.pid = behaviour.pid
+        self.pid: int = behaviour.pid
         #: The return code of this mock process.
-        self.returncode = None
-        self.args = args
+        self.returncode: Optional[int] = None
+        self.args: Command = args
 
     def _record(self, names, *args, **kw):
         for mock in self.class_instance_mock, self.mock:
@@ -139,20 +150,20 @@ class MockPopenInstance(object):
                 stream.close()
 
     @record
-    def wait(self, timeout=None):
+    def wait(self, timeout: float = None) -> int:
         "Simulate calls to :meth:`subprocess.Popen.wait`"
         self.returncode = self.behaviour.returncode
         return self.returncode
 
     @record
-    def communicate(self, input=None, timeout=None):
+    def communicate(self, input: AnyStr = None, timeout: float = None) -> Tuple[AnyStr, AnyStr]:
         "Simulate calls to :meth:`subprocess.Popen.communicate`"
         self.returncode = self.behaviour.returncode
         return (self.stdout and self.stdout.read(),
                 self.stderr and self.stderr.read())
 
     @record
-    def poll(self):
+    def poll(self) -> Optional[int]:
         "Simulate calls to :meth:`subprocess.Popen.poll`"
         while self.poll_count and self.returncode is None:
             self.poll_count -= 1
@@ -165,17 +176,17 @@ class MockPopenInstance(object):
         return self.returncode
 
     @record
-    def send_signal(self, signal):
+    def send_signal(self, signal: int) -> None:
         "Simulate calls to :meth:`subprocess.Popen.send_signal`"
         pass
 
     @record
-    def terminate(self):
+    def terminate(self) -> None:
         "Simulate calls to :meth:`subprocess.Popen.terminate`"
         pass
 
     @record
-    def kill(self):
+    def kill(self) -> None:
         "Simulate calls to :meth:`subprocess.Popen.kill`"
         pass
 
@@ -188,14 +199,14 @@ class MockPopen(object):
     :func:`unittest.mock.patch` or a :class:`~testfixtures.Replacer`.
     """
 
-    default_behaviour = None
+    default_behaviour: PopenBehaviour = None
 
     def __init__(self):
-        self.commands = {}
-        self.mock = Mock()
+        self.commands: Dict[str, PopenBehaviour] = {}
+        self.mock: Mock = Mock()
         #: All calls made using this mock and the objects it returns, represented using
         #: :func:`~unittest.mock.call` instances.
-        self.all_calls = []
+        self.all_calls: List[Call] = []
 
     def _resolve_behaviour(self, stdout, stderr, returncode,
                            pid, poll_count, behaviour):
@@ -206,8 +217,16 @@ class MockPopen(object):
         else:
             return behaviour
 
-    def set_command(self, command, stdout=b'', stderr=b'', returncode=0,
-                    pid=1234, poll_count=3, behaviour=None):
+    def set_command(
+            self,
+            command: str,
+            stdout: bytes = b'',
+            stderr: bytes = b'',
+            returncode: int = 0,
+            pid: int = 1234,
+            poll_count: int = 3,
+            behaviour: Union[PopenBehaviour, Callable] = None
+    ):
         """
         Set the behaviour of this mock when it is used to simulate the
         specified command.
@@ -250,9 +269,9 @@ set_command_params = """
     process. This is useful if you have code the prints out the pids
     of running processes.
 :param poll_count:
-    Specifies the number of times :meth:`MockPopenInstance.poll` can be
-    called before :attr:`MockPopenInstance.returncode` is set and returned
-    by :meth:`MockPopenInstance.poll`.
+    Specifies the number of times :meth:`~MockPopenInstance.poll` can be
+    called before :attr:`~MockPopenInstance.returncode` is set and returned
+    by :meth:`~MockPopenInstance.poll`.
 
 If supplied, ``behaviour`` must be either a :class:`PopenBehaviour`
 instance or a callable that takes the ``command`` string representing

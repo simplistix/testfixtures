@@ -32,7 +32,7 @@ class OutputCapture(object):
     original_stdout = None
     original_stderr = None
 
-    def __init__(self, separate=False, fd=False, strip_whitespace=True):
+    def __init__(self, separate: bool = False, fd: bool = False, strip_whitespace: bool = True):
         self.separate = separate
         self.fd = fd
         self.strip_whitespace = strip_whitespace
@@ -97,11 +97,11 @@ class OutputCapture(object):
             return stream.getvalue()
 
     @property
-    def captured(self):
+    def captured(self) -> str:
         "A property containing any output that has been captured so far."
         return self._read(self.output)
 
-    def compare(self, expected=u'', stdout=u'', stderr=u''):
+    def compare(self, expected: str = '', stdout: str = '', stderr: str = ''):
         """
         Compare the captured output to that expected. If the output is
         not the same, an :class:`AssertionError` will be raised.
