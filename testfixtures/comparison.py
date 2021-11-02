@@ -745,11 +745,6 @@ class Comparison(StatefulComparison):
     :param attributes: Any other keyword parameters passed will placed
                        as attributes on the :class:`Comparison`.
 
-    :param strict:
-
-      .. deprecated:: 6.16.0
-
-        Use ``partial`` instead.
     """
 
     def __init__(self,
@@ -757,7 +752,7 @@ class Comparison(StatefulComparison):
                  attribute_dict=None,
                  partial=False,
                  **attributes):
-        self.partial = partial or not attributes.pop('strict', True)
+        self.partial = partial
         if attributes:
             if attribute_dict is None:
                 attribute_dict = attributes

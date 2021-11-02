@@ -658,38 +658,38 @@ class TestC(TestCase):
         c = C(NoName)
         self.assertEqual(repr(c), "<C:<class '.TestC.test_no_name.<locals>.NoName'>>")
 
-    def test_missing_expected_attribute_strict(self):
+    def test_missing_expected_attribute_not_partial(self):
 
         class MyClass(object):
             def __init__(self, **attrs):
                 self.__dict__.update(attrs)
 
-        c = Comparison(MyClass, b=2, c=3, strict=True)
+        c = Comparison(MyClass, b=2, c=3, partial=False)
         assert c != MyClass(a=1, b=2)
 
-    def test_missing_expected_attribute_not_strict(self):
+    def test_missing_expected_attribute_partial(self):
 
         class MyClass(object):
             def __init__(self, **attrs):
                 self.__dict__.update(attrs)
 
-        c = Comparison(MyClass, b=2, c=3, strict=False)
+        c = Comparison(MyClass, b=2, c=3, partial=True)
         assert c != MyClass(a=1, b=2)
 
-    def test_extra_expected_attribute_strict(self):
+    def test_extra_expected_attribute_not_partial(self):
 
         class MyClass(object):
             def __init__(self, **attrs):
                 self.__dict__.update(attrs)
 
-        c = Comparison(MyClass, a=1, strict=True)
+        c = Comparison(MyClass, a=1, partial=False)
         assert c != MyClass(a=1, b=2)
 
-    def test_extra_expected_attribute_not_strict(self):
+    def test_extra_expected_attribute_partial(self):
 
         class MyClass(object):
             def __init__(self, **attrs):
                 self.__dict__.update(attrs)
 
-        c = Comparison(MyClass, a=1, strict=False)
+        c = Comparison(MyClass, a=1, partial=True)
         assert c == MyClass(a=1, b=2)
