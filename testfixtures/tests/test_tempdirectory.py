@@ -124,22 +124,6 @@ class TempDirectoryTests(TestCase):
         self.assertEqual(d, td.path)
         self.assertFalse(os.path.exists(d))
 
-    def test_deprecated_check(self):
-        with TempDirectory() as d:
-            d.write('x', b'')
-            d.check('x')
-
-    def test_deprecated_check_dir(self):
-        with TempDirectory() as d:
-            d.write('foo/x', b'')
-            d.check_dir('foo', 'x')
-
-    def test_deprecated_check_all(self):
-        with TempDirectory() as d:
-            d.write('a/b/c', b'')
-            d.check_all('', 'a/', 'a/b/', 'a/b/c')
-            d.check_all('a', 'b/', 'b/c')
-
     def test_compare_sort_actual(self):
         with TempDirectory() as d:
             d.write('ga', b'')
