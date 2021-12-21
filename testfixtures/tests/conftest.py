@@ -1,6 +1,6 @@
 from sybil import Sybil
 from sybil.parsers.doctest import  DocTestParser
-from sybil.parsers.codeblock import CodeBlockParser
+from sybil.parsers.codeblock import PythonCodeBlockParser
 from sybil.parsers.capture import parse_captures
 
 from testfixtures import TempDirectory
@@ -18,7 +18,7 @@ def sybil_teardown(namespace):
 pytest_collect_file = Sybil(
     parsers=[
         DocTestParser(),
-        CodeBlockParser(),
+        PythonCodeBlockParser(),
         parse_captures,
         FileParser('tempdir'),
     ],
