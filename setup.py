@@ -13,7 +13,7 @@ optional = [
     'zope.component',
     'django<2;python_version<"3"',
     'django;python_version>="3"',
-    'sybil<3',
+    'sybil>=3',
     'twisted'
 ]
 
