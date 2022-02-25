@@ -212,7 +212,7 @@ class MockPopen(object):
         Set the behaviour of this mock when it is used to simulate the
         specified command.
 
-        :param command: A string representing the command to be simulated.
+        :param command: A :class:`str` representing the command to be simulated.
         """
         self.commands[shell_join(command)] = self._resolve_behaviour(
             stdout, stderr, returncode, pid, poll_count, behaviour
@@ -223,7 +223,7 @@ class MockPopen(object):
         """
         Set the behaviour of this mock when it is used to simulate commands
         that have no explicit behavior specified using
-        :meth:`~MockPopen.set_command` or :meth:`~MockPopen.set_callable`.
+        :meth:`~MockPopen.set_command`.
         """
         self.default_behaviour = self._resolve_behaviour(
             stdout, stderr, returncode, pid, poll_count, behaviour
@@ -238,10 +238,10 @@ class MockPopen(object):
 
 set_command_params = """
 :param stdout:
-    A string representing the simulated content written by the process
+    :class:`bytes` representing the simulated content written by the process
     to the stdout pipe.
 :param stderr:
-    A string representing the simulated content written by the process
+    :class:`bytes` representing the simulated content written by the process
     to the stderr pipe.
 :param returncode:
     An integer representing the return code of the simulated process.
@@ -250,14 +250,15 @@ set_command_params = """
     process. This is useful if you have code the prints out the pids
     of running processes.
 :param poll_count:
-    Specifies the number of times :meth:`MockPopen.poll` can be
-    called before :attr:`MockPopen.returncode` is set and returned
-    by :meth:`MockPopen.poll`.
+    Specifies the number of times :meth:`MockPopenInstance.poll` can be
+    called before :attr:`MockPopenInstance.returncode` is set and returned
+    by :meth:`MockPopenInstance.poll`.
 
 If supplied, ``behaviour`` must be either a :class:`PopenBehaviour`
 instance or a callable that takes the ``command`` string representing
-the command to be simulated and the ``stdin`` for that command and
-returns a :class:`PopenBehaviour` instance.
+the command to be simulated and the ``stdin`` supplied when instantiating
+the :class:`subprocess.Popen` with that command and should
+return a :class:`PopenBehaviour` instance.
 """
 
 

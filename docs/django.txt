@@ -1,7 +1,7 @@
-Testing when using django
-=========================
+Testing with Django
+===================
 
-Django's ORM has an unfortunate implementation choice to consider
+Django's ORM has an unfortunate implementation choice of considering
 :class:`~django.db.models.Model` instances to be identical as long as their
 primary keys are the same:
 
@@ -29,7 +29,7 @@ values differ:
 'value': 1 != 2
 
 Since the above can quickly become cumbersome, a django-specific version
-of :func:`~testfixtures.compare`, with ignoring ``__eq__`` built in, is provided:
+of :func:`~testfixtures.compare` that ignores ``__eq__`` by default is provided:
 
 >>> from testfixtures.django import compare as django_compare
 >>> django_compare(SampleModel(id=1, value=1), SampleModel(id=1, value=2))
@@ -43,6 +43,9 @@ same:
 values differ:
 'value': 1 != 2
 
+Ignoring fields
+---------------
+
 It may also be that you want to ignore fields over which you have no control
 and cannot easily mock, such as created or modified times. For this, you
 can use the `ignore_fields` option:
@@ -50,11 +53,9 @@ can use the `ignore_fields` option:
 >>> compare(SampleModel(id=1, value=1), SampleModel(id=1, value=2),
 ...         ignore_eq=True, ignore_fields=['value'])
 
-.. note::
 
-  The implementation of the comparer for
-  :class:`~django.db.models.Model` instances ignores fields
-  that have ``editable`` set to ``False``.
+Comparing non-editable fields
+-----------------------------
 
 By default, non-editable fields are ignored:
 
@@ -81,5 +82,3 @@ values differ:
   The registered comparer currently ignores
   :class:`many to many <django.db.models.ManyToManyField>` fields.
   Patches to fix this deficiency are welcome!
-
-

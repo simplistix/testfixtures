@@ -3,18 +3,17 @@ Comparing objects and sequences
 
 .. currentmodule:: testfixtures
 
-Python's :mod:`unittest` package often fails to give very useful
-feedback when comparing long sequences or chunks of text. It also has
-trouble dealing with objects that don't natively support
-comparison. The functions and classes described here alleviate these
-problems.
+The helpers here provide ways of making assertions about object equality
+even when those objects don't natively support comparison. Where differences
+are found, feedback is provided in a way that makes it quick and easy to see what the
+difference was, even in the case of deeply nested data structures.
 
 The compare function
 --------------------
 
 The :func:`compare` function can be used as a replacement for
-:meth:`~unittest.TestCase.assertEqual`. It raises an
-``AssertionError`` when its parameters are not equal, which will be
+:meth:`~unittest.TestCase.assertEqual` or pytest-style assert statements.
+It raises an :class:`AssertionError` when its parameters are not equal, which will be
 reported as a test failure:
 
 >>> from testfixtures import compare
@@ -23,16 +22,13 @@ Traceback (most recent call last):
  ...
 AssertionError: 1 != 2
 
-However, it allows you to specify a prefix for the message to be used
+It allows you to specify a prefix for the message to be used
 in the event of failure:
 
 >>> compare(1, 2, prefix='wrong number of orders')
 Traceback (most recent call last):
  ...
 AssertionError: wrong number of orders: 1 != 2
-
-This is recommended as it makes the reason for the failure more
-apparent without having to delve into the code or tests.
 
 You can also optionally specify a suffix, which will be appended to the
 message on a new line:
@@ -172,8 +168,8 @@ second:
   performance reasons, then you should use 
   :ref:`strict comparison <strict-comparison>`.
   
-strings and unicodes
-~~~~~~~~~~~~~~~~~~~~
+strings
+~~~~~~~
 
 Comparison of strings can be tricky, particularly when those strings
 contain multiple lines; spotting the differences between the expected
@@ -260,11 +256,9 @@ objects
 
 Even if your objects do not natively support comparison, when they are compared
 they will be considered identical if they are of the same type and have identical
-attributes. Take this instances of this class as an example:
+attributes. Take instances of this class as an example:
 
 .. code-block:: python
-
-  from datetime import datetime
 
   class MyObject(object):
       def __init__(self, name):
@@ -480,8 +474,6 @@ as attributes:
 
 .. code-block:: python
 
-  from datetime import datetime
-  
   class Request(object):
       def __init__(self, uri, headers, body):
           self.uri = uri
@@ -553,7 +545,7 @@ comparer could be implemented and registered as follows:
   def compare_decimal(x, y, context):
        precision = context.get_option('precision', 2)
        if round(x, precision) != round(y, precision):
-           return '%r != %r when rounded to %i decimal places' % (
+           return '%r != %r when rounded to %i places' % (
                x, y, precision
            )
 
@@ -576,7 +568,7 @@ same:
 values differ:
 'price': Decimal('1.234') != Decimal('1.236')
 <BLANKLINE>
-While comparing ['price']: Decimal('1.234') != Decimal('1.236') when rounded to 3 decimal places
+While comparing ['price']: Decimal('1.234') != Decimal('1.236') when rounded to 3 places
 
 If no precision is passed, the default of ``2`` will be used:
 
@@ -584,7 +576,7 @@ If no precision is passed, the default of ``2`` will be used:
 >>> compare(Decimal('2.001'), Decimal('2.009'))
 Traceback (most recent call last):
  ...
-AssertionError: Decimal('2.001') != Decimal('2.009') when rounded to 2 decimal places
+AssertionError: Decimal('2.001') != Decimal('2.009') when rounded to 2 places
 
 .. invisible-code-block: python
 
@@ -596,7 +588,7 @@ Ignoring ``__eq__``
 ~~~~~~~~~~~~~~~~~~~
 
 Some objects, such as those from the Django ORM, have pretty broken
-implementations or ``__eq__``. Since :func:`compare` normally relies on this,
+implementations of ``__eq__``. Since :func:`compare` normally relies on this,
 it can result in objects appearing to be equal when they are not.
 
 Take this class, for example:
@@ -659,7 +651,7 @@ Comparison objects
 
 Another common problem with the checking in tests is that you may only want to make
 assertions about the type of an object that is nested in a data structure, or even just compare
-a subset of an object's attributes. TextFixtures provides the :class:`~testfixtures.Comparison`
+a subset of an object's attributes. Textfixtures provides the :class:`~testfixtures.Comparison`
 class to help in situations like these.
 
 Comparisons will appear to be equal to any object they are compared
@@ -694,9 +686,8 @@ attributes differ:
 
 .. note:: 
 
-   :meth:`~unittest.TestCase.assertEqual` has regressed in Python 3.4
-   and will now truncate the text shown in assertions with no way to
-   configure this behaviour. Use :func:`compare` instead, which will
+   Some test frameworks and helpers, including :meth:`~unittest.TestCase.assertEqual`,
+   truncate the text shown in assertions. Use :func:`compare` instead, which will
    give you other desirable behaviour as well as showing you the full
    output of failed comparisons.
 
@@ -706,7 +697,7 @@ Types of comparison
 There are several ways a comparison can be set up depending on what
 you want to check.
 
-If you only care about the class of an object, you can set up the
+If you only care about the type of an object, you can set up the
 comparison with only the class:
 
 >>> C(SomeClass) == SomeClass(1, 2)
@@ -722,7 +713,7 @@ True
 Alternatively, if you happen to have an object already
 around, comparison can be done with it:
 
->>> C(SomeClass(1,2)) == SomeClass(1,2)
+>>> C(SomeClass(1, 2)) == SomeClass(1, 2)
 True
 
 If you only care about certain attributes, this can also easily be
@@ -736,7 +727,7 @@ attributes that share names with parameters to the :class:`~testfixtures.Compari
 constructor. For this reason, you can pass the attributes in a
 dictionary:
 
->>> compare(C(SomeClass, {'partial':3}, partial=True), SomeClass(1, 2))
+>>> compare(C(SomeClass, {'partial': 3}, partial=True), SomeClass(1, 2))
 Traceback (most recent call last):
  ...
 AssertionError: 
@@ -758,7 +749,7 @@ Gotchas
 
         class SomeModel:
             def __eq__(self,other):
-                if isinstance(other,SomeModel):
+                if isinstance(other, SomeModel):
                     return True
                 return False
   
@@ -871,30 +862,39 @@ Here's an example:
 
   from testfixtures import compare, RoundComparison as R
 
-  compare(R(1234.5678, 2), 1234.5681)
+  compare(expected=R(1234.5678, 2), actual=1234.5681)
 
 .. note:: 
 
   You should always pass the same type of object to the
-  :class:`RoundComparison` object as you intend compare it with. If
+  :class:`RoundComparison` object as you intend to compare it with. If
   the type of the rounded expected value is not the same as the type of
-  the rounded value being compared against it, a :class:`TypeError`
+  the rounded value it is being compared to, a :class:`TypeError`
   will be raised.
 
 Range Comparison objects
 -------------------------
 
-When comparing orderable types just as numbers, dates and time, you may only
-know what range a value will fall into. :class:`RangeComparison` objects
+When comparing numbers, dates, times and any other type that can be ordered, you may only
+want to assert what range a value will fall into. :class:`RangeComparison` objects
 let you confirm a value is within a certain tolerance or range.
 
-Here's an example:
+Here's an example with numbers:
 
 .. code-block:: python
 
   from testfixtures import compare, RangeComparison as R
 
-  compare(R(123.456, 789), Decimal(555.01))
+  compare(expected=R(123.456, 789), actual=Decimal(555.01))
+
+Here's an example with dates:
+
+.. code-block:: python
+
+  from datetime import date
+  from testfixtures import compare, RangeComparison as R
+
+  compare(expected=R(date(1978, 6, 13), date(1978, 10, 31)), actual=date(1978, 7, 1))
 
 .. note::
 
@@ -970,10 +970,10 @@ There are also the :class:`Subset` and :class:`Permutation` shortcuts:
 String Comparison objects
 -------------------------
 
-When comparing sequences of strings, particularly those comping from
+When comparing sequences of strings, particularly those coming from
 things like the python logging package, you often end up wanting to
 express a requirement that one string should be almost like another,
-or maybe fit a particular regular expression.
+or maybe fit a particular pattern expressed as a regular expression.
 
 For these situations, you can use :class:`StringComparison` objects
 wherever you would use normal strings, and they will compare equal to
@@ -985,7 +985,7 @@ Here's an example:
 
   from testfixtures import compare, StringComparison as S
 
-  compare(expected=S('Starting thread \d+'), actual='Starting thread 132356')
+  compare(expected=S(r'Starting thread \d+'), actual='Starting thread 132356')
 
 If you need to specify flags, this can be done in one of three ways:
 
@@ -1012,7 +1012,7 @@ If you need to specify flags, this can be done in one of three ways:
 Differentiating chunks of text
 ------------------------------
 
-TextFixtures provides a function that will compare two strings and
+Textfixtures provides a function that will compare two strings and
 give a unified diff as a result. This can be handy as a third
 parameter to :meth:`~unittest.TestCase.assertEqual` or just as a
 general utility function for comparing two lumps of text.

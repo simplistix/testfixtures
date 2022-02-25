@@ -9,7 +9,7 @@ from testfixtures.comparison import compare
 class OutputCapture(object):
     """
     A context manager for capturing output to the
-    :attr:`sys.stdout` and :attr:`sys.stderr` streams.
+    :any:`sys.stdout` and :any:`sys.stderr` streams.
 
     :param separate: If ``True``, ``stdout`` and ``stderr`` will be captured
                      separately and their expected values must be passed to

@@ -108,7 +108,7 @@ def compare_object(x, y, context, ignore_attributes=()):
        This may be specified as either a parameter to this function or in the
        ``context``. If specified in both, they will both apply with precedence
        given to whatever is specified is specified as a parameter.
-       If specified as a parameter to this fucntion, it may only be a list of
+       If specified as a parameter to this function, it may only be a list of
        strings.
     """
     if type(x) is not type(y) or isinstance(x, type):
@@ -834,10 +834,11 @@ class SequenceComparison(StatefulComparison):
 
     :param expected: The items expected to be in the sequence.
     :param ordered:
-      If the items are expected to be in the order specified.
+      If ``True``, then the items are expected to be in the order specified.
+      If ``False``, they may be in any order.
       Defaults to ``True``.
     :param partial:
-      If any items not expected should be ignored.
+      If ``True``, then any keys not expected will be ignored.
       Defaults to ``False``.
     :param recursive:
       If a difference is found, recursively compare the item where
@@ -969,10 +970,10 @@ class MappingComparison(StatefulComparison):
       ``(key, value)`` tuples or a mapping.
     :param expected_items: The items that should be matched.
     :param ordered:
-      If the keys in the mapping are expected to be in the order specified.
+      If ``True``, then the keys in the mapping are expected to be in the order specified.
       Defaults to ``False``.
     :param partial:
-      If any keys not expected should be ignored.
+      If ``True``, then any keys not expected will be ignored.
       Defaults to ``False``.
     :param recursive:
       If a difference is found, recursively compare the value where
@@ -1075,7 +1076,7 @@ class StringComparison:
     :param regex_source: A string containing the source for a regular
                          expression that will be used whenever this
                          :class:`StringComparison` is compared with
-                         any :class:`basestring` instance.
+                         any :class:`str` instance.
 
     :param flags: Flags passed to :func:`re.compile`.
 

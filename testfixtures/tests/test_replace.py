@@ -199,31 +199,31 @@ class TestReplace(TestCase):
 
     def test_replace_dict(self):
 
-        from testfixtures.tests.sample1 import someDict
+        from testfixtures.tests.sample1 import some_dict
 
-        original = someDict['key']
+        original = some_dict['key']
         replacement = object()
 
-        @replace('testfixtures.tests.sample1.someDict.key', replacement)
+        @replace('testfixtures.tests.sample1.some_dict.key', replacement)
         def test_something(obj):
             self.assertTrue(obj is replacement)
-            self.assertTrue(someDict['key'] is replacement)
+            self.assertTrue(some_dict['key'] is replacement)
 
         test_something()
 
-        self.assertTrue(someDict['key'] is original)
+        self.assertTrue(some_dict['key'] is original)
 
     def test_replace_delattr(self):
 
         from testfixtures.tests import sample1
 
-        @replace('testfixtures.tests.sample1.someDict', not_there)
+        @replace('testfixtures.tests.sample1.some_dict', not_there)
         def test_something(obj):
-            self.assertFalse(hasattr(sample1, 'someDict'))
+            self.assertFalse(hasattr(sample1, 'some_dict'))
 
         test_something()
 
-        self.assertEqual(sample1.someDict,
+        self.assertEqual(sample1.some_dict,
                          {'complex_key': [1, 2, 3], 'key': 'value'})
 
     def test_replace_delattr_not_there(self):
@@ -282,102 +282,102 @@ class TestReplace(TestCase):
 
     def test_replace_dict_remove_key(self):
 
-        from testfixtures.tests.sample1 import someDict
+        from testfixtures.tests.sample1 import some_dict
 
-        @replace('testfixtures.tests.sample1.someDict.key', not_there)
+        @replace('testfixtures.tests.sample1.some_dict.key', not_there)
         def test_something(obj):
-            self.assertFalse('key' in someDict)
+            self.assertFalse('key' in some_dict)
 
         test_something()
 
-        self.assertEqual(sorted(someDict.keys()), ['complex_key', 'key'])
+        self.assertEqual(sorted(some_dict.keys()), ['complex_key', 'key'])
 
     def test_replace_dict_remove_key_not_there(self):
 
-        from testfixtures.tests.sample1 import someDict
+        from testfixtures.tests.sample1 import some_dict
 
-        @replace('testfixtures.tests.sample1.someDict.badkey', not_there)
+        @replace('testfixtures.tests.sample1.some_dict.badkey', not_there)
         def test_something(obj):
-            self.assertFalse('badkey' in someDict)  # pragma: no cover
+            self.assertFalse('badkey' in some_dict)  # pragma: no cover
 
         with ShouldRaise(AttributeError("Original 'badkey' not found")):
             test_something()
 
-        self.assertEqual(sorted(someDict.keys()), ['complex_key', 'key'])
+        self.assertEqual(sorted(some_dict.keys()), ['complex_key', 'key'])
 
     def test_replace_dict_remove_key_not_there_not_strict(self):
 
-        from testfixtures.tests.sample1 import someDict
+        from testfixtures.tests.sample1 import some_dict
 
-        @replace('testfixtures.tests.sample1.someDict.badkey',
+        @replace('testfixtures.tests.sample1.some_dict.badkey',
                  not_there, strict=False)
         def test_something(obj):
-            self.assertFalse('badkey' in someDict)
+            self.assertFalse('badkey' in some_dict)
 
         test_something()
 
-        self.assertEqual(sorted(someDict.keys()), ['complex_key', 'key'])
+        self.assertEqual(sorted(some_dict.keys()), ['complex_key', 'key'])
 
     def test_replace_dict_ensure_key_not_there_restored(self):
 
-        from testfixtures.tests.sample1 import someDict
+        from testfixtures.tests.sample1 import some_dict
 
-        @replace('testfixtures.tests.sample1.someDict.badkey',
+        @replace('testfixtures.tests.sample1.some_dict.badkey',
                  not_there, strict=False)
         def test_something(obj):
-            someDict['badkey'] = 'some test value'
+            some_dict['badkey'] = 'some test value'
 
         test_something()
 
-        self.assertEqual(sorted(someDict.keys()), ['complex_key', 'key'])
+        self.assertEqual(sorted(some_dict.keys()), ['complex_key', 'key'])
 
     def test_replace_dict_not_there(self):
 
-        from testfixtures.tests.sample1 import someDict
+        from testfixtures.tests.sample1 import some_dict
 
         replacement = object()
 
-        @replace('testfixtures.tests.sample1.someDict.key2',
+        @replace('testfixtures.tests.sample1.some_dict.key2',
                  replacement,
                  strict=False)
         def test_something(obj):
             self.assertTrue(obj is replacement)
-            self.assertTrue(someDict['key2'] is replacement)
+            self.assertTrue(some_dict['key2'] is replacement)
 
         test_something()
 
-        self.assertEqual(sorted(someDict.keys()), ['complex_key', 'key'])
+        self.assertEqual(sorted(some_dict.keys()), ['complex_key', 'key'])
 
     def test_replace_dict_not_there_empty_string(self):
 
-        from testfixtures.tests.sample1 import someDict
+        from testfixtures.tests.sample1 import some_dict
 
-        @replace('testfixtures.tests.sample1.someDict.key2', '', strict=False)
+        @replace('testfixtures.tests.sample1.some_dict.key2', '', strict=False)
         def test_something():
-            self.assertEqual(someDict['key2'], '')
+            self.assertEqual(some_dict['key2'], '')
 
         test_something()
 
-        self.assertEqual(sorted(someDict.keys()), ['complex_key', 'key'])
+        self.assertEqual(sorted(some_dict.keys()), ['complex_key', 'key'])
 
     def test_replace_complex(self):
 
-        from testfixtures.tests.sample1 import someDict
+        from testfixtures.tests.sample1 import some_dict
 
-        original = someDict['complex_key'][1]
+        original = some_dict['complex_key'][1]
         replacement = object()
 
-        @replace('testfixtures.tests.sample1.someDict.complex_key.1',
+        @replace('testfixtures.tests.sample1.some_dict.complex_key.1',
                  replacement)
         def test_something(obj):
             self.assertTrue(obj is replacement)
-            self.assertEqual(someDict['complex_key'], [1, obj, 3])
+            self.assertEqual(some_dict['complex_key'], [1, obj, 3])
 
         test_something()
 
-        self.assertEqual(someDict['complex_key'], [1, 2, 3])
+        self.assertEqual(some_dict['complex_key'], [1, 2, 3])
 
-        self.assertTrue(original is someDict['complex_key'][1])
+        self.assertTrue(original is some_dict['complex_key'][1])
 
     def test_replacer_del(self):
         r = Replacer()

@@ -1,8 +1,8 @@
 
 .. currentmodule:: testfixtures.popen
 
-Testing use of the subprocess package
-=====================================
+Testing subprocesses
+====================
 
 When using the :mod:`subprocess` package there are two approaches to testing:
 
@@ -113,11 +113,11 @@ Checking for signal sending
 ---------------------------
 
 Calls to :meth:`~MockPopenInstance.send_signal`,
-:meth:`MockPopenInstance.terminate` and :meth:`MockPopenInstance.kill` are all
-recorded by the mock returned by :class:`~testfixtures.popen.MockPopen`
-but otherwise do nothing as shown in the following example, which doesn't
-make sense for a real test of sub-process usage but does show how the mock
-behaves:
+:meth:`~MockPopenInstance.terminate` and :meth:`~MockPopenInstance.kill` are all
+recorded by the mock returned by :class:`~testfixtures.popen.MockPopen`.
+However, other than being recorded, these calls do nothing.
+The following example doesn't make sense for a real test of sub-process usage but
+does show how the mock behaves:
 
 .. literalinclude:: ../testfixtures/tests/test_popen_docs.py
    :pyobject: TestMyFunc.test_send_signal
@@ -200,5 +200,9 @@ Then you could test it as follows:
    :dedent: 4
 
 Note that the order of all calls is explicitly recorded. If the order of these calls
-is non-deterministic due to your method of process management, you will need to
-do more work and be very careful when testing.
+is non-deterministic due to your method of process management, you may wish to use a
+:class:`SequenceComparison`:
+
+.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+   :pyobject: TestMyFunc.test_multiple_processes_unordered
+   :dedent: 4

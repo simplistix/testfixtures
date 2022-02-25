@@ -63,11 +63,11 @@ If you need to explicitly check whether output went to ``stdout`` or ``stderr``,
   output.compare(
       stdout="Hello!",
       stderr="Something bad happened!",
-      )
+  )
 
 Finally, you may sometimes want to disable an :class:`OutputCapture`
 without removing it from your code. This often happens when you want
-to insert a debugger call while an :class:`OutputCapture` is active;
+to insert a :any:`breakpoint` call while an :class:`OutputCapture` is active;
 if it remains enabled, all debugger output will be captured making the
 debugger very difficult to use!
 

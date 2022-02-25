@@ -14,9 +14,10 @@ extensions = [
     ]
 
 intersphinx_mapping = {
-    'http://docs.python.org': None,
-    'http://django.readthedocs.org/en/latest/': None,
-    'http://sybil.readthedocs.io/en/latest/': None,
+    'https://docs.python.org/3/': None,
+    'https://django.readthedocs.io/en/latest/': None,
+    'https://sybil.readthedocs.io/en/latest/': None,
+    'https://zopecomponent.readthedocs.io/en/latest/': None,
 }
 
 # General
@@ -37,3 +38,5 @@ latex_documents = [
     ('index', project+'.tex', project+u' Documentation',
      'Simplistix Ltd', 'manual'),
 ]
+
+exclude_patterns = ['**/furo.js.LICENSE.txt']

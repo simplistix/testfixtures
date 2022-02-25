@@ -36,14 +36,17 @@ class LogCapture(logging.Handler):
       ``None`` will be used in its place.
 
       If a callable, it will be called with the :class:`~logging.LogRecord`
-      and the value returned will be used as the row..
+      and the value returned will be used as the row.
 
     :param recursive_check:
 
       If ``True``, log messages will be compared recursively by
       :meth:`LogCapture.check`.
 
-    :param ensure_checks_above: The log level above which checks must be made for logged events.
+    :param ensure_checks_above:
+
+      The log level above which checks must be made for logged events.
+      See :meth:`ensure_checked`.
 
     """
 
@@ -130,14 +133,16 @@ class LogCapture(logging.Handler):
                     'Not asserted ERROR log(s): %s'
                 ) % (pformat(un_checked)))
 
-    def emit(self, record):
-        # record: logging.LogRecord
+    def emit(self, record: logging.LogRecord):
+        """
+        Record the :class:`~logging.LogRecord`.
+        """
         record.checked = False
         self.records.append(record)
 
     def install(self):
         """
-        Install this :class:`LogHandler` into the Python logging
+        Install this :class:`LogCapture` into the Python logging
         framework for the named loggers.
 
         This will remove any existing handlers for those loggers and
@@ -164,7 +169,7 @@ class LogCapture(logging.Handler):
 
     def uninstall(self):
         """
-        Un-install this :class:`LogHandler` from the Python logging
+        Un-install this :class:`LogCapture` from the Python logging
         framework for the named loggers.
 
         This will re-instate any existing handlers for those loggers
@@ -183,7 +188,7 @@ class LogCapture(logging.Handler):
 
     @classmethod
     def uninstall_all(cls):
-        "This will uninstall all existing :class:`LogHandler` objects."
+        "This will uninstall all existing :class:`LogCapture` objects."
         for i in tuple(cls.instances):
             i.uninstall()
 
@@ -292,7 +297,7 @@ class LogCaptureForDecorator(LogCapture):
 
 def log_capture(*names, **kw):
     """
-    A decorator for making a :class:`LogCapture` installed an
+    A decorator for making a :class:`LogCapture` installed and
     available for the duration of a test function.
 
     :param names: An optional sequence of names specifying the loggers
