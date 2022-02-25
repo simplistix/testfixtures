@@ -1,6 +1,11 @@
 Changes
 =======
 
+6.18.4 (25 Feb 2022)
+--------------------
+
+- Ensure compatibility with Sybil 2 and Sybil 3 along with pytest 6 and pytest 7.
+
 6.18.3 (29 Sep 2021)
 --------------------
 
