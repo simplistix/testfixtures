@@ -1,10 +1,6 @@
 from sybil import Sybil
 from sybil.parsers.doctest import  DocTestParser
-try:
-    from sybil.parsers.codeblock import PythonCodeBlockParser
-except ImportError:
-    # sybil < 3 has it under the old name
-    from sybil.parsers.codeblock import CodeBlockParser as PythonCodeBlockParser
+from sybil.parsers.codeblock import CodeBlockParser
 from sybil.parsers.capture import parse_captures
 
 from testfixtures import TempDirectory
@@ -22,7 +18,7 @@ def sybil_teardown(namespace):
 pytest_collect_file = Sybil(
     parsers=[
         DocTestParser(),
-        PythonCodeBlockParser(),
+        CodeBlockParser(),
         parse_captures,
         FileParser('tempdir'),
     ],
