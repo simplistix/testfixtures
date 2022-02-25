@@ -33,7 +33,6 @@ common: &common
     - python/pip-run-tests:
         name: python36
         image: cimg/python:3.6
-        extra_packages: "'sybil<3' 'pytest<7'"
     - python/pip-run-tests:
         name: python39
         image: cimg/python:3.9
