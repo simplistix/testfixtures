@@ -64,10 +64,10 @@ class SampleClassB(SampleClassA):
 def a_function():
     return (SampleClassA(1), SampleClassB(2), SampleClassA(3))
 
-someDict = dict(
+some_dict = dict(
     key='value',
     complex_key=[1, 2, 3],
-    )
+)
 
 
 class Slotted(object):

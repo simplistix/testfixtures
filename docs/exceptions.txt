@@ -3,16 +3,14 @@ Testing exceptions
 
 .. currentmodule:: testfixtures
 
-The :mod:`unittest` support for asserting that exceptions are raised
-when expected is fairly weak. Like many other Python testing
-libraries, testfixtures has tools to help with this.
+Testfixtures has tools to help when making assertions about exceptions that should be raised by
+a piece of code.
 
 The :class:`ShouldRaise` context manager
 ----------------------------------------
 
-If you are using a version of Python where the :keyword:`with`
-statement can be used, it's recommended that you use the
-:class:`ShouldRaise` context manager. 
+The :class:`ShouldRaise` context manager is the recommended way to make assertions about
+a piece of code that should raise exceptions.
 
 Suppose we wanted to test the following function to make sure that the
 right exception was raised:
@@ -66,7 +64,7 @@ Traceback (most recent call last):
 AssertionError: No exception raised!
 
 :class:`ShouldRaise` has been implemented such that it can be
-successfully used to test if code raises both :class:`SystemExit` and
+used to test code that raises all exceptions, including :class:`SystemExit` and
 :class:`KeyboardInterrupt` exceptions.
 
 To help with :class:`SystemExit` and other exceptions that are

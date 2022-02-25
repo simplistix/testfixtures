@@ -35,14 +35,14 @@ How to mock
 Testfixtures provides :class:`Replace`, :class:`Replacer` and the :func:`replace`
 decorator to mock out objects. These work in a similar way to
 :func:`unittest.mock.patch`, and have been around longer. They still provide a little
-more flexibility than :func:`~unittest.mock.patch`, so you whichever feels best in
+more flexibility than :func:`~unittest.mock.patch`, so use whichever feels best in
 your codebase.
 
 Methods of replacement
 ----------------------
 
-There are three different methods of mocking out
-functionality that can be used to replace functions, classes
+When using the tools provided by Testfixtures, there are three different methods of
+mocking out functionality that can be used to replace functions, classes
 or even individual methods on a class. Consider the following module:
 
 .. topic:: testfixtures.tests.sample1
@@ -82,8 +82,7 @@ For the duration of the ``with`` block, the replacement is used:
 >>> test_function()
 mock y
 
-For multiple replacements to do, or where the you need access to the replacement
-within the code block under test, the :class:`~testfixtures.Replacer` context
+For multiple replacements, the :class:`~testfixtures.Replacer` context
 manager can be used instead:
 
 
@@ -106,8 +105,7 @@ mock y
 The decorator
 ~~~~~~~~~~~~~
 
-If you are working in a traditional :mod:`unittest` environment and
-want to replace different things in different test functions, you may
+If you want to replace different things in different test functions, you may
 find the decorator suits your needs better:
 
 .. code-block:: python
@@ -146,7 +144,7 @@ mock y
 
 .. note::
     This method is not compatible with pytest's fixture discovery stuff.
-    Instead, put a fixture such as the following in your `conftest.py`:
+    Instead, put a fixture such as the following in your ``conftest.py``:
 
     .. code-block:: python
 
@@ -167,26 +165,22 @@ want to replace something for every test in a
 :class:`~unittest.TestCase`, then you can use the
 :class:`~testfixtures.Replacer` manually.
 
-The instantiation and replacement are done in the ``setUp`` function
-of the :class:`~unittest.TestCase` or passed to the
-:class:`~doctest.DocTestSuite` constructor:
+The instantiation and replacement are done in the set-up step
+of the :class:`~unittest.TestCase` or equivalent:
 
 >>> from testfixtures import Replacer
->>> replace = Replacer()
->>> replace('testfixtures.tests.sample1.X.y', mock_y)
-<...>
+>>> replacer = Replacer()
+>>> replacer.replace('testfixtures.tests.sample1.X.y', mock_y)
 
 The replacement then stays in place until removed:
 
 >>> X().y()
 'mock y'
 
-Then, in the ``tearDown`` function
-of the :class:`~unittest.TestCase` or passed to the
-:class:`~doctest.DocTestSuite` constructor, the replacement is
-removed:
+Then, in the tear-down step of the :class:`~unittest.TestCase` or equivalent,
+the replacement is removed:
 
->>> replace.restore()
+>>> replacer.restore()
 >>> X().y()
 'original y'
 
@@ -296,9 +290,8 @@ shown in the following :class:`~unittest.TestCase`:
    <unittest...TextTestResult run=2 errors=0 failures=0>
 
 
-The :meth:`~testfixtures.Replacer.replace` method and calling
-a :class:`Replacer` also supports non-strict replacement using the same
-keyword parameter.
+Non-strict replacement using the ``strict`` keyword parameter is supported both
+when calling a :class:`Replacer` or using the :meth:`~testfixtures.Replacer.replace` method.
 
 Replacing items in dictionaries and lists
 -----------------------------------------
@@ -322,13 +315,13 @@ element in the ``complex_key`` list as follows:
 
   from pprint import pprint
   from testfixtures import Replacer
-  from testfixtures.tests.sample1 import someDict
+  from testfixtures.tests.sample1 import some_dict
 
   def test_function():
       with Replacer() as replace:
-          replace('testfixtures.tests.sample1.someDict.key', 'foo')
-          replace('testfixtures.tests.sample1.someDict.complex_key.1', 42)
-          pprint(someDict)
+          replace('testfixtures.tests.sample1.some_dict.key', 'foo')
+          replace('testfixtures.tests.sample1.some_dict.complex_key.1', 42)
+          pprint(some_dict)
 
 While the replacement is in effect, the new items are in place:
 
@@ -337,7 +330,7 @@ While the replacement is in effect, the new items are in place:
 
 When it is no longer in effect, the originals are returned:
 
->>> pprint(someDict)
+>>> pprint(some_dict)
 {'complex_key': [1, 2, 3], 'key': 'value'}
 
 .. _removing_attr_and_item:
@@ -363,11 +356,11 @@ do so as follows:
 .. code-block:: python
 
   from testfixtures import Replace, not_there
-  from testfixtures.tests.sample1 import someDict
+  from testfixtures.tests.sample1 import some_dict
 
   def test_function():
-      with Replace('testfixtures.tests.sample1.someDict.key', not_there):
-          pprint(someDict)
+      with Replace('testfixtures.tests.sample1.some_dict.key', not_there):
+          pprint(some_dict)
 
 While the replacement is in effect, ``key`` is gone:
 
@@ -376,10 +369,10 @@ While the replacement is in effect, ``key`` is gone:
 
 When it is no longer in effect, ``key`` is returned:
 
->>> pprint(someDict)
+>>> pprint(some_dict)
 {'complex_key': [1, 2, 3], 'key': 'value'}
 
-If you want the whole ``someDict`` dictionary to be removed for the
+If you want the whole ``some_dict`` dictionary to be removed for the
 duration of a test, you would do so as follows:
 
 .. code-block:: python
@@ -388,8 +381,8 @@ duration of a test, you would do so as follows:
   from testfixtures.tests import sample1
 
   def test_function():
-      with Replace('testfixtures.tests.sample1.someDict', not_there):
-          print(hasattr(sample1, 'someDict'))
+      with Replace('testfixtures.tests.sample1.some_dict', not_there):
+          print(hasattr(sample1, 'some_dict'))
 
 While the replacement is in effect, ``key`` is gone:
 
@@ -398,7 +391,7 @@ False
 
 When it is no longer in effect, ``key`` is returned:
 
->>> pprint(sample1.someDict)
+>>> pprint(sample1.some_dict)
 {'complex_key': [1, 2, 3], 'key': 'value'}
 
 

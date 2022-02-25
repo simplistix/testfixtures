@@ -5,7 +5,7 @@ Mocking dates and times
 
 Testing code that involves dates and times or which has behaviour
 dependent on the date or time it is executed at has historically been
-tricky. Mocking lets you perform tests on this type of code and
+tricky. Mocking lets you test this type of code and
 testfixtures provides three specialised mock objects to help with
 this. 
 
@@ -21,11 +21,10 @@ This enables you to write tests for code such as the following, from
 the ``testfixtures.tests.sample1`` package:
 
 .. literalinclude:: ../testfixtures/tests/sample1.py
-   :lines: 8-10,21-22
+   :lines: 8-9,21-22
 
 :class:`~testfixtures.Replace` can be used to apply the mock as
-shown in the following example, which could appear in either a unit
-test or a doc test: 
+shown in the following example:
 
 >>> from testfixtures import Replace, test_date
 >>> from testfixtures.tests.sample1 import str_today_1
@@ -37,7 +36,7 @@ test or a doc test:
 
 If you need a specific date to be returned, you can specify it:
 
->>> with Replace('testfixtures.tests.sample1.date', test_date(1978,6,13)):
+>>> with Replace('testfixtures.tests.sample1.date', test_date(1978, 6, 13)):
 ...    str_today_1()
 '1978-06-13'
 
@@ -45,8 +44,8 @@ If you need to test with a whole sequence of specific dates, this
 can be done as follows:
 
 >>> with Replace('testfixtures.tests.sample1.date', test_date(None)) as d:
-...    d.add(1978,6,13)
-...    d.add(2009,11,12)
+...    d.add(1978, 6, 13)
+...    d.add(2009, 11, 12)
 ...    str_today_1()
 ...    str_today_1()
 '1978-06-13'
@@ -111,8 +110,7 @@ the ``testfixtures.tests.sample1`` package:
 .. literalinclude:: ../testfixtures/tests/sample1.py
    :lines: 8-10,11-12
 
-We use a :class:`~testfixtures.Replace` as follows, which could
-appear in either a unit test or a doc test:
+:class:`~testfixtures.Replace` can be used to apply the mock as shown in the following example:
 
 >>> from testfixtures import Replace, test_datetime
 >>> from testfixtures.tests.sample1 import str_now_1
@@ -125,7 +123,7 @@ appear in either a unit test or a doc test:
 If you need a specific datetime to be returned, you can specify it:
 
 >>> with Replace('testfixtures.tests.sample1.datetime',
-...              test_datetime(1978,6,13,1,2,3)):
+...              test_datetime(1978, 6, 13, 1, 2, 3)):
 ...    str_now_1()
 '1978-06-13 01:02:03'
 
@@ -134,8 +132,8 @@ this can be done as follows:
 
 >>> with Replace('testfixtures.tests.sample1.datetime',
 ...              test_datetime(None)) as d:
-...    d.add(1978,6,13,16,0,1)
-...    d.add(2009,11,12,11,41,20)
+...    d.add(1978, 6, 13, 16, 0, 1)
+...    d.add(2009, 11, 12, 11, 41, 20)
 ...    str_now_1()
 ...    str_now_1()
 '1978-06-13 16:00:01'
@@ -181,7 +179,7 @@ this will be the set value plus the ``delta`` in effect:
 >>> with Replace('testfixtures.tests.sample1.datetime',
 ...              test_datetime(delta=2)) as d:
 ...    str_now_1()
-...    d.set(1978,8,1)
+...    d.set(1978, 8, 1)
 ...    str_now_1()
 ...    str_now_1()
 '2001-01-01 00:00:00'
@@ -285,8 +283,7 @@ the ``testfixtures.tests.sample1`` package:
 .. literalinclude:: ../testfixtures/tests/sample1.py
    :lines: 30-34
 
-We use a :class:`~testfixtures.Replace` as follows, which could
-appear in either a unit test or a doc test:
+:class:`~testfixtures.Replace` can be used to apply the mock as shown in the following example:
 
 >>> from testfixtures import Replace, test_time
 >>> from testfixtures.tests.sample1 import str_time
@@ -308,8 +305,8 @@ If you need to test with a whole sequence of specific timestamps,
 this can be done as follows:
 
 >>> with Replace('testfixtures.tests.sample1.time', test_time(None)) as t:
-...    t.add(1978,6,13,16,0,1)
-...    t.add(2009,11,12,11,41,20)
+...    t.add(1978, 6, 13, 16, 0, 1)
+...    t.add(2009, 11, 12, 11, 41, 20)
 ...    str_time()
 ...    str_time()
 '266601601.0'
@@ -354,7 +351,7 @@ this will be the set value plus the ``delta`` in effect:
 
 >>> with Replace('testfixtures.tests.sample1.time', test_time(delta=2)) as d:
 ...    str_time()
-...    d.set(1978,8,1)
+...    d.set(1978, 8, 1)
 ...    str_time()
 ...    str_time()
 '978307200.0'
@@ -406,7 +403,7 @@ instances of the real :class:`~datetime.datetime` and
 >>> tdatetime = test_datetime()
 >>> issubclass(tdatetime, datetime)
 True
->>> tdatetime.now().__class__
+>>> type(tdatetime.now())
 <...'datetime.datetime'>
 
 The above behaviour, however, is generally what you want as other code
@@ -430,7 +427,7 @@ If this causes a problem for you, then both
 `strict` keyword parameter that can be used as follows:
 
 >>> tdatetime = test_datetime(strict=True)
->>> tdatetime.now().__class__
+>>> type(tdatetime.now())
 <class 'testfixtures.tdatetime.tdatetime'>
 >>> isinstance(tdatetime.now(), tdatetime)
 True
@@ -457,5 +454,5 @@ will return an instance of the :class:`date_type` mock:
 >>> somewhen = datetime_type.now()
 >>> somewhen.date()
 tdate(2001, 1, 1)
->>> _.__class__ is date_type
+>>> type(_) is date_type
 True

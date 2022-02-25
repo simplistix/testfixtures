@@ -9,25 +9,24 @@ happen in their own sandbox, files and directories contain what they
 should or code processes test files correctly, and the sandbox is
 cleared up at the end of the tests.
 
-Methods of use
---------------
 To help with this, testfixtures provides the
 :class:`TempDirectory` class that hides most of the
 boilerplate code you would need to write.
+
+Methods of use
+--------------
 
 Suppose you wanted to test the following function:
 
 .. code-block:: python
 
-  import os
+  from pathlib import Path
 
   def foo2bar(dirpath, filename):
-    path = os.path.join(dirpath, filename)
-    with open(path, 'rb') as input:
-        data = input.read()
-    data = data.replace(b'foo', b'bar')
-    with open(path, 'wb') as output:
-        output.write(data)
+      path = Path(dirpath) / filename
+      data = path.read_bytes()
+      data = data.replace(b'foo', b'bar')
+      path.write_bytes(data)
 
 There are several different ways depending on the type of test you are
 writing:
@@ -35,9 +34,7 @@ writing:
 The context manager
 ~~~~~~~~~~~~~~~~~~~
 
-If you're using a version of Python where the ``with`` keyword is
-available, a :class:`TempDirectory` can be used as a
-context manager:
+A :class:`TempDirectory` can be used as a context manager:
 
 >>> from testfixtures import TempDirectory
 >>> with TempDirectory() as d:
@@ -51,8 +48,7 @@ b'some bar thing'
 The decorator
 ~~~~~~~~~~~~~
 
-If you are working in a traditional :mod:`unittest` environment and
-only work with files or directories in a particular test function, you
+If you only want to work with files or directories in a particular test function, you
 may find the decorator suits your needs better:
 
 .. code-block:: python
@@ -71,7 +67,7 @@ may find the decorator suits your needs better:
 
 .. note::
     This method is not compatible with pytest's fixture discovery stuff.
-    Instead, put a fixture such as the following in your `conftest.py`:
+    Instead, put a fixture such as the following in your ``conftest.py``:
 
     .. code-block:: python
 
@@ -90,9 +86,7 @@ If you want to work with files or directories for the duration of a
 doctest or in every test in a :class:`~unittest.TestCase`, then you
 can use the :class:`TempDirectory` manually.
 
-The instantiation and replacement are done in the ``setUp`` function
-of the :class:`~unittest.TestCase` or passed to the
-:class:`~doctest.DocTestSuite` constructor:
+The instantiation is done in the set-up step of the :class:`~unittest.TestCase` or equivalent:
 
 >>> from testfixtures import TempDirectory
 >>> d = TempDirectory()
@@ -105,12 +99,14 @@ You can then use the temporary directory for your testing:
 >>> d.read('test.txt') == b'some bar thing'
 True
 
-Then, in the ``tearDown`` function
-of the :class:`~unittest.TestCase` or passed to the
-:class:`~doctest.DocTestSuite` constructor, you should make sure the
-temporary directory is cleaned up:
+Then, in the tear-down step of the :class:`~unittest.TestCase` or equivalent,
+you should make sure the temporary directory is cleaned up:
 
 >>> d.cleanup()
+
+The :meth:`~testfixtures.TempDirectory.cleanup` method can also be added as an
+:meth:`~unittest.TestCase.addCleanup` if that is easier or more compact in your test
+suite.
 
 If you have multiple :class:`TempDirectory` objects in use,
 you can easily clean them all up:
@@ -145,6 +141,7 @@ A common use case is to want to compute a path within the temporary
 directory to pass to code under test. This can be done with the
 :meth:`~TempDirectory.getpath` method:
 
+>>> import os
 >>> tempdir.getpath('foo').rsplit(os.sep,1)[-1]
 'foo'
 
@@ -214,32 +211,32 @@ you can do so as follows:
 
 >>> tempdir.makedir('output')
 '...'
->>> os.path.isdir(os.path.join(tempdir.path, 'output'))
+>>> (Path(tempdir.path) / 'output').is_dir()
 True
 
 As with file creation, the full path of the sub-directory that has
 just been created is returned:
 
 >>> path = tempdir.makedir('more_output')
->>> os.path.isdir(path)
+>>> Path(path).is_dir()
 True
 
 Finally, you can create a nested sub-directory even if the intervening
 parent directories do not exist:
 
->>> os.path.exists(os.path.join(tempdir.path, 'some'))
+>>> (Path(tempdir.path) / 'some').exists()
 False
 >>> path = tempdir.makedir(('some', 'sub', 'dir'))
->>> os.path.exists(path)
+>>> Path(path).exists()
 True
 
 You can also specify the path to write to as a forward-slash separated
 string:
 
->>> os.path.exists(os.path.join(tempdir.path, 'another'))
+>>> (Path(tempdir.path) / 'another').exists()
 False
 >>> path = tempdir.makedir('another/sub/dir')
->>> os.path.exists(path)
+>>> Path(path).exists()
 True
 
 .. note:: 
@@ -263,12 +260,11 @@ Suppose the code you are testing creates some files:
 .. code-block:: python
 
  def spew(path):
-    with open(os.path.join(path, 'root.txt'), 'wb') as f:
-        f.write(b'root output')
-    os.mkdir(os.path.join(path, 'subdir'))
-    with open(os.path.join(path, 'subdir', 'file.txt'), 'wb') as f:
-        f.write(b'subdir output')
-    os.mkdir(os.path.join(path, 'subdir', 'logs'))
+      root = Path(path)
+      (root / 'root.txt').write_bytes(b'root output')
+      (root / 'subdir').mkdir()
+      (root / 'subdir' / 'file.txt').write_bytes(b'subdir output')
+      (root / 'subdir' / 'logs').mkdir()
 
 We can test this function by passing it the temporary directory's path
 and then using the :meth:`TempDirectory.read` method to
@@ -379,18 +375,18 @@ directories, which may or may not be present:
   from random import choice
 
   def svn_ish(dirpath, filename):
-    if choice((True, False)):
-      os.mkdir(os.path.join(dirpath, '.svn'))
-    with open(os.path.join(dirpath, filename), 'wb') as f:
-      f.write(b'something')
+      root = Path(dirpath)
+      if choice((True, False)):
+          (root / '.svn').mkdir()
+      (root / filename).write_bytes(b'something')
 
 To test this, we can use any of the previously described methods.
 
 When used manually or as a context manager, this would be as follows:
 
 >>> with TempDirectory(ignore=['.svn']) as d:
-...   svn_ish(d.path, 'test.txt')
-...   d.compare(['test.txt'])
+...    svn_ish(d.path, 'test.txt')
+...    d.compare(['test.txt'])
 
 The decorator would be as follows:
 
@@ -447,53 +443,34 @@ subdir/file.txt
 subdir/logs/
 
 Bytes versus Strings
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 .. new tempdir:
 
   >>> tempdir = TempDirectory()
 
-You'll notice that all of the examples so far have used raw bytes as
-their data and written to and read from files only in binary mode.
-This keeps all the examples nice and simple and working consistently
-between Python 2 and Python 3.
-One of the big changes between Python 2 and Python 3 was that the
-default string type became unicode instead of binary, and a new type
-for bytes was introduced. This little snippet shows the difference by
-defining two constants for the British Pound symbol:
+You'll notice that all of the examples so far have only used bytes.
+To work with strings, :class:`TempDirectory` provides explicit parameters
+for providing the character set to use for decoding and encoding.
+Using these as example, which all contain the British Pound symbol:
 
 .. code-block:: python
 
-  import sys
-  PY3 = sys.version_info[:2] >= (3, 0)
+   some_bytes = '\xa3'.encode('utf-8')
+   some_text = '\xa3'
 
-  if PY3:
-      some_bytes = '\xa3'.encode('utf-8')
-      some_text = '\xa3'
-  else:
-      some_bytes = '\xc2\xa3'
-      some_text = '\xc2\xa3'.decode('utf-8')
-
-Python 3 is much stricter than Python 2 about the byte versus string
-boundary and :class:`TempDirectory` has been changed to help work
-with this by only reading and writing files in binary mode and
-providing parameters to control decoding and encoding when you want to read and
-write text.
-
-For example, when writing, you can either write bytes directly, as we
+When writing, you can either write bytes directly, as we
 have been in the examples so far:
 
 >>> path = tempdir.write('currencies.txt', some_bytes)
->>> with open(path, 'rb') as currencies:
-...     currencies.read()
+>>> Path(path).read_bytes()
 b'\xc2\xa3'
 
 Or, you can write text, but must specify an encoding to use when
 writing the data to the file:
 
->>> path = tempdir.write('currencies.txt', some_text, 'utf-8')
->>> with open(path, 'rb') as currencies:
-...     currencies.read()
+>>> path = tempdir.write('currencies.txt', some_text, encoding='utf-8')
+>>> Path(path).read_bytes()
 b'\xc2\xa3'
 
 The same is true when reading files. You can either read bytes:
@@ -504,7 +481,20 @@ True
 Or, you can read text, but must specify an encoding that will be used
 to decode the data in the file:
 
->>> tempdir.read('currencies.txt', 'utf-8') == some_text
+>>> tempdir.read('currencies.txt', encoding='utf-8') == some_text
+True
+
+If you're always using a common character encoding, you can instead
+specify it to the constructor:
+
+>>> tempdir = TempDirectory(encoding='utf-8')
+>>> tempdir.write('more-currencies.txt', some_text)
+'...'
+
+>>> Path(path).read_bytes().decode('utf-8') == some_text
+True
+
+>>> tempdir.read('more-currencies.txt') == some_text
 True
 
 Working with an existing sandbox
@@ -549,7 +539,7 @@ For the decorator, usage would be as follows:
   def test_function(d):
       d.write('file', b'data')
       d.makedir('directory')
-      assert sorted(os.listdir(thedir))==['directory', 'file']
+      assert sorted(os.listdir(thedir)) == ['directory', 'file']
 
 .. check the above raises no assertion error and that thedir still
    exits:
@@ -623,17 +613,19 @@ is a complete reStructuredText file that shows how to write a file
 that is then used by a later example:
 
 .. literalinclude:: ../testfixtures/tests/configparser-read.txt
+   :language: rest
 
 Checking the contents of files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To read a file, a :rst:dir:`topic` with a class of
-``read-file`` is included in the documentation. The following example
-is a complete reStructuredText file that shows how to check the values
-written by the code being documented while also using this check as
+To check the contents of a file, a :rst:dir:`topic` with a class of
+``read-file`` containing the expected content is included in the documentation.
+The following example is a complete reStructuredText file that shows how to check
+the values written by the code being documented while also using this check as
 part of the documentation:
 
 .. literalinclude:: ../testfixtures/tests/configparser-write.txt
+   :language: rest
 
 Checking the contents of directories
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -649,6 +641,7 @@ Here's a complete reStructuredText document that illustrates this
 technique: 
 
 .. literalinclude:: ../testfixtures/tests/directory-contents.txt
+   :language: rest
 
 .. clean up all tempdirs:
 

@@ -273,7 +273,7 @@ Mocking
 .. function:: test_time(year=2001, month=1, day=1, hour=0, minute=0, second=0, microsecond=0, tzinfo=None, delta=None, delta_type='seconds')
 
    A function that returns a mock object that can be used in place of
-   the :class:`time.time` function but where the return value can be
+   the :func:`time.time` function but where the return value can be
    controlled.
 
    If a single positional argument of ``None`` is passed, then the
@@ -387,7 +387,7 @@ Helpers and Constants
 
 .. data:: not_there
 
-   A singleton used to represent the absence of a particular attribute.
+   A singleton used to represent the absence of a particular attribute or parameter.
 
 
 Framework Helpers

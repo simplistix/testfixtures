@@ -17,15 +17,14 @@ as expected.
 Methods of capture
 ------------------
 
-There are three different techniques for capturing messages logged to
-the Python logging framework, depending on the type of test you are
+When using the tools provided by Testfixtures, there are three different techniques for
+capturing messages logged to the Python logging framework, depending on the type of test you are
 writing. They are all described in the sections below.
 
 The context manager
 ~~~~~~~~~~~~~~~~~~~
 
-If you're using a version of Python where the ``with`` keyword is
-available, the context manager provided by testfixtures can be used:
+The context manager can be used as follows:
 
 >>> import logging
 >>> from testfixtures import LogCapture
@@ -41,7 +40,7 @@ the logging wasn't as you expected:
 >>> l.check(
 ...     ('root', 'INFO', 'a message'),
 ...     ('root', 'ERROR', 'another error'),
-...     )
+... )
 Traceback (most recent call last):
  ...
 AssertionError: sequence not as expected:
@@ -67,8 +66,7 @@ root ERROR
 The decorator
 ~~~~~~~~~~~~~
 
-If you are working in a traditional :mod:`unittest` environment and
-only want to capture logging for a particular test function, you may
+If you only want to capture logging for a particular test function, you may
 find the decorator suits your needs better:
 
 .. code-block:: python
@@ -93,7 +91,7 @@ find the decorator suits your needs better:
 
 .. note::
     This method is not compatible with pytest's fixture discovery stuff.
-    Instead, put a fixture such as the following in your `conftest.py`:
+    Instead, put a fixture such as the following in your ``conftest.py``:
 
     .. code-block:: python
 
@@ -112,9 +110,8 @@ If you want to capture logging for the duration of a doctest or
 in every test in a :class:`~unittest.TestCase`, then you can use the
 :class:`~testfixtures.LogCapture` manually.
 
-The instantiation and replacement are done in the ``setUp`` function
-of the :class:`~unittest.TestCase` or passed to the
-:class:`~doctest.DocTestSuite` constructor:
+The instantiation, which also starts the capturing, is done in the set-up step
+of the :class:`~unittest.TestCase` or equivalent:
 
 >>> from testfixtures import LogCapture
 >>> l = LogCapture()
@@ -137,12 +134,14 @@ Alternatively, you can use the string representation of the
 root INFO
   a message
 
-Then, in the ``tearDown`` function
-of the :class:`~unittest.TestCase` or passed to the
-:class:`~doctest.DocTestSuite` constructor, you should make sure you
-stop the capturing:
+Then, in the tear-down step of the :class:`~unittest.TestCase` or equivalent,
+you should make sure you stop the capturing:
 
 >>> l.uninstall()
+
+The :meth:`~testfixtures.LogCapture.uninstall` method can also be added as an
+:meth:`~unittest.TestCase.addCleanup` if that is easier or more compact in your test
+suite.
 
 If you have multiple :class:`~testfixtures.LogCapture` objects in use,
 you can easily uninstall them all:
@@ -194,7 +193,7 @@ If things are as you expected, the method will not raise any exceptions:
 ...     ('root', 'INFO', 'start of block number 1'),
 ...     ('root', 'DEBUG', 'inside try block'),
 ...     ('root', 'ERROR', 'error occurred'),
-...     )
+... )
 
 
 However, if the actual messages logged were different, you'll get an
@@ -220,7 +219,7 @@ specify are present, and that their order is as specified. Other messages will b
 >>> log.check_present(
 ...     ('root', 'INFO', 'start of block number 1'),
 ...     ('root', 'ERROR', 'error occurred'),
-...     )
+... )
 
 If the order of messages is non-deterministic, then you can be explict that the order doesn't
 matter:
@@ -229,7 +228,7 @@ matter:
 ...     ('root', 'ERROR', 'error occurred'),
 ...     ('root', 'INFO', 'start of block number 1'),
 ...     order_matters=False
-...     )
+... )
 
 Printing
 ~~~~~~~~
@@ -268,7 +267,7 @@ information was logged for certain messages:
 
   from testfixtures import compare, Comparison as C
 
-  compare(C(RuntimeError('No code to run!')), log.records[-1].exc_info[1])
+  compare(log.records[-1].exc_info[1], expected=C(RuntimeError('No code to run!')))
 
 If you wish the extraction specified in the ``attributes`` parameter to the
 :obj:`~testfixtures.LogCapture` constructor to be taken into account, you can examine the list
@@ -313,7 +312,7 @@ specific INFO
 However, it may be that while you don't want to capture all logging,
 you do want to capture logging from multiple specific loggers:
 
->>> with LogCapture(('one','two')) as l:
+>>> with LogCapture(('one', 'two')) as l:
 ...     getLogger('three').info('3')
 ...     getLogger('two').info('2')
 ...     getLogger('one').info('1')
@@ -356,7 +355,11 @@ want to look at a different set of attributes that the defaults for
 ...     logger.debug('a debug message')
 ...     logger.info('something %s', 'info')
 ...     logger.error('an error')
->>> log.check(('DEBUG', 'a debug message'), ('INFO', 'something info'), ('ERROR', 'an error'))
+>>> log.check(
+...     ('DEBUG', 'a debug message'),
+...     ('INFO', 'something info'),
+...     ('ERROR', 'an error')
+... )
 
 As you can see, if a specified attribute is callable, it will be called and the result used to
 form part of the entry. If you need even more control, you can pass a callable to the
@@ -373,8 +376,8 @@ it in the most appropriate form:
 ...     logger.debug('a debug message')
 ...     logger.error('an error')
 >>> log.check(
-... {'level': 'DEBUG', 'message': 'a debug message'},
-... {'level': 'ERROR', 'message': 'an error'},
+...     {'level': 'DEBUG', 'message': 'a debug message'},
+...     {'level': 'ERROR', 'message': 'an error'},
 ... )
 
 .. _check-log-config:

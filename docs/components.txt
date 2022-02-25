@@ -20,13 +20,13 @@ reasons, component registries are known as `Site Managers` in
 
 __ http://pypi.python.org/pypi/zope.component
 
-Testfixtures provides the a :class:`~components.TestComponents` helper
+Testfixtures provides the :class:`~components.TestComponents` helper
 which provides just such a sterile registry. It should be instantiated
 in your :class:`TestCase`'s :meth:`setUp` method. It's
 :meth:`uninstall` method should be called in the test's
 :meth:`tearDown` method.
 
-Normally, :meth:`zope.component.getSiteManager` returns whatever
+Normally, :any:`zope.component.getSiteManager` returns whatever
 the current registry is. This may be influenced by frameworks that use
 :mod:`zope.component` which can means that unit tests have no
 baseline to start with:
@@ -36,7 +36,7 @@ baseline to start with:
 >>> print(original)
 <BaseGlobalComponents base>
 
-Once we've got a :class:`TestComponents` in place, we know what
+Once we've got a :class:`~components.TestComponents` in place, we know what
 we're getting:
 
 >>> from testfixtures.components import TestComponents
@@ -44,8 +44,8 @@ we're getting:
 >>> getSiteManager()
 <Components Testing>
 
-The registry that :func:`getSiteManager` returns is now also
-available as an attribute of the :class:`TestComponents`
+The registry that :any:`zope.component.getSiteManager` returns is now also
+available as an attribute of the :class:`~components.TestComponents`
 instance:
 
 >>> getSiteManager() is components.registry

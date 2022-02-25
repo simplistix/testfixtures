@@ -15,6 +15,7 @@ The sections below describe the use of the various tools included:
    warnings.txt
    popen.txt
    django.txt
+   twisted.txt
    components.txt
    utilities.txt
 

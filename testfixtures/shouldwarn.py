@@ -11,16 +11,16 @@ class ShouldWarn(warnings.catch_warnings):
     :param expected: This should be a sequence made up of one or more elements,
                      each of one of the following types:
 
-                      * A warning class, indicating that the type
-                        of the warnings is important but not the
-                        parameters it is created with.
+                     * A warning class, indicating that the type
+                       of the warnings is important but not the
+                       parameters it is created with.
 
-                      * A warning instance, indicating that a
-                        warning exactly matching the one supplied
-                        should have been issued.
+                     * A warning instance, indicating that a
+                       warning exactly matching the one supplied
+                       should have been issued.
 
-                    If no expected warnings are passed, you will need to inspect
-                    the contents of the list returned by the context manager.
+                     If no expected warnings are passed, you will need to inspect
+                     the contents of the list returned by the context manager.
 
     :param filters:
       If passed, these are used to create a filter such that only warnings you

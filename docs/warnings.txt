@@ -3,14 +3,13 @@ Testing warnings
 
 .. currentmodule:: testfixtures
 
-The :mod:`unittest` support for asserting that warnings are issued
-when expected is fairly convoluted, so testfixtures has tools to help with this.
+Testfixtures has tools that make it easy to make assertions about code that may emit warnings.
 
 The :class:`ShouldWarn` context manager
 ---------------------------------------
 
 This context manager allows you to assert that particular warnings are
-recorded in a block of code, for example:
+emitted in a block of code, for example:
 
 >>> from warnings import warn
 >>> from testfixtures import ShouldWarn

@@ -55,7 +55,7 @@ The :func:`wrap` helper can be used to wrap a function with these:
 
   from testfixtures import wrap
 
-  @wrap(before,after)
+  @wrap(before, after)
   def a_function():
       print("a_function")
 
@@ -99,8 +99,8 @@ decorations:
   def after2():
       print("after 2")
 
-  @wrap(before2,after2)
-  @wrap(before1,after1)
+  @wrap(before2, after2)
+  @wrap(before1, after1)
   def a_function():
       print("a_function")
 
@@ -127,7 +127,7 @@ provided it accepts positional arguments for these results:
 
   @wrap(before2)
   @wrap(before1)
-  def a_function(r1,r2):
+  def a_function(r1, r2):
       print(r1)
       print(r2)
 
@@ -154,8 +154,8 @@ of the original function:
   def after2():
       return 4
 
-  @wrap(before2,after2)
-  @wrap(before1,after2)
+  @wrap(before2, after2)
+  @wrap(before1, after2)
   def a_function():
       return 'original'
 

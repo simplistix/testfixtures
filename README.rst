@@ -28,7 +28,7 @@ dates and times.
 
 **Testing logging**
 
-Helpers for capturing logging and checking what has been logged is what is expected.
+Helpers for capturing logging and checking what has been logged is what was expected.
 
 **Testing stream output**
 

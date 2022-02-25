@@ -22,8 +22,8 @@ class TempDirectory:
     :param create: If `True`, the temporary directory will be created
                    as part of class instantiation.
 
-    :param path: If passed, this should be a string containing a
-                 physical path to use as the temporary directory. When
+    :param path: If passed, this should be a string containing an
+                 absolute path to use as the temporary directory. When
                  passed, :class:`TempDirectory` will not create a new
                  directory to use.
 
@@ -35,7 +35,7 @@ class TempDirectory:
     instances = set()
     atexit_setup = False
 
-    #: The physical path of the :class:`TempDirectory` on disk
+    #: The absolute path of the :class:`TempDirectory` on disk
     path = None
 
     def __init__(self, ignore=(), create=True, path=None, encoding=None):
@@ -181,11 +181,11 @@ class TempDirectory:
         :param files_only: If specified, directories will be excluded from
                            the list of actual paths used in the comparison.
 
-        :param recursive: If passed as ``False``, only the direct contents of
+        :param recursive: If ``False``, only the direct contents of
                           the directory specified by ``path`` will be included
                           in the actual contents used for comparison.
 
-        :param followlinks: If passed as ``True``, symlinks and hard links
+        :param followlinks: If ``True``, symlinks and hard links
                             will be followed when recursively building up
                             the actual list of directory contents.
         """
@@ -223,7 +223,7 @@ class TempDirectory:
 
                         * A forward-slash separated string.
 
-        :returns: The full path of the created directory.
+        :returns: The absolute path of the created directory.
         """
         thepath = self._join(dirpath)
         os.makedirs(thepath)
@@ -245,12 +245,15 @@ class TempDirectory:
 
                          * A forward-slash separated string.
 
-        :param data: A string containing the data to be written.
+        :param data:
+
+          :class:`bytes` containing the data to be written, or a :class:`str`
+          if ``encoding`` has been supplied.
 
         :param encoding: The encoding to be used if data is not bytes. Should
                          not be passed if data is already bytes.
 
-        :returns: The full path of the file written.
+        :returns: The absolute path of the file written.
         """
         if isinstance(filepath, str):
             filepath = filepath.split('/')
@@ -277,7 +280,7 @@ class TempDirectory:
 
                      * A forward-slash separated string.
 
-        :returns: A string containing the full path.
+        :returns: A string containing the absolute path.
         """
         return self._join(path)
 
@@ -298,7 +301,10 @@ class TempDirectory:
 
         :param encoding: The encoding used to decode the data in the file.
 
-        :returns: A string containing the data read.
+        :returns:
+
+          The contents of the file as a :class:`str` or :class:`bytes`, if ``encoding``
+          is not specified.
         """
         with open(self._join(filepath), 'rb') as f:
             data = f.read()

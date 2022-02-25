@@ -16,7 +16,7 @@ dotted_path = 'testfixtures.tests.test_popen_docs.Popen'
 from unittest import TestCase
 
 from testfixtures.mock import call
-from testfixtures import Replacer, ShouldRaise, compare
+from testfixtures import Replacer, ShouldRaise, compare, SequenceComparison
 from testfixtures.popen import MockPopen, PopenBehaviour
 
 
@@ -70,8 +70,8 @@ class TestMyFunc(TestCase):
         Popen.set_command('a command', stdout=b'foo', stderr=b'bar')
         # usage
         process = Popen('a command', stdout=PIPE, stderr=PIPE, shell=True)
-        compare(process.stdout.read(), b'foo')
-        compare(process.stderr.read(), b'bar')
+        compare(process.stdout.read(), expected=b'foo')
+        compare(process.stderr.read(), expected=b'bar')
 
     def test_write_to_stdin(self):
         # setup
@@ -94,10 +94,10 @@ class TestMyFunc(TestCase):
         Popen.set_command('a command', returncode=3)
         # usage
         process = Popen('a command')
-        compare(process.returncode, None)
+        compare(process.returncode, expected=None)
         # result checking
-        compare(process.wait(), 3)
-        compare(process.returncode, 3)
+        compare(process.wait(), expected=3)
+        compare(process.returncode, expected=3)
         # test call list
         compare(Popen.all_calls, expected=[
             call.Popen('a command'),
@@ -128,7 +128,7 @@ class TestMyFunc(TestCase):
             # do some other work.
             pass
         # result checking
-        compare(process.returncode, 3)
+        compare(process.returncode, expected=3)
         compare(Popen.all_calls, expected=[
             process.root_call,
             process.root_call.poll(),
@@ -195,6 +195,25 @@ class TestMyFunc(TestCase):
             p1.communicate(),
             p2.communicate(),
         ])
+
+    def test_multiple_processes_unordered(self):
+        # set up
+        self.Popen.set_command('process --batch=0', stdout=b'42')
+        self.Popen.set_command('process --batch=1', stdout=b'13')
+
+        # testing of results
+        compare(process_in_batches(2), expected=55)
+
+        # testing of process management:
+        p1 = call.Popen('process --batch=0', shell=True, stderr=PIPE, stdout=PIPE)
+        p2 = call.Popen('process --batch=1', shell=True, stderr=PIPE, stdout=PIPE)
+        compare(Popen.all_calls, expected=SequenceComparison(
+            p2,
+            p2.communicate(),
+            p1,
+            p1.communicate(),
+            ordered=False
+        ))
 
 
 class CustomBehaviour(object):
