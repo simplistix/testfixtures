@@ -1,6 +1,11 @@
 Changes
 =======
 
+6.18.5 (1 Mar 2022)
+-------------------
+
+- Fix bug in detection of Mock backport.
+
 6.18.4 (25 Feb 2022)
 --------------------
 

@@ -16,7 +16,7 @@ try:
     from mock import *
     from mock.mock import _Call
     from mock.mock import call as mock_call
-    from mock.mock import version_info as backport_version
+    from mock import version_info as backport_version
 except ImportError:
     backport_version = None
     class MockCall:
