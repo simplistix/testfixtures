@@ -333,6 +333,28 @@ class TestDateTime(TestCase):
             self.assertTrue(isinstance(inst, d), inst)
             self.assertFalse(inst.__class__ is d, inst)
 
+    def test_strict_addition(self):
+        mock_dt = test_datetime(strict=True)
+        dt = mock_dt(2001, 1, 1) + timedelta(days=1)
+        assert type(dt) is mock_dt
+
+    def test_non_strict_addition(self):
+        from datetime import datetime
+        mock_dt = test_datetime(strict=False)
+        dt = mock_dt(2001, 1, 1) + timedelta(days=1)
+        assert type(dt) is datetime
+
+    def test_strict_add(self):
+        mock_dt = test_datetime(None, strict=True)
+        mock_dt.add(2001, 1, 1)
+        assert type(mock_dt.now()) is mock_dt
+
+    def test_non_strict_add(self):
+        from datetime import datetime
+        mock_dt = test_datetime(None, strict=False)
+        mock_dt.add(2001, 1, 1)
+        assert type(mock_dt.now()) is datetime
+
     @replace('datetime.datetime', test_datetime())
     def test_isinstance_default(self):
         from datetime import datetime
