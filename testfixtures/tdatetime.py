@@ -1,222 +1,239 @@
 from calendar import timegm
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, tzinfo
+from typing import Optional, Callable, Type
 
 
-@classmethod
-def add(cls, *args, **kw):
-    if 'tzinfo' in kw or len(args) > 7:
-        raise TypeError('Cannot add using tzinfo on %s' % cls.__name__)
-    if args and isinstance(args[0], cls.__bases__[0]):
-        inst = args[0]
-        tzinfo = getattr(inst, 'tzinfo', None)
-        if tzinfo:
-            if tzinfo != cls._tzta:
-                raise ValueError(
-                    'Cannot add %s with tzinfo of %s as configured to use %s' % (
-                        inst.__class__.__name__, tzinfo, cls._tzta
-                    ))
-            inst = inst.replace(tzinfo=None)
-        if cls._ct:
-            inst = cls._ct(inst)
+class Queue(list):
+
+    def __init__(self, delta: Optional[int], delta_delta: int, delta_type: str):
+        super().__init__()
+        if delta is None:
+            self.delta = 0
+            self.delta_delta = delta_delta
+        else:
+            self.delta = delta
+            self.delta_delta = 0
+        self.delta_type = delta_type
+
+    def advance_next(self, delta: timedelta):
+        self[-1] += delta
+
+    def next(self):
+        r = self.pop(0)
+        if not self:
+            self.delta += self.delta_delta
+            n = r + timedelta(**{self.delta_type: self.delta})
+            self.append(n)
+        return r
+
+
+class MockedCurrent:
+
+    _q: Queue
+    _base_cls: Type
+    _cls: Type
+    _tzta: Optional[tzinfo]
+    _date_type: Type[date]
+    _ct: Callable = None
+
+    def __init_subclass__(
+            cls, concrete=False, strict=None, tz=None, queue=None, date_type=None
+    ):
+        if concrete:
+            cls._q = queue
+            cls._base_cls = cls.__bases__[0].__bases__[1]
+            cls._cls = cls if strict else cls._base_cls
+            cls._tzta = tz
+            cls._date_type = date_type
+
+    @classmethod
+    def add(cls, *args, **kw):
+        if 'tzinfo' in kw or len(args) > 7:
+            raise TypeError('Cannot add using tzinfo on %s' % cls.__name__)
+        if args and isinstance(args[0], cls._base_cls):
+            inst = args[0]
+            tzinfo = getattr(inst, 'tzinfo', None)
+            if tzinfo:
+                if tzinfo != cls._tzta:
+                    raise ValueError(
+                        'Cannot add %s with tzinfo of %s as configured to use %s' % (
+                            inst.__class__.__name__, tzinfo, cls._tzta
+                        ))
+                inst = inst.replace(tzinfo=None)
+            if cls._ct is not None:
+                inst = cls._ct(inst)
+        else:
+            inst = cls(*args, **kw)
         cls._q.append(inst)
-    else:
-        cls._q.append(cls(*args, **kw))
+
+    @classmethod
+    def set(cls, *args, **kw):
+        cls._q.clear()
+        cls.add(*args, **kw)
+
+    @classmethod
+    def tick(cls, *args, **kw):
+        if kw:
+            delta = timedelta(**kw)
+        else:
+            delta, = args
+        cls._q.advance_next(delta)
+
+    def __add__(self, other):
+        r = super().__add__(other)
+        if self._ct:
+            r = self._ct(r)
+        return r
+
+    def __new__(cls, *args, **kw):
+        if cls is cls._cls:
+            return super().__new__(cls, *args, **kw)
+        else:
+            return cls._cls(*args, **kw)
 
 
-@classmethod
-def set_(cls, *args, **kw):
-    if cls._q:
-        cls._q = []
-    cls.add(*args, **kw)
+def mock_factory(
+        n, mock_class, default, args, kw,
+        delta, delta_type, delta_delta=1,
+        date_type=None, tz=None, strict=False
+):
+    cls = type(
+        n,
+        (mock_class,),
+        {},
+        concrete=True,
+        queue=Queue(delta, delta_delta, delta_type),
+        strict=strict,
+        tz=tz,
+        date_type=date_type,
+    )
 
-
-@classmethod
-def tick(cls, *args, **kw):
-    if kw:
-        delta = timedelta(**kw)
-    else:
-        delta, = args
-    cls._q[-1] += delta
-
-
-def __add__(self, other):
-    r = super(self.__class__, self).__add__(other)
-    if self._ct:
-        r = self._ct(r)
-    return r
-
-
-def __new__(cls, *args, **kw):
-    if cls is cls._cls:
-        return super(cls, cls).__new__(cls, *args, **kw)
-    else:
-        return cls._cls(*args, **kw)
-
-
-@classmethod
-def instantiate(cls):
-    r = cls._q.pop(0)
-    if not cls._q:
-        cls._gap += cls._gap_d
-        n = r + timedelta(**{cls._gap_t: cls._gap})
-        if cls._ct:
-            n = cls._ct(n)
-        cls._q.append(n)
-    return r
-
-
-@classmethod
-def now(cls, tz=None):
-    r = cls._instantiate()
-    if tz is not None:
-        if cls._tzta:
-            r = r - cls._tzta.utcoffset(r)
-        r = tz.fromutc(r.replace(tzinfo=tz))
-    return cls._ct(r)
-
-
-@classmethod
-def utcnow(cls):
-    r = cls._instantiate()
-    if cls._tzta is not None:
-        r = r - cls._tzta.utcoffset(r)
-    return r
-
-
-def test_factory(n, base_type, default, args, kw, tz=None, **to_patch):
-    q = []
-    to_patch['_q'] = q
-    to_patch['_tzta'] = tz
-    to_patch['add'] = add
-    to_patch['set'] = set_
-    to_patch['tick'] = tick
-    to_patch['__add__'] = __add__
-    if '__new__' not in to_patch:
-        to_patch['__new__'] = __new__
-    class_ = type(n, (base_type,), to_patch)
-    strict = kw.pop('strict', False)
-    if strict:
-        class_._cls = class_
-    else:
-        class_._cls = base_type
-    if args != (None, ):
+    if args != (None,):
         if not (args or kw):
             args = default
-        class_.add(*args, **kw)
-    return class_
+        cls.add(*args, **kw)
+
+    return cls
 
 
-def correct_date_method(self):
-    return self._date_type(
-        self.year,
-        self.month,
-        self.day
+class MockDateTime(MockedCurrent, datetime):
+
+    @classmethod
+    def _ct(cls, dt):
+        return cls._cls(
+            dt.year,
+            dt.month,
+            dt.day,
+            dt.hour,
+            dt.minute,
+            dt.second,
+            dt.microsecond,
+            dt.tzinfo,
         )
 
+    @classmethod
+    def now(cls, tz=None):
+        r = cls._q.next()
+        if tz is not None:
+            if cls._tzta:
+                r = r - cls._tzta.utcoffset(r)
+            r = tz.fromutc(r.replace(tzinfo=tz))
+        return cls._ct(r)
 
-@classmethod
-def correct_datetime(cls, dt):
-    return cls._cls(
-        dt.year,
-        dt.month,
-        dt.day,
-        dt.hour,
-        dt.minute,
-        dt.second,
-        dt.microsecond,
-        dt.tzinfo,
-        )
+    @classmethod
+    def utcnow(cls):
+        r = cls._q.next()
+        if cls._tzta is not None:
+            r = r - cls._tzta.utcoffset(r)
+        return r
+
+    def date(self):
+        return self._date_type(
+            self.year,
+            self.month,
+            self.day
+            )
 
 
-def test_datetime(*args, **kw):
+def test_datetime(
+        *args,
+        tzinfo=None,
+        delta=None,
+        delta_type='seconds',
+        date_type=date,
+        strict=False,
+        **kw
+):
     if len(args) > 7:
         tz = args[7]
         args = args[:7]
     else:
-        tz = kw.pop('tzinfo', getattr(args[0], 'tzinfo', None) if args else None)
-    if 'delta' in kw:
-        gap = kw.pop('delta')
-        gap_delta = 0
-    else:
-        gap = 0
-        gap_delta = 10
-    delta_type = kw.pop('delta_type', 'seconds')
-    date_type = kw.pop('date_type', date)
-    return test_factory(
-        'tdatetime', datetime, (2001, 1, 1, 0, 0, 0), args, kw, tz,
-        _ct=correct_datetime,
-        _instantiate=instantiate,
-        now=now,
-        utcnow=utcnow,
-        _gap=gap,
-        _gap_d=gap_delta,
-        _gap_t=delta_type,
-        date=correct_date_method,
-        _date_type=date_type,
+        tz = tzinfo or (getattr(args[0], 'tzinfo', None) if args else None)
+    return mock_factory(
+        'tdatetime', MockDateTime, (2001, 1, 1, 0, 0, 0), args, kw,
+        tz=tz,
+        delta=delta,
+        delta_delta=10,
+        delta_type=delta_type,
+        date_type=date_type,
+        strict=strict,
         )
+
 
 test_datetime.__test__ = False
 
 
-@classmethod
-def correct_date(cls, d):
-    return cls._cls(
-        d.year,
-        d.month,
-        d.day,
+class MockDate(MockedCurrent, date):
+
+    @classmethod
+    def _ct(cls, d):
+        return cls._cls(
+            d.year,
+            d.month,
+            d.day,
         )
 
+    @classmethod
+    def today(cls):
+        return cls._q.next()
 
-def test_date(*args, **kw):
-    if 'delta' in kw:
-        gap = kw.pop('delta')
-        gap_delta = 0
-    else:
-        gap = 0
-        gap_delta = 1
-    delta_type = kw.pop('delta_type', 'days')
-    return test_factory(
-        'tdate', date, (2001, 1, 1), args, kw,
-        _ct=correct_date,
-        today=instantiate,
-        _gap=gap,
-        _gap_d=gap_delta,
-        _gap_t=delta_type,
+
+def test_date(*args, delta=None, delta_type='days', strict=False, **kw):
+    return mock_factory(
+        'tdate', MockDate, (2001, 1, 1), args, kw,
+        delta=delta,
+        delta_type=delta_type,
+        strict=strict,
         )
 
-ms = 10**6
-
-
-def __time_new__(cls, *args, **kw):
-    if args or kw:
-        return super(cls, cls).__new__(cls, *args, **kw)
-    else:
-        val = cls.instantiate()
-        t = timegm(val.utctimetuple())
-        t += (float(val.microsecond)/ms)
-        return t
 
 test_date.__test__ = False
 
 
-def test_time(*args, **kw):
+ms = 10**6
+
+
+class MockTime(MockedCurrent, datetime):
+
+    def __new__(cls, *args, **kw):
+        if args or kw:
+            # Used when adding stuff to the queue
+            return super().__new__(cls, *args, **kw)
+        else:
+            val = cls._q.next()
+            t = timegm(val.utctimetuple())
+            t += (float(val.microsecond)/ms)
+            return t
+
+
+def test_time(*args, delta=None, delta_type='seconds', **kw):
     if 'tzinfo' in kw or len(args) > 7 or (args and getattr(args[0], 'tzinfo', None)):
         raise TypeError("You don't want to use tzinfo with test_time")
-    if 'delta' in kw:
-        gap = kw.pop('delta')
-        gap_delta = 0
-    else:
-        gap = 0
-        gap_delta = 1
-    delta_type = kw.pop('delta_type', 'seconds')
-    return test_factory(
-        'ttime', datetime, (2001, 1, 1, 0, 0, 0), args, kw,
-        _ct=None,
-        instantiate=instantiate,
-        _gap=gap,
-        _gap_d=gap_delta,
-        _gap_t=delta_type,
-        __new__=__time_new__,
+    return mock_factory(
+        'ttime', MockTime, (2001, 1, 1, 0, 0, 0), args, kw,
+        delta=delta,
+        delta_type=delta_type,
         )
+
 
 test_time.__test__ = False
