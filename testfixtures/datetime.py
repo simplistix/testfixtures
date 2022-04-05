@@ -155,7 +155,7 @@ class MockDateTime(MockedCurrent, datetime):
             )
 
 
-def test_datetime(
+def mock_datetime(
         *args,
         tzinfo=None,
         delta=None,
@@ -170,7 +170,7 @@ def test_datetime(
     else:
         tzinfo = tzinfo or (getattr(args[0], 'tzinfo', None) if args else None)
     return mock_factory(
-        'tdatetime', MockDateTime, (2001, 1, 1, 0, 0, 0), args, kw,
+        'MockDateTime', MockDateTime, (2001, 1, 1, 0, 0, 0), args, kw,
         tzinfo=tzinfo,
         delta=delta,
         delta_delta=10,
@@ -178,9 +178,6 @@ def test_datetime(
         date_type=date_type,
         strict=strict,
         )
-
-
-test_datetime.__test__ = False
 
 
 class MockDate(MockedCurrent, date):
@@ -198,16 +195,13 @@ class MockDate(MockedCurrent, date):
         return cls._mock_queue.next()
 
 
-def test_date(*args, delta=None, delta_type='days', strict=False, **kw):
+def mock_date(*args, delta=None, delta_type='days', strict=False, **kw):
     return mock_factory(
-        'tdate', MockDate, (2001, 1, 1), args, kw,
+        'MockDate', MockDate, (2001, 1, 1), args, kw,
         delta=delta,
         delta_type=delta_type,
         strict=strict,
         )
-
-
-test_date.__test__ = False
 
 
 ms = 10**6
@@ -226,14 +220,11 @@ class MockTime(MockedCurrent, datetime):
             return time
 
 
-def test_time(*args, delta=None, delta_type='seconds', **kw):
+def mock_time(*args, delta=None, delta_type='seconds', **kw):
     if 'tzinfo' in kw or len(args) > 7 or (args and getattr(args[0], 'tzinfo', None)):
         raise TypeError("You don't want to use tzinfo with test_time")
     return mock_factory(
-        'ttime', MockTime, (2001, 1, 1, 0, 0, 0), args, kw,
+        'MockTime', MockTime, (2001, 1, 1, 0, 0, 0), args, kw,
         delta=delta,
         delta_type=delta_type,
         )
-
-
-test_time.__test__ = False

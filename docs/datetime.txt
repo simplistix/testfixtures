@@ -12,7 +12,7 @@ this.
 Dates
 ~~~~~
 
-The testfixtures package provides the :func:`~testfixtures.test_date` function
+The testfixtures package provides the :func:`~testfixtures.mock_date` function
 that returns a subclass of :class:`datetime.date` with a
 :meth:`~datetime.date.today` method that will return a
 consistent sequence of dates each time it is called.
@@ -26,9 +26,9 @@ the ``testfixtures.tests.sample1`` package:
 :class:`~testfixtures.Replace` can be used to apply the mock as
 shown in the following example:
 
->>> from testfixtures import Replace, test_date
+>>> from testfixtures import Replace, mock_date
 >>> from testfixtures.tests.sample1 import str_today_1
->>> with Replace('testfixtures.tests.sample1.date', test_date()):
+>>> with Replace('testfixtures.tests.sample1.date', mock_date()):
 ...    str_today_1()
 ...    str_today_1()
 '2001-01-01'
@@ -36,14 +36,14 @@ shown in the following example:
 
 If you need a specific date to be returned, you can specify it:
 
->>> with Replace('testfixtures.tests.sample1.date', test_date(1978, 6, 13)):
+>>> with Replace('testfixtures.tests.sample1.date', mock_date(1978, 6, 13)):
 ...    str_today_1()
 '1978-06-13'
 
 If you need to test with a whole sequence of specific dates, this
 can be done as follows:
 
->>> with Replace('testfixtures.tests.sample1.date', test_date(None)) as d:
+>>> with Replace('testfixtures.tests.sample1.date', mock_date(None)) as d:
 ...    d.add(1978, 6, 13)
 ...    d.add(2009, 11, 12)
 ...    str_today_1()
@@ -53,13 +53,13 @@ can be done as follows:
 
 Another way to test with a specific sequence of dates is to use the
 ``delta_type`` and ``delta`` parameters to
-:func:`~testfixtures.test_date`. These parameters control the type and
+:func:`~testfixtures.mock_date`. These parameters control the type and
 size, respectively, of the difference between each date returned.
 
 For example, where 2 days elapse between each returned value:
 
 >>> with Replace('testfixtures.tests.sample1.date',
-...              test_date(1978, 6, 13, delta=2, delta_type='days')) as d:
+...              mock_date(1978, 6, 13, delta=2, delta_type='days')) as d:
 ...    str_today_1()
 ...    str_today_1()
 ...    str_today_1()
@@ -70,10 +70,10 @@ For example, where 2 days elapse between each returned value:
 The ``delta_type`` can be any keyword parameter accepted by the
 :class:`~datetime.timedelta` constructor. Specifying a ``delta`` of
 zero can be an effective way of ensuring that all calls to the
-:meth:`~testfixtures.test_date.today` method return the same value:
+:meth:`~testfixtures.MockDate.today` method return the same value:
 
 >>> with Replace('testfixtures.tests.sample1.date',
-...              test_date(1978, 6, 13, delta=0)) as d:
+...              mock_date(1978, 6, 13, delta=0)) as d:
 ...    str_today_1()
 ...    str_today_1()
 ...    str_today_1()
@@ -81,12 +81,12 @@ zero can be an effective way of ensuring that all calls to the
 '1978-06-13'
 '1978-06-13'
 
-When using :func:`~testfixtures.test_date`, you can, at any time, set
+When using :func:`~testfixtures.mock_date`, you can, at any time, set
 the next date to be returned using the
-:meth:`~testfixtures.test_date.set` method. The date returned after
+:meth:`~testfixtures.MockDate.set` method. The date returned after
 this will be the set date plus the ``delta`` in effect:
 
->>> with Replace('testfixtures.tests.sample1.date', test_date(delta=2)) as d:
+>>> with Replace('testfixtures.tests.sample1.date', mock_date(delta=2)) as d:
 ...    str_today_1()
 ...    d.set(1978,8,1)
 ...    str_today_1()
@@ -98,7 +98,7 @@ this will be the set date plus the ``delta`` in effect:
 Datetimes
 ~~~~~~~~~
 
-The testfixtures package provides the :func:`~testfixtures.test_datetime`
+The testfixtures package provides the :func:`~testfixtures.mock_datetime`
 function that returns a subclass of :class:`datetime.datetime` with
 a :meth:`~datetime.datetime.now` method that will return a
 consistent sequence of :obj:`~datetime.datetime` objects each time
@@ -112,9 +112,9 @@ the ``testfixtures.tests.sample1`` package:
 
 :class:`~testfixtures.Replace` can be used to apply the mock as shown in the following example:
 
->>> from testfixtures import Replace, test_datetime
+>>> from testfixtures import Replace, mock_datetime
 >>> from testfixtures.tests.sample1 import str_now_1
->>> with Replace('testfixtures.tests.sample1.datetime', test_datetime()):
+>>> with Replace('testfixtures.tests.sample1.datetime', mock_datetime()):
 ...    str_now_1()
 ...    str_now_1()
 '2001-01-01 00:00:00'
@@ -123,7 +123,7 @@ the ``testfixtures.tests.sample1`` package:
 If you need a specific datetime to be returned, you can specify it:
 
 >>> with Replace('testfixtures.tests.sample1.datetime',
-...              test_datetime(1978, 6, 13, 1, 2, 3)):
+...              mock_datetime(1978, 6, 13, 1, 2, 3)):
 ...    str_now_1()
 '1978-06-13 01:02:03'
 
@@ -131,7 +131,7 @@ If you need to test with a whole sequence of specific datetimes,
 this can be done as follows:
 
 >>> with Replace('testfixtures.tests.sample1.datetime',
-...              test_datetime(None)) as d:
+...              mock_datetime(None)) as d:
 ...    d.add(1978, 6, 13, 16, 0, 1)
 ...    d.add(2009, 11, 12, 11, 41, 20)
 ...    str_now_1()
@@ -141,14 +141,14 @@ this can be done as follows:
   
 Another way to test with a specific sequence of datetimes is to use the
 ``delta_type`` and ``delta`` parameters to
-:func:`~testfixtures.test_datetime`. These parameters control the type and
+:func:`~testfixtures.mock_datetime`. These parameters control the type and
 size, respectively, of the difference between each datetime returned.
 
 For example, where 2 hours elapse between each returned value:
 
 >>> with Replace(
 ...    'testfixtures.tests.sample1.datetime',
-...    test_datetime(1978, 6, 13, 16, 0, 1, delta=2, delta_type='hours')
+...    mock_datetime(1978, 6, 13, 16, 0, 1, delta=2, delta_type='hours')
 ... ) as d:
 ...    str_now_1()
 ...    str_now_1()
@@ -160,10 +160,10 @@ For example, where 2 hours elapse between each returned value:
 The ``delta_type`` can be any keyword parameter accepted by the
 :class:`~datetime.timedelta` constructor. Specifying a ``delta`` of
 zero can be an effective way of ensuring that all calls to the
-:meth:`~testfixtures.test_datetime.now` method return the same value:
+:meth:`~testfixtures.MockDateTime.now` method return the same value:
 
 >>> with Replace('testfixtures.tests.sample1.datetime',
-...              test_datetime(1978, 6, 13, 16, 0, 1, delta=0)) as d:
+...              mock_datetime(1978, 6, 13, 16, 0, 1, delta=0)) as d:
 ...    str_now_1()
 ...    str_now_1()
 ...    str_now_1()
@@ -171,13 +171,13 @@ zero can be an effective way of ensuring that all calls to the
 '1978-06-13 16:00:01'
 '1978-06-13 16:00:01'
 
-When using :func:`~testfixtures.test_datetime`, you can, at any time, set
+When using :func:`~testfixtures.mock_datetime`, you can, at any time, set
 the next datetime to be returned using the
-:meth:`~testfixtures.test_datetime.set` method. The value returned after
+:meth:`~testfixtures.MockDateTime.set` method. The value returned after
 this will be the set value plus the ``delta`` in effect:
 
 >>> with Replace('testfixtures.tests.sample1.datetime',
-...              test_datetime(delta=2)) as d:
+...              mock_datetime(delta=2)) as d:
 ...    str_now_1()
 ...    d.set(1978, 8, 1)
 ...    str_now_1()
@@ -214,10 +214,10 @@ For the examples in this section, we need to have a timezone to work with:
               return timedelta(hours=1)
           return timedelta()
 
-By default, the internal queue of datetimes in a :func:`~testfixtures.test_datetime`
+By default, the internal queue of datetimes in a :func:`~testfixtures.mock_datetime`
 simulates local time in the UTC timezone:
 
->>> datetime = test_datetime(delta=0)
+>>> datetime = mock_datetime(delta=0)
 
 This means we get the following when the simulated date is 1st Jan 2001:
 
@@ -240,9 +240,9 @@ datetime.datetime(2001, 4, 1, 10, 0)
 datetime.datetime(2001, 4, 1, 6, 0, tzinfo=<ATZInfo ...>)
 
 If you wish to simulate a different local time, you should pass its :class:`datetime.tzinfo`
-to the :func:`~testfixtures.test_datetime` constructor:
+to the :func:`~testfixtures.mock_datetime` constructor:
 
->>> datetime = test_datetime(delta=0, tzinfo=ATZInfo())
+>>> datetime = mock_datetime(delta=0, tzinfo=ATZInfo())
 
 This means we get the following when the simulated date is 1st Jan 2001:
 
@@ -268,12 +268,12 @@ datetime.datetime(2001, 4, 1, 10, 0, tzinfo=<ATZInfo ...>)
 
   For your own sanity, you should avoid using the ``tzinfo`` parameter or
   passing :class:`~datetime.datetime` instances with non-``None`` :attr:`~datetime.datetime.tzinfo`
-  attributes when calling :meth:`~tdatetime.add` or :meth:`~tdatetime.set`.
+  attributes when calling :meth:`~MockDateTime.add` or :meth:`~MockDateTime.set`.
 
 Times
 ~~~~~
 
-The testfixtures package provides the :func:`~testfixtures.test_time`
+The testfixtures package provides the :func:`~testfixtures.mock_time`
 function that, when called, returns a replacement for the
 :func:`time.time` function.
 
@@ -285,9 +285,9 @@ the ``testfixtures.tests.sample1`` package:
 
 :class:`~testfixtures.Replace` can be used to apply the mock as shown in the following example:
 
->>> from testfixtures import Replace, test_time
+>>> from testfixtures import Replace, mock_time
 >>> from testfixtures.tests.sample1 import str_time
->>> with Replace('testfixtures.tests.sample1.time', test_time()):
+>>> with Replace('testfixtures.tests.sample1.time', mock_time()):
 ...    str_time()
 ...    str_time()
 '978307200.0'
@@ -297,14 +297,14 @@ If you need an integer representing a specific time to be returned,
 you can specify it:
 
 >>> with Replace('testfixtures.tests.sample1.time',
-...              test_time(1978, 6, 13, 1, 2, 3)):
+...              mock_time(1978, 6, 13, 1, 2, 3)):
 ...    str_time()
 '266547723.0'
 
 If you need to test with a whole sequence of specific timestamps,
 this can be done as follows:
 
->>> with Replace('testfixtures.tests.sample1.time', test_time(None)) as t:
+>>> with Replace('testfixtures.tests.sample1.time', mock_time(None)) as t:
 ...    t.add(1978, 6, 13, 16, 0, 1)
 ...    t.add(2009, 11, 12, 11, 41, 20)
 ...    str_time()
@@ -314,14 +314,14 @@ this can be done as follows:
 
 Another way to test with a specific sequence of timestamps is to use the
 ``delta_type`` and ``delta`` parameters to
-:func:`~testfixtures.test_time`. These parameters control the type and
+:func:`~testfixtures.mock_time`. These parameters control the type and
 size, respectively, of the difference between each timestamp returned.
 
 For example, where 2 hours elapse between each returned value:
 
 >>> with Replace(
 ...     'testfixtures.tests.sample1.time',
-...     test_time(1978, 6, 13, 16, 0, 1, delta=2, delta_type='hours')
+...     mock_time(1978, 6, 13, 16, 0, 1, delta=2, delta_type='hours')
 ... ) as d:
 ...    str_time()
 ...    str_time()
@@ -336,7 +336,7 @@ zero can be an effective way of ensuring that all calls to the
 :meth:`~time.time` function return the same value:
 
 >>> with Replace('testfixtures.tests.sample1.time',
-...              test_time(1978, 6, 13, 16, 0, 1, delta=0)) as d:
+...              mock_time(1978, 6, 13, 16, 0, 1, delta=0)) as d:
 ...    str_time()
 ...    str_time()
 ...    str_time()
@@ -344,12 +344,12 @@ zero can be an effective way of ensuring that all calls to the
 '266601601.0'
 '266601601.0'
 
-When using :func:`~testfixtures.test_time`, you can, at any time, set
+When using :func:`~testfixtures.mock_time`, you can, at any time, set
 the next timestamp to be returned using the
-:meth:`~testfixtures.test_time.set` method. The value returned after
+:meth:`~testfixtures.mock_time.set` method. The value returned after
 this will be the set value plus the ``delta`` in effect:
 
->>> with Replace('testfixtures.tests.sample1.time', test_time(delta=2)) as d:
+>>> with Replace('testfixtures.tests.sample1.time', mock_time(delta=2)) as d:
 ...    str_time()
 ...    d.set(1978, 8, 1)
 ...    str_time()
@@ -377,11 +377,11 @@ as the following code from the ``testfixtures.tests.sample1`` package:
 
 In these cases, you need to be careful with the replacement:
 
->>> from testfixtures import Replacer, test_datetime
+>>> from testfixtures import Replacer, mock_datetime
 >>> from testfixtures.tests.sample1 import str_now_2, str_today_2
 >>> with Replacer() as replace:
-...    today = replace('testfixtures.tests.sample1.today', test_date().today)
-...    now = replace('testfixtures.tests.sample1.now', test_datetime().now)
+...    today = replace('testfixtures.tests.sample1.today', mock_date().today)
+...    now = replace('testfixtures.tests.sample1.now', mock_datetime().now)
 ...    str_today_2()
 ...    str_now_2()
 '2001-01-01'
@@ -394,65 +394,65 @@ Use with code that checks class types
 
 When using the above specialist mocks, you may find code that checks
 the type of parameters passed may get confused. This is because, by
-default, :class:`test_datetime` and :class:`test_date` return
+default, :class:`mock_datetime` and :class:`mock_date` return
 instances of the real :class:`~datetime.datetime` and
 :class:`~datetime.date` classes:
 
->>> from testfixtures import test_datetime
+>>> from testfixtures import mock_datetime
 >>> from datetime import datetime
->>> tdatetime = test_datetime()
->>> issubclass(tdatetime, datetime)
+>>> datetime_ = mock_datetime()
+>>> issubclass(datetime_, datetime)
 True
->>> type(tdatetime.now())
+>>> type(datetime_.now())
 <...'datetime.datetime'>
 
 The above behaviour, however, is generally what you want as other code
 in your application and, more importantly, in other code such as
 database adapters, may handle instances of the real
 :class:`~datetime.datetime` and :class:`~datetime.date` classes, but
-not instances of the :class:`test_datetime` and :class:`test_date`
+not instances of the :class:`mock_datetime` and :class:`mock_date`
 mocks.
 
 That said, this behaviour can cause problems if you check the type of
 an instance against one of the mock classes. Most people might expect
 the following to return ``True``:
 
->>> isinstance(tdatetime(2011, 1, 1), tdatetime)
+>>> isinstance(datetime_(2011, 1, 1), datetime_)
 False
->>> isinstance(tdatetime.now(), tdatetime)
+>>> isinstance(datetime_.now(), datetime_)
 False
 
 If this causes a problem for you, then both
 :class:`~datetime.datetime` and :class:`~datetime.date` take a
 `strict` keyword parameter that can be used as follows:
 
->>> tdatetime = test_datetime(strict=True)
->>> type(tdatetime.now())
-<class 'testfixtures.tdatetime.tdatetime'>
->>> isinstance(tdatetime.now(), tdatetime)
+>>> datetime_ = mock_datetime(strict=True)
+>>> type(datetime_.now())
+<class 'testfixtures.datetime.MockDateTime'>
+>>> isinstance(datetime_.now(), datetime_)
 True
 
 You will need to take care that you  have replaced occurrences of the
 class where type checking is done with the correct
-:class:`test_datetime` or :class:`test_date`.
-Also, be aware that the :meth:`~tdatetime.date` method of
-:class:`test_datetime` instances will still return a normal
+:class:`mock_datetime` or :class:`mock_date`.
+Also, be aware that the :meth:`~MockDateTime.date` method of
+:class:`mock_datetime` instances will still return a normal
 :class:`~datetime.date` instance. If type checking related to this is causing
-problems, the type the :meth:`~tdatetime.date` method returns can
+problems, the type the :meth:`~MockDateTime.date` method returns can
 be controlled as shown in the following example:
 
 .. code-block:: python
 
-  from testfixtures import test_date, test_datetime
+  from testfixtures import mock_date, mock_datetime
 
-  date_type = test_date(strict=True)
-  datetime_type = test_datetime(strict=True, date_type=date_type)
+  date_type = mock_date(strict=True)
+  datetime_type = mock_datetime(strict=True, date_type=date_type)
 
-With things set up like this, the :meth:`~tdatetime.date` method
+With things set up like this, the :meth:`~MockDateTime.date` method
 will return an instance of the :class:`date_type` mock:
 
 >>> somewhen = datetime_type.now()
 >>> somewhen.date()
-tdate(2001, 1, 1)
+MockDate(2001, 1, 1)
 >>> type(_) is date_type
 True

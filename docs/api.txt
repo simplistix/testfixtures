@@ -83,7 +83,7 @@ Mocking
 
 .. autofunction:: replace
 
-.. function:: test_date(year=2001, month=1, day=1, delta=None, delta_type='days', strict=False)
+.. function:: mock_date(year=2001, month=1, day=1, delta=None, delta_type='days', strict=False)
 
    A function that returns a mock object that can be used in place of
    the :class:`datetime.date` class but where the return value of
@@ -91,8 +91,8 @@ Mocking
 
    If a single positional argument of ``None`` is passed, then the
    queue of dates to be returned will be empty and you will need to
-   call :meth:`~tdate.set` or :meth:`~tdate.add` before calling
-   :meth:`~tdate.today`.
+   call :meth:`~MockDate.set` or :meth:`~MockDate.add` before calling
+   :meth:`~MockDate.today`.
 
    If an instance of :class:`~datetime.date` is passed as a single
    positional argument, that will be used as the first date returned by
@@ -126,82 +126,82 @@ Mocking
    The mock returned will behave exactly as the :class:`datetime.date`
    class with the exception of the following members:
 
-   .. method:: tdate.add(*args, **kw)
+   .. method:: MockDate.add(*args, **kw)
 
      This will add the :class:`datetime.date` created from the
      supplied parameters to the queue of dates to be returned by
-     :meth:`~tdate.today`.  An instance
+     :meth:`~MockDate.today`.  An instance
      of :class:`~datetime.date` may also be passed as a single
      positional argument.
 
-   .. method:: tdate.set(*args, **kw)
+   .. method:: MockDate.set(*args, **kw)
 
      This will set the :class:`datetime.date` created from the
      supplied parameters as the next date to be returned by
-     :meth:`~tdate.today`, regardless of any dates in the
+     :meth:`~MockDate.today`, regardless of any dates in the
      queue.   An instance
      of :class:`~datetime.date` may also be passed as a single
      positional argument.
 
-   .. method:: tdate.tick(*args, **kw)
+   .. method:: MockDate.tick(*args, **kw)
 
      This method should be called either with a :class:`~datetime.timedelta`
      as a positional argument, or with keyword parameters that will be used
      to construct a :class:`~datetime.timedelta`.
 
      The  :class:`~datetime.timedelta` will be used to advance the next date
-     to be returned by :meth:`~tdate.today`.
+     to be returned by :meth:`~MockDate.today`.
 
-   .. classmethod:: tdate.today()
+   .. classmethod:: MockDate.today()
 
      This will return the next supplied or calculated date from the
      internal queue, rather than the actual current date.
 
-.. function:: test_datetime(year=2001, month=1, day=1, hour=0, minute=0, second=0, microsecond=0, tzinfo=None, delta=None, delta_type='seconds', date_type=datetime.date, strict=False)
+.. function:: mock_datetime(year=2001, month=1, day=1, hour=0, minute=0, second=0, microsecond=0, tzinfo=None, delta=None, delta_type='seconds', date_type=datetime.date, strict=False)
 
    A function that returns a mock object that can be used in place of
    the :class:`datetime.datetime` class but where the return value of
-   :meth:`~tdatetime.now` can be controlled.
+   :meth:`~MockDatetime.now` can be controlled.
 
    If a single positional argument of ``None`` is passed, then the
    queue of datetimes to be returned will be empty and you will need to
-   call :meth:`~tdatetime.set` or :meth:`~tdatetime.add` before calling
-   :meth:`~tdatetime.now` or :meth:`~tdatetime.utcnow`.
+   call :meth:`~MockDateTime.set` or :meth:`~MockDateTime.add` before calling
+   :meth:`~MockDateTime.now` or :meth:`~MockDateTime.utcnow`.
 
    If an instance of :class:`~datetime.datetime` is passed as a single
    positional argument, that will be used as the first date returned by
-   :meth:`~tdatetime.now`
+   :meth:`~MockDateTime.now`
 
    :param year: An optional year used to create the first datetime returned by
-                :meth:`~tdatetime.now`.
+                :meth:`~MockDateTime.now`.
 
    :param month: An optional month used to create the first datetime returned by
-                :meth:`~tdatetime.now`.
+                :meth:`~MockDateTime.now`.
 
    :param day: An optional day used to create the first datetime returned by
-                :meth:`~tdatetime.now`.
+                :meth:`~MockDateTime.now`.
 
    :param hour: An optional hour used to create the first datetime returned by
-                :meth:`~tdatetime.now`.
+                :meth:`~MockDateTime.now`.
 
    :param minute: An optional minute used to create the first datetime returned by
-                :meth:`~tdatetime.now`.
+                :meth:`~MockDateTime.now`.
 
    :param second: An optional second used to create the first datetime returned by
-                :meth:`~tdatetime.now`.
+                :meth:`~MockDateTime.now`.
 
    :param microsecond: An optional microsecond used to create the first datetime returned by
-                :meth:`~tdatetime.now`.
+                :meth:`~MockDateTime.now`.
 
    :param tzinfo: An optional :class:`datetime.tzinfo`, see :ref:`timezones`.
 
    :param delta: The size of the delta to use between values returned
-                 from :meth:`~tdatetime.now`. If not specified,
+                 from :meth:`~MockDateTime.now`. If not specified,
                  it will increase by 1 with each call to
-                 :meth:`~tdatetime.now`.
+                 :meth:`~MockDateTime.now`.
 
    :param delta_type: The type of the delta to use between values returned
-                      from :meth:`~tdatetime.now`. This can be
+                      from :meth:`~MockDateTime.now`. This can be
                       any keyword parameter accepted by the
                       :class:`~datetime.timedelta` constructor.
 
@@ -220,34 +220,34 @@ Mocking
    The mock returned will behave exactly as the :class:`datetime.datetime`
    class with the exception of the following members:
 
-   .. method:: tdatetime.add(*args, **kw)
+   .. method:: MockDateTime.add(*args, **kw)
 
      This will add the :class:`datetime.datetime` created from the
      supplied parameters to the queue of datetimes to be returned by
-     :meth:`~tdatetime.now` or :meth:`~tdatetime.utcnow`. An instance
+     :meth:`~MockDateTime.now` or :meth:`~MockDateTime.utcnow`. An instance
      of :class:`~datetime.datetime` may also be passed as a single
      positional argument.
 
-   .. method:: tdatetime.set(*args, *kw)
+   .. method:: MockDateTime.set(*args, *kw)
 
      This will set the :class:`datetime.datetime` created from the
      supplied parameters as the next datetime to be returned by
-     :meth:`~tdatetime.now` or :meth:`~tdatetime.utcnow`, clearing out
+     :meth:`~MockDateTime.now` or :meth:`~MockDateTime.utcnow`, clearing out
      any datetimes in the queue.  An instance
      of :class:`~datetime.datetime` may also be passed as a single
      positional argument.
 
-   .. method:: tdatetime.tick(*args, **kw)
+   .. method:: MockDateTime.tick(*args, **kw)
 
      This method should be called either with a :class:`~datetime.timedelta`
      as a positional argument, or with keyword parameters that will be used
      to construct a :class:`~datetime.timedelta`.
 
      The  :class:`~datetime.timedelta` will be used to advance the next datetime
-     to be returned by :meth:`~tdatetime.now` or :meth:`~tdatetime.utcnow`.
+     to be returned by :meth:`~MockDateTime.now` or :meth:`~MockDateTime.utcnow`.
 
 
-   .. classmethod:: tdatetime.now([tz])
+   .. classmethod:: MockDateTime.now([tz])
 
      :param tz: An optional timezone to apply to the returned time.
                 If supplied, it must be an instance of a
@@ -258,19 +258,19 @@ Mocking
 
      If `tz` is supplied, see :ref:`timezones`.
 
-   .. classmethod:: tdatetime.utcnow()
+   .. classmethod:: MockDateTime.utcnow()
 
      This will return the next supplied or calculated datetime from the
      internal queue, rather than the actual current UTC datetime.
 
      If you care about timezones, see :ref:`timezones`.
 
-   .. classmethod:: tdatetime.date()
+   .. classmethod:: MockDateTime.date()
 
      This will return the date component of the current mock instance,
      but using the date type supplied when the mock class was created.
 
-.. function:: test_time(year=2001, month=1, day=1, hour=0, minute=0, second=0, microsecond=0, tzinfo=None, delta=None, delta_type='seconds')
+.. function:: mock_time(year=2001, month=1, day=1, hour=0, minute=0, second=0, microsecond=0, tzinfo=None, delta=None, delta_type='seconds')
 
    A function that returns a mock object that can be used in place of
    the :func:`time.time` function but where the return value can be
@@ -278,7 +278,7 @@ Mocking
 
    If a single positional argument of ``None`` is passed, then the
    queue of times to be returned will be empty and you will need to
-   call :meth:`~ttime.set` or :meth:`~ttime.add` before calling
+   call :meth:`~MockTime.set` or :meth:`~MockTime.add` before calling
    the mock.
 
    If an instance of :class:`~datetime.datetime` is passed as a single
@@ -309,7 +309,7 @@ Mocking
 
    The mock additionally has the following methods available on it:
 
-   .. method:: ttime.add(*args, **kw)
+   .. method:: MockTime.add(*args, **kw)
 
      This will add the time specified by the supplied parameters to the
      queue of times to be returned by calls to the mock. The
@@ -317,7 +317,7 @@ Mocking
      constructor. An instance of :class:`~datetime.datetime` may also
      be passed as a single positional argument.
 
-   .. method:: ttime.set(*args, **kw)
+   .. method:: MockTime.set(*args, **kw)
 
      This will set the time specified by the supplied parameters as
      the next time to be returned by a call to the mock, regardless of
@@ -326,7 +326,7 @@ Mocking
      :class:`~datetime.datetime` may also be passed as a single
      positional argument.
 
-   .. method:: ttime.tick(*args, **kw)
+   .. method:: MockTime.tick(*args, **kw)
 
      This method should be called either with a :class:`~datetime.timedelta`
      as a positional argument, or with keyword parameters that will be used
