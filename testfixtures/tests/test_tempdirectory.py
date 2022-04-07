@@ -299,3 +299,15 @@ class TempDirectoryTests(TestCase):
         with TempDirectory(encoding='ascii') as d:
             d.write('test.txt', decoded, encoding='utf-8')
             compare(d.read('test.txt', encoding='utf-8'), expected=decoded)
+
+
+def test_wrap_path(tmp_path: Path):
+    with TempDirectory(tmp_path) as d:
+        assert d.path == str(tmp_path)
+    assert tmp_path.exists()
+
+
+def test_wrap_local(tmpdir: local):
+    with TempDirectory(tmpdir) as d:
+        assert d.path == str(tmpdir)
+    assert tmpdir.exists()

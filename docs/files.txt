@@ -113,6 +113,25 @@ you can easily clean them all up:
 
 >>> TempDirectory.cleanup_all()
 
+
+Wrapping an existing temporary directory
+----------------------------------------
+
+If you're using a testing framework that already provides a temporary directory,
+such as pytest's :ref:`tmp_path <tmp_path>` or :ref:`tmpdir <tmpdir>`, but wish to make use of
+the :class:`TempDirectory` API for creating content or making assertions, then you can wrap the
+existing object as follows:
+
+>>> with TempDirectory(tmp_path) as d:
+...     d.write('some/path.txt', b'some text')
+...     d.compare(expected=('some/', 'some/path.txt'))
+'...'
+
+When doing this, :class:`TempDirectory` will not remove the directory it is wrapping:
+
+>>> tmp_path.exists()
+True
+
 Features of a temporary directory
 ---------------------------------
 
