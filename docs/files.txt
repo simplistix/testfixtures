@@ -114,8 +114,8 @@ you can easily clean them all up:
 >>> TempDirectory.cleanup_all()
 
 
-Wrapping an existing temporary directory
-----------------------------------------
+Working with other interfaces
+-----------------------------
 
 If you're using a testing framework that already provides a temporary directory,
 such as pytest's :ref:`tmp_path <tmp_path>` or :ref:`tmpdir <tmpdir>`, but wish to make use of
@@ -131,6 +131,24 @@ When doing this, :class:`TempDirectory` will not remove the directory it is wrap
 
 >>> tmp_path.exists()
 True
+
+Inversely, if you have an existing :class:`TempDirectory` but would like to interact with it
+using :class:`pathlib.Path` objects, you can get them as follows:
+
+>>> with TempDirectory(tmp_path) as d:
+...     d.as_path('myfile.txt').write_text('some text')
+...     d.compare(expected=['myfile.txt'])
+...     d.read('myfile.txt')
+9
+b'some text'
+
+A :class:`py.path.local <py._path.local.LocalPath>` interface is also available:
+
+>>> with TempDirectory(tmp_path) as d:
+...     d.as_local('myfile.txt').write_text('some text', encoding='ascii')
+...     d.compare(expected=['myfile.txt'])
+...     d.read('myfile.txt')
+b'some text'
 
 Features of a temporary directory
 ---------------------------------

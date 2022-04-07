@@ -12,3 +12,5 @@ exclude_lines =
 
   # example code that we don't want to cover with pragma statements
   guppy =
+
+  if TYPE_CHECKING:
