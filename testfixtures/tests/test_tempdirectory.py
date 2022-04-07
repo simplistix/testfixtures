@@ -1,7 +1,10 @@
 import os
+from pathlib import Path
 from tempfile import mkdtemp
 from unittest import TestCase
 from warnings import catch_warnings
+
+from py.path import local
 
 from testfixtures.mock import Mock
 
@@ -169,15 +172,26 @@ class TempDirectoryTests(TestCase):
         with TempDirectory() as d:
             expected1 = d.makedir('foo')
             expected2 = d.write('baz/bob', b'')
-            expected3 = d.getpath('a/b/c')
+            expected3 = d.as_string('a/b/c')
 
-            actual1 = d.getpath('foo')
-            actual2 = d.getpath('baz/bob')
-            actual3 = d.getpath(('a', 'b', 'c'))
+            actual1 = d.as_string('foo')
+            actual2 = d.as_string('baz/bob')
+            actual3 = d.as_string(('a', 'b', 'c'))
 
         self.assertEqual(expected1, actual1)
         self.assertEqual(expected2, actual2)
         self.assertEqual(expected3, actual3)
+
+    def test_getpath(self):
+        with TempDirectory() as d:
+            expected1 = d.getpath()
+            expected2 = d.getpath('foo')
+
+            actual1 = d.as_string()
+            actual2 = d.as_string('foo')
+
+        compare(expected1, actual=actual1)
+        compare(expected2, actual=actual2)
 
     def test_atexit(self):
         # http://bugs.python.org/issue25532
@@ -257,13 +271,13 @@ class TempDirectoryTests(TestCase):
     def test_symlink(self):
         with TempDirectory() as d:
             d.write('foo/bar.txt', b'x')
-            os.symlink(d.getpath('foo'), d.getpath('baz'))
+            os.symlink(d.as_string('foo'), d.as_string('baz'))
             d.compare(['baz/', 'foo/', 'foo/bar.txt'])
 
     def test_follow_symlinks(self):
         with TempDirectory() as d:
             d.write('foo/bar.txt', b'x')
-            os.symlink(d.getpath('foo'), d.getpath('baz'))
+            os.symlink(d.as_string('foo'), d.as_string('baz'))
             d.compare(['baz/', 'baz/bar.txt', 'foo/', 'foo/bar.txt'],
                       followlinks=True)
 

@@ -139,18 +139,18 @@ attribute:
 
 A common use case is to want to compute a path within the temporary
 directory to pass to code under test. This can be done with the
-:meth:`~TempDirectory.getpath` method:
+:meth:`~TempDirectory.as_string` method:
 
 >>> import os
->>> tempdir.getpath('foo').rsplit(os.sep,1)[-1]
+>>> tempdir.as_string('foo').rsplit(os.sep,1)[-1]
 'foo'
 
 If you want to compute a deeper path, you can either pass either a
 tuple or a forward slash-separated path:
 
->>> tempdir.getpath(('foo', 'baz')).rsplit(os.sep, 2)[-2:]
+>>> tempdir.as_string(('foo', 'baz')).rsplit(os.sep, 2)[-2:]
 ['foo', 'baz']
->>> tempdir.getpath('foo/baz') .rsplit(os.sep, 2)[-2:]
+>>> tempdir.as_string('foo/baz') .rsplit(os.sep, 2)[-2:]
 ['foo', 'baz']
 
 .. note:: 
