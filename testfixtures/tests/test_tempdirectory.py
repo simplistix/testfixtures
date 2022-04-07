@@ -300,6 +300,30 @@ class TempDirectoryTests(TestCase):
             d.write('test.txt', decoded, encoding='utf-8')
             compare(d.read('test.txt', encoding='utf-8'), expected=decoded)
 
+    def test_as_path_minimal(self):
+        with TempDirectory(encoding='ascii') as d:
+            compare(d.as_path(), expected=Path(d.path), strict=True)
+
+    def test_as_path_relative_string(self):
+        with TempDirectory(encoding='ascii') as d:
+            compare(d.as_path('foo/bar'), expected=Path(d.path) / 'foo' / 'bar', strict=True)
+
+    def test_as_path_relative_sequence(self):
+        with TempDirectory(encoding='ascii') as d:
+            compare(d.as_path(('foo', 'bar')), expected=Path(d.path) / 'foo' / 'bar', strict=True)
+
+    def test_as_local_minimal(self):
+        with TempDirectory(encoding='ascii') as d:
+            compare(d.as_local(), expected=local(d.path), strict=True)
+
+    def test_as_local_relative_string(self):
+        with TempDirectory(encoding='ascii') as d:
+            compare(d.as_local('foo/bar'), expected=local(d.path) / 'foo' / 'bar', strict=True)
+
+    def test_as_local_relative_sequence(self):
+        with TempDirectory(encoding='ascii') as d:
+            compare(d.as_local(('foo', 'bar')), expected=local(d.path) / 'foo' / 'bar', strict=True)
+
 
 def test_wrap_path(tmp_path: Path):
     with TempDirectory(tmp_path) as d:

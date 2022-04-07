@@ -1,15 +1,20 @@
 import atexit
 import os
 import warnings
+from pathlib import Path
 
 from re import compile
 from tempfile import mkdtemp
-from typing import Union, Sequence
+from typing import Union, Sequence, TYPE_CHECKING
 
 from testfixtures.comparison import compare
 from testfixtures.utils import wrap
 
 from .rmtree import rmtree
+
+
+if TYPE_CHECKING:
+    from py.path import local
 
 
 class TempDirectory:
@@ -291,6 +296,33 @@ class TempDirectory:
     #:
     #:   Use :meth:`as_string` instead.
     getpath = as_string
+
+    def as_path(self, path: Union[str, Sequence[str]] = None) -> Path:
+        """
+        Return the :class:`~pathlib.Path` that corresponds to the path
+        relative to the temporary directory that is passed in.
+
+        :param path: The path to the file to create, which can be:
+
+                     * A tuple of strings.
+
+                     * A forward-slash separated string.
+        """
+        return Path(self.path if path is None else self._join(path))
+
+    def as_local(self, path: Union[str, Sequence[str]] = None) -> 'local':
+        """
+        Return the :class:`py.path.local` that corresponds to the path
+        relative to the temporary directory that is passed in.
+
+        :param path: The path to the file to create, which can be:
+
+                     * A tuple of strings.
+
+                     * A forward-slash separated string.
+        """
+        from py.path import local
+        return local(self.path if path is None else self._join(path))
 
     def read(self, filepath, encoding=None):
         """
