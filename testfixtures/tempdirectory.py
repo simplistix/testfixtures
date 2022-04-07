@@ -40,14 +40,14 @@ class TempDirectory:
     #: The absolute path of the :class:`TempDirectory` on disk
     path = None
 
-    def __init__(self, ignore=(), create=True, path=None, encoding=None):
+    def __init__(self, path=None, *, ignore=(), create=None, encoding=None):
         self.ignore = []
         for regex in ignore:
             self.ignore.append(compile(regex))
-        self.path = path
+        self.path = str(path) if path else None
         self.encoding = encoding
         self.dont_remove = bool(path)
-        if create:
+        if create or (path is None and create is None):
             self.create()
 
     @classmethod
