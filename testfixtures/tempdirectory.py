@@ -4,6 +4,8 @@ import warnings
 
 from re import compile
 from tempfile import mkdtemp
+from typing import Union, Sequence
+
 from testfixtures.comparison import compare
 from testfixtures.utils import wrap
 
@@ -269,7 +271,7 @@ class TempDirectory:
             f.write(data)
         return thepath
 
-    def getpath(self, path):
+    def as_string(self, path: Union[str, Sequence[str]] = None) -> str:
         """
         Return the full path on disk that corresponds to the path
         relative to the temporary directory that is passed in.
@@ -281,8 +283,14 @@ class TempDirectory:
                      * A forward-slash separated string.
 
         :returns: A string containing the absolute path.
+
         """
-        return self._join(path)
+        return self.path if path is None else self._join(path)
+
+    #: .. deprecated:: 7
+    #:
+    #:   Use :meth:`as_string` instead.
+    getpath = as_string
 
     def read(self, filepath, encoding=None):
         """

@@ -66,7 +66,7 @@ class FileParser(object):
                     block.content,
                     actual,
                     'File %r, line %i:' % (example.path, example.line),
-                    'Reading from "%s":' % dir.getpath(block.path)
+                    'Reading from "%s":' % dir.as_string(block.path)
                 )
         if block.action == 'write':
             dir.write(block.path, block.content, 'ascii')
