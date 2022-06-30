@@ -109,12 +109,12 @@ class TestOutputCaptureWithDescriptors(object):
         with capfd.disabled(), OutputCapture(fd=True) as o:
             call([sys.executable, '-c', "import sys; sys.stdout.write('out')"])
             call([sys.executable, '-c', "import sys; sys.stderr.write('err')"])
-        compare(o.captured, expected=b'outerr')
-        o.compare(expected=b'outerr')
+        compare(o.captured, expected='outerr')
+        o.compare(expected='outerr')
 
     def test_fd_separate(self, capfd):
         with capfd.disabled(), OutputCapture(fd=True, separate=True) as o:
             call([sys.executable, '-c', "import sys; sys.stdout.write('out')"])
             call([sys.executable, '-c', "import sys; sys.stderr.write('err')"])
-        compare(o.captured, expected=b'')
-        o.compare(stdout=b'out', stderr=b'err')
+        compare(o.captured, expected='')
+        o.compare(stdout='out', stderr='err')
