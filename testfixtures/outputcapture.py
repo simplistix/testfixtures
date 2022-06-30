@@ -92,10 +92,9 @@ class OutputCapture(object):
     def _read(self, stream):
         if self.fd:
             stream.seek(0)
-            return stream.read()
+            return stream.read().decode()
         else:
             return stream.getvalue()
-
 
     @property
     def captured(self):
@@ -121,8 +120,6 @@ class OutputCapture(object):
                 ('stdout', stdout, self._read(self.stdout)),
                 ('stderr', stderr, self._read(self.stderr)),
         ):
-            if self.fd and isinstance(_expected, str):
-                _expected = _expected.encode()
             if self.strip_whitespace:
                 _expected = _expected.strip()
                 captured = captured.strip()
