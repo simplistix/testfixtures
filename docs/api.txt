@@ -80,6 +80,7 @@ Mocking
 
 .. autoclass:: Replacer
    :members:
+   :special-members: __call__
 
 .. autofunction:: replace
 
