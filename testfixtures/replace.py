@@ -19,7 +19,7 @@ class Replacer:
     def __init__(self):
         self.originals = {}
 
-    def _replace(self, container, name, method, value, strict=True):
+    def _replace(self, container, name, method, value):
         if value is not_there:
             if method == 'a':
                 try:
@@ -58,7 +58,7 @@ class Replacer:
             elif not_same_descriptor(t_obj, replacement, staticmethod):
                 replacement_to_use = staticmethod(replacement)
 
-        self._replace(container, attribute, method, replacement_to_use, strict)
+        self._replace(container, attribute, method, replacement_to_use)
         if target not in self.originals:
             self.originals[target] = t_obj
         return replacement
@@ -76,7 +76,7 @@ class Replacer:
         """
         for target, original in tuple(self.originals.items()):
             container, method, attribute, found = resolve(target)
-            self._replace(container, attribute, method, original, strict=False)
+            self._replace(container, attribute, method, original)
             del self.originals[target]
 
     def __enter__(self):
