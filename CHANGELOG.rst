@@ -1,6 +1,37 @@
 Changes
 =======
 
+7.0.0 (6 Jul 2022)
+------------------
+
+- Refresh documentation.
+
+- Add type annotations.
+
+- Drop support for Python 2. The minimum supported Python version is now 3.6.
+
+- Sybil 3 is now the minimum supported version if you use :class:`~.sybil.FileParser`.
+
+- Rename and refactor the date and time mocks, they are now :any:`mock_date`, :any:`mock_datetime`
+  and :any:`mock_time`.
+  :func:`test_date`, :func:`test_datetime` and :func:`test_time` are still present as aliases but
+  are now deprecated.
+
+- Add :meth:`TempDirectory.as_string`, :meth:`TempDirectory.as_path` and
+  :meth:`TempDirectory.as_local`. :meth:`TempDirectory.getpath` is now deprecated.
+
+- :class:`TempDirectory` can now be used to wrap existing directories.
+
+- Fixed a bug where :any:`OutputCapture.captured` returned bytes instead of a string with
+  ``fd=True``.
+
+- The deprecated ``strict`` option to :class:`Comparison` has been removed, use the ``partial``
+  option instead.
+
+- The deprecated :meth:`TempDirectory.check`, :meth:`TempDirectory.check_dir`
+  and :meth:`TempDirectory.check_all` methods have been removed.
+
+
 6.18.5 (1 Mar 2022)
 -------------------
 
