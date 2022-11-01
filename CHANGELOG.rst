@@ -1,6 +1,13 @@
 Changes
 =======
 
+7.0.2 (1 Nov 2022)
+------------------
+
+- Reinstate support for self-referential data structures in :func:`compare`.
+  The new implementation provides more clarity about what's going on and also ignores more
+  immutable data types.
+
 7.0.1 (1 Nov 2022)
 ------------------
 
