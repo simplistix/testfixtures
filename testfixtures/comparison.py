@@ -19,6 +19,10 @@ from testfixtures.mock import parent_name, mock_call
 from unittest.mock import call as unittest_mock_call
 
 
+# Some common types that are immutable, for optimisation purposes within CompareContext
+IMMUTABLE_TYPEs = str, bytes, int, float, tuple, type(None)
+
+
 def diff(x: str, y: str, x_label: str = '', y_label: str = ''):
     """
     A shorthand function that uses :mod:`difflib` to return a
@@ -486,6 +490,23 @@ def _shared_mro(x, y):
 _unsafe_iterables = str, bytes, dict
 
 
+class AlreadySeen:
+
+    def __init__(self, id_, obj_repr, breadcrumb):
+        self.id = id_
+        self.obj_repr = obj_repr
+        self.breadcrumb = breadcrumb
+
+    def __repr__(self):
+        return f'<AlreadySeen for {self.obj_repr} at {self.breadcrumb} with id {self.id}>'
+
+    def __eq__(self, other):
+        if isinstance(other, AlreadySeen):
+            return self.breadcrumb == other.breadcrumb
+        else:
+            return self.id == id(other)
+
+
 class CompareContext(object):
 
     def __init__(
@@ -511,6 +532,7 @@ class CompareContext(object):
         self.options: Dict[str, Any] = options or {}
         self.message: str = ''
         self.breadcrumbs: List[str] = []
+        self._seen = {}
 
     def extract_args(self, args: tuple, x: Any, y: Any, expected: Any, actual: Any) -> List:
 
@@ -571,7 +593,23 @@ class CompareContext(object):
     def _separator(self) -> str:
         return '\n\nWhile comparing %s: ' % ''.join(self.breadcrumbs[1:])
 
+    def _break_loops(self, obj, breadcrumb):
+        # Don't bother with this process for simple, immutable types:
+        if isinstance(obj, IMMUTABLE_TYPEs):
+            return obj
+
+        id_ = id(obj)
+        breadcrumb_ = self._seen.get(id_)
+        if breadcrumb_ is not None:
+            return AlreadySeen(id_, repr(obj), breadcrumb_)
+        else:
+            self._seen[id_] = breadcrumb
+            return obj
+
     def different(self, x: Any, y: Any, breadcrumb: str) -> Union[bool, Optional[str]]:
+
+        x = self._break_loops(x, breadcrumb)
+        y = self._break_loops(y, breadcrumb)
 
         recursed = bool(self.breadcrumbs)
         self.breadcrumbs.append(breadcrumb)
@@ -580,8 +618,12 @@ class CompareContext(object):
         current_message = ''
         try:
 
-            if not (self.strict or self.ignore_eq) and x == y:
-                return False
+            if type(y) is AlreadySeen or not (self.strict or self.ignore_eq):
+                try:
+                    if x == y:
+                        return False
+                except RecursionError:
+                    pass
 
             comparer: Comparer = self._lookup(x, y)
 

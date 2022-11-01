@@ -970,7 +970,7 @@ b
             "second:\n[2]"
             )
 
-    def test_strict_okay(self):
+    def test_same_object_strict_okay(self):
         m = object()
         compare(m, m, strict=True)
 
@@ -1923,16 +1923,92 @@ b
         expected[2] = expected
         actual = {1: 'foo'}
         actual[2] = actual
-        with ShouldRaise(RecursionError):
-            compare(expected, actual)
+        compare(expected, actual)
 
     def test_self_referential_different(self):
         expected = {1: 'foo'}
         expected[2] = expected
         actual = {1: 'bar'}
         actual[2] = actual
-        with ShouldRaise(RecursionError):
-            compare(expected, actual)
+        self.check_raises(
+            expected,
+            actual,
+            'dict not as expected:\n'
+            '\n'
+            'same:\n'
+            '[2]\n'
+            '\n'
+            'values differ:\n'
+            "1: 'foo' != 'bar'\n"
+            '\n'
+            "While comparing [1]: 'foo' != 'bar'"
+        )
+
+    def test_self_referential_different_but_shows_already_seen(self):
+        ouroboros1 = {}
+        ouroboros1['ouroboros'] = ouroboros1
+        ouroboros2 = {}
+        ouroboros2['ouroboros'] = ouroboros2
+        id2 = str(id(ouroboros2))
+        self.check_raises(
+            {1: ouroboros1, 2: 'foo'},
+            {1: ouroboros2, 2: ouroboros2},
+            'dict not as expected:\n'
+            '\n'
+            'same:\n'
+            '[1]\n'
+            '\n'
+            'values differ:\n'
+            "2: 'foo' != {'ouroboros': <Recursion on dict with id="+id2+">}\n"
+            '\n'
+            "While comparing [2]: 'foo' != "
+            "<AlreadySeen for {'ouroboros': {...}} at [1] with id "+id2+">"
+        )
+
+    def test_self_referential_object_tree(self):
+
+        class Node:
+
+            def __init__(self):
+                self.parent = None
+                self.children = []
+
+            def add(self, child: 'Node'):
+                self.children.append(child)
+                child.parent = self
+
+            def __repr__(self):
+                return f'<Node: {self.children}>'
+
+        expected = Node()
+        expected.add(Node())
+        expected.add(Node())
+
+        actual = Node()
+        actual.add(Node())
+
+        self.check_raises(
+            expected,
+            actual,
+            'Node not as expected:\n'
+            '\n'
+            'attributes same:\n'
+            "['parent']\n"
+            '\n'
+            'attributes differ:\n'
+            "'children': [<Node: []>, <Node: []>] != [<Node: []>]\n"
+            '\n'
+            'While comparing .children: sequence not as expected:\n'
+            '\n'
+            'same:\n'
+            '[<Node: []>]\n'
+            '\n'
+            'first:\n'
+            '[<Node: []>]\n'
+            '\n'
+            'second:\n'
+            '[]'
+        )
 
 
 class TestIgnore(CompareHelper):
