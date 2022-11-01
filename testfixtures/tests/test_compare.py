@@ -395,6 +395,27 @@ class TestCompare(CompareHelper, TestCase):
             "'y': 1.0 != 2.0"
             )
 
+    def test_dict_identical_none_matching_nones_and_ones(self):
+        self.check_raises(
+            {
+                'foo': None,
+                'baz': None,
+            },
+            {
+                'foo': 1,
+                'baz': 1,
+            },
+            "dict not as expected:\n"
+            "\n"
+            'values differ:\n'
+            "'baz': None != 1\n"
+            "'foo': None != 1\n"
+            '\n'
+            "While comparing ['baz']: None != 1\n"
+            "\n"
+            "While comparing ['foo']: None != 1"
+            )
+
     def test_dict_labels_specified(self):
         self.check_raises(
             dict(x=1, y=2), dict(x=2, z=3),
@@ -1896,6 +1917,22 @@ b
             re.compile(shared_prefix + "y"),
             'Both x and y appear as "re.compile(\''+'a'*199+')", but are not equal!'
             )
+
+    def test_self_referential_same(self):
+        expected = {1: 'foo'}
+        expected[2] = expected
+        actual = {1: 'foo'}
+        actual[2] = actual
+        with ShouldRaise(RecursionError):
+            compare(expected, actual)
+
+    def test_self_referential_different(self):
+        expected = {1: 'foo'}
+        expected[2] = expected
+        actual = {1: 'bar'}
+        actual[2] = actual
+        with ShouldRaise(RecursionError):
+            compare(expected, actual)
 
 
 class TestIgnore(CompareHelper):

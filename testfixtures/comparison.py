@@ -511,7 +511,6 @@ class CompareContext(object):
         self.options: Dict[str, Any] = options or {}
         self.message: str = ''
         self.breadcrumbs: List[str] = []
-        self._seen = set()
 
     def extract_args(self, args: tuple, x: Any, y: Any, expected: Any, actual: Any) -> List:
 
@@ -572,22 +571,7 @@ class CompareContext(object):
     def _separator(self) -> str:
         return '\n\nWhile comparing %s: ' % ''.join(self.breadcrumbs[1:])
 
-    def seen(self, x: Any, y: Any) -> bool:
-        # don't get confused by interning:
-        singleton_types = str, bytes, int, float
-        if isinstance(x, singleton_types) and isinstance(y, singleton_types):
-            return False
-        key = id(x), id(y)
-        if key in self._seen:
-            return True
-        self._seen.add(key)
-
     def different(self, x: Any, y: Any, breadcrumb: str) -> Union[bool, Optional[str]]:
-
-        if self.seen(x, y):
-            # a self-referential hierarchy; so lets say this one is
-            # equal and hope the first time we saw it covers things...
-            return False
 
         recursed = bool(self.breadcrumbs)
         self.breadcrumbs.append(breadcrumb)
