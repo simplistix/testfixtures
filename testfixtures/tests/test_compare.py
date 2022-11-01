@@ -1559,6 +1559,20 @@ b
         m.foo(1, 2, x=3)
         compare(m.mock_calls, m.mock_calls, strict=True)
 
+    def test_mock_call_equal(self):
+        m1 = Mock()
+        m1.foo(1, 2, x=3)
+        m2 = Mock()
+        m2.foo(1, 2, x=3)
+        compare(m1.mock_calls, m2.mock_calls)
+
+    def test_mock_call_equal_strict(self):
+        m1 = Mock()
+        m1.foo(1, 2, x=3)
+        m2 = Mock()
+        m2.foo(1, 2, x=3)
+        compare(m1.mock_calls, m2.mock_calls, strict=True)
+
     def test_calls_different(self):
         m1 = Mock()
         m2 = Mock()
