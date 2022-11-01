@@ -1,6 +1,13 @@
 Changes
 =======
 
+7.0.1 (1 Nov 2022)
+------------------
+
+- Remove non-functional support for self-referential data structures in :func:`compare`.
+  The functionality didn't work but did cause erroneous reported equality of values in dictionaries
+  that were actually not equal.
+
 7.0.0 (6 Jul 2022)
 ------------------
 
