@@ -492,19 +492,19 @@ _unsafe_iterables = str, bytes, dict
 
 class AlreadySeen:
 
-    def __init__(self, id_, obj_repr, breadcrumb):
+    def __init__(self, id_, obj, breadcrumb):
         self.id = id_
-        self.obj_repr = obj_repr
+        self.obj = obj
         self.breadcrumb = breadcrumb
 
     def __repr__(self):
-        return f'<AlreadySeen for {self.obj_repr} at {self.breadcrumb} with id {self.id}>'
+        return f'<AlreadySeen for {self.obj!r} at {self.breadcrumb} with id {self.id}>'
 
     def __eq__(self, other):
         if isinstance(other, AlreadySeen):
             return self.breadcrumb == other.breadcrumb
         else:
-            return self.id == id(other)
+            return self.obj == other
 
 
 class CompareContext(object):
@@ -601,7 +601,7 @@ class CompareContext(object):
         id_ = id(obj)
         breadcrumb_ = self._seen.get(id_)
         if breadcrumb_ is not None:
-            return AlreadySeen(id_, repr(obj), breadcrumb_)
+            return AlreadySeen(id_, obj, breadcrumb_)
         else:
             self._seen[id_] = breadcrumb
             return obj
