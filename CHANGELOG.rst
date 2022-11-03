@@ -1,6 +1,11 @@
 Changes
 =======
 
+7.0.3 (3 Nov 2022)
+------------------
+
+- Further bugfixes around self-referential datastructures and :func:`compare`.
+
 7.0.2 (1 Nov 2022)
 ------------------
 
