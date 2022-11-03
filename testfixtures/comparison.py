@@ -630,10 +630,6 @@ class CompareContext(object):
             result = comparer(x, y, self)
             specific_comparer = comparer is not compare_simple
 
-            if self.strict:
-                if x == y and not specific_comparer:
-                    return False
-
             if result:
 
                 if specific_comparer and recursed:
