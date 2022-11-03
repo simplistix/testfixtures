@@ -2024,6 +2024,54 @@ b
             '[]'
         )
 
+    def test_repeated_object_on_the_left_side_ignore_eq(self):
+        item = [1, 2, 3]
+        compare(expected=[item, item], actual=[[1, 2, 3], [1, 2, 3]], ignore_eq=True)
+
+    def test_repeated_object_on_both_sides_ignore_eq(self):
+        item = [1, 2, 3]
+        compare(expected=[item, item], actual=[item, [1, 2, 3]], ignore_eq=True)
+
+    def test_repeated_object_on_both_sides_left_at_compare_strict_type_same(self):
+        item = [1, 2, 3]
+        compare(expected=[item, item], actual=[item, [1, 2, 3]], strict=True)
+
+    def test_repeated_object_on_both_sides_right_at_compare_strict_type_same(self):
+        item = [1, 2, 3]
+        compare(expected=[item, [1, 2, 3]], actual=[item, item], strict=True)
+
+    def test_repeated_object_on_both_sides_strict_type_different(self):
+        item = [1, 2, 3]
+
+        class MyList(list):
+
+            def __repr__(self):
+                return f'<{type(self).__name__}:{super().__repr__()}>'
+
+        type_repr = repr(MyList)
+
+        self.check_raises(
+            [item, item],
+            [item, MyList((1, 2, 3))],
+            strict=True,
+            message = (
+                'sequence not as expected:\n'
+                '\n'
+                'same:\n'
+                '[[1, 2, 3]]\n'
+                '\n'
+                'first:\n'
+                '[[1, 2, 3]]\n'
+                '\n'
+                'second:\n'
+                '[<MyList:[1, 2, 3]>]\n'
+                '\n'
+                f"While comparing [1]: <AlreadySeen for [1, 2, 3] at ... "
+                f"(<class 'testfixtures.comparison.AlreadySeen'>) != "
+                f"<MyList:[1, 2, 3]> ({type_repr})"
+            )
+        )
+
 
 class TestIgnore(CompareHelper):
 

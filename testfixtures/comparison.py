@@ -152,6 +152,8 @@ def compare_with_type(x, y, context: 'CompareContext') -> str:
     Return a textual description of the difference between two objects
     including information about their types.
     """
+    if type(x) is AlreadySeen and type(x.obj) is type(y) and x.obj == y:
+        return ''
     source = locals()
     to_render = {}
     for name in 'x', 'y':
