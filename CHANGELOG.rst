@@ -1,6 +1,12 @@
 Changes
 =======
 
+7.0.4 (5 Dec 2022)
+------------------
+
+- Remove `py.typed` file: neither `mypy` nor `testfixtures` are ready for
+  this file to be present.
+
 7.0.3 (3 Nov 2022)
 ------------------
 
