@@ -77,7 +77,7 @@ class MockPopenInstance(object):
         self.class_instance_mock: Mock = mock_class.mock.Popen_instance
         #: A :func:`unittest.mock.call` representing the call made to instantiate
         #: this mock process.
-        self.root_call: call = root_call
+        self.root_call: Call = root_call
         #: The calls made on this mock process, represented using
         #: :func:`~unittest.mock.call` instances.
         self.calls: List[Call] = []
