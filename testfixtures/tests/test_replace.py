@@ -388,7 +388,7 @@ class TestReplace(TestCase):
             self.assertTrue(len(w), 1)
             compare(str(w[0].message),
                     "Replacer deleted without being restored, originals left:"
-                    " {'testfixtures.tests.sample1.left_behind': <not_there>}")
+                    " {'testfixtures.tests.sample1.left_behind': <Resolved: <not_there>>}")
 
     def test_multiple_replaces(self):
         orig = os.path.sep
