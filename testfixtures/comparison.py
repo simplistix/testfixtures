@@ -819,7 +819,7 @@ class Comparison(StatefulComparison):
             else:
                 attribute_dict.update(attributes)
         if isinstance(object_or_type, str):
-            container, method, name, c = resolve(object_or_type)
+            c = resolve(object_or_type).found
             if c is not_there:
                 raise AttributeError(
                     '%r could not be resolved' % object_or_type

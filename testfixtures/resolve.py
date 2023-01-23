@@ -1,41 +1,58 @@
+from operator import setitem
+from typing import Any, Callable
+
 from testfixtures import not_there
 
+Setter = Callable[[Any, str, Any], None]
 
-def resolve(dotted_name):
+
+class Resolved:
+
+    def __init__(self, container: Any, setter: Setter, name: str, found: Any):
+        self.container: Any = container
+        self.setter: Setter = setter
+        self.name: str = name
+        self.found: Any = found
+
+    def __repr__(self):
+        return f'<Resolved: {self.found}>'
+
+
+def resolve(dotted_name) -> Resolved:
     names = dotted_name.split('.')
     used = names.pop(0)
     found = __import__(used)
     container = found
-    method = None
-    n = None
-    for n in names:
+    setter = None
+    name = None
+    for name in names:
         container = found
-        used += '.' + n
+        used += '.' + name
         try:
-            found = found.__dict__[n]
-            method = 'a'
+            found = found.__dict__[name]
+            setter = setattr
         except (AttributeError, KeyError):
             try:
-                found = getattr(found, n)
-                method = 'a'  # pragma: no branch
+                found = getattr(found, name)
+                setter = setattr
             except AttributeError:
                 try:
                     __import__(used)
                 except ImportError:
-                    method = 'i'
+                    setter = setitem
                     try:
-                        found = found[n]  # pragma: no branch
+                        found = found[name]  # pragma: no branch
                     except KeyError:
                         found = not_there  # pragma: no branch
                     except TypeError:
                         try:
-                            n = int(n)
+                            name = int(name)
                         except ValueError:
-                            method = 'a'
+                            setter = setattr
                             found = not_there
                         else:
-                            found = found[n]  # pragma: no branch
+                            found = found[name]  # pragma: no branch
                 else:
-                    found = getattr(found, n)
-                    method = 'a'  # pragma: no branch
-    return container, method, n, found
+                    found = getattr(found, name)
+                    setter = getattr
+    return Resolved(container, setter, name, found)

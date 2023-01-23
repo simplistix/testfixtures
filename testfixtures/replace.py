@@ -1,7 +1,8 @@
 from functools import partial
-from typing import Any, TypeVar, Callable
+from operator import setitem
+from typing import Any, TypeVar, Callable, Dict
 
-from testfixtures.resolve import resolve, not_there
+from testfixtures.resolve import resolve, not_there, Resolved
 from testfixtures.utils import wrap, extend_docstring
 
 import warnings
@@ -22,50 +23,46 @@ class Replacer:
     """
 
     def __init__(self):
-        self.originals = {}
+        self.originals: Dict[Any, Resolved] = {}
 
-    def _replace(self, container, name, method, value):
+    def _replace(self, resolved: Resolved, value):
         if value is not_there:
-            if method == 'a':
+            if resolved.setter is setattr:
                 try:
-                    delattr(container, name)
+                    delattr(resolved.container, resolved.name)
                 except AttributeError:
                     pass
-            if method == 'i':
+            if resolved.setter is setitem:
                 try:
-                    del container[name]
+                    del resolved.container[resolved.name]
                 except KeyError:
                     pass
         else:
-            if method == 'a':
-                setattr(container, name, value)
-            if method == 'i':
-                container[name] = value
+            resolved.setter(resolved.container, resolved.name, value)
 
-    def __call__(self, target: str, replacement: R, strict: bool = True) -> R:
+    def __call__(self, target: Any, replacement: R, strict: bool = True) -> R:
         """
         Replace the specified target with the supplied replacement.
         """
-
-        container, method, attribute, t_obj = resolve(target)
-        if method is None:
+        resolved = resolve(target)
+        if resolved.accessor is None:
             raise ValueError('target must contain at least one dot!')
-        if t_obj is not_there and strict:
-            raise AttributeError('Original %r not found' % attribute)
+        if resolved.found is not_there and strict:
+            raise AttributeError('Original %r not found' % resolved.name)
 
         replacement_to_use = replacement
 
-        if isinstance(container, type):
+        if isinstance(resolved.container, type):
 
-            if not_same_descriptor(t_obj, replacement, classmethod):
+            if not_same_descriptor(resolved.found, replacement, classmethod):
                 replacement_to_use = classmethod(replacement)
 
-            elif not_same_descriptor(t_obj, replacement, staticmethod):
+            elif not_same_descriptor(resolved.found, replacement, staticmethod):
                 replacement_to_use = staticmethod(replacement)
 
-        self._replace(container, attribute, method, replacement_to_use)
+        self._replace(resolved, replacement_to_use)
         if target not in self.originals:
-            self.originals[target] = t_obj
+            self.originals[target] = resolved
         return replacement
 
     def replace(self, target: str, replacement: Any, strict: bool = True) -> None:
@@ -80,8 +77,7 @@ class Replacer:
         calls to the :meth:`replace` method of this :class:`Replacer`.
         """
         for target, original in tuple(self.originals.items()):
-            container, method, attribute, found = resolve(target)
-            self._replace(container, attribute, method, original)
+            self._replace(original, original.found)
             del self.originals[target]
 
     def __enter__(self):
@@ -114,13 +110,13 @@ class Replace(object):
     A context manager that uses a :class:`Replacer` to replace a single target.
     """
 
-    def __init__(self, target: str, replacement: Any, strict: bool = True):
+    def __init__(self, target: Any, replacement: R, strict: bool = True):
         self.target = target
         self.replacement = replacement
         self.strict = strict
         self._replacer = Replacer()
 
-    def __enter__(self):
+    def __enter__(self) -> R:
         return self._replacer(self.target, self.replacement, self.strict)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
