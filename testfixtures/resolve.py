@@ -1,8 +1,10 @@
 from operator import setitem
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 from testfixtures import not_there
 
+
+# Should be Literal[setattr, getattr] but Python 3.8 only.
 Setter = Callable[[Any, str, Any], None]
 
 
@@ -18,18 +20,23 @@ class Resolved:
         return f'<Resolved: {self.found}>'
 
 
-def resolve(dotted_name) -> Resolved:
+def resolve(dotted_name: str, container: Optional[Any] = None) -> Resolved:
     names = dotted_name.split('.')
     used = names.pop(0)
-    found = __import__(used)
-    container = found
+    if container is None:
+        found = __import__(used)
+        container = found
+    else:
+        assert not used, 'Absolute traversal not allowed when container supplied'
+        used = ''
+        found = container
     setter = None
     name = None
     for name in names:
         container = found
         used += '.' + name
         try:
-            found = found.__dict__[name]
+            found = found.__dict__[name]  # only safe way to get class descriptors
             setter = setattr
         except (AttributeError, KeyError):
             try:

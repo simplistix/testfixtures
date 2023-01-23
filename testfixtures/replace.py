@@ -1,11 +1,14 @@
 from functools import partial
-from operator import setitem
-from typing import Any, TypeVar, Callable, Dict
+from operator import setitem, getitem
+from typing import Any, TypeVar, Callable, Dict, Tuple
 
 from testfixtures.resolve import resolve, not_there, Resolved
 from testfixtures.utils import wrap, extend_docstring
 
 import warnings
+
+# Should be Literal[setattr, getattr] but Python 3.8 only.
+Accessor = Callable[[Any, str], Any]
 
 
 def not_same_descriptor(x, y, descriptor):
@@ -23,7 +26,7 @@ class Replacer:
     """
 
     def __init__(self):
-        self.originals: Dict[Any, Resolved] = {}
+        self.originals: Dict[int, Tuple[Any, Resolved]] = {}
 
     def _replace(self, resolved: Resolved, value):
         if value is not_there:
@@ -40,12 +43,55 @@ class Replacer:
         else:
             resolved.setter(resolved.container, resolved.name, value)
 
-    def __call__(self, target: Any, replacement: R, strict: bool = True) -> R:
+    def __call__(self, target: Any, replacement: R, strict: bool = True,
+                 container: Any = None, accessor: Accessor = None, name: str = None) -> R:
         """
         Replace the specified target with the supplied replacement.
         """
-        resolved = resolve(target)
-        if resolved.accessor is None:
+        if name is None and accessor is not None:
+            raise TypeError('accessor is not used unless name is specified')
+
+        if isinstance(target, str):
+            if name is not None:
+                raise TypeError('name cannot be specified when target is a string')
+            resolved = resolve(target, container)
+        else:
+            found = not_there
+            if container is None:
+                container = target
+
+            name = name or getattr(target, '__name__', None)
+            if name is None:
+                raise TypeError('name must be specified when target is not a string')
+            else:
+                if accessor is None:
+                    try:
+                        accessor = getitem
+                        found = accessor(container, name)
+                    except KeyError:
+                        pass
+                    except TypeError:
+                        accessor = getattr
+                        found = accessor(container, name, not_there)
+                else:
+                    try:
+                        found = accessor(container, name)
+                    except (KeyError, AttributeError):
+                        pass
+
+            if strict and not (found is not_there or target is container):
+                expected = accessor(container, name)
+                if target is not expected:
+                    raise AssertionError(f'{name!r} resolved to {found}, expected {target}')
+
+            resolved = Resolved(
+                container,
+                setitem if accessor is getitem else setattr,
+                name,
+                found
+            )
+
+        if resolved.setter is None:
             raise ValueError('target must contain at least one dot!')
         if resolved.found is not_there and strict:
             raise AttributeError('Original %r not found' % resolved.name)
@@ -61,24 +107,26 @@ class Replacer:
                 replacement_to_use = staticmethod(replacement)
 
         self._replace(resolved, replacement_to_use)
-        if target not in self.originals:
-            self.originals[target] = resolved
+        key = id(target)
+        if key not in self.originals:
+            self.originals[key] = target, resolved
         return replacement
 
-    def replace(self, target: str, replacement: Any, strict: bool = True) -> None:
+    def replace(self, target: Any, replacement: Any, strict: bool = True,
+                container: Any = None, accessor: Accessor = None, name: str = None) -> None:
         """
         Replace the specified target with the supplied replacement.
         """
-        self(target, replacement, strict)
+        self(target, replacement, strict, container, accessor, name)
 
     def restore(self) -> None:
         """
         Restore all the original objects that have been replaced by
         calls to the :meth:`replace` method of this :class:`Replacer`.
         """
-        for target, original in tuple(self.originals.items()):
+        for id_, (target, original) in tuple(self.originals.items()):
             self._replace(original, original.found)
-            del self.originals[target]
+            del self.originals[id_]
 
     def __enter__(self):
         return self
@@ -92,17 +140,23 @@ class Replacer:
             # it's covered by test_replace.TestReplace.test_replacer_del
             warnings.warn(  # pragma: no cover
                 'Replacer deleted without being restored, '
-                'originals left: %r' % self.originals
+                'originals left: %r' % {k:v for (k, v) in self.originals.values()}
                 )
 
 
-def replace(target: str, replacement: Any, strict: bool = True) -> Callable[[Callable], Callable]:
+def replace(
+        target: Any, replacement: Any, strict: bool = True,
+        container: Any = None, accessor: Accessor = None, name: str = None
+) -> Callable[[Callable], Callable]:
     """
     A decorator to replace a target object for the duration of a test
     function.
     """
     r = Replacer()
-    return wrap(partial(r.__call__, target, replacement, strict), r.restore)
+    return wrap(
+        partial(r.__call__, target, replacement, strict, container, accessor, name),
+        r.restore
+    )
 
 
 class Replace(object):
@@ -110,14 +164,22 @@ class Replace(object):
     A context manager that uses a :class:`Replacer` to replace a single target.
     """
 
-    def __init__(self, target: Any, replacement: R, strict: bool = True):
+    def __init__(
+            self, target: Any, replacement: R, strict: bool = True,
+            container: Any = None, accessor: Accessor = None, name: str = None
+    ):
         self.target = target
         self.replacement = replacement
         self.strict = strict
+        self.container: Any = container
+        self.accessor: Accessor = accessor
+        self.name: str = name
         self._replacer = Replacer()
 
     def __enter__(self) -> R:
-        return self._replacer(self.target, self.replacement, self.strict)
+        return self._replacer(
+            self.target, self.replacement, self.strict, self.container, self.accessor, self.name
+        )
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._replacer.restore()

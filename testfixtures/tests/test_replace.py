@@ -1,3 +1,5 @@
+from operator import getitem
+
 from testfixtures import (
     Replacer,
     Replace,
@@ -11,8 +13,11 @@ from unittest import TestCase
 
 import os
 
-from testfixtures.tests import sample1
+from testfixtures.mock import Mock
+from testfixtures.tests import sample1, sample3
 from testfixtures.tests import sample2
+from .sample1 import z
+from .sample3 import SOME_CONSTANT
 from ..compat import PY_310_PLUS
 
 from warnings import catch_warnings
@@ -479,3 +484,201 @@ class TestReplace(TestCase):
 
         with Replace('testfixtures.tests.sample1.foo', test_z, strict=False):
             compare(sample1.foo(), 'replacement z')
+
+    def test_context_manager_full_spec(self):
+        my_dict = {}
+
+        with Replace(my_dict, name='foo', accessor=getitem, replacement=42, strict=False):
+            compare(my_dict, expected={'foo': 42})
+
+        compare(my_dict, expected={})
+
+    def test_decorator_full_spec(self):
+        my_dict = {}
+
+        @replace(my_dict, name='foo', accessor=getitem, replacement=42, strict=False)
+        def test_something():
+            compare(my_dict, expected={'foo': 42})
+
+        test_something()
+
+        compare(my_dict, expected={})
+
+    def test_replace_method_full_spec(self):
+        my_dict = {}
+
+        with Replacer() as r:
+            r.replace(my_dict, name='foo', accessor=getitem, replacement=42, strict=False)
+            compare(my_dict, expected={'foo': 42})
+
+        compare(my_dict, expected={})
+
+    def test_context_manager_specified_method(self):
+        class SampleClass:
+
+            def method(self, x):
+                return x*2
+
+        sample_obj = SampleClass()
+
+        with Replace(SampleClass.method, lambda self, x: x*3,
+                     container=SampleClass, name='method', accessor=getattr):
+            compare(sample_obj.method(1), expected=3)
+
+        compare(sample_obj.method(1), expected=2)
+
+    def test_decorator_specified_method(self):
+        class SampleClass:
+
+            def method(self, x):
+                return x*2
+
+        sample_obj = SampleClass()
+
+        @replace(SampleClass.method, lambda self, x: x*3,
+                 container=SampleClass, name='method', accessor=getattr)
+        def test_something():
+            compare(sample_obj.method(1), expected=3)
+
+        test_something()
+
+        compare(sample_obj.method(1), expected=2)
+
+    def test_fully_specified_method(self):
+        class SampleClass:
+
+            def method(self, x):
+                return x*2
+
+        sample_obj = SampleClass()
+
+        with Replacer() as r:
+            r.replace(SampleClass.method, lambda self, x: x*3,
+                      container=SampleClass, name='method', accessor=getattr)
+            compare(sample_obj.method(1), expected=3)
+
+        compare(sample_obj.method(1), expected=2)
+
+    def test_fully_specified_method_incorrect_name(self):
+        class SampleClass:
+
+            def a(self):
+                return 1
+
+            def b(self):
+                return 2
+
+        sample_obj = SampleClass()
+        a_repr = repr(SampleClass.a)
+        b_repr = repr(SampleClass.b)
+        replacer = Replacer()
+        with ShouldRaise(AssertionError(f"'b' resolved to {b_repr}, expected {a_repr}")):
+            replacer(SampleClass.a, lambda self: 3,
+                     container=SampleClass, name='b', accessor=getattr)
+
+        compare(sample_obj.a(), expected=1)
+        compare(sample_obj.b(), expected=2)
+
+    def test_traverse_from_container(self):
+        x = sample1.X()
+        with Replace('.X.aMethod', lambda cls: 'FOO', container=sample1):
+            compare(x.aMethod(), expected='FOO')
+        assert x.aMethod() is sample1.X
+
+    def test_only_relative_traverse_from_container(self):
+        x = sample1.X()
+        replacer = Replacer()
+        with ShouldRaise(AssertionError('Absolute traversal not allowed when container supplied')):
+            replacer('foo', object(), container=sample1)
+
+    def test_no_name_and_target_string(self):
+        x = sample1.X()
+        replacer = Replacer()
+        with ShouldRaise(TypeError('name cannot be specified when target is a string')):
+            replacer('.X', lambda cls: 'FOO', name='aMethod', container=sample1)
+        assert x.aMethod() is sample1.X
+
+    def test_no_accessor_allowed_when_name_not_specified(self):
+        my_dict = {}
+        replacer = Replacer()
+        with ShouldRaise(TypeError('accessor is not used unless name is specified')):
+            replacer(container=my_dict, target='.my.key', accessor=getitem, replacement='bar')
+        compare(my_dict, expected={})
+
+    def test_dict_and_name(self):
+        my_dict = {}
+
+        with Replace(my_dict, name='foo', replacement=42, strict=False):
+            compare(my_dict, expected={'foo': 42})
+
+        compare(my_dict, expected={})
+
+    def test_name_and_dict(self):
+        environ = {}
+
+        with Replace('.MY_ENV_VAR', 'True', container=environ, strict=False):
+            compare(environ, expected={'MY_ENV_VAR': 'True'})
+
+        compare(environ, expected={})
+
+    def test_obj_and_name(self):
+        my_obj = Mock()
+        foo = my_obj.foo
+
+        with Replace(my_obj, name='foo', replacement=42, strict=False):
+            compare(my_obj.foo, expected=42)
+
+        assert my_obj.foo is foo
+
+    def test_non_string_target_and_no_name(self):
+        my_dict = {}
+
+        replacer = Replacer()
+        with ShouldRaise(TypeError('name must be specified when target is not a string')):
+            replacer(my_dict, replacement=42, strict=False)
+
+        compare(my_dict, expected={})
+
+    def test_method_on_instance(self):
+
+        class SampleClass:
+
+            def method(self, x):
+                return x*2
+
+        sample = SampleClass()
+
+        with Replacer() as replace:
+            replace(sample.method, lambda x: x * 3, container=sample, strict=False)
+            compare(sample.method(1), expected=3)
+
+        compare(sample.method(1), expected=2)
+
+    def test_class_attribute(self):
+
+        mock = Mock()
+        mock.FOO = set()
+
+        class SampleClass:
+
+            FOO = mock.FOO
+
+        sample = SampleClass()
+
+        with Replace(SampleClass.FOO, {'X'}, container=SampleClass, name='FOO'):
+            compare(sample.FOO, expected={'X'})
+            compare(mock.FOO, expected=set())
+
+        compare(sample.FOO, expected=set())
+
+    def test_function_and_module(self):
+        with Replace(z, lambda: 'all new z', container=sample1):
+            from .sample1 import z as sample1_z
+            from .sample3 import z as sample3_z
+            compare(sample1_z(), expected='all new z')
+            compare(sample3_z(), expected='original z')
+
+    def test_constant(self):
+        with Replace(SOME_CONSTANT, 43, container=sample3, name='SOME_CONSTANT'):
+            from .sample3 import SOME_CONSTANT as sample3_some_constant
+            compare(sample3_some_constant, expected=43)
