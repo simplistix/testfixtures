@@ -28,32 +28,31 @@ jobs:
 common: &common
   jobs:
     - python/pip-run-tests:
-        name: python36
-        image: cimg/python:3.6
+        matrix:
+          parameters:
+            image:
+              - cimg/python:3.6
+              - cimg/python:3.7
+              - cimg/python:3.8
+              - cimg/python:3.9
+              - cimg/python:3.10
+              - cimg/python:3.11
     - python/pip-run-tests:
-        name: python39
-        image: cimg/python:3.9
-    - python/pip-run-tests:
-        name: python310
-        image: cimg/python:3.10
-    - python/pip-run-tests:
-        name: python310-mock-backport
-        image: cimg/python:3.10
+        name: mock-backport
+        image: cimg/python:3.11
         extra_packages: "mock"
     - python/pip-run-tests:
-        name: python310-django-latest
-        image: cimg/python:3.10
+        name: django-latest
+        image: cimg/python:3.11
         extra_packages: "django"
 
     - python/coverage:
         name: coverage
-        image: cimg/python:3.10
+        image: cimg/python:3.11
         requires:
-          - python36
-          - python39
-          - python310
-          - python310-mock-backport
-          - python310-django-latest
+          - python/pip-run-tests
+          - mock-backport
+          - django-latest
 
     - python/pip-docs:
         name: docs
@@ -69,22 +68,22 @@ common: &common
             only: master
 
     - check-package:
-        name: check-package-python310
-        image: cimg/python:3.10
+        name: check-package-python
+        image: cimg/python:3.11
         requires:
           - package
 
     - check-package:
-        name: check-package-python310-mock
-        image: cimg/python:3.10
+        name: check-package-python-mock
+        image: cimg/python:3.11
         extra_package: mock
         imports: "testfixtures, testfixtures.mock"
         requires:
           - package
 
     - check-package:
-        name: check-package-python310-django
-        image: cimg/python:3.10
+        name: check-package-python-django
+        image: cimg/python:3.11
         extra_package: django
         imports: "testfixtures, testfixtures.django"
         requires:
@@ -94,9 +93,9 @@ common: &common
         name: release
         config: .carthorse.yml
         requires:
-          - check-package-python310
-          - check-package-python310-mock
-          - check-package-python310-django
+          - check-package-python
+          - check-package-python-mock
+          - check-package-python-django
 
 workflows:
   push:
