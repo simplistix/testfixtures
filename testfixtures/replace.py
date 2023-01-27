@@ -1,3 +1,5 @@
+import os
+from contextlib import contextmanager
 from functools import partial
 from operator import setitem, getitem
 from typing import Any, TypeVar, Callable, Dict, Tuple
@@ -119,6 +121,10 @@ class Replacer:
         """
         self(target, replacement, strict, container, accessor, name)
 
+    def in_environ(self, name: str, replacement: Any) -> None:
+        self(os.environ, name=name, accessor=getitem, strict=False,
+             replacement=not_there if replacement is not_there else str(replacement))
+
     def restore(self) -> None:
         """
         Restore all the original objects that have been replaced by
@@ -159,6 +165,11 @@ def replace(
     )
 
 
+@contextmanager
+def replace_in_environ(name: str, replacement: Any):
+    with Replacer() as r:
+        r.in_environ(name, replacement)
+        yield
 class Replace(object):
     """
     A context manager that uses a :class:`Replacer` to replace a single target.

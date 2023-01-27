@@ -20,7 +20,12 @@ from testfixtures.datetime import mock_datetime, mock_date, mock_time
 from testfixtures.logcapture import LogCapture, log_capture
 from testfixtures.outputcapture import OutputCapture
 from testfixtures.resolve import resolve
-from testfixtures.replace import Replacer, Replace, replace
+from testfixtures.replace import (
+    Replacer,
+    Replace,
+    replace,
+    replace_in_environ,
+)
 from testfixtures.shouldraise import ShouldRaise, should_raise, ShouldAssert
 from testfixtures.shouldwarn import ShouldWarn, ShouldNotWarn
 from testfixtures.tempdirectory import TempDirectory, tempdir
