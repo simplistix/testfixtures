@@ -63,3 +63,18 @@ def resolve(dotted_name: str, container: Optional[Any] = None) -> Resolved:
                     found = getattr(found, name)
                     setter = getattr
     return Resolved(container, setter, name, found)
+
+
+class _Reference:
+
+    @classmethod
+    def classmethod(cls):  # pragma: no cover
+        pass
+
+    @staticmethod
+    def staticmethod(cls):  # pragma: no cover
+        pass
+
+
+class_type = type(_Reference)
+classmethod_type = type(_Reference.classmethod)
