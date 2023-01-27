@@ -8,6 +8,7 @@ from testfixtures import (
     replace,
     compare,
     not_there,
+    replace_in_environ,
     )
 from unittest import TestCase
 
@@ -682,3 +683,40 @@ class TestReplace(TestCase):
         with Replace(SOME_CONSTANT, 43, container=sample3, name='SOME_CONSTANT'):
             from .sample3 import SOME_CONSTANT as sample3_some_constant
             compare(sample3_some_constant, expected=43)
+
+
+class TestEnviron:
+
+    def test_key_present(self):
+        os.environ['TESTFIXTURES_SAMPLE_KEY_PRESENT'] = 'ORIGINAL'
+        with Replacer() as replace:
+            replace.in_environ('TESTFIXTURES_SAMPLE_KEY_PRESENT', 'NEW')
+            compare(os.environ['TESTFIXTURES_SAMPLE_KEY_PRESENT'], expected='NEW')
+        compare(os.environ['TESTFIXTURES_SAMPLE_KEY_PRESENT'], expected='ORIGINAL')
+
+    def test_key_not_present(self):
+        assert 'TESTFIXTURES_SAMPLE_KEY_MISSING' not in os.environ
+        with Replacer() as replace:
+            replace.in_environ('TESTFIXTURES_SAMPLE_KEY_MISSING', 'NEW')
+            compare(os.environ['TESTFIXTURES_SAMPLE_KEY_MISSING'], expected='NEW')
+        assert 'TESTFIXTURES_SAMPLE_KEY_MISSING' not in os.environ
+
+    def test_non_string_replacement(self):
+        with Replacer() as replace:
+            replace.in_environ('PORT', 1)
+            compare(os.environ['PORT'], expected='1')
+
+    def test_ensure_not_present(self):
+        os.environ['TESTFIXTURES_SAMPLE_KEY_PRESENT'] = 'ORIGINAL'
+        with Replacer() as replace:
+            replace.in_environ('TESTFIXTURES_SAMPLE_KEY_PRESENT', not_there)
+            assert 'TESTFIXTURES_SAMPLE_KEY_PRESENT' not in os.environ
+
+
+class TestConvenience:
+
+    def test_environ(self):
+        os.environ['TESTFIXTURES_SAMPLE_KEY_PRESENT'] = 'ORIGINAL'
+        with replace_in_environ('TESTFIXTURES_SAMPLE_KEY_PRESENT', 'NEW'):
+            compare(os.environ['TESTFIXTURES_SAMPLE_KEY_PRESENT'], expected='NEW')
+        compare(os.environ['TESTFIXTURES_SAMPLE_KEY_PRESENT'], expected='ORIGINAL')
