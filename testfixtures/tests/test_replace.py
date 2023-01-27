@@ -10,6 +10,7 @@ from testfixtures import (
     not_there,
     replace_in_environ,
     replace_on_class,
+    replace_in_module,
     )
 from unittest import TestCase
 
@@ -877,6 +878,40 @@ class TestOnClass:
         compare(X.bMethod(), expected=2)
 
 
+class TestInModule:
+
+    def test_function_guess_module(self):
+        with Replacer() as replace:
+            replace.in_module(z, lambda: 'all new z')
+            from .sample1 import z as sample1_z
+            from .sample3 import z as sample3_z
+            compare(sample1_z(), expected='all new z')
+            compare(sample3_z(), expected='original z')
+        from .sample1 import z as sample1_z
+        from .sample3 import z as sample3_z
+        compare(sample1_z(), expected='original z')
+        compare(sample3_z(), expected='original z')
+
+    def test_function_explict_module(self):
+        with Replacer() as replace:
+            replace.in_module(z, lambda: 'all new z', module=sample3)
+            from .sample1 import z as sample1_z
+            from .sample3 import z as sample3_z
+            compare(sample1_z(), expected='original z')
+            compare(sample3_z(), expected='all new z')
+        from .sample1 import z as sample1_z
+        from .sample3 import z as sample3_z
+        compare(sample1_z(), expected='original z')
+        compare(sample3_z(), expected='original z')
+
+    def test_constant(self):
+        replace = Replacer()
+        with ShouldRaise(AttributeError("'int' object has no attribute '__module__'")):
+            replace.in_module(SOME_CONSTANT, 43)
+        from .sample3 import SOME_CONSTANT as sample3_some_constant
+        compare(sample3_some_constant, expected=42)
+
+
 class TestConvenience:
 
     def test_environ(self):
@@ -898,3 +933,14 @@ class TestConvenience:
             compare(sample.method(1), expected=3)
 
         compare(sample.method(1), expected=2)
+
+    def test_in_module(self):
+        with replace_in_module(z, lambda: 'all new z', module=sample3):
+            from .sample1 import z as sample1_z
+            from .sample3 import z as sample3_z
+            compare(sample1_z(), expected='original z')
+            compare(sample3_z(), expected='all new z')
+        from .sample1 import z as sample1_z
+        from .sample3 import z as sample3_z
+        compare(sample1_z(), expected='original z')
+        compare(sample3_z(), expected='original z')
