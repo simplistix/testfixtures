@@ -1,10 +1,12 @@
 import os
 from contextlib import contextmanager
 from functools import partial
+from gc import get_referrers, get_referents
 from operator import setitem, getitem
+from types import ModuleType
 from typing import Any, TypeVar, Callable, Dict, Tuple
 
-from testfixtures.resolve import resolve, not_there, Resolved
+from testfixtures.resolve import resolve, not_there, Resolved, classmethod_type, class_type
 from testfixtures.utils import wrap, extend_docstring
 
 import warnings
@@ -125,6 +127,36 @@ class Replacer:
         self(os.environ, name=name, accessor=getitem, strict=False,
              replacement=not_there if replacement is not_there else str(replacement))
 
+    def _find_container(self, attribute, name: str, break_on_static: bool):
+        for referrer in get_referrers(attribute):
+            if break_on_static and isinstance(referrer, staticmethod):
+                return None, referrer
+            elif isinstance(referrer, dict) and '__dict__' in referrer:
+                if referrer.get(name) is attribute:
+                    for container in get_referrers(referrer):
+                        if isinstance(container, type):
+                            return container, None
+        return None, None
+
+    def on_class(self, attribute: Callable, replacement: Any, name: str = None) -> None:
+        if not callable(attribute):
+            raise TypeError('attribute must be callable')
+        name = name or getattr(attribute, '__name__', None)
+        container = None
+        if isinstance(attribute, classmethod_type):
+            for referred in get_referents(attribute):
+                if isinstance(referred, class_type):
+                    container = referred
+        else:
+            container, staticmethod_ = self._find_container(attribute, name, break_on_static=True)
+            if staticmethod_ is not None:
+                container, _ = self._find_container(staticmethod_, name, break_on_static=False)
+
+        if container is None:
+            raise AttributeError(f'could not find container of {attribute!r} using name {name!r}')
+
+        self(container, name=name, accessor=getattr, replacement=replacement)
+
     def restore(self) -> None:
         """
         Restore all the original objects that have been replaced by
@@ -170,6 +202,14 @@ def replace_in_environ(name: str, replacement: Any):
     with Replacer() as r:
         r.in_environ(name, replacement)
         yield
+
+
+@contextmanager
+def replace_on_class(attribute: Callable, replacement: Any, name: str = None):
+    with Replacer() as r:
+        r.on_class(attribute, replacement, name)
+        yield
+
 class Replace(object):
     """
     A context manager that uses a :class:`Replacer` to replace a single target.

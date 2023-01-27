@@ -9,6 +9,7 @@ from testfixtures import (
     compare,
     not_there,
     replace_in_environ,
+    replace_on_class,
     )
 from unittest import TestCase
 
@@ -17,7 +18,7 @@ import os
 from testfixtures.mock import Mock
 from testfixtures.tests import sample1, sample3
 from testfixtures.tests import sample2
-from .sample1 import z
+from .sample1 import z, X
 from .sample3 import SOME_CONSTANT
 from ..compat import PY_310_PLUS
 
@@ -713,6 +714,169 @@ class TestEnviron:
             assert 'TESTFIXTURES_SAMPLE_KEY_PRESENT' not in os.environ
 
 
+class TestOnClass:
+
+    def test_method_on_class(self):
+
+        class SampleClass:
+
+            def method(self, x):
+                return x*2
+
+        sample = SampleClass()
+
+        with Replacer() as replace:
+            replace.on_class(SampleClass.method, lambda self, x: x*3)
+            compare(sample.method(1), expected=3)
+
+        compare(sample.method(1), expected=2)
+
+    def test_method_on_instance(self):
+
+        class SampleClass:
+
+            def method(self, x):
+                return x*2
+
+        sample = SampleClass()
+
+        with Replacer() as replace:
+            with ShouldRaise(AttributeError):
+                replace.on_class(sample.method, lambda self, x: x*3)
+
+            # ...so use explicit and non-strict:
+            replace(sample.method, lambda x: x * 3, container=sample, strict=False)
+
+            compare(sample.method(1), expected=3)
+
+        compare(sample.method(1), expected=2)
+
+    def test_badly_decorated_method(self):
+
+        def bad(f):
+            def inner(self, x):
+                return f(self, x)
+            return inner
+
+        class SampleClass:
+
+            @bad
+            def method(self, x):
+                return x*2
+
+        sample = SampleClass()
+
+        with Replacer() as replace:
+
+            # without the name, we get a useful error:
+            with ShouldRaise(AttributeError(
+                    f"could not find container of {SampleClass.method} using name 'inner'"
+            )):
+                replace.on_class(SampleClass.method, lambda self_, x: x*3)
+
+            assert SampleClass.__dict__['method'] is original
+            replace.on_class(SampleClass.method, lambda self_, x: x*3, name='method')
+            compare(sample.method(1), expected=3)
+
+        compare(sample.method(1), expected=2)
+
+    def test_classmethod(self):
+
+        class SampleClass:
+
+            @classmethod
+            def method(cls, x):
+                return x*2
+
+        with Replacer() as replace:
+            replace.on_class(SampleClass.method, classmethod(lambda cls, x: x*3))
+            compare(SampleClass.method(1), expected=3)
+
+        compare(SampleClass.method(1), expected=2)
+
+    def test_staticmethod(self):
+
+        class SampleClass:
+
+            @staticmethod
+            def method(x):
+                return x*2
+
+        with Replacer() as replace:
+            replace.on_class(SampleClass.method, lambda x: x*3)
+            compare(SampleClass.method(1), expected=3)
+
+        compare(SampleClass.method(1), expected=2)
+
+    def test_not_callable(self):
+
+        class SampleClass:
+
+            FOO = 1
+
+        sample = SampleClass()
+
+        replace = Replacer()
+        with ShouldRaise(TypeError('attribute must be callable')):
+            replace.on_class(SampleClass.FOO, 2)
+        compare(sample.FOO, expected=1)
+
+    def test_method_on_class_in_module(self):
+        sample = X()
+
+        with Replacer() as replace:
+            replace.on_class(X.y, lambda self_: 'replacement y')
+            compare(sample.y(), expected='replacement y')
+
+        compare(sample.y(), expected='original y')
+
+    def test_method_on_instance_in_module(self):
+
+        sample = X()
+
+        with Replacer() as replace:
+            replace(sample.y, lambda: 'replacement y', container=sample, strict=False)
+            compare(sample.y(), expected='replacement y')
+
+        compare(sample.y(), expected='original y')
+
+    def test_classmethod_on_class_in_module(self):
+
+        with Replacer() as replace:
+            replace.on_class(X.aMethod, classmethod(lambda cls: (cls, cls)))
+            compare(X.aMethod(), expected=(X, X))
+
+        compare(X.aMethod(), expected=X)
+
+    def test_classmethod_on_instance_in_module(self):
+
+        sample = X()
+
+        with Replacer() as replace:
+            replace.on_class(sample.aMethod, classmethod(lambda cls: (cls, cls)))
+            compare(sample.aMethod(), expected=(X, X))
+
+        compare(sample.aMethod(), expected=X)
+
+    def test_staticmethod_on_class_in_module(self):
+
+        with Replacer() as replace:
+            replace.on_class(X.bMethod, lambda: 3)
+            compare(X.bMethod(), expected=3)
+
+        compare(X.bMethod(), expected=2)
+
+    def test_staticmethod_on_instance_in_module(self):
+
+        sample = X()
+
+        with Replacer() as replace:
+            replace(sample.bMethod, lambda: 3, container=sample, strict=False)
+            compare(sample.bMethod(), expected=3)
+
+        compare(X.bMethod(), expected=2)
+
+
 class TestConvenience:
 
     def test_environ(self):
@@ -720,3 +884,17 @@ class TestConvenience:
         with replace_in_environ('TESTFIXTURES_SAMPLE_KEY_PRESENT', 'NEW'):
             compare(os.environ['TESTFIXTURES_SAMPLE_KEY_PRESENT'], expected='NEW')
         compare(os.environ['TESTFIXTURES_SAMPLE_KEY_PRESENT'], expected='ORIGINAL')
+
+    def test_on_class(self):
+
+        class SampleClass:
+
+            def method(self, x):
+                return x*2
+
+        sample = SampleClass()
+
+        with replace_on_class(SampleClass.method, lambda self, x: x*3, name='method'):
+            compare(sample.method(1), expected=3)
+
+        compare(sample.method(1), expected=2)
