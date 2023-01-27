@@ -34,18 +34,9 @@ class TestDiff(TestCase):
 
     def test_no_newlines(self):
         actual = diff('x', 'y')
-        # no rhyme or reason as to which of these comes back :-/
-        try:
-            expected = '@@ -1 +1 @@\n-x\n+y'
-            self.assertEqual(
-                expected,
-                actual,
-                '\n%r\n!=\n%r' % (expected, actual)
-                )
-        except AssertionError:  # pragma: no cover
-            expected = '--- first\n+++ second\n@@ -1 +1 @@\n-x\n+y'
-            self.assertEqual(
-                expected,
-                actual,
-                '\n%r\n!=\n%r' % (expected, actual)
-                )
+        expected = '--- first\n+++ second\n@@ -1 +1 @@\n-x\n+y'
+        self.assertEqual(
+            expected,
+            actual,
+            '\n%r\n!=\n%r' % (expected, actual)
+        )
