@@ -157,6 +157,11 @@ class Replacer:
 
         self(container, name=name, accessor=getattr, replacement=replacement)
 
+    def in_module(self, target: Any, replacement: Any, module: ModuleType = None) -> None:
+        container = module or resolve(target.__module__).found
+        name = target.__name__
+        self(container, name=name, accessor=getattr, replacement=replacement)
+
     def restore(self) -> None:
         """
         Restore all the original objects that have been replaced by
@@ -209,6 +214,14 @@ def replace_on_class(attribute: Callable, replacement: Any, name: str = None):
     with Replacer() as r:
         r.on_class(attribute, replacement, name)
         yield
+
+
+@contextmanager
+def replace_in_module(target: Any, replacement: Any, module: ModuleType = None):
+    with Replacer() as r:
+        r.in_module(target, replacement, module)
+        yield
+
 
 class Replace(object):
     """

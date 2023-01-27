@@ -26,6 +26,7 @@ from testfixtures.replace import (
     replace,
     replace_in_environ,
     replace_on_class,
+    replace_in_module,
 )
 from testfixtures.shouldraise import ShouldRaise, should_raise, ShouldAssert
 from testfixtures.shouldwarn import ShouldWarn, ShouldNotWarn
