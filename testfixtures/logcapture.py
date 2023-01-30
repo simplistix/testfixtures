@@ -1,6 +1,6 @@
 from collections import defaultdict
 from logging import LogRecord
-from typing import List, Union, Tuple, Sequence, Callable, Any
+from typing import List, Union, Tuple, Sequence, Callable, Any, Optional
 import atexit
 import logging
 import warnings
@@ -54,6 +54,8 @@ class LogCapture(logging.Handler):
 
     #: The records captured by this :class:`LogCapture`.
     records: List[LogRecord]
+    #: The log level above which checks must be made for logged events.
+    ensure_checks_above: Optional[int]
 
     instances = set()
     atexit_setup = False
@@ -81,7 +83,6 @@ class LogCapture(logging.Handler):
         self.attributes = attributes
         self.recursive_check = recursive_check
         self.old = defaultdict(dict)
-        #: The log level above which checks must be made for logged events.
         if ensure_checks_above is None:
             self.ensure_checks_above = self.default_ensure_checks_above
         else:

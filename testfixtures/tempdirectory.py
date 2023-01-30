@@ -17,7 +17,7 @@ PathStrings = Union[str, Tuple[str]]
 
 
 if TYPE_CHECKING:
-    from py.path import local
+    import py.path
 
 
 class TempDirectory:
@@ -50,7 +50,7 @@ class TempDirectory:
 
     def __init__(
             self,
-            path: Union[str, Path, 'local'] = None,
+            path: Union[str, Path, 'py.path.local'] = None,
             *,
             ignore: Sequence[str] = (),
             create: bool = None,
@@ -331,7 +331,7 @@ class TempDirectory:
         """
         return Path(self.path if path is None else self._join(path))
 
-    def as_local(self, path: PathStrings = None) -> 'local':
+    def as_local(self, path: PathStrings = None) -> 'py.path.local':
         """
         Return the :class:`py.path.local` that corresponds to the path
         relative to the temporary directory that is passed in.

@@ -70,7 +70,7 @@ For example, where 2 days elapse between each returned value:
 The ``delta_type`` can be any keyword parameter accepted by the
 :class:`~datetime.timedelta` constructor. Specifying a ``delta`` of
 zero can be an effective way of ensuring that all calls to the
-:meth:`~testfixtures.MockDate.today` method return the same value:
+:meth:`~testfixtures.datetime.MockDate.today` method return the same value:
 
 >>> with Replace('testfixtures.tests.sample1.date',
 ...              mock_date(1978, 6, 13, delta=0)) as d:
@@ -83,7 +83,7 @@ zero can be an effective way of ensuring that all calls to the
 
 When using :func:`~testfixtures.mock_date`, you can, at any time, set
 the next date to be returned using the
-:meth:`~testfixtures.MockDate.set` method. The date returned after
+:meth:`~testfixtures.datetime.MockDate.set` method. The date returned after
 this will be the set date plus the ``delta`` in effect:
 
 >>> with Replace('testfixtures.tests.sample1.date', mock_date(delta=2)) as d:
@@ -160,7 +160,7 @@ For example, where 2 hours elapse between each returned value:
 The ``delta_type`` can be any keyword parameter accepted by the
 :class:`~datetime.timedelta` constructor. Specifying a ``delta`` of
 zero can be an effective way of ensuring that all calls to the
-:meth:`~testfixtures.MockDateTime.now` method return the same value:
+:meth:`~testfixtures.datetime.MockDateTime.now` method return the same value:
 
 >>> with Replace('testfixtures.tests.sample1.datetime',
 ...              mock_datetime(1978, 6, 13, 16, 0, 1, delta=0)) as d:
@@ -173,7 +173,7 @@ zero can be an effective way of ensuring that all calls to the
 
 When using :func:`~testfixtures.mock_datetime`, you can, at any time, set
 the next datetime to be returned using the
-:meth:`~testfixtures.MockDateTime.set` method. The value returned after
+:meth:`~testfixtures.datetime.MockDateTime.set` method. The value returned after
 this will be the set value plus the ``delta`` in effect:
 
 >>> with Replace('testfixtures.tests.sample1.datetime',
@@ -268,7 +268,8 @@ datetime.datetime(2001, 4, 1, 10, 0, tzinfo=<ATZInfo ...>)
 
   For your own sanity, you should avoid using the ``tzinfo`` parameter or
   passing :class:`~datetime.datetime` instances with non-``None`` :attr:`~datetime.datetime.tzinfo`
-  attributes when calling :meth:`~MockDateTime.add` or :meth:`~MockDateTime.set`.
+  attributes when calling :meth:`~testfixtures.datetime.MockDateTime.add` or
+  :meth:`~testfixtures.datetime.MockDateTime.set`.
 
 Times
 ~~~~~
@@ -333,7 +334,7 @@ For example, where 2 hours elapse between each returned value:
 The ``delta_type`` can be any keyword parameter accepted by the
 :class:`~datetime.timedelta` constructor. Specifying a ``delta`` of
 zero can be an effective way of ensuring that all calls to the
-:meth:`~time.time` function return the same value:
+:func:`~time.time` function return the same value:
 
 >>> with Replace('testfixtures.tests.sample1.time',
 ...              mock_time(1978, 6, 13, 16, 0, 1, delta=0)) as d:
@@ -346,7 +347,7 @@ zero can be an effective way of ensuring that all calls to the
 
 When using :func:`~testfixtures.mock_time`, you can, at any time, set
 the next timestamp to be returned using the
-:meth:`~testfixtures.mock_time.set` method. The value returned after
+:meth:`~testfixtures.datetime.MockTime.set` method. The value returned after
 this will be the set value plus the ``delta`` in effect:
 
 >>> with Replace('testfixtures.tests.sample1.time', mock_time(delta=2)) as d:
@@ -435,10 +436,10 @@ True
 You will need to take care that you  have replaced occurrences of the
 class where type checking is done with the correct
 :class:`mock_datetime` or :class:`mock_date`.
-Also, be aware that the :meth:`~MockDateTime.date` method of
+Also, be aware that the :meth:`~testfixtures.datetime.MockDateTime.date` method of
 :class:`mock_datetime` instances will still return a normal
 :class:`~datetime.date` instance. If type checking related to this is causing
-problems, the type the :meth:`~MockDateTime.date` method returns can
+problems, the type the :meth:`~testfixtures.datetime.MockDateTime.date` method returns can
 be controlled as shown in the following example:
 
 .. code-block:: python
@@ -448,8 +449,8 @@ be controlled as shown in the following example:
   date_type = mock_date(strict=True)
   datetime_type = mock_datetime(strict=True, date_type=date_type)
 
-With things set up like this, the :meth:`~MockDateTime.date` method
-will return an instance of the :class:`date_type` mock:
+With things set up like this, the :meth:`~testfixtures.datetime.MockDateTime.date` method
+will return an instance of the :class:`~testfixtures.datetime.MockDate` mock:
 
 >>> somewhen = datetime_type.now()
 >>> somewhen.date()

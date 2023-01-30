@@ -12,7 +12,7 @@ from zope.interface.registry import Components
 class TestComponents:
     """
     A helper for providing a sterile registry when testing
-    with :mod:`zope.component`.
+    with ``zope.component``.
 
     Instantiation will install an empty registry that will be returned
     by :func:`zope.component.getSiteManager`.

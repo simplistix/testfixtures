@@ -16,19 +16,19 @@ however its unit testing support is somewhat convoluted. If you need
 to test code that registers adapters, utilities and the like then you
 may need to provide a sterile component registry.  For historical
 reasons, component registries are known as `Site Managers` in
-:mod:`zope.component`.
+``zope.component``.
 
 __ http://pypi.python.org/pypi/zope.component
 
 Testfixtures provides the :class:`~components.TestComponents` helper
 which provides just such a sterile registry. It should be instantiated
-in your :class:`TestCase`'s :meth:`setUp` method. It's
-:meth:`uninstall` method should be called in the test's
-:meth:`tearDown` method.
+in your :class:`~unittest.TestCase`'s :meth:`~unittest.TestCase.setUp` method. It's
+:meth:`components.TestComponents.uninstall` method should be called in the test's
+:meth:`~unittest.TestCase.tearDown` method.
 
-Normally, :any:`zope.component.getSiteManager` returns whatever
+Normally, :any  :`zope.component.getSiteManager` returns whatever
 the current registry is. This may be influenced by frameworks that use
-:mod:`zope.component` which can means that unit tests have no
+``zope.component`` which can means that unit tests have no
 baseline to start with:
 
 >>> from zope.component import getSiteManager
@@ -61,7 +61,7 @@ It's also empty:
 ()
 
 You can do whatever you like with this registry. When you're done,
-just call the :meth:`uninstall` method:
+just call the :meth:`components.TestComponents.uninstall` method:
 
 >>> components.uninstall()
 

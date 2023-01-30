@@ -80,7 +80,7 @@ class LogCapture(object):
 
     def check_failure_text(self, expected: str, index: int = -1, attribute: str = 'value'):
         """
-        Check the string representation of an attribute of a logged :class:`Failure` is as expected.
+        Check the string representation of an attribute of a logged ``Failure`` is as expected.
 
         :param expected: The expected string representation.
         :param index: The index into :attr:`events` where the failure should have been logged.

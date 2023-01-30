@@ -510,6 +510,10 @@ class AlreadySeen:
 
 
 class CompareContext(object):
+    """
+    Stores the context of the current comparison in process during a call to
+    :func:`testfixtures.compare`.
+    """
 
     def __init__(
             self,

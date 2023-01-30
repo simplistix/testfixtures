@@ -60,6 +60,8 @@ testfixtures.comparison
 
 .. autofunction:: testfixtures.comparison.compare_text
 
+.. autoclass:: testfixtures.comparison.CompareContext
+
 .. currentmodule:: testfixtures
 
 Capturing
@@ -102,7 +104,6 @@ Mocking
     :members:
     :special-members: __new__
     :member-order: bysource
-
 
 testfixtures.mock
 ~~~~~~~~~~~~~~~~~
