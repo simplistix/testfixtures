@@ -39,7 +39,7 @@ Changes
 
 - Rename and refactor the date and time mocks, they are now :any:`mock_date`, :any:`mock_datetime`
   and :any:`mock_time`.
-  :func:`test_date`, :func:`test_datetime` and :func:`test_time` are still present as aliases but
+  :any:`test_date<mock_date>`, :any:`test_datetime <mock_datetime>` and :any:`test_time <mock_time>` are still present as aliases but
   are now deprecated.
 
 - Add :meth:`TempDirectory.as_string`, :meth:`TempDirectory.as_path` and
@@ -53,8 +53,8 @@ Changes
 - The deprecated ``strict`` option to :class:`Comparison` has been removed, use the ``partial``
   option instead.
 
-- The deprecated :meth:`TempDirectory.check`, :meth:`TempDirectory.check_dir`
-  and :meth:`TempDirectory.check_all` methods have been removed.
+- The deprecated ``TempDirectory.check``, ``TempDirectory.check_dir``
+  and ``TempDirectory.check_all`` methods have been removed.
 
 
 6.18.5 (1 Mar 2022)
@@ -112,7 +112,7 @@ Thanks to Wim Glenn for the deprecation warning fix.
 6.16.0 (9 Dec 2020)
 -------------------
 
-- Simplify and clarify the documentation of timezones when using :class:`test_datetime`.
+- Simplify and clarify the documentation of timezones when using :any:`test_datetime <mock_datetime>` .
 
 - :doc:`api` has been re-arranged to make it easier to browse.
 
@@ -217,7 +217,7 @@ Thanks to Daniel Fortunov for all of the above.
 6.9.0 (10 Jun 2019)
 -------------------
 
-- Fix deprecation warning relating to :func:`getargspec`.
+- Fix deprecation warning relating to ``getargspec``.
 
 - Improve :doc:`mocking <mocking>` docs.
 
@@ -238,7 +238,7 @@ Thanks to Wim Glenn for the :class:`ShouldRaise` idea.
 6.8.2 (4 May 2019)
 ------------------
 
-- Fix handling of the latest releases of the :mod:`mock` backport.
+- Fix handling of the latest releases of the ``mock`` backport.
 
 6.8.1 (2 May 2019)
 ------------------
@@ -249,7 +249,7 @@ Thanks to Wim Glenn for the :class:`ShouldRaise` idea.
 ------------------
 
 - Allow :class:`OutputCapture` to capture the underlying file descriptors for
-  :attr:`sys.stdout` and :attr:`sys.stderr`.
+  :any:`sys.stdout` and :any:`sys.stderr`.
 
 6.7.1 (29 Apr 2019)
 -------------------
@@ -352,8 +352,8 @@ Thanks to Augusto Wagner Andreoli for his work on the :doc:`datetime` documentat
   was sent to ``stdin``.
 
 - Make :class:`~testfixtures.popen.MockPopen` more accurately reflect :class:`subprocess.Popen`
-  on Python 3 by adding ``timeout`` parameters to :meth:`~testfixtures.popen.MockPopen.wait` and
-  :meth:`~testfixtures.popen.MockPopen.communicate` along with some other smaller changes.
+  on Python 3 by adding ``timeout`` parameters to :meth:`~testfixtures.popen.MockPopenInstance.wait`
+  and :meth:`~testfixtures.popen.MockPopenInstance.communicate` along with some other smaller changes.
 
 Thanks to Tim Davies for his work on :class:`~testfixtures.popen.MockPopen`.
 
@@ -452,17 +452,17 @@ Thanks to Tim Davies for his work on :class:`~testfixtures.popen.MockPopen`.
 5.2.0 (3 September 2017)
 ------------------------
 
-- :class:`test_datetime` and :class:`test_time` now accept a
+- :any:`test_datetime <mock_datetime>`  and :class:`test_time <mock_time>` now accept a
   :class:`~datetime.datetime` instance during instantiation to set the initial
   value.
 
-- :class:`test_date` now accepts a :class:`~datetime.date` instance during
+- :class:`test_date <mock_date>` now accepts a :class:`~datetime.date` instance during
   instantiation to set the initial value.
 
-- Relax the restriction on adding, setting or instantiating :class:`test_datetime`
+- Relax the restriction on adding, setting or instantiating :any:`test_datetime <mock_datetime>` 
   with `tzinfo` such that if the `tzinfo` matches the one configured,
   then it's okay to add.
-  This means that you can now instantiate a :class:`test_datetime` with an existing
+  This means that you can now instantiate a :any:`test_datetime <mock_datetime>`  with an existing
   :class:`~datetime.datetime` instance that has `tzinfo` set.
 
 - :func:`testfixtures.django.compare_model` now ignores
@@ -504,8 +504,9 @@ Thanks to Tim Davies for his work on :class:`~testfixtures.popen.MockPopen`.
 
   __ http://sybil.readthedocs.io/en/latest/
 
-- Add a 'tick' method to :meth:`test_datetime <tdatetime.tick>`,
-  :meth:`test_date <tdate.tick>` and :meth:`test_time <ttime.tick>`,
+- Add a 'tick' method to :meth:`test_datetime <testfixtures.datetime.MockDateTime.tick>`,
+  :meth:`test_date <testfixtures.datetime.MockDate.tick>` and
+  :meth:`test_time <testfixtures.datetime.MockTime.tick>`,
   to advance the returned point in time, which is particularly helpful
   when ``delta`` is set to zero.
 
@@ -657,7 +658,7 @@ Thanks to Wim Glenn for the suffix patch.
 4.5.1 (23 November 2015)
 ------------------------
 
-- Switch from :class:`cStringIO` to :class:`StringIO` in :class:`OutputCapture`
+- Switch from ``cStringIO`` to ``StringIO`` in :class:`OutputCapture`
   to better handle unicode being written to `stdout` or `stderr`.
 
 Thanks to "tell-k" for the patch.
@@ -712,8 +713,8 @@ Thanks to Daniel Fortunov for the initial ideas for explicit ``expected`` and
 - Add :meth:`TempDirectory.compare` with a cleaner, more explicit API that
   allows comparison of only the files in a temporary directory.
 
-- Deprecate :meth:`TempDirectory.check`, :meth:`TempDirectory.check_dir`
-  and :meth:`TempDirectory.check_all`
+- Deprecate ``TempDirectory.check``, ``TempDirectory.check_dir``
+  and ``TempDirectory.check_all``
 
 - Relax absolute-path rules so that if it's inside the :class:`TempDirectory`,
   it's allowed.
@@ -728,7 +729,7 @@ Thanks to Daniel Fortunov for the initial ideas for explicit ``expected`` and
   code that uses :class:`subprocess.Popen`.
 
 - :class:`ShouldRaise` now subclasses :class:`object`, so that subclasses of it
-  may use :meth:`super()`.
+  may use ``super()``.
 
 - Drop official support for Python 3.2.
 
@@ -877,7 +878,7 @@ Thanks to Matthias Lehmann for the import error reports.
 - Added the `prefix` parameter to :func:`compare` to allow failure
   messages to be made more informative.
 
-- Fixed a problem when using sub-second deltas with :func:`test_time`.
+- Fixed a problem when using sub-second deltas with :any:`test_time <mock_time>`.
 
 2.3.5 (13 August 2012)
 ----------------------
@@ -902,8 +903,8 @@ Thanks to Matthias Lehmann for the import error reports.
 
 - 100% line and branch coverage with tests.
 
-- Mark :class:`test_datetime`, :class:`test_date` and
-  :class:`test_time` such that nose doesn't mistake them as tests.
+- Mark :any:`test_datetime <mock_datetime>` , :class:`test_date <mock_date>` and
+  :class:`test_time <mock_time>` such that nose doesn't mistake them as tests.
 
 2.3.3 (12 December 2011)
 -------------------------
@@ -927,7 +928,7 @@ Thanks to Matthias Lehmann for the import error reports.
 - Move to use `nose <http://readthedocs.org/docs/nose/>`__ for running
   the testfixtures unit tests.
 
-- Fixed a bug where :meth:`tdatetime.now` returned an instance of the
+- Fixed a bug where :meth:`~testfixtures.datetime.MockDateTime.now` returned an instance of the
   wrong type when `tzinfo` was passed in 
   :ref:`strict mode <strict-dates-and-times>`.
 
@@ -945,7 +946,7 @@ Thanks to Matthias Lehmann for the import error reports.
 -------------------------
 
 - Add a :ref:`strict mode <strict-dates-and-times>` to
-  :class:`test_datetime` and :class:`test_date`. 
+  :any:`test_datetime <mock_datetime>`  and :class:`test_date <mock_date>`.
   When used, instances returned from the mocks are instances of those
   mocks. The default behaviour is now to return instances of the real
   :class:`~datetime.datetime` and :class:`~datetime.date` classes
@@ -981,13 +982,14 @@ Thanks to Matthias Lehmann for the import error reports.
   :func:`~comparison.compare_text`, the comparer used when comparing
   strings and unicodes with :func:`compare`.
 
-- The internal queue for :class:`test_datetime` is now considered to
+- The internal queue for :any:`test_datetime <mock_datetime>`  is now considered to
   be in local time. This has implication on the values returned from
-  both :meth:`~tdatetime.now` and :meth:`~tdatetime.utcnow` when
-  `tzinfo` is passed to the :class:`test_datetime` constructor.
+  both :meth:`~testfixtures.datetime.MockDateTime.now` and :meth:`~testfixtures.datetime.MockDateTime.utcnow` when
+  `tzinfo` is passed to the :any:`test_datetime <mock_datetime>`  constructor.
 
-- :meth:`set` and :meth:`add` on :class:`test_date`,
-  :class:`test_datetime` and :class:`test_time` now accept instances
+- :meth:`~testfixtures.datetime.MockDate.set` and :meth:`~testfixtures.datetime.MockDate.add` on
+  :class:`test_date <mock_date>`,
+  :any:`test_datetime <mock_datetime>`  and :class:`test_time <mock_time>` now accept instances
   of the appropriate type as an alternative to just passing in the
   parameters to create the instance.
 
@@ -1008,14 +1010,14 @@ Thanks to Matthias Lehmann for the import error reports.
   level.
 
 - The handling of timezones has been reworked in both
-  :func:`test_datetime` and :func:`test_time`. This is not backwards
+  :any:`test_datetime <mock_datetime>` and :any:`test_time <mock_time>`. This is not backwards
   compatible but is much more useful and correct.
 
 1.11.3 (3 August 2011)
 ----------------------
 
-- Fix bugs where various :meth:`test_date`, :meth:`test_datetime` and
-  :meth:`test_time` methods didn't accept keyword parameters.
+- Fix bugs where various :class:`test_date <mock_date>`, :class:`test_datetime <mock_datetime>` and
+  :class:`test_time <mock_time>` methods didn't accept keyword parameters.
 
 1.11.2 (28 July 2011)
 ---------------------
@@ -1026,7 +1028,7 @@ Thanks to Matthias Lehmann for the import error reports.
 1.11.1 (28 July 2011)
 ---------------------
 
-- Fix bug where :meth:`tdatetime.now` didn't accept the `tz`
+- Fix bug where :meth:`testfixtures.datetime.MockDateTime.now` didn't accept the `tz`
   parameter that :meth:`datetime.datetime.now` did.
 
 1.11.0 (27 July 2011)
@@ -1041,7 +1043,7 @@ Thanks to Matthias Lehmann for the import error reports.
 1.10.0 (19 July 2011)
 ---------------------
 
-- Remove dependency on :mod:`zope.dottedname`.
+- Remove dependency on ``zope.dottedname``.
 
 - Implement the ability to mock out :class:`dict` and :class:`list`
   items using :class:`~testfixtures.Replacer` and
@@ -1054,9 +1056,9 @@ Thanks to Matthias Lehmann for the import error reports.
 1.9.2 (20 April 2011)
 ---------------------
 
-- Fix for issue #328: :meth:`~tdatetime.utcnow` of :func:`test_datetime`
+- Fix for issue #328: :meth:`~testfixtures.datetime.MockDateTime.utcnow` of :any:`test_datetime <mock_datetime>`
   now returns items from the internal queue in the same way as 
-  :meth:`~tdatetime.now`.
+  :meth:`~testfixtures.datetime.MockDateTime.now`.
 
 1.9.1 (11 March 2011)
 ------------------------
@@ -1069,7 +1071,7 @@ Thanks to Matthias Lehmann for the import error reports.
 ------------------------
 
 - Added :class:`~components.TestComponents` for getting a sterile
-  registry when testing code that uses :mod:`zope.component`.
+  registry when testing code that uses ``zope.component``.
 
 1.8.0 (14 January 2011)
 -----------------------
@@ -1088,7 +1090,7 @@ Thanks to Matthias Lehmann for the import error reports.
 - added the :class:`ShouldRaise` context manager.
 
 - added recursive support to :meth:`TempDirectory.listdir` and added
-  the new :meth:`TempDirectory.check_all` method.
+  the new ``TempDirectory.check_all`` method.
 
 - added support for forward-slash separated paths to all relevant
   :class:`TempDirectory` methods.
@@ -1101,14 +1103,14 @@ Thanks to Matthias Lehmann for the import error reports.
 - made :class:`Comparison` objects work when the attributes expected
   might be class attributes.
 
-- re-implement :func:`test_time` so that it uses the correct way to
+- re-implement :any:`test_time <mock_time>` so that it uses the correct way to
   get timezone-less time.
 
-- added :meth:`~tdatetime.set` along with `delta` and `delta_type`
-  parameters to :func:`test_date`, :func:`test_datetime` and
-  :func:`test_time`.
+- added :meth:`~testfixtures.datetime.MockDateTime.set` along with `delta` and `delta_type`
+  parameters to :any:`test_date <mock_date>`, :any:`test_datetime <mock_datetime>` and
+  :any:`test_time <mock_time>`.
 
-- allow the date class returned by the :meth:`tdatetime.date` method
+- allow the date class returned by the :meth:`~testfixtures.datetime.MockDate.today` method
   to be configured.
 
 - added the :class:`OutputCapture` context manager.

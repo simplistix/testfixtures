@@ -142,7 +142,7 @@ using :class:`pathlib.Path` objects, you can get them as follows:
 9
 b'some text'
 
-A :class:`py.path.local <py._path.local.LocalPath>` interface is also available:
+A :class:`py.path.local` interface is also available:
 
 >>> with TempDirectory(tmp_path) as d:
 ...     d.as_local('myfile.txt').write_text('some text', encoding='ascii')
@@ -334,7 +334,7 @@ It's good practice to test that your code is only writing files you expect it
 to and to check they are being written to the path you expect.
 :meth:`TempDirectory.compare` is the method to use to do this.
 
-As an example, we could check that the :func:`spew` function above created no
+As an example, we could check that the ``spew()`` function above created no
 extraneous files as follows:
 
 >>> tempdir.compare([
@@ -378,7 +378,7 @@ checked as a forward-slash separated path:
 >>> tempdir.compare(path='subdir/logs', expected=())
 
 If the actual directory contents do not match the expected contents passed in,
-an :class:`~exceptions.AssertionError` is raised, which will show up as a
+an :class:`AssertionError` is raised, which will show up as a
 unit test failure:
 
 >>> tempdir.compare(['subdir'], recursive=False)
@@ -469,7 +469,7 @@ more readable. The above test could be written as follows:
 No files or directories found.
 
 However, if you have a nested folder structure, such as that created by
-our :func:`spew` function, it can be easier to just inspect the whole
+our ``spew()`` function, it can be easier to just inspect the whole
 tree of files and folders created. You can do this by using the
 `recursive` parameter to :meth:`~testfixtures.TempDirectory.listdir`:
 
@@ -606,7 +606,7 @@ documentation. It works by applying a set of specialised
 parsers to the documentation and testing or otherwise using the examples
 returned by those parsers.
 
-__ http://sybil.readthedocs.io
+__ https://sybil.readthedocs.io
 
 The key differences between testing with Sybil and traditional
 doctests are that it is possible to plug in different types of parser,
@@ -614,8 +614,11 @@ not just the "python console session" one, and so it is possible to
 test different types of examples. testfixtures provides one these
 parsers to aid working with
 :class:`~testfixtures.TempDirectory` objects. This parser makes use of
-:rst:dir:`topic` directives with specific classes set to perform
+`topic`__ directives with specific classes set to perform
 different actions. 
+
+__ https://docutils.sourceforge.io/docs/ref/rst/directives.html#topic
+
 
 The following sections describe how to use this parser to help with
 writing temporary files and checking their contents.
@@ -644,10 +647,12 @@ __ https://docs.pytest.org/en/latest/
 Writing files
 ~~~~~~~~~~~~~
 
-To write a file, a :rst:dir:`topic` with a class of
+To write a file, a `topic`__ with a class of
 ``write-file`` is included in the documentation. The following example
 is a complete reStructuredText file that shows how to write a file
 that is then used by a later example:
+
+__ https://docutils.sourceforge.io/docs/ref/rst/directives.html#topic
 
 .. literalinclude:: ../testfixtures/tests/configparser-read.txt
    :language: rest
@@ -655,11 +660,13 @@ that is then used by a later example:
 Checking the contents of files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To check the contents of a file, a :rst:dir:`topic` with a class of
+To check the contents of a file, a `topic`__ with a class of
 ``read-file`` containing the expected content is included in the documentation.
 The following example is a complete reStructuredText file that shows how to check
 the values written by the code being documented while also using this check as
 part of the documentation:
+
+__ https://docutils.sourceforge.io/docs/ref/rst/directives.html#topic
 
 .. literalinclude:: ../testfixtures/tests/configparser-write.txt
    :language: rest
@@ -669,7 +676,7 @@ Checking the contents of directories
 
 While :class:`~testfixtures.sybil.FileParser` itself does not offer any
 facility for checking the contents of directories, Sybil's
-:func:`~sybil.parsers.capture.parse_captures`
+:class:`~sybil.parsers.rest.CaptureParser`
 can be used in conjunction with the existing features of a
 :class:`TempDirectory` to illustrate the contents expected
 in a directory seamlessly within the documentation.

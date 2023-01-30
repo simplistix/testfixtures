@@ -19,9 +19,9 @@ class FileParser(object):
     """
     A `Sybil <http://sybil.readthedocs.io>`__ parser that
     parses certain ReST sections to read and write files in the
-    configured :class:`TempDirectory`.
+    configured :class:`~testfixtures.TempDirectory`.
 
-    :param name: This is the name of the :class:`TempDirectory` to use
+    :param name: This is the name of the :class:`~testfixtures.TempDirectory` to use
                  in the Sybil test namespace.
 
     """

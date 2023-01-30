@@ -197,7 +197,7 @@ If things are as you expected, the method will not raise any exceptions:
 
 
 However, if the actual messages logged were different, you'll get an
-:class:`~exceptions.AssertionError` explaining what happened:
+:class:`AssertionError` explaining what happened:
 
 >>> log.check(('root', 'INFO', 'start of block number 1'))
 Traceback (most recent call last):

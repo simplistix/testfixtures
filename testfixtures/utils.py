@@ -3,7 +3,7 @@ from functools import wraps
 from textwrap import dedent
 
 from inspect import getfullargspec
-from typing import Callable, Sequence
+from typing import Callable, Sequence, Any
 
 from . import singleton
 
@@ -44,7 +44,7 @@ class Wrapping:
             self.after()
 
 
-def wrap(before: Callable[[], None], after: Callable[[], None] = None):
+def wrap(before: Callable[[], Any], after: Callable[[], Any] = None):
     """
     A decorator that causes the supplied callables to be called before
     or after the wrapped callable, as appropriate.

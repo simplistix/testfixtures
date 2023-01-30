@@ -23,9 +23,6 @@ be the more pragmatic approach when coupled with a mock that accurately
 simulates the behaviour of a subprocess. :class:`~testfixtures.popen.MockPopen`
 is an attempt to provide just such a mock.
 
-.. note:: To use :class:`~testfixtures.popen.MockPopen`, you must have the
-          :mod:`mock` package installed or be using Python 3.3 or later.
-
 .. warning::
    Previous versions of this mock made use of :attr:`~unittest.mock.Mock.mock_calls`.
    These are deceptively incapable of recording some information important in the use
@@ -201,7 +198,7 @@ Then you could test it as follows:
 
 Note that the order of all calls is explicitly recorded. If the order of these calls
 is non-deterministic due to your method of process management, you may wish to use a
-:class:`SequenceComparison`:
+:class:`~testfixtures.SequenceComparison`:
 
 .. literalinclude:: ../testfixtures/tests/test_popen_docs.py
    :pyobject: TestMyFunc.test_multiple_processes_unordered

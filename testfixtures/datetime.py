@@ -358,9 +358,11 @@ def mock_datetime(
         **kw,
 ) -> Type[MockDateTime]:
     """
+    .. currentmodule:: testfixtures.datetime
+
     A function that returns a mock object that can be used in place of
     the :class:`datetime.datetime` class but where the return value of
-    :meth:`~MockDatetime.now` can be controlled.
+    :meth:`~MockDateTime.now` can be controlled.
 
     If a single positional argument of ``None`` is passed, then the
     queue of datetimes to be returned will be empty and you will need to
@@ -595,6 +597,8 @@ def mock_date(
         **kw
 ) -> Type[MockDate]:
     """
+    .. currentmodule:: testfixtures.datetime
+
     A function that returns a mock object that can be used in place of
     the :class:`datetime.date` class but where the return value of
     :meth:`~datetime.date.today` can be controlled.
@@ -805,6 +809,7 @@ def mock_time(
 
 def mock_time(*args, delta: float = None, delta_type: str = 'seconds', **kw) -> Type[MockTime]:
     """
+    .. currentmodule:: testfixtures.datetime
 
     A function that returns a :class:`mock object <testfixtures.datetime.MockTime>` that can be
     used in place of the :func:`time.time` function but where the return value can be
