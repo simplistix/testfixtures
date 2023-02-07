@@ -128,6 +128,13 @@ class Replacer:
         self(target, replacement, strict, container, accessor, name)
 
     def in_environ(self, name: str, replacement: Any) -> None:
+        """
+        This method provides a convenient way of ensuring an environment variable
+        in :any:`os.environ` is set to a particular value.
+
+        If you wish to ensure that an environment variable is *not* present,
+        then use :any:`not_there` as the ``replacement``.
+        """
         self(os.environ, name=name, accessor=getitem, strict=False,
              replacement=not_there if replacement is not_there else str(replacement))
 
@@ -143,6 +150,14 @@ class Replacer:
         return None, None
 
     def on_class(self, attribute: Callable, replacement: Any, name: str = None) -> None:
+        """
+        This method provides a convenient way to replace methods, static methods and class
+        methods on their classes.
+
+        If the attribute being replaced has a ``__name__`` that differs from the attribute
+        name on the class, such as that returned by poorly implemented decorators, then
+        ``name`` must be used to provide the correct name.
+        """
         if not callable(attribute):
             raise TypeError('attribute must be callable')
         name = name or getattr(attribute, '__name__', None)
@@ -162,6 +177,14 @@ class Replacer:
         self(container, name=name, accessor=getattr, replacement=replacement)
 
     def in_module(self, target: Any, replacement: Any, module: ModuleType = None) -> None:
+        """
+        This method provides a convenient way to replace targets that are module globals,
+        particularly functions or other objects with a ``__name__`` attribute.
+
+        If an object has been imported into a module other than the one where it has been
+        defined, then ``module`` should be used to specify the module where you would
+        like the replacement to occur.
+        """
         container = module or resolve(target.__module__).found
         name = target.__name__
         self(container, name=name, accessor=getattr, replacement=replacement)
@@ -208,6 +231,9 @@ def replace(
 
 @contextmanager
 def replace_in_environ(name: str, replacement: Any):
+    """
+    This context manager provides a quick way to use :meth:`Replacer.in_environ`.
+    """
     with Replacer() as r:
         r.in_environ(name, replacement)
         yield
@@ -215,6 +241,9 @@ def replace_in_environ(name: str, replacement: Any):
 
 @contextmanager
 def replace_on_class(attribute: Callable, replacement: Any, name: str = None):
+    """
+    This context manager provides a quick way to use :meth:`Replacer.on_class`.
+    """
     with Replacer() as r:
         r.on_class(attribute, replacement, name)
         yield
@@ -222,6 +251,9 @@ def replace_on_class(attribute: Callable, replacement: Any, name: str = None):
 
 @contextmanager
 def replace_in_module(target: Any, replacement: Any, module: ModuleType = None):
+    """
+    This context manager provides a quick way to use :meth:`Replacer.in_module`.
+    """
     with Replacer() as r:
         r.in_module(target, replacement, module)
         yield
@@ -254,17 +286,40 @@ class Replace(object):
 
 
 replace_params_doc = """
-:param target: A string containing the dotted-path to the
-               object to be replaced. This path may specify a
-               module in a package, an attribute of a module,
-               or any attribute of something contained within
-               a module.
+:param target: 
+
+  This must be one of the following:
+  
+  - A string containing the dotted-path to the object to be replaced, in which case it will be 
+    resolved the the object to be replaced.
+    
+    This path may specify a module in a package, an attribute of a module, or any attribute of 
+    something contained within a module.
+    
+  - The container of the object to be replaced, in which case ``name`` must be specified.
+  
+  - The object to be replaced, in which case ``container`` must be specified.
+    ``name`` must also be specified if it cannot be obtained from the ``__name__`` attribute
+    of the object to be replaced.
 
 :param replacement: The object to use as a replacement.
 
 :param strict: When `True`, an exception will be raised if an
                attempt is made to replace an object that does
-               not exist.
+               not exist or if the object that is obtained using the ``accessor`` to 
+               access the ``name`` from the ``container`` is not identical to the ``target``.
+               
+:param container: 
+  The container of the object from which ``target`` can be accessed using either
+  :func:`getattr` or :func:`~operator.getitem`.
+  
+:param accessor:
+  Either :func:`getattr` or :func:`~operator.getitem`. If not supplied, this will be inferred
+  preferring :func:`~operator.getitem` over :func:`getattr`.
+  
+:param name:
+  The name used to access the ``target`` from the ``container`` using the ``accessor``.
+  If required but not specified, the ``__name__`` attribute of the ``target`` will be used. 
 """
 
 # add the param docs, so we only have one copy of them!
