@@ -63,8 +63,8 @@ for example, the following function:
   def mock_y(self):
        return 'mock y'
 
-The context manager
-~~~~~~~~~~~~~~~~~~~
+The context managers
+~~~~~~~~~~~~~~~~~~~~
 
 For replacement of a single thing, it's easiest to use the
 :class:`~testfixtures.Replace` context manager:
@@ -101,6 +101,75 @@ For the duration of the ``with`` block, the replacement is used:
 
 >>> test_function()
 mock y
+
+For replacements that are friendly to static analysis tools such as IDEs, three convenience
+context managers are provided:
+
+- To replace or remove environment variables, use :func:`replace_in_environ`:
+
+  .. code-block:: python
+
+      import os
+      from testfixtures import replace_in_environ
+
+      def test_function():
+          with replace_in_environ('SOME_ENV_VAR', 1234):
+              print(repr(os.environ['SOME_ENV_VAR']))
+
+  For the duration of the ``with`` block, the replacement is used:
+
+  >>> test_function()
+  '1234'
+
+  For more details, see :ref:`replacing-in-environ`.
+
+- To replace methods on classes, including normal methods, class methods and static methods,
+  use :func:`replace_on_class`:
+
+  .. code-block:: python
+
+      from testfixtures import replace_on_class
+
+      class MyClass:
+
+          def the_method(self, value: str) -> str:
+              return 'original' + value
+
+      instance = MyClass()
+
+      def test_function():
+          with replace_on_class(
+              MyClass.the_method,
+              lambda self, value: type(self).__name__+value
+          ):
+              print(instance.the_method(':it'))
+
+  For the duration of the ``with`` block, the replacement is used:
+
+  >>> test_function()
+  MyClass:it
+
+  For more details, see :ref:`replacing-on-classes`.
+
+- To replace functions in modules use :func:`replace_in_module`:
+
+  .. code-block:: python
+
+      from testfixtures import replace_in_module
+      from testfixtures.tests.sample1 import z as original_z
+
+      def test_function():
+          with replace_in_module(original_z, lambda: 'replacement z'):
+              from testfixtures.tests.sample1 import z
+              print(z())
+
+  For the duration of the ``with`` block, the replacement is used:
+
+  >>> test_function()
+  replacement z
+
+  For more details, see :ref:`replacing-in-modules`.
+
 
 The decorator
 ~~~~~~~~~~~~~
@@ -333,6 +402,8 @@ When it is no longer in effect, the originals are returned:
 >>> pprint(some_dict)
 {'complex_key': [1, 2, 3], 'key': 'value'}
 
+If the dictionary is :any:`os.environ`, then see :ref:`replacing-in-environ`.
+
 .. _removing_attr_and_item:
 
 Removing attributes and dictionary items
@@ -394,6 +465,172 @@ When it is no longer in effect, ``key`` is returned:
 >>> pprint(sample1.some_dict)
 {'complex_key': [1, 2, 3], 'key': 'value'}
 
+.. _replacing-in-environ:
+
+Replacing environment variables
+-------------------------------
+
+To ensure an environment variable is present and set to a particular value,
+use :meth:`~Replacer.in_environ`:
+
+>>> import os
+>>> replace = Replacer()
+>>> replace.in_environ('SOME_ENV_VAR', 1234)
+>>> print(repr(os.environ['SOME_ENV_VAR']))
+'1234'
+
+If you want to make sure an environment variable is unset and not present, use :any:`not_there`:
+
+>>> replace.in_environ('SOME_ENV_VAR', not_there)
+>>> 'SOME_ENV_VAR' in os.environ
+False
+
+.. invisible-code-block: python
+
+ replace.restore()
+
+.. _replacing-on-classes:
+
+Replacing methods on classes
+----------------------------
+
+To replace methods on classes, including normal methods, class methods and static methods,
+in a way that is friendly to static analysis, use :meth:`~Replacer.on_class`:
+
+.. code-block:: python
+
+  class MyClass:
+
+      def normal_method(self, value: str) -> str:
+          return 'original' + value
+
+      @classmethod
+      def class_method(cls, value: str) -> str:
+          return 'original' + value
+
+      @staticmethod
+      def static_method(value: str) -> str:
+          return 'original' + value
+
+For normal methods, the replacement will be called with the correct ``self``:
+
+>>> instance = MyClass()
+>>> replace = Replacer()
+>>> replace.on_class(MyClass.normal_method, lambda self, value: type(self).__name__+value)
+>>> print(instance.normal_method(':it'))
+MyClass:it
+
+For class methods, the replacement you provide will be wrapped in a :any:`classmethod`
+if you have not already done so:
+
+>>> replace.on_class(MyClass.class_method, lambda cls, value: cls.__name__+value)
+>>> print(instance.class_method(':it'))
+MyClass:it
+
+Likewise, for static methods, the replacement you provide will be wrapped in a :any:`staticmethod`
+if you have not already done so:
+
+>>> replace.on_class(MyClass.static_method, lambda value: 'mocked'+value)
+>>> print(instance.static_method(':it'))
+mocked:it
+
+.. invisible-code-block: python
+
+ replace.restore()
+
+If you need to replace a class attribute such as ``FOO`` in this example:
+
+.. code-block:: python
+
+  class MyClass:
+      FOO = 1
+
+It can be done like this:
+
+>>> instance = MyClass()
+>>> replace = Replacer()
+>>> replace(MyClass.FOO, 42, container=MyClass, name='FOO')
+42
+>>> print(instance.FOO)
+42
+
+.. invisible-code-block: python
+
+ replace.restore()
+
+If you encounter methods that have an incorrect ``__name__``, such as those returned by poorly
+implemented decorators:
+
+.. code-block:: python
+
+    def bad(f):
+        def inner(self, x):
+            return f(self, x)
+        return inner
+
+    class SampleClass:
+
+        @bad
+        def method(self, x):
+            return x*2
+
+They can be replaced by specifying the correct name:
+
+>>> instance = SampleClass()
+>>> replace = Replacer()
+>>> replace.on_class(SampleClass.method, lambda self, value: value*3, name='method')
+>>> print(instance.method(2))
+6
+
+.. invisible-code-block: python
+
+ replace.restore()
+
+.. _replacing-in-modules:
+
+Replacing items in modules
+--------------------------
+
+To replace functions in modules use :meth:`~Replacer.in_module`:
+
+>>> from testfixtures.tests.sample1 import z as original_z
+>>> replace = Replacer()
+>>> replace.in_module(original_z, lambda: 'replacement z')
+>>> from testfixtures.tests.sample1 import z
+>>> z()
+'replacement z'
+
+.. invisible-code-block: python
+
+ replace.restore()
+
+If you need to replace usage in a module other than the one where the function is defined,
+it can be done as follows
+
+>>> from testfixtures.tests.sample1 import z
+>>> from testfixtures.tests import sample3
+>>> replace = Replacer()
+>>> replace.in_module(z, lambda: 'replacement z', module=sample3)
+>>> sample3.z()
+'replacement z'
+
+.. invisible-code-block: python
+
+ replace.restore()
+
+If you need to replace a module global, then you can use :class:`Replace` as follows:
+
+>>> from testfixtures.tests import sample3
+>>> replacer = Replacer()
+>>> replacer.replace(sample3.SOME_CONSTANT, 43,
+...                  container=sample3, name='SOME_CONSTANT')
+>>> from testfixtures.tests.sample3 import SOME_CONSTANT
+>>> SOME_CONSTANT
+43
+
+.. invisible-code-block: python
+
+ replacer.restore()
 
 Gotchas
 -------

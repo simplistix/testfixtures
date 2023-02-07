@@ -80,6 +80,12 @@ Mocking
 .. autoclass:: Replace
    :members:
 
+.. autofunction:: replace_in_environ
+
+.. autofunction:: replace_on_class
+
+.. autofunction:: replace_in_module
+
 .. autoclass:: Replacer
    :members:
    :special-members: __call__
