@@ -104,6 +104,10 @@ class Replacer:
 
         if isinstance(resolved.container, type):
 
+            # if we have a descriptor, don't accidentally use the result of its __get__ method:
+            if resolved.name in resolved.container.__dict__:
+                resolved.found = resolved.container.__dict__[resolved.name]
+
             if not_same_descriptor(resolved.found, replacement, classmethod):
                 replacement_to_use = classmethod(replacement)
 

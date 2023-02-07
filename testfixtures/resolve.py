@@ -36,32 +36,28 @@ def resolve(dotted_name: str, container: Optional[Any] = None) -> Resolved:
         container = found
         used += '.' + name
         try:
-            found = found.__dict__[name]  # only safe way to get class descriptors
+            found = getattr(found, name)
             setter = setattr
-        except (AttributeError, KeyError):
+        except AttributeError:
             try:
-                found = getattr(found, name)
-                setter = setattr
-            except AttributeError:
+                __import__(used)
+            except ImportError:
+                setter = setitem
                 try:
-                    __import__(used)
-                except ImportError:
-                    setter = setitem
+                    found = found[name]  # pragma: no branch
+                except KeyError:
+                    found = not_there  # pragma: no branch
+                except TypeError:
                     try:
+                        name = int(name)
+                    except ValueError:
+                        setter = setattr
+                        found = not_there
+                    else:
                         found = found[name]  # pragma: no branch
-                    except KeyError:
-                        found = not_there  # pragma: no branch
-                    except TypeError:
-                        try:
-                            name = int(name)
-                        except ValueError:
-                            setter = setattr
-                            found = not_there
-                        else:
-                            found = found[name]  # pragma: no branch
-                else:
-                    found = getattr(found, name)
-                    setter = getattr
+            else:
+                found = getattr(found, name)
+                setter = getattr
     return Resolved(container, setter, name, found)
 
 
