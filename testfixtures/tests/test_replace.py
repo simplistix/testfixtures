@@ -724,6 +724,7 @@ class TestOnClass:
             def method(self, x):
                 return x*2
 
+        original = SampleClass.__dict__['method']
         sample = SampleClass()
 
         with Replacer() as replace:
@@ -731,6 +732,7 @@ class TestOnClass:
             compare(sample.method(1), expected=3)
 
         compare(sample.method(1), expected=2)
+        assert SampleClass.__dict__['method'] is original
 
     def test_method_on_instance(self):
 
@@ -739,6 +741,7 @@ class TestOnClass:
             def method(self, x):
                 return x*2
 
+        original = SampleClass.__dict__['method']
         sample = SampleClass()
 
         with Replacer() as replace:
@@ -751,6 +754,7 @@ class TestOnClass:
             compare(sample.method(1), expected=3)
 
         compare(sample.method(1), expected=2)
+        assert SampleClass.__dict__['method'] is original
 
     def test_badly_decorated_method(self):
 
@@ -765,6 +769,7 @@ class TestOnClass:
             def method(self, x):
                 return x*2
 
+        original = SampleClass.__dict__['method']
         sample = SampleClass()
 
         with Replacer() as replace:
@@ -780,6 +785,7 @@ class TestOnClass:
             compare(sample.method(1), expected=3)
 
         compare(sample.method(1), expected=2)
+        assert SampleClass.__dict__['method'] is original
 
     def test_classmethod(self):
 
@@ -789,11 +795,14 @@ class TestOnClass:
             def method(cls, x):
                 return x*2
 
+        original = SampleClass.__dict__['method']
+
         with Replacer() as replace:
             replace.on_class(SampleClass.method, classmethod(lambda cls, x: x*3))
             compare(SampleClass.method(1), expected=3)
 
         compare(SampleClass.method(1), expected=2)
+        assert SampleClass.__dict__['method'] is original
 
     def test_staticmethod(self):
 
@@ -803,11 +812,14 @@ class TestOnClass:
             def method(x):
                 return x*2
 
+        original = SampleClass.__dict__['method']
+
         with Replacer() as replace:
             replace.on_class(SampleClass.method, lambda x: x*3)
             compare(SampleClass.method(1), expected=3)
 
         compare(SampleClass.method(1), expected=2)
+        assert SampleClass.__dict__['method'] is original
 
     def test_not_callable(self):
 
@@ -824,51 +836,64 @@ class TestOnClass:
 
     def test_method_on_class_in_module(self):
         sample = X()
+        original = X.__dict__['y']
 
         with Replacer() as replace:
             replace.on_class(X.y, lambda self_: 'replacement y')
             compare(sample.y(), expected='replacement y')
 
         compare(sample.y(), expected='original y')
+        assert X.__dict__['y'] is original
 
     def test_method_on_instance_in_module(self):
 
         sample = X()
+        original = X.__dict__['y']
 
         with Replacer() as replace:
             replace(sample.y, lambda: 'replacement y', container=sample, strict=False)
             compare(sample.y(), expected='replacement y')
 
         compare(sample.y(), expected='original y')
+        assert X.__dict__['y'] is original
 
     def test_classmethod_on_class_in_module(self):
+
+        original = X.__dict__['aMethod']
 
         with Replacer() as replace:
             replace.on_class(X.aMethod, classmethod(lambda cls: (cls, cls)))
             compare(X.aMethod(), expected=(X, X))
 
         compare(X.aMethod(), expected=X)
+        assert X.__dict__['aMethod'] is original
 
     def test_classmethod_on_instance_in_module(self):
 
         sample = X()
+        original = X.__dict__['aMethod']
 
         with Replacer() as replace:
             replace.on_class(sample.aMethod, classmethod(lambda cls: (cls, cls)))
             compare(sample.aMethod(), expected=(X, X))
 
         compare(sample.aMethod(), expected=X)
+        assert X.__dict__['aMethod'] is original
 
     def test_staticmethod_on_class_in_module(self):
+
+        original = X.__dict__['bMethod']
 
         with Replacer() as replace:
             replace.on_class(X.bMethod, lambda: 3)
             compare(X.bMethod(), expected=3)
 
         compare(X.bMethod(), expected=2)
+        assert X.__dict__['bMethod'] is original
 
     def test_staticmethod_on_instance_in_module(self):
 
+        original = X.__dict__['bMethod']
         sample = X()
 
         with Replacer() as replace:
@@ -876,6 +901,7 @@ class TestOnClass:
             compare(sample.bMethod(), expected=3)
 
         compare(X.bMethod(), expected=2)
+        assert X.__dict__['bMethod'] is original
 
 
 class TestInModule:
