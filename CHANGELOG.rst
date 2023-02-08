@@ -1,6 +1,13 @@
 Changes
 =======
 
+7.1.0 (8 Feb 2023)
+------------------
+
+- Implement new IDE and static-analysis ways of :doc:`mocking <mocking>` including additional
+  parameters to :meth:`~Replacer.replace` along with the :any:`replace_on_class`,
+  :any:`replace_in_module` and :any:`replace_in_environ` context managers.
+
 7.0.4 (5 Dec 2022)
 ------------------
 
