@@ -770,7 +770,7 @@ class MockTime(MockedCurrent, datetime):
 def mock_time(
         delta: float = None,
         delta_type: str = 'seconds',
-) -> Type[MockDateTime]:
+) -> Type[MockTime]:
     ...
 
 
@@ -785,7 +785,7 @@ def mock_time(
         microsecond: int = ...,
         delta: float = None,
         delta_type: str = 'seconds',
-) -> Type[MockDateTime]:
+) -> Type[MockTime]:
     ...
 
 
@@ -794,7 +794,7 @@ def mock_time(
         default: datetime,
         delta: float = None,
         delta_type: str = 'seconds',
-) -> Type[MockDateTime]:
+) -> Type[MockTime]:
     ...
 
 
@@ -803,7 +803,7 @@ def mock_time(
         default: None,  # explicit None positional
         delta: float = None,
         delta_type: str = 'seconds',
-) -> Type[MockDateTime]:
+) -> Type[MockTime]:
     ...
 
 
