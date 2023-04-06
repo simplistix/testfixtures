@@ -651,7 +651,7 @@ Comparison objects
 
 Another common problem with the checking in tests is that you may only want to make
 assertions about the type of an object that is nested in a data structure, or even just compare
-a subset of an object's attributes. Textfixtures provides the :class:`~testfixtures.Comparison`
+a subset of an object's attributes. Testfixtures provides the :class:`~testfixtures.Comparison`
 class to help in situations like these.
 
 Comparisons will appear to be equal to any object they are compared
@@ -1012,7 +1012,7 @@ If you need to specify flags, this can be done in one of three ways:
 Differentiating chunks of text
 ------------------------------
 
-Textfixtures provides a function that will compare two strings and
+Testfixtures provides a function that will compare two strings and
 give a unified diff as a result. This can be handy as a third
 parameter to :meth:`~unittest.TestCase.assertEqual` or just as a
 general utility function for comparing two lumps of text.
