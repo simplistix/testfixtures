@@ -14,11 +14,11 @@ extensions = [
     ]
 
 intersphinx_mapping = {
-    'https://docs.python.org/3/': None,
-    'https://django.readthedocs.io/en/latest/': None,
-    'https://docs.pytest.org/en/latest/': None,
-    'https://sybil.readthedocs.io/en/latest/': None,
-    'https://zopecomponent.readthedocs.io/en/latest/': None,
+    'python': ('https://docs.python.org/3/', None),
+    'django': ('https://django.readthedocs.io/en/latest/', None),
+    'pytest': ('https://docs.pytest.org/en/latest/', None),
+    'sybil': ('https://sybil.readthedocs.io/en/latest/', None),
+    'zope.component': ('https://zopecomponent.readthedocs.io/en/latest/', None),
 }
 
 # General
