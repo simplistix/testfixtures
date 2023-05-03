@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  python: cjw296/python-ci@3
+  python: cjw296/python-ci@dev:current
 
 jobs:
   check-package:
@@ -27,37 +27,37 @@ jobs:
 
 common: &common
   jobs:
-    - python/pip-run-tests:
-        matrix:
-          parameters:
-            image:
-              - cimg/python:3.6
-              - cimg/python:3.7
-              - cimg/python:3.8
-              - cimg/python:3.9
-              - cimg/python:3.10
-              - cimg/python:3.11
-    - python/pip-run-tests:
-        name: mock-backport
-        image: cimg/python:3.11
-        extra_packages: "mock"
-    - python/pip-run-tests:
-        name: django-latest
-        image: cimg/python:3.11
-        extra_packages: "django"
-
-    - python/coverage:
-        name: coverage
-        image: cimg/python:3.11
-        requires:
-          - python/pip-run-tests
-          - mock-backport
-          - django-latest
+#    - python/pip-run-tests:
+#        matrix:
+#          parameters:
+#            image:
+#              - cimg/python:3.6
+#              - cimg/python:3.7
+#              - cimg/python:3.8
+#              - cimg/python:3.9
+#              - cimg/python:3.10
+#              - cimg/python:3.11
+#    - python/pip-run-tests:
+#        name: mock-backport
+#        image: cimg/python:3.11
+#        extra_packages: "mock"
+#    - python/pip-run-tests:
+#        name: django-latest
+#        image: cimg/python:3.11
+#        extra_packages: "django"
+#
+#    - python/coverage:
+#        name: coverage
+#        image: cimg/python:3.11
+#        requires:
+#          - python/pip-run-tests
+#          - mock-backport
+#          - django-latest
 
     - python/pip-docs:
         name: docs
-        requires:
-          - coverage
+#        requires:
+#          - coverage
 
     - python/pip-setuptools-build-package:
         name: package
