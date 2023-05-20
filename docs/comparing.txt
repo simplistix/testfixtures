@@ -642,7 +642,7 @@ should be used:
 >>> compare(TypeA(1), TypeB(1), strict=True)
 Traceback (most recent call last):
  ...
-AssertionError: A(x=1) (<class '__main__.A'>) != B(x=1) (<class '__main__.B'>)
+AssertionError: A(x=1) (<class '__test__.A'>) != B(x=1) (<class '__test__.B'>)
 
 .. _comparison-objects:
 
