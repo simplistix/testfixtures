@@ -1,4 +1,4 @@
-from datetime import date as d, timedelta
+from datetime import date as d, timedelta, date
 from time import strptime
 from typing import cast, Type
 
@@ -300,3 +300,15 @@ class TestDate(TestCase):
     def test_old_import(self):
         from testfixtures import test_date
         assert test_date is mock_date
+
+    def test_add_timedelta_not_strict(self):
+        mock_class = mock_date()
+        value = mock_class.today() + timedelta(days=1)
+        assert isinstance(value, date)
+        assert type(value) is date
+
+    def test_add_timedelta_strict(self):
+        mock_class = mock_date(strict=True)
+        value = mock_class.today() + timedelta(days=1)
+        assert isinstance(value, date)
+        assert type(value) is mock_class

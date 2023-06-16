@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from datetime import datetime as d
 from datetime import timedelta
 from datetime import tzinfo
@@ -433,3 +433,15 @@ class TestDateTime(TestCase):
     def test_old_import(self):
         from testfixtures import test_datetime
         assert test_datetime is mock_datetime
+
+    def test_add_timedelta_not_strict(self):
+        mock_class = mock_datetime()
+        value = mock_class.now() + timedelta(seconds=10)
+        assert isinstance(value, datetime)
+        assert type(value) is datetime
+
+    def test_add_timedelta_strict(self):
+        mock_class = mock_datetime(strict=True)
+        value = mock_class.now() + timedelta(seconds=10)
+        assert isinstance(value, datetime)
+        assert type(value) is mock_class
