@@ -64,6 +64,29 @@ class ShouldWarnTests(TestCase):
         self.assertTrue('foo' in content)
         self.assertTrue('bar' in content)
 
+    def test_multiple_warnings_ordered(self):
+        with warnings.catch_warnings(record=True) as backstop:
+            with ShouldWarn(UserWarning('foo'), UserWarning('bar')):
+                warnings.warn('foo')
+                warnings.warn('bar')
+        compare(len(backstop), expected=0)
+
+    def test_multiple_warnings_wrong_order(self):
+        with ShouldRaise(AssertionError) as s:
+            with ShouldWarn(UserWarning('foo'), UserWarning('bar')):
+                warnings.warn('bar')
+                warnings.warn('foo')
+        content = str(s.raised)
+        self.assertTrue('foo' in content)
+        self.assertTrue('bar' in content)
+
+    def test_multiple_warnings_ignore_order(self):
+        with warnings.catch_warnings(record=True) as backstop:
+            with ShouldWarn(UserWarning('foo'), UserWarning('bar'), ordered=False):
+                warnings.warn('bar')
+                warnings.warn('foo')
+        compare(len(backstop), expected=0)
+
     def test_minimal_ok(self):
         with ShouldWarn(UserWarning):
             warnings.warn('foo')
