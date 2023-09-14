@@ -26,8 +26,8 @@ causing the test in which it occurs to fail:
 ...     warn("sorry dave, I can't let you do that")
 Traceback (most recent call last):
 ...
-AssertionError: sequence not as expected:
-<BLANKLINE>
+AssertionError:...
+<SequenceComparison(ordered=True, partial=False)(failed)>
 same:
 []
 <BLANKLINE>
@@ -40,6 +40,7 @@ attributes differ:
 <BLANKLINE>
 actual:
 [UserWarning("sorry dave, I can't let you do that"...)]
+</SequenceComparison(ordered=True, partial=False)> (expected) != [UserWarning("sorry dave, I can't let you do that"...)] (actual)
 
 You can check multiple warnings in a particular piece of code:
 
@@ -50,7 +51,7 @@ You can check multiple warnings in a particular piece of code:
 ...     warn('you should fix that')
 ...     warn('and that too')
 
-If you don't care about order of issued warnings, you can use ``ordered=False``
+If you don't care about the order of issued warnings, you can use the ``ordered=False``
 argument of :class:`ShouldWarn`:
 
 >>> from warnings import warn
@@ -89,8 +90,8 @@ context it manages, it will raise an :class:`AssertionError` to indicate this:
 ...     warn("woah dude")
 Traceback (most recent call last):
 ...
-AssertionError: sequence not as expected:
-<BLANKLINE>
+AssertionError:...
+<SequenceComparison(ordered=True, partial=False)(failed)>
 same:
 []
 <BLANKLINE>
@@ -99,3 +100,4 @@ expected:
 <BLANKLINE>
 actual:
 [UserWarning('woah dude'...)]
+</SequenceComparison(ordered=True, partial=False)> (expected) != [UserWarning('woah dude'...)] (actual)

@@ -1,7 +1,7 @@
 import warnings
 from typing import Union, Type
 
-from testfixtures import Comparison as C, SequenceComparison as S, compare
+from testfixtures import Comparison, SequenceComparison, compare
 
 
 WarningOrType = Union[Warning, Type[Warning]]
@@ -38,10 +38,10 @@ class ShouldWarn(warnings.catch_warnings):
 
     def __init__(self, *expected: WarningOrType, ordered=True, **filters):
         super(ShouldWarn, self).__init__(record=True)
-        if ordered:
-            self.expected = [C(e) for e in expected]
-        else:
-            self.expected = S(*[C(e) for e in expected], ordered=ordered)
+        self.expected = SequenceComparison(
+            *[Comparison(e) for e in expected],
+            ordered=ordered,
+        )
         self.filters = filters
 
     def __enter__(self):
@@ -53,7 +53,7 @@ class ShouldWarn(warnings.catch_warnings):
         super(ShouldWarn, self).__exit__(exc_type, exc_val, exc_tb)
         if not self.recorded and self._empty_okay:
             return
-        if not self.expected and self.recorded and not self._empty_okay:
+        if not self.expected.expected and self.recorded and not self._empty_okay:
             return
         compare(self.expected, actual=[wm.message for wm in self.recorded])
 
