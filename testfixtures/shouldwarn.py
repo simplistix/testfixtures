@@ -45,10 +45,8 @@ class ShouldWarn(warnings.catch_warnings):
 
     def __init__(self, *expected: WarningOrType, order_matters: bool = True, **filters):
         super(ShouldWarn, self).__init__(record=True)
-        self.expected = SequenceComparison(
-            *[Comparison(e) for e in expected],
-            ordered=order_matters,
-        )
+        self.order_matters = order_matters
+        self.expected = [Comparison(e) for e in expected]
         self.filters = filters
 
     def __enter__(self):
@@ -60,9 +58,12 @@ class ShouldWarn(warnings.catch_warnings):
         super(ShouldWarn, self).__exit__(exc_type, exc_val, exc_tb)
         if not self.recorded and self._empty_okay:
             return
-        if not self.expected.expected and self.recorded and not self._empty_okay:
+        if not self.expected and self.recorded and not self._empty_okay:
             return
-        compare(self.expected, actual=[wm.message for wm in self.recorded])
+        compare(
+            expected=SequenceComparison(*self.expected, ordered=self.order_matters),
+            actual=[wm.message for wm in self.recorded]
+        )
 
 
 class ShouldNotWarn(ShouldWarn):
