@@ -1,6 +1,13 @@
 Changes
 =======
 
+7.2.0 (15 Sep 2023)
+-------------------
+
+- Add ``order_matters`` parameter to :class:`ShouldWarn`.
+
+Thanks to Jan Musílek for the implementation!
+
 7.1.0 (8 Feb 2023)
 ------------------
 
