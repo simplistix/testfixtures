@@ -26,6 +26,13 @@ class ShouldWarn(warnings.catch_warnings):
                      If no expected warnings are passed, you will need to inspect
                      the contents of the list returned by the context manager.
 
+
+    :param order_matters:
+
+      A keyword-only parameter that controls whether the order of the
+      captured entries is required to match those of the expected entries.
+      Defaults to ``True``.
+
     :param filters:
       If passed, these are used to create a filter such that only warnings you
       are interested in will be considered by this :class:`ShouldWarn`
@@ -36,11 +43,11 @@ class ShouldWarn(warnings.catch_warnings):
 
     _empty_okay = False
 
-    def __init__(self, *expected: WarningOrType, ordered=True, **filters):
+    def __init__(self, *expected: WarningOrType, order_matters: bool = True, **filters):
         super(ShouldWarn, self).__init__(record=True)
         self.expected = SequenceComparison(
             *[Comparison(e) for e in expected],
-            ordered=ordered,
+            ordered=order_matters,
         )
         self.filters = filters
 

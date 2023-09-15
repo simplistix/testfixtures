@@ -51,14 +51,13 @@ You can check multiple warnings in a particular piece of code:
 ...     warn('you should fix that')
 ...     warn('and that too')
 
-If you don't care about the order of issued warnings, you can use the ``ordered=False``
-argument of :class:`ShouldWarn`:
+If you don't care about the order of issued warnings, you can use ``order_matters=False``:
 
 >>> from warnings import warn
 >>> from testfixtures import ShouldWarn
 >>> with ShouldWarn(UserWarning('you should fix that'),
 ...                 UserWarning('and that too'),
-...                 ordered=False):
+...                 order_matters=False):
 ...     warn('and that too')
 ...     warn('you should fix that')
 

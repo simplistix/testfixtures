@@ -85,7 +85,7 @@ class ShouldWarnTests(TestCase):
 
     def test_multiple_warnings_ignore_order(self):
         with warnings.catch_warnings(record=True) as backstop:
-            with ShouldWarn(UserWarning('foo'), UserWarning('bar'), ordered=False):
+            with ShouldWarn(UserWarning('foo'), UserWarning('bar'), order_matters=False):
                 warnings.warn('bar')
                 warnings.warn('foo')
         compare(len(backstop), expected=0)
