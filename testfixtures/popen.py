@@ -1,4 +1,4 @@
-import pipes
+import shlex
 from functools import wraps, partial, reduce
 from io import TextIOWrapper
 from itertools import chain, zip_longest
@@ -15,7 +15,7 @@ Command = Union[str, Sequence[str]]
 
 def shell_join(command: Command) -> str:
     if not isinstance(command, str):
-        command = " ".join(pipes.quote(part) for part in command)
+        command = " ".join(shlex.quote(part) for part in command)
     return command
 
 
