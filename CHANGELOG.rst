@@ -1,6 +1,12 @@
 Changes
 =======
 
+7.2.2 (20 Oct 2023)
+-------------------
+
+- Fix bug in support for :class:`os.PathLike` arguments to :class:`popen.MockPopen`.
+
+
 7.2.1 (20 Oct 2023)
 -------------------
 
