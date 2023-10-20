@@ -2,21 +2,32 @@ import shlex
 from functools import wraps, partial, reduce
 from io import TextIOWrapper
 from itertools import chain, zip_longest
+from os import PathLike
 from subprocess import STDOUT, PIPE
 from tempfile import TemporaryFile
 from testfixtures.utils import extend_docstring
-from typing import Union, Callable, List, Optional, Sequence, Tuple, Dict
+from typing import Union, Callable, List, Optional, Sequence, Tuple, Dict, Iterable
 from .mock import Mock, call, _Call as Call
 
 
 AnyStr = Union[str, bytes]
-Command = Union[str, Sequence[str]]
+Command = Union[str, PathLike, Sequence[str]]
 
 
 def shell_join(command: Command) -> str:
-    if not isinstance(command, str):
-        command = " ".join(shlex.quote(part) for part in command)
-    return command
+    if isinstance(command, str):
+        return command
+    elif isinstance(command, PathLike):
+        return str(command)
+    elif isinstance(command, Iterable):
+        quoted_parts = []
+        for part in command:
+            if not isinstance(part, str):
+                raise TypeError(f'{part!r} in {command} was {type(part)}, must be str')
+            quoted_parts.append(shlex.quote(part))
+        return " ".join(quoted_parts)
+    else:
+        raise TypeError(f'{command!r} was {type(command)}, must be str')
 
 
 class PopenBehaviour(object):

@@ -1,4 +1,5 @@
 import subprocess
+from pathlib import Path
 from subprocess import PIPE, STDOUT
 from unittest import TestCase
 
@@ -83,6 +84,30 @@ class Tests(TestCase):
                 call.Popen(['a', 'command'], stderr=-1, stdout=-1),
                 call.Popen_instance.wait(),
                 ], Popen.mock.method_calls)
+
+    def test_command_is_pathlike(self):
+        Popen = MockPopen()
+        Popen.set_command('a command')
+
+        process = Popen(Path('a command'))
+
+        compare(process.wait(), 0)
+        compare([
+                call.Popen(Path('a command')),
+                call.Popen_instance.wait(),
+                ], Popen.mock.method_calls)
+
+    def test_command_is_incorrect_type(self):
+        Popen = MockPopen()
+        Popen.set_command('a command')
+        with ShouldRaise(TypeError("42 was <class 'int'>, must be str")):
+            Popen(42)
+
+    def test_command_is_sequence_of_incorrect_type(self):
+        Popen = MockPopen()
+        Popen.set_command('a command')
+        with ShouldRaise(TypeError("42 in ['x', 42] was <class 'int'>, must be str")):
+            Popen(['x', 42])
 
     def test_communicate_with_input(self):
         # setup
