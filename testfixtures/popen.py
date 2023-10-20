@@ -22,7 +22,9 @@ def shell_join(command: Command) -> str:
     elif isinstance(command, Iterable):
         quoted_parts = []
         for part in command:
-            if not isinstance(part, str):
+            if isinstance(part, PathLike):
+                part = str(part)
+            elif not isinstance(part, str):
                 raise TypeError(f'{part!r} in {command} was {type(part)}, must be str')
             quoted_parts.append(shlex.quote(part))
         return " ".join(quoted_parts)

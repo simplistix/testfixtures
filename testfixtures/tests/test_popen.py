@@ -103,6 +103,18 @@ class Tests(TestCase):
         with ShouldRaise(TypeError("42 was <class 'int'>, must be str")):
             Popen(42)
 
+    def test_command_is_sequence_of_pathlike(self):
+        Popen = MockPopen()
+        Popen.set_command('a command')
+
+        process = Popen(['a', Path('command')])
+
+        compare(process.wait(), 0)
+        compare([
+                call.Popen(['a', Path('command')]),
+                call.Popen_instance.wait(),
+                ], Popen.mock.method_calls)
+
     def test_command_is_sequence_of_incorrect_type(self):
         Popen = MockPopen()
         Popen.set_command('a command')
