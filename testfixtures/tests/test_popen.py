@@ -1,6 +1,8 @@
+import selectors
 import subprocess
 from pathlib import Path
 from subprocess import PIPE, STDOUT
+from typing import List
 from unittest import TestCase
 
 from testfixtures.mock import call
@@ -692,6 +694,37 @@ class Tests(TestCase):
         Popen(['a', 'command'], stdout=PIPE, stderr=PIPE)
         compare([call.Popen(['a',  'command'], stderr=-1, stdout=-1)],
                 actual=Popen.all_calls)
+
+    def test_selectors_on_piped_stdout(self):
+
+        def run_program(p) -> List[bytes]:
+            collected_output = []
+
+            def handle_stdout(x):
+                # Collects the program's output into the list
+                while True:
+                    line = x.readline()
+                    if line is b"":
+                        break
+                    collected_output.append(line)
+
+            # Listen for IO events on the program's stdout
+            selector = selectors.DefaultSelector()
+            selector.register(p.stdout, selectors.EVENT_READ)
+
+            # Keep handling IO events until the program terminates
+            while p.poll() is None:
+                events = selector.select()
+                for key, _ in events:
+                    handle_stdout(key.fileobj)
+
+            selector.close()
+            return collected_output
+
+        popen = MockPopen()
+        popen.set_command("dummy", stdout=b"Fake output\n", poll_count=1)
+        p = popen("dummy", stdout=subprocess.PIPE)
+        compare(run_program(p), expected=[b"Fake output\n"])
 
 
 class IntegrationTests(TestCase):
