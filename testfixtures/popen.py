@@ -4,11 +4,11 @@ from io import TextIOWrapper
 from itertools import chain, zip_longest
 from os import PathLike
 from subprocess import STDOUT, PIPE
-from tempfile import TemporaryFile
-from testfixtures.utils import extend_docstring
+from tempfile import NamedTemporaryFile
 from typing import Union, Callable, List, Optional, Sequence, Tuple, Dict, Iterable
-from .mock import Mock, call, _Call as Call
 
+from testfixtures.utils import extend_docstring
+from .mock import Mock, call, _Call as Call
 
 AnyStr = Union[str, bytes]
 Command = Union[str, bytes, PathLike, Sequence[str], Sequence[bytes]]
@@ -78,10 +78,10 @@ class MockPopenInstance(object):
     stdin: Mock = None
 
     #: A file representing standard output from this process.
-    stdout: TemporaryFile = None
+    stdout: Union[NamedTemporaryFile, bytes] = None
 
     #: A file representing error output from this process.
-    stderr: TemporaryFile = None
+    stderr: Union[NamedTemporaryFile, bytes] = None
 
     # These are not types as instantiation of this class is an internal implementation detail.
     def __init__(self, mock_class, root_call,
@@ -131,7 +131,7 @@ class MockPopenInstance(object):
         ):
             value = None
             if option is PIPE:
-                value = TemporaryFile()
+                value = NamedTemporaryFile()
                 value.write(mock_value)
                 value.flush()
                 value.seek(0)
