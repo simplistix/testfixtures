@@ -238,7 +238,7 @@ class MockPopen(object):
 
     def set_command(
             self,
-            command: str,
+            command: Command,
             stdout: bytes = b'',
             stderr: bytes = b'',
             returncode: int = 0,
