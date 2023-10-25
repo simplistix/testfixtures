@@ -97,6 +97,18 @@ class Tests(TestCase):
                 call.Popen_instance.wait(),
                 ], Popen.mock.method_calls)
 
+    def test_command_is_bytes(self):
+        Popen = MockPopen()
+        Popen.set_command('a command')
+
+        process = Popen(b'a command')
+
+        compare(process.wait(), 0)
+        compare([
+                call.Popen(b'a command'),
+                call.Popen_instance.wait(),
+                ], Popen.mock.method_calls)
+
     def test_command_is_incorrect_type(self):
         Popen = MockPopen()
         Popen.set_command('a command')
@@ -112,6 +124,18 @@ class Tests(TestCase):
         compare(process.wait(), 0)
         compare([
                 call.Popen(['a', Path('command')]),
+                call.Popen_instance.wait(),
+                ], Popen.mock.method_calls)
+
+    def test_command_is_sequence_of_bytes(self):
+        Popen = MockPopen()
+        Popen.set_command('a command')
+
+        process = Popen(['a', b'command'])
+
+        compare(process.wait(), 0)
+        compare([
+                call.Popen(['a', b'command']),
                 call.Popen_instance.wait(),
                 ], Popen.mock.method_calls)
 

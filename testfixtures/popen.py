@@ -11,20 +11,26 @@ from .mock import Mock, call, _Call as Call
 
 
 AnyStr = Union[str, bytes]
-Command = Union[str, PathLike, Sequence[str]]
+Command = Union[str, bytes, PathLike, Sequence[str], Sequence[bytes]]
 
 
 def shell_join(command: Command) -> str:
     if isinstance(command, str):
         return command
+    elif isinstance(command, bytes):
+        return command.decode()
     elif isinstance(command, PathLike):
         return str(command)
     elif isinstance(command, Iterable):
         quoted_parts = []
         for part in command:
-            if isinstance(part, PathLike):
+            if isinstance(part, str):
+                pass
+            elif isinstance(part, bytes):
+                part = part.decode()
+            elif isinstance(part, PathLike):
                 part = str(part)
-            elif not isinstance(part, str):
+            elif not isinstance(part, (str, bytes)):
                 raise TypeError(f'{part!r} in {command} was {type(part)}, must be str')
             quoted_parts.append(shlex.quote(part))
         return " ".join(quoted_parts)
