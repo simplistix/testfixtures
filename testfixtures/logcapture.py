@@ -64,7 +64,7 @@ class LogCapture(logging.Handler):
 
     def __init__(
             self,
-            names: Union[str, Tuple[str]] = None,
+            names: Union[str, Tuple[str, ...]] = None,
             install: bool = True,
             level: int = 1,
             propagate: bool = None,

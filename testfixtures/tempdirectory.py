@@ -13,7 +13,7 @@ from testfixtures.utils import wrap
 from .rmtree import rmtree
 
 
-PathStrings = Union[str, Tuple[str]]
+PathStrings = Union[str, Tuple[str, ...]]
 
 
 if TYPE_CHECKING:
