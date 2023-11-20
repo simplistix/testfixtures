@@ -4,6 +4,7 @@ from decimal import Decimal
 from difflib import unified_diff
 from functools import partial as partial_type, reduce
 from operator import __or__
+from pathlib import Path
 from pprint import pformat
 from typing import (
     Dict, Any, Optional, Sequence, Generator, TypeVar, List, Mapping, Pattern, Union,
@@ -445,6 +446,10 @@ def compare_partial(x: partial_type, y: partial_type, context: 'CompareContext')
                                 'attributes ', '.%s')
 
 
+def compare_path(x: Path, y: Path, context: 'CompareContext') -> Optional[str]:
+    return compare_text(str(x), str(y), context)
+
+
 def _short_repr(obj) -> str:
     repr_ = repr(obj)
     if len(repr_) > 30:
@@ -470,6 +475,7 @@ _registry: Registry = {
     unittest_mock_call.__class__: compare_call,
     BaseException: compare_exception,
     partial_type: compare_partial,
+    Path: compare_path,
     }
 
 
