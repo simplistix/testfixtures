@@ -19,7 +19,6 @@ from testfixtures import (
     generator,
     singleton,
     )
-from testfixtures.compat import PY_37_PLUS
 from testfixtures.comparison import compare_sequence, compare_object
 from unittest import TestCase
 
@@ -204,16 +203,10 @@ class TestCompare(CompareHelper, TestCase):
     def test_exception_diff(self):
         e1 = ValueError('some message')
         e2 = ValueError('some other message')
-        if PY_37_PLUS:
-            self.check_raises(
-                e1, e2,
-                "ValueError('some message') != ValueError('some other message')"
-                )
-        else:
-            self.check_raises(
-                e1, e2,
-                "ValueError('some message',) != ValueError('some other message',)"
-                )
+        self.check_raises(
+            e1, e2,
+            "ValueError('some message') != ValueError('some other message')"
+            )
 
     def test_exception_diff_c_wrapper(self):
         e1 = ValueError('some message')
@@ -226,8 +219,9 @@ class TestCompare(CompareHelper, TestCase):
              "'args': ('some message',) (Comparison) "
              "!= ('some other message',) (actual)\n"
              "</C:builtins.ValueError>"
-             " != ValueError('some other message'{message})"
-             ).format(message='' if PY_37_PLUS else ','))
+             " != ValueError('some other message')"
+             )
+        )
 
     def test_sequence_long(self):
         self.check_raises(

@@ -3,7 +3,6 @@ from textwrap import dedent
 from testfixtures import Comparison as C, ShouldRaise, should_raise
 from unittest import TestCase
 
-from ..compat import PY_37_PLUS
 from ..shouldraise import ShouldAssert
 
 
@@ -54,10 +53,7 @@ class TestShouldRaise(TestCase):
     def test_wrong_exception(self):
         def to_test():
             raise ValueError('bar')
-        if PY_37_PLUS:
-            expected = "ValueError('foo') (expected) != ValueError('bar') (raised)"
-        else:
-            expected = "ValueError('foo',) (expected) != ValueError('bar',) (raised)"
+        expected = "ValueError('foo') (expected) != ValueError('bar') (raised)"
         with ShouldAssert(expected):
             should_raise(ValueError('foo'))(to_test)()
 
@@ -176,10 +172,7 @@ class TestShouldRaise(TestCase):
             raise ValueError('foo bar')
 
     def test_with_exception_supplied_wrong_args(self):
-        if PY_37_PLUS:
-            expected = "ValueError('foo') (expected) != ValueError('bar') (raised)"
-        else:
-            expected = "ValueError('foo',) (expected) != ValueError('bar',) (raised)"
+        expected = "ValueError('foo') (expected) != ValueError('bar') (raised)"
         with ShouldAssert(expected):
             with ShouldRaise(ValueError('foo')):
                 raise ValueError('bar')
@@ -189,10 +182,7 @@ class TestShouldRaise(TestCase):
             raise ValueError('foo bar')
 
     def test_with_no_exception_when_expected(self):
-        if PY_37_PLUS:
-            expected = "ValueError('foo') (expected) != None (raised)"
-        else:
-            expected = "ValueError('foo',) (expected) != None (raised)"
+        expected = "ValueError('foo') (expected) != None (raised)"
         with ShouldAssert(expected):
             with ShouldRaise(ValueError('foo')):
                 pass

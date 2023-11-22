@@ -6,13 +6,7 @@ from testfixtures import (
     ShouldWarn, compare, ShouldRaise, ShouldNotWarn,
     Comparison as C
 )
-from testfixtures.compat import PY_37_PLUS
 from testfixtures.shouldraise import ShouldAssert
-
-if PY_37_PLUS:
-    comma = ''
-else:
-    comma = ','
 
 
 class ShouldWarnTests(TestCase):
@@ -28,9 +22,9 @@ class ShouldWarnTests(TestCase):
             "\n<SequenceComparison(ordered=True, partial=False)(failed)>\n"
             "same:\n[]\n\n"
             "expected:\n[]\n\n"
-            "actual:\n[UserWarning('foo'"+comma+")]\n"
+            "actual:\n[UserWarning('foo')]\n"
             "</SequenceComparison(ordered=True, partial=False)> (expected) "
-            "!= [UserWarning('foo'"+comma+")] (actual)"
+            "!= [UserWarning('foo')] (actual)"
         ):
             with warnings.catch_warnings(record=True) as backstop:
                 with ShouldNotWarn():
@@ -100,9 +94,9 @@ class ShouldWarnTests(TestCase):
             "same:\n[]\n\n"
             "expected:\n"
             "[<C:builtins.DeprecationWarning(failed)>wrong type</>]\n\n"
-            "actual:\n[UserWarning('foo'"+comma+")]\n"
+            "actual:\n[UserWarning('foo')]\n"
             "</SequenceComparison(ordered=True, partial=False)> (expected) "
-            "!= [UserWarning('foo'"+comma+")] (actual)"
+            "!= [UserWarning('foo')] (actual)"
         ):
             with ShouldWarn(DeprecationWarning):
                 warnings.warn('foo')
@@ -122,9 +116,9 @@ class ShouldWarnTests(TestCase):
             "attributes differ:\n"
             "'args': ('bar',) (Comparison) != ('foo',) (actual)\n"
             "</C:builtins.DeprecationWarning>]\n\n"
-            "actual:\n[DeprecationWarning('foo'"+comma+")]\n"
+            "actual:\n[DeprecationWarning('foo')]\n"
             "</SequenceComparison(ordered=True, partial=False)> (expected) "
-            "!= [DeprecationWarning('foo'"+comma+")] (actual)"
+            "!= [DeprecationWarning('foo')] (actual)"
         ):
             with ShouldWarn(DeprecationWarning('bar')):
                 warnings.warn_explicit(

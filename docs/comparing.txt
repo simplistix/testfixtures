@@ -629,12 +629,6 @@ If is it important that the two values being compared are of exactly
 the same type, rather than just being equal as far as Python is
 concerned, then the strict mode of :func:`compare` should be used.
 
-.. invisible-code-block: python
-
-  # Sybil 5.0.2 above above set this to __test__, but it needs to be
-  # __main__ for Python 3.6 compatibility:
-  __name__ = '__main__'
-
 For example, these two instances will normally appear to be equal
 provided the elements within them are the same:
 
@@ -648,7 +642,7 @@ should be used:
 >>> compare(TypeA(1), TypeB(1), strict=True)
 Traceback (most recent call last):
  ...
-AssertionError: A(x=1) (<class '__main__.A'>) != B(x=1) (<class '__main__.B'>)
+AssertionError: A(x=1) (<class '__test__.A'>) != B(x=1) (<class '__test__.B'>)
 
 .. _comparison-objects:
 
