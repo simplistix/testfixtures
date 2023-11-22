@@ -52,7 +52,3 @@ Helpers for comparing instances of django models.
 **Testing when using Twisted**
 
 Helpers for making assertions about logging when using Twisted.
-
-**Testing when using zope.component**
-
-An easy to use sterile component registry.

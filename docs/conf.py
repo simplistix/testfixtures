@@ -18,7 +18,6 @@ intersphinx_mapping = {
     'django': ('https://django.readthedocs.io/en/latest/', None),
     'pytest': ('https://docs.pytest.org/en/latest/', None),
     'sybil': ('https://sybil.readthedocs.io/en/latest/', None),
-    'zope.component': ('https://zopecomponent.readthedocs.io/en/latest/', None),
 }
 
 # General

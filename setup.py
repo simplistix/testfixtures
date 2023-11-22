@@ -9,7 +9,6 @@ name = 'testfixtures'
 base_dir = os.path.dirname(__file__)
 
 optional = [
-    'zope.component',
     'django',
     'sybil>=3',
     'twisted'

@@ -961,7 +961,7 @@ Thanks to Matthias Lehmann for the import error reports.
 -------------------------
 
 - :class:`Replacer`, :class:`TempDirectory`, :class:`LogCapture` and
-  :class:`~components.TestComponents` instances will now warn if the
+  ``TestComponents`` instances will now warn if the
   process they are created in exits without them being cleaned
   up. Instances of these classes should be cleaned up at the end of
   each test and these warnings serve to point to a cause for possible
@@ -1095,7 +1095,7 @@ Thanks to Matthias Lehmann for the import error reports.
 1.9.0 (11 February 2011)
 ------------------------
 
-- Added :class:`~components.TestComponents` for getting a sterile
+- Added ``TestComponents`` for getting a sterile
   registry when testing code that uses ``zope.component``.
 
 1.8.0 (14 January 2011)
