@@ -10,7 +10,7 @@ base_dir = os.path.dirname(__file__)
 
 optional = [
     'django',
-    'sybil>=3',
+    'sybil>=6',
     'twisted'
 ]
 
@@ -37,7 +37,7 @@ setup(
     python_requires=">=3.7",
     extras_require=dict(
         test=['mypy',
-              'pytest>=3.6',
+              'pytest>=7.1',
               'pytest-cov',
               'pytest-django',
               ]+optional,

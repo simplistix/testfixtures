@@ -1,21 +1,22 @@
 import os
-import re
 import textwrap
+from dataclasses import dataclass
+from typing import Iterable
 
-from sybil import Region, Example, Document
+from sybil import Document, Region, Example
+from sybil.parsers.rest.lexers import DirectiveLexer
+
 from testfixtures import diff
 
-FILEBLOCK_START = re.compile(r'^\.\.\s*topic::?\s*(.+)\b', re.MULTILINE)
-FILEBLOCK_END = re.compile(r'(\n\Z|\n(?=\S))')
-CLASS = re.compile(r'\s+:class:\s*(read|write)-file')
 
-
+@dataclass
 class FileBlock(object):
-    def __init__(self, path, content, action):
-        self.path, self.content, self.action = path, content, action
+    path: str
+    content: str
+    action: str
 
 
-class FileParser(object):
+class FileParser:
     """
     A `Sybil <http://sybil.readthedocs.io>`__ parser that
     parses certain ReST sections to read and write files in the
@@ -23,50 +24,44 @@ class FileParser(object):
 
     :param name: This is the name of the :class:`~testfixtures.TempDirectory` to use
                  in the Sybil test namespace.
-
     """
+
     def __init__(self, name: str):
         self.name = name
+        self.lexer = DirectiveLexer('topic', arguments='.+')
 
-    def __call__(self, document: Document):
-        for start_match, end_match, source in document.find_region_sources(
-            FILEBLOCK_START, FILEBLOCK_END
-        ):
-            lines = source.splitlines()
-            class_ = CLASS.match(lines[1])
-            if not class_:
-                continue
-            index = 3
-            if lines[index].strip() == '::':
-                index += 1
-            source = textwrap.dedent('\n'.join(lines[index:])).lstrip()
-            if source[-1] != '\n':
-                source += '\n'
-
-            parsed = FileBlock(
-                path=start_match.group(1),
-                content=source,
-                action=class_.group(1)
-            )
-
-            yield Region(
-                start_match.start(),
-                end_match.end(),
-                parsed,
-                self.evaluate
-            )
+    def __call__(self, document: Document) -> Iterable[Region]:
+        for region in self.lexer(document):
+            options = region.lexemes.get('options')
+            if options is not None:
+                class_ = options.get('class')
+                if class_ in ('read-file', 'write-file'):
+                    lines = region.lexemes['source'].splitlines(keepends=True)
+                    index = 0
+                    if lines[index].strip() == '::':
+                        index += 1
+                    source = textwrap.dedent(''.join(lines[index:])).lstrip()
+                    if source[-1] != '\n':
+                        source += '\n'
+                    region.parsed = FileBlock(
+                        path=region.lexemes['arguments'],
+                        content=source,
+                        action=class_.split('-')[0]
+                    )
+                    region.evaluator = self.evaluate
+                    yield region
 
     def evaluate(self, example: Example):
         block: FileBlock = example.parsed
-        dir = example.namespace[self.name]
+        temp_directory = example.namespace[self.name]
         if block.action == 'read':
-            actual = dir.read(block.path, 'ascii').replace(os.linesep, '\n')
+            actual = temp_directory.read(block.path, 'ascii').replace(os.linesep, '\n')
             if actual != block.content:
                 return diff(
                     block.content,
                     actual,
                     'File %r, line %i:' % (example.path, example.line),
-                    'Reading from "%s":' % dir.as_string(block.path)
+                    'Reading from "%s":' % temp_directory.as_string(block.path)
                 )
         if block.action == 'write':
-            dir.write(block.path, block.content, 'ascii')
+            temp_directory.write(block.path, block.content, 'ascii')
