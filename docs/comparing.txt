@@ -785,6 +785,8 @@ When comparing mappings such as :class:`dict` and :class:`~collections.OrderedDi
 you may need to check the order of the keys is as you expect.
 :class:`MappingComparison` objects can be used for this:
 
+.. skip: start if(sys.version_info < (3, 12), reason="Python 3.12 has nicer reprs")
+
 >>> from collections import OrderedDict
 >>> from testfixtures import compare, MappingComparison as M
 >>> compare(expected=M((('a', 1), ('c', 3), ('d', 2)), ordered=True),
@@ -803,7 +805,7 @@ expected:
 <BLANKLINE>
 actual:
 ['d', 'c']
-</MappingComparison(ordered=True, partial=False)> (expected) != OrderedDict([('a', 1), ('d', 2), ('c', 3)]) (actual)
+</MappingComparison(ordered=True, partial=False)> (expected) != OrderedDict({'a': 1, 'd': 2, 'c': 3}) (actual)
 
 You may also only care about certain keys being present in a mapping. This
 can also be achieved with :class:`MappingComparison` objects:
@@ -848,7 +850,9 @@ expected:
 <BLANKLINE>
 actual:
 [4]
-</MappingComparison(ordered=True, partial=False)> (expected) != OrderedDict([('a', [1, 2]), ('d', [1, 4])]) (actual)
+</MappingComparison(ordered=True, partial=False)> (expected) != OrderedDict({'a': [1, 2], 'd': [1, 4]}) (actual)
+
+.. skip: end
 
 Round Comparison objects
 -------------------------
