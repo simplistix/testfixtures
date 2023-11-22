@@ -611,7 +611,7 @@ __ https://sybil.readthedocs.io
 The key differences between testing with Sybil and traditional
 doctests are that it is possible to plug in different types of parser,
 not just the "python console session" one, and so it is possible to
-test different types of examples. testfixtures provides one these
+test different types of examples. Testfixtures provides one these
 parsers to aid working with
 :class:`~testfixtures.TempDirectory` objects. This parser makes use of
 `topic`__ directives with specific classes set to perform
@@ -619,9 +619,10 @@ different actions.
 
 __ https://docutils.sourceforge.io/docs/ref/rst/directives.html#topic
 
-
 The following sections describe how to use this parser to help with
 writing temporary files and checking their contents.
+
+.. note:: You must be using Sybil version 6 or newer to use this parser.
 
 Setting up
 ~~~~~~~~~~
@@ -634,7 +635,7 @@ constructor and the parser is passed to the
 
 The following example shows how to use Sybil's `pytest`__ integration to
 execute all of the examples below. These require not only the
-testfixtures parser but also the Sybil parsers that give more
+Testfixtures parser but also the Sybil parsers that give more
 traditional doctest behaviour, invisible code blocks
 that are useful for setting things up and checking examples without
 breaking up the flow of the documentation, and capturing of examples
