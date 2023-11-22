@@ -87,7 +87,7 @@ class TestLogCapture(TestCase):
         log.info('Sent FOO, length 1234')
         log.info('Sent 1 Messages')
         capture.check(
-            (INFO, S('Sent FOO, length \d+')),
+            (INFO, S(r'Sent FOO, length \d+')),
             (INFO, 'Failed to send BAR'),
             (INFO, 'Sent 1 Messages'),
             order_matters=False

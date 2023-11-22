@@ -707,9 +707,9 @@ class TestCompare(CompareHelper, TestCase):
 
     def test_sequence_and_generator_strict(self):
         expected = compile(
-            "\(1, 2, 3\) \(<(class|type) 'tuple'>\) \(expected\) != "
-            "<generator object (generator )?at... "
-            "\(<(class|type) 'generator'>\) \(actual\)"
+            r"\(1, 2, 3\) \(<(class|type) 'tuple'>\) \(expected\) != "
+            r"<generator object (generator )?at... "
+            r"\(<(class|type) 'generator'>\) \(actual\)"
             )
         self.check_raises(
             (1, 2, 3), generator(1, 2, 3),
@@ -745,10 +745,10 @@ class TestCompare(CompareHelper, TestCase):
 
     def test_iterable_and_generator_strict(self):
         expected = compile(
-            "range\(1, 4\) \(<(class|type) 'x?range'>\) != "
-            "<generator object (generator )?at... "
-            "\(<(class|type) 'generator'>\)"
-            )
+            r"range\(1, 4\) \(<(class|type) 'x?range'>\) != "
+            r"<generator object (generator )?at... "
+            r"\(<(class|type) 'generator'>\)"
+        )
         self.check_raises(
             range(1, 4), generator(1, 2, 3),
             regex=expected,
