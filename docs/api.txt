@@ -170,14 +170,6 @@ Framework Helpers
 
 Framework-specific helpers provided by testfixtures.
 
-testfixtures.components
-~~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: testfixtures.components
-   :member-order: bysource
-   :members:
-
-
 testfixtures.django
 ~~~~~~~~~~~~~~~~~~~
 

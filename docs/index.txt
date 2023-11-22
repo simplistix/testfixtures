@@ -16,7 +16,6 @@ The sections below describe the use of the various tools included:
    popen.txt
    django.txt
    twisted.txt
-   components.txt
    utilities.txt
 
 If you're looking for a description of a particular tool, please see
