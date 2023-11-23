@@ -6,7 +6,7 @@ from unittest import TestCase
 from ..shouldraise import ShouldAssert
 
 
-class TestShouldAssert(object):
+class TestShouldAssert:
 
     def test_no_exception(self):
         try:

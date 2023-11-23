@@ -10,7 +10,7 @@ from testfixtures import diff
 
 
 @dataclass
-class FileBlock(object):
+class FileBlock:
     path: str
     content: str
     action: str

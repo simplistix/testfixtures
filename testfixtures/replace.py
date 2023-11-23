@@ -259,7 +259,7 @@ def replace_in_module(target: Any, replacement: Any, module: ModuleType = None):
         yield
 
 
-class Replace(object):
+class Replace:
     """
     A context manager that uses a :class:`Replacer` to replace a single target.
     """

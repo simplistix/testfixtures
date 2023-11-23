@@ -69,7 +69,7 @@ def check_raises(x_=marker, y_=marker, message=None, regex=None,
         raise AssertionError('No exception raised!')
 
 
-class CompareHelper(object):
+class CompareHelper:
 
     def check_raises(self, *args, **kw):
         check_raises(*args, **kw)
@@ -792,7 +792,7 @@ class TestCompare(CompareHelper, TestCase):
         self.check_raises(X, Y, expected)
 
     def test_new_style_classes_same(self):
-        class X(object):
+        class X:
             pass
         compare(X, X)
 
@@ -805,10 +805,10 @@ class TestCompare(CompareHelper, TestCase):
             "test_new_style_classes_different.<locals>.Y'>"
             )
 
-        class X(object):
+        class X:
             pass
 
-        class Y(object):
+        class Y:
             pass
         self.check_raises(X, Y, expected)
 
@@ -922,7 +922,7 @@ b
                     })
 
     def test_extra_comparers_leave_existing(self):
-        class MyObject(object):
+        class MyObject:
             def __init__(self, name):
                 self.name = name
 
@@ -1460,7 +1460,7 @@ b
     def test_dont_raise(self):
         self.assertEqual(compare('x', 'y', raises=False), "'x' != 'y'")
 
-    class OrmObj(object):
+    class OrmObj:
         def __init__(self, a):
             self.a = a
         def __eq__(self, other):
@@ -1525,7 +1525,7 @@ b
         )
 
     def test_nested_django_orm_in_object(self):
-        class MyObject(object):
+        class MyObject:
             def __init__(self, orm):
                 self.orm = orm
 
@@ -1604,7 +1604,7 @@ b
         )
 
     def test_calls_args_different_but_same_repr(self):
-        class Annoying(object):
+        class Annoying:
             def __init__(self, x):
                 self.x = x
             def __repr__(self):
@@ -1648,7 +1648,7 @@ b
         )
 
     def test_calls_nested_equal_sub_attributes(self):
-        class Annoying(object):
+        class Annoying:
             def __init__(self, x):
                 self.x = x
             def __repr__(self):
@@ -1734,7 +1734,7 @@ b
 
     def test_inherited_slots(self):
 
-        class Parent(object):
+        class Parent:
             __slots__ = ('a',)
 
         class Child(Parent):
@@ -1757,7 +1757,7 @@ b
 
     def test_empty_child_slots(self):
 
-        class Parent(object):
+        class Parent:
             __slots__ = ('a',)
 
             def __init__(self, a):
@@ -1770,7 +1770,7 @@ b
 
     def test_slots_and_attrs(self):
 
-        class Parent(object):
+        class Parent:
             __slots__ = ('a',)
 
         class Child(Parent):
@@ -1870,7 +1870,7 @@ b
 
     def test_repr_and_attributes_equal(self):
 
-        class Wut(object):
+        class Wut:
             def __repr__(self):
                 return 'Wut'
             def __eq__(self, other):
@@ -1890,7 +1890,7 @@ b
 
     def test_string_with_slotted(self):
 
-        class Slotted(object):
+        class Slotted:
             __slots__ = ['foo']
             def __init__(self, foo):
                 self.foo = foo
@@ -2069,7 +2069,7 @@ b
 
 class TestIgnore(CompareHelper):
 
-    class Parent(object):
+    class Parent:
         def __init__(self, id, other):
             self.id = id
             self.other = other
@@ -2106,9 +2106,9 @@ class TestIgnore(CompareHelper):
         )
 
 
-class TestCompareObject(object):
+class TestCompareObject:
 
-    class Thing(object):
+    class Thing:
         def __init__(self, **kw):
             for k, v in kw.items():
                 setattr(self, k, v)
@@ -2144,7 +2144,7 @@ class MyDerivedClass(BaseClass):
         self.thing = thing
 
 
-class ConcreteBaseClass(object): pass
+class ConcreteBaseClass: pass
 
 
 class ConcreteDerivedClass(ConcreteBaseClass):

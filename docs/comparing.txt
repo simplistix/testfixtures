@@ -260,7 +260,7 @@ attributes. Take instances of this class as an example:
 
 .. code-block:: python
 
-  class MyObject(object):
+  class MyObject:
       def __init__(self, name):
           self.name = name
       def __repr__(self):
@@ -364,7 +364,7 @@ timestamp when comparing:
 
   from datetime import datetime
   
-  class MyObject(object):
+  class MyObject:
       def __init__(self, name):
           self.timestamp = datetime.now()
           self.name = name
@@ -474,7 +474,7 @@ as attributes:
 
 .. code-block:: python
 
-  class Request(object):
+  class Request:
       def __init__(self, uri, headers, body):
           self.uri = uri
           self.headers = headers
@@ -595,7 +595,7 @@ Take this class, for example:
 
 .. code-block:: python
 
-  class OrmObj(object):
+  class OrmObj:
       def __init__(self, a):
           self.a = a
       def __eq__(self, other):

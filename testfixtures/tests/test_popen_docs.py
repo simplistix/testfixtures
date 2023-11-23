@@ -216,7 +216,7 @@ class TestMyFunc(TestCase):
         ))
 
 
-class CustomBehaviour(object):
+class CustomBehaviour:
 
     def __init__(self, fail_count=1):
         self.fail_count = fail_count

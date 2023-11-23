@@ -8,7 +8,7 @@ def check_repr(obj, expected):
     compare(repr(obj), expected=dedent(expected).rstrip('\n'))
 
 
-class TestMappingComparison(object):
+class TestMappingComparison:
 
     def test_repr(self):
         m = MappingComparison({'a': 1}, b=2)

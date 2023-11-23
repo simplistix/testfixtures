@@ -1,7 +1,7 @@
 from testfixtures import SequenceComparison, generator, compare, Subset, Permutation
 
 
-class TestSequenceComparison(object):
+class TestSequenceComparison:
 
     def test_repr(self):
         compare(repr(SequenceComparison(1, 2, 3)),
@@ -351,7 +351,7 @@ class TestSequenceComparison(object):
         assert s != object()
 
 
-class TestSubset(object):
+class TestSubset:
 
     def test_equal(self):
         assert Subset({1}, {2}) == [{1}, {2}, {3}]
@@ -360,7 +360,7 @@ class TestSubset(object):
         assert Subset({1}, {2}) != [{1}]
 
 
-class TestPermutation(object):
+class TestPermutation:
 
     def test_equal(self):
         assert Permutation({1}, {2}) == [{2}, {1}]
