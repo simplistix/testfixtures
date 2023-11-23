@@ -4,8 +4,6 @@ from tempfile import mkdtemp
 from unittest import TestCase
 from warnings import catch_warnings
 
-from py.path import local
-
 from testfixtures.mock import Mock
 
 from testfixtures import (
@@ -312,26 +310,8 @@ class TempDirectoryTests(TestCase):
         with TempDirectory(encoding='ascii') as d:
             compare(d.as_path(('foo', 'bar')), expected=Path(d.path) / 'foo' / 'bar', strict=True)
 
-    def test_as_local_minimal(self):
-        with TempDirectory(encoding='ascii') as d:
-            compare(d.as_local(), expected=local(d.path), strict=True)
-
-    def test_as_local_relative_string(self):
-        with TempDirectory(encoding='ascii') as d:
-            compare(d.as_local('foo/bar'), expected=local(d.path) / 'foo' / 'bar', strict=True)
-
-    def test_as_local_relative_sequence(self):
-        with TempDirectory(encoding='ascii') as d:
-            compare(d.as_local(('foo', 'bar')), expected=local(d.path) / 'foo' / 'bar', strict=True)
-
 
 def test_wrap_path(tmp_path: Path):
     with TempDirectory(tmp_path) as d:
         assert d.path == str(tmp_path)
     assert tmp_path.exists()
-
-
-def test_wrap_local(tmpdir: local):
-    with TempDirectory(tmpdir) as d:
-        assert d.path == str(tmpdir)
-    assert tmpdir.exists()

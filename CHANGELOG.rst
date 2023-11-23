@@ -68,7 +68,7 @@ Thanks to Jan Musílek for the implementation!
   are now deprecated.
 
 - Add :meth:`TempDirectory.as_string`, :meth:`TempDirectory.as_path` and
-  :meth:`TempDirectory.as_local`. :meth:`TempDirectory.getpath` is now deprecated.
+  ``TempDirectory.as_local``. :meth:`TempDirectory.getpath` is now deprecated.
 
 - :class:`TempDirectory` can now be used to wrap existing directories.
 
