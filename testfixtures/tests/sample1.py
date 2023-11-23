@@ -70,7 +70,7 @@ some_dict = dict(
 )
 
 
-class Slotted(object):
+class Slotted:
 
     __slots__ = ['x', 'y']
 

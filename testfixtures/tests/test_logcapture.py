@@ -361,7 +361,7 @@ class LogCaptureTests(TestCase):
         compare(logger.propagate, True)
 
 
-class TestCheckPresent(object):
+class TestCheckPresent:
 
     def test_order_matters_ok(self):
         with LogCapture() as log:

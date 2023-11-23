@@ -38,7 +38,7 @@ def shell_join(command: Command) -> str:
         raise TypeError(f'{command!r} was {type(command)}, must be str')
 
 
-class PopenBehaviour(object):
+class PopenBehaviour:
     """
     An object representing the behaviour of a :class:`MockPopen` when
     simulating a particular command.
@@ -67,7 +67,7 @@ def record(func) -> Callable:
     return recorder
 
 
-class MockPopenInstance(object):
+class MockPopenInstance:
     """
     A mock process as returned by :class:`MockPopen`.
     """
@@ -210,7 +210,7 @@ class MockPopenInstance(object):
         pass
 
 
-class MockPopen(object):
+class MockPopen:
     """
     A specialised mock for testing use of :class:`subprocess.Popen`.
     An instance of this class can be used in place of the

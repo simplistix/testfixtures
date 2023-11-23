@@ -4,7 +4,7 @@ from testfixtures import ShouldRaise
 from testfixtures.shouldraise import ShouldAssert
 
 
-class TestShouldRaiseWithValidatorErrors(object):
+class TestShouldRaiseWithValidatorErrors:
 
     def test_as_expected(self):
         with ShouldRaise(ValidationError("d'oh")):

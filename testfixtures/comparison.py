@@ -515,7 +515,7 @@ class AlreadySeen:
             return self.obj == other
 
 
-class CompareContext(object):
+class CompareContext:
     """
     Stores the context of the current comparison in process during a call to
     :func:`testfixtures.compare`.
@@ -765,7 +765,7 @@ def compare(
     return message
 
 
-class StatefulComparison(object):
+class StatefulComparison:
     """
     A base class for stateful comparison objects.
     """

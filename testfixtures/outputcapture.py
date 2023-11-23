@@ -6,7 +6,7 @@ from tempfile import TemporaryFile
 from testfixtures.comparison import compare
 
 
-class OutputCapture(object):
+class OutputCapture:
     """
     A context manager for capturing output to the
     :any:`sys.stdout` and :any:`sys.stderr` streams.

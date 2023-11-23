@@ -26,11 +26,11 @@ class WeirdException(Exception):
         self.y = y
 
 
-class X(object):
+class X:
     __slots__ = ['x']
 
 
-class FussyDefineComparison(object):
+class FussyDefineComparison:
 
     def __init__(self, attr):
         self.attr = attr
@@ -406,7 +406,7 @@ class TestC(TestCase):
             )
 
     def run_property_equal_test(self, partial):
-        class SomeClass(object):
+        class SomeClass:
             @property
             def prop(self):
                 return 1
@@ -423,7 +423,7 @@ class TestC(TestCase):
         self.run_property_equal_test(partial=True)
 
     def run_property_not_equal_test(self, partial):
-        class SomeClass(object):
+        class SomeClass:
             @property
             def prop(self):
                 return 1
@@ -445,7 +445,7 @@ class TestC(TestCase):
         self.run_property_not_equal_test(partial=True)
 
     def run_method_equal_test(self, partial):
-        class SomeClass(object):
+        class SomeClass:
             def method(self):
                 pass  # pragma: no cover
 
@@ -462,7 +462,7 @@ class TestC(TestCase):
         self.run_method_equal_test(partial=True)
 
     def run_method_not_equal_test(self, partial):
-        class SomeClass(object): pass
+        class SomeClass: pass
         instance = SomeClass()
         instance.method = min
 
@@ -651,7 +651,7 @@ class TestC(TestCase):
             self.fail('No exception raised!')
 
     def test_no_name(self):
-        class NoName(object):
+        class NoName:
             pass
         NoName.__name__ = ''
         NoName.__module__ = ''
@@ -660,7 +660,7 @@ class TestC(TestCase):
 
     def test_missing_expected_attribute_not_partial(self):
 
-        class MyClass(object):
+        class MyClass:
             def __init__(self, **attrs):
                 self.__dict__.update(attrs)
 
@@ -669,7 +669,7 @@ class TestC(TestCase):
 
     def test_missing_expected_attribute_partial(self):
 
-        class MyClass(object):
+        class MyClass:
             def __init__(self, **attrs):
                 self.__dict__.update(attrs)
 
@@ -678,7 +678,7 @@ class TestC(TestCase):
 
     def test_extra_expected_attribute_not_partial(self):
 
-        class MyClass(object):
+        class MyClass:
             def __init__(self, **attrs):
                 self.__dict__.update(attrs)
 
@@ -687,7 +687,7 @@ class TestC(TestCase):
 
     def test_extra_expected_attribute_partial(self):
 
-        class MyClass(object):
+        class MyClass:
             def __init__(self, **attrs):
                 self.__dict__.update(attrs)
 

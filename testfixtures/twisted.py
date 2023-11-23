@@ -11,7 +11,7 @@ from . import compare
 from twisted.logger import globalLogPublisher, formatEvent, LogLevel
 
 
-class LogCapture(object):
+class LogCapture:
     """
     A helper for capturing stuff logged using Twisted's loggers.
 
