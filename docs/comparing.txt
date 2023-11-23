@@ -779,7 +779,11 @@ When comparing mappings such as :class:`dict` and :class:`~collections.OrderedDi
 you may need to check the order of the keys is as you expect.
 :class:`MappingComparison` objects can be used for this:
 
-.. skip: start if(sys.version_info < (3, 12), reason="Python 3.12 has nicer reprs")
+.. invisible-code-block: python
+
+    from testfixtures.compat import PY_312_PLUS
+
+.. skip: start if(not PY_312_PLUS, reason="Python 3.12 has nicer reprs")
 
 >>> from collections import OrderedDict
 >>> from testfixtures import compare, MappingComparison as M
