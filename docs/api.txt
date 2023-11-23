@@ -180,7 +180,7 @@ testfixtures.sybil
 ~~~~~~~~~~~~~~~~~~
 
 
-.. automodule:: testfixtures.sybil
+.. autoclass:: testfixtures.sybil.FileParser
    :member-order: bysource
    :members:
 
