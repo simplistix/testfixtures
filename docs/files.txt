@@ -142,14 +142,6 @@ using :class:`pathlib.Path` objects, you can get them as follows:
 9
 b'some text'
 
-A :class:`py.path.local` interface is also available:
-
->>> with TempDirectory(tmp_path) as d:
-...     d.as_local('myfile.txt').write_text('some text', encoding='ascii')
-...     d.compare(expected=['myfile.txt'])
-...     d.read('myfile.txt')
-b'some text'
-
 Features of a temporary directory
 ---------------------------------
 

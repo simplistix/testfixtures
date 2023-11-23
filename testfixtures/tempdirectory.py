@@ -16,10 +16,6 @@ from .rmtree import rmtree
 PathStrings = Union[str, Tuple[str, ...]]
 
 
-if TYPE_CHECKING:
-    import py.path
-
-
 class TempDirectory:
     """
     A class representing a temporary directory on disk.
@@ -50,7 +46,7 @@ class TempDirectory:
 
     def __init__(
             self,
-            path: Union[str, Path, 'py.path.local'] = None,
+            path: Union[str, Path] = None,
             *,
             ignore: Sequence[str] = (),
             create: bool = None,
@@ -330,20 +326,6 @@ class TempDirectory:
                      * A forward-slash separated string.
         """
         return Path(self.path if path is None else self._join(path))
-
-    def as_local(self, path: PathStrings = None) -> 'py.path.local':
-        """
-        Return the :class:`py.path.local` that corresponds to the path
-        relative to the temporary directory that is passed in.
-
-        :param path: The path to the file to create, which can be:
-
-                     * A tuple of strings.
-
-                     * A forward-slash separated string.
-        """
-        from py.path import local
-        return local(self.path if path is None else self._join(path))
 
     def read(self, filepath: PathStrings, encoding: str = None) -> Union[bytes, str]:
         """
