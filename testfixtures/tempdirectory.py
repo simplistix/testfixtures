@@ -327,6 +327,9 @@ class TempDirectory:
         """
         return Path(self.path if path is None else self._join(path))
 
+    def __truediv__(self, other: str) -> Path:
+        return self.as_path() / other
+
     def read(self, filepath: PathStrings, encoding: str = None) -> Union[bytes, str]:
         """
         Reads the file at the specified path within the temporary
