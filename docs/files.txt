@@ -76,9 +76,9 @@ may find the decorator suits your needs better:
       import pytest
 
       @pytest.fixture()
-      def dir():
-          with TempDirectory() as dir:
-              yield dir
+      def root():
+          with TempDirectory() as root:
+              yield root
 
 Manual usage
 ~~~~~~~~~~~~
@@ -137,10 +137,9 @@ Inversely, if you have an existing :class:`TempDirectory` but would like to inte
 using :class:`pathlib.Path` objects, you can get them as follows:
 
 >>> with TempDirectory(tmp_path) as d:
-...     d.as_path('myfile.txt').write_text('some text')
+...     bytes_written = d.as_path('myfile.txt').write_text('some text')
 ...     d.compare(expected=['myfile.txt'])
 ...     d.read('myfile.txt')
-9
 b'some text'
 
 Features of a temporary directory
@@ -289,8 +288,7 @@ Suppose the code you are testing creates some files:
 
 .. code-block:: python
 
- def spew(path):
-      root = Path(path)
+ def spew(root):
       (root / 'root.txt').write_bytes(b'root output')
       (root / 'subdir').mkdir()
       (root / 'subdir' / 'file.txt').write_bytes(b'subdir output')
@@ -300,7 +298,7 @@ We can test this function by passing it the temporary directory's path
 and then using the :meth:`TempDirectory.read` method to
 check the files were created with the correct content:
 
->>> spew(tempdir.path)
+>>> spew(tempdir.as_path())
 >>> tempdir.read('root.txt')
 b'root output'
 >>> tempdir.read(('subdir', 'file.txt'))
@@ -404,18 +402,18 @@ directories, which may or may not be present:
 
   from random import choice
 
-  def svn_ish(dirpath, filename):
+  def git_ish(dirpath, filename):
       root = Path(dirpath)
       if choice((True, False)):
-          (root / '.svn').mkdir()
+          (root / '.git').mkdir()
       (root / filename).write_bytes(b'something')
 
 To test this, we can use any of the previously described methods.
 
 When used manually or as a context manager, this would be as follows:
 
->>> with TempDirectory(ignore=['.svn']) as d:
-...    svn_ish(d.path, 'test.txt')
+>>> with TempDirectory(ignore=['.git']) as d:
+...    git_ish(d.path, 'test.txt')
 ...    d.compare(['test.txt'])
 
 The decorator would be as follows:
@@ -424,9 +422,9 @@ The decorator would be as follows:
 
   from testfixtures import tempdir, compare
 
-  @tempdir(ignore=['.svn'])
+  @tempdir(ignore=['.git'])
   def test_function(d):
-      svn_ish(d.path, 'test.txt')
+      git_ish(d.path, 'test.txt')
       d.compare(['test.txt'])
 
 .. check the above raises no assertion error:
@@ -437,7 +435,7 @@ The decorator would be as follows:
 .. set things up again:
 
   >>> tempdir = TempDirectory()
-  >>> spew(tempdir.path)
+  >>> spew(tempdir.as_path())
 
 If you are working with doctests, the
 :meth:`~testfixtures.TempDirectory.listdir` method can be used instead:
