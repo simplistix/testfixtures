@@ -289,6 +289,8 @@ class TempDirectory:
         encoding = encoding or self.encoding
         if encoding is not None:
             data = data.encode(encoding)
+        elif isinstance(data, str):
+            data = data.encode()
         with open(thepath, 'wb') as f:
             f.write(data)
         return thepath

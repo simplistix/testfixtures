@@ -94,7 +94,7 @@ The instantiation is done in the set-up step of the :class:`~unittest.TestCase` 
 
 You can then use the temporary directory for your testing:
 
->>> d.write('test.txt', b'some foo thing')
+>>> d.write('test.txt', 'some foo thing')
 '...'
 >>> foo2bar(d.path, 'test.txt')
 >>> d.read('test.txt') == b'some bar thing'
@@ -124,7 +124,7 @@ the :class:`TempDirectory` API for creating content or making assertions, then y
 existing object as follows:
 
 >>> with TempDirectory(tmp_path) as d:
-...     d.write('some/path.txt', b'some text')
+...     d.write('some/path.txt', 'some text')
 ...     d.compare(expected=('some/', 'some/path.txt'))
 '...'
 
@@ -195,7 +195,7 @@ Writing files
 To write to a file in the root of the temporary directory, you pass
 the name of the file and the content you want to write:
 
->>> tempdir.write('myfile.txt', b'some text')
+>>> tempdir.write('myfile.txt', 'some text')
 '...'
 >>> with open(os.path.join(tempdir.path, 'myfile.txt')) as f:
 ...     print(f.read())
@@ -203,7 +203,7 @@ some text
 
 The full path of the newly written file is returned:
 
->>> path = tempdir.write('anotherfile.txt', b'some more text')
+>>> path = tempdir.write('anotherfile.txt', 'some more text')
 >>> with open(path) as f:
 ...     print(f.read())
 some more text
@@ -211,7 +211,7 @@ some more text
 You can also write files into a sub-directory of the temporary
 directory, whether or not that directory exists, as follows:
 
->>> path = tempdir.write(('some', 'folder', 'afile.txt'), b'the text')
+>>> path = tempdir.write(('some', 'folder', 'afile.txt'), 'the text')
 >>> with open(path) as f:
 ...     print(f.read())
 the text
@@ -219,7 +219,7 @@ the text
 You can also specify the path to write to as a forward-slash separated
 string:
 
->>> path = tempdir.write('some/folder/bfile.txt', b'the text')
+>>> path = tempdir.write('some/folder/bfile.txt', 'the text')
 >>> with open(path) as f:
 ...     print(f.read())
 the text
@@ -496,12 +496,18 @@ have been in the examples so far:
 >>> Path(path).read_bytes()
 b'\xc2\xa3'
 
-Or, you can write text, but must specify an encoding to use when
-writing the data to the file:
+Or, you can write text, in which case your system default encoding, usually ``utf-8``,
+will be used when writing the data to the file:
 
->>> path = tempdir.write('currencies.txt', some_text, encoding='utf-8')
+>>> path = tempdir.write('currencies.txt', some_text)
 >>> Path(path).read_bytes()
 b'\xc2\xa3'
+
+Alternatively, you can specify an explicit encoding to use when writing the data to the file:
+
+>>> latin_path = tempdir.write('latin-currencies.txt', some_text, encoding='latin1')
+>>> Path(latin_path).read_bytes()
+b'\xa3'
 
 The same is true when reading files. You can either read bytes:
 
@@ -685,12 +691,10 @@ technique:
 
   >>> TempDirectory.cleanup_all()
 
-A note on encoding and line endings
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+A note on line endings
+~~~~~~~~~~~~~~~~~~~~~~
 
-As currently implemented, the parser provided by testfixtures only works
-with textual file content that can be encoded using the ASCII
-character set. This content will always be written with ``'\n'`` line
-separators and, when read, will always have its line endings
-normalised to ``'\n'``. If you hit any limitations caused by this,
-please raise an issue in the tracker on GitHub.
+As currently implemented, the parser provided by testfixtures always
+writes content with ``'\n'`` line separators and, when read, will always
+have its line endings normalised to ``'\n'``.
+If you hit any limitations caused by this, please raise an issue in the tracker on GitHub.
