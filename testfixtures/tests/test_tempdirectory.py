@@ -310,6 +310,10 @@ class TempDirectoryTests(TestCase):
         with TempDirectory(encoding='ascii') as d:
             compare(d.as_path(('foo', 'bar')), expected=Path(d.path) / 'foo' / 'bar', strict=True)
 
+    def test_traverse(self):
+        with TempDirectory(encoding='ascii') as d:
+            compare((d / 'foo' / 'bar'), expected=Path(d.path) / 'foo' / 'bar', strict=True)
+
 
 def test_wrap_path(tmp_path: Path):
     with TempDirectory(tmp_path) as d:

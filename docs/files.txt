@@ -38,10 +38,10 @@ A :class:`TempDirectory` can be used as a context manager:
 
 >>> from testfixtures import TempDirectory
 >>> with TempDirectory() as d:
-...   d.write('test.txt', b'some foo thing')
+...   test_txt = (d / 'test.txt')
+...   bytes_written = test_txt.write_text('some foo thing')
 ...   foo2bar(d.path, 'test.txt')
-...   d.read('test.txt')
-'...'
+...   test_txt.read_bytes()
 b'some bar thing'
 
 
@@ -56,10 +56,11 @@ may find the decorator suits your needs better:
   from testfixtures import tempdir, compare
   
   @tempdir()
-  def test_function(dir):
-      dir.write('test.txt', b'some foo thing')
-      foo2bar(dir.path, 'test.txt')
-      compare(dir.read('test.txt'), b'some bar thing')
+  def test_function(root: TempDirectory):
+      test_txt = root / 'test.txt'
+      test_txt.write_bytes(b'some foo thing')
+      foo2bar(root.path, 'test.txt')
+      compare(test_txt.read_bytes(), expected=b'some bar thing')
 
 .. check the above raises no assertion error:
 
@@ -240,7 +241,7 @@ you can do so as follows:
 
 >>> tempdir.makedir('output')
 '...'
->>> (Path(tempdir.path) / 'output').is_dir()
+>>> (tempdir / 'output').is_dir()
 True
 
 As with file creation, the full path of the sub-directory that has
@@ -253,7 +254,7 @@ True
 Finally, you can create a nested sub-directory even if the intervening
 parent directories do not exist:
 
->>> (Path(tempdir.path) / 'some').exists()
+>>> (tempdir / 'some').exists()
 False
 >>> path = tempdir.makedir(('some', 'sub', 'dir'))
 >>> Path(path).exists()
@@ -262,7 +263,7 @@ True
 You can also specify the path to write to as a forward-slash separated
 string:
 
->>> (Path(tempdir.path) / 'another').exists()
+>>> (tempdir / 'another').exists()
 False
 >>> path = tempdir.makedir('another/sub/dir')
 >>> Path(path).exists()
