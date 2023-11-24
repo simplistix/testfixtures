@@ -55,7 +55,7 @@ class FileParser:
         block: FileBlock = example.parsed
         temp_directory = example.namespace[self.name]
         if block.action == 'read':
-            actual = temp_directory.read(block.path, 'ascii').replace(os.linesep, '\n')
+            actual = temp_directory.as_path(block.path).read_text().replace(os.linesep, '\n')
             if actual != block.content:
                 return diff(
                     block.content,
@@ -64,4 +64,4 @@ class FileParser:
                     'Reading from "%s":' % temp_directory.as_string(block.path)
                 )
         if block.action == 'write':
-            temp_directory.write(block.path, block.content, 'ascii')
+            temp_directory.write(block.path, block.content)

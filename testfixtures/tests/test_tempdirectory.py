@@ -247,10 +247,10 @@ class TempDirectoryTests(TestCase):
             with open(os.path.join(d.path, 'test.file'), 'rb') as f:
                 compare(f.read(), b'\xc2\xa3')
 
-    def test_write_unicode_bad(self):
+    def test_write_unicode_default_encoding(self):
         with TempDirectory() as d:
-            with ShouldRaise(TypeError("a bytes-like object is required, not 'str'")):
-                d.write('test.file', u'\xa3')
+            d.write('test.file', u'\xa3')
+            compare((d / 'test.file').read_text(), expected=u'\xa3')
 
     def test_just_empty_non_recursive(self):
         with TempDirectory() as d:
