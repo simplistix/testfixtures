@@ -55,9 +55,7 @@ class Replacer:
         if name is None and accessor is not None:
             raise TypeError('accessor is not used unless name is specified')
 
-        if isinstance(target, str):
-            if name is not None:
-                raise TypeError('name cannot be specified when target is a string')
+        if isinstance(target, str) and not name:
             resolved = resolve(target, container)
         else:
             found = not_there
@@ -158,9 +156,10 @@ class Replacer:
         name on the class, such as that returned by poorly implemented decorators, then
         ``name`` must be used to provide the correct name.
         """
-        if not callable(attribute):
-            raise TypeError('attribute must be callable')
         name = name or getattr(attribute, '__name__', None)
+        if not callable(attribute):
+            name_text = f' named {name!r} ' if name else ' '
+            raise TypeError(f'attribute{name_text}must be a method')
         container = None
         if isinstance(attribute, classmethod_type):
             for referred in get_referents(attribute):

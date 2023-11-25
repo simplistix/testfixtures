@@ -597,7 +597,7 @@ class TestReplace(TestCase):
     def test_no_name_and_target_string(self):
         x = sample1.X()
         replacer = Replacer()
-        with ShouldRaise(TypeError('name cannot be specified when target is a string')):
+        with ShouldRaise(AttributeError("Original 'aMethod' not found")):
             replacer('.X', lambda cls: 'FOO', name='aMethod', container=sample1)
         assert x.aMethod() is sample1.X
 
@@ -734,6 +734,30 @@ class TestOnClass:
         compare(sample.method(1), expected=2)
         assert SampleClass.__dict__['method'] is original
 
+    def test_attributes_on_class(self):
+
+        class SampleClass:
+            x = 1
+            y = 'a'
+
+        sample = SampleClass()
+
+        with Replacer() as replace:
+            # without names, we get a useful errors:
+            with ShouldRaise(TypeError("attribute named 'x' must be a method")):
+                replace.on_class(SampleClass.x, 2, name='x')
+            with ShouldRaise(TypeError("attribute must be a method")):
+                replace.on_class(SampleClass.y, 'b')
+
+            # okay, so we'll use the full form:
+            replace(SampleClass.x, 2, container=SampleClass, name='x')
+            replace(SampleClass.y, 'b', container=SampleClass, name='y')
+            compare(sample.x, expected=2)
+            compare(sample.y, expected='b')
+
+        compare(sample.x, expected=1)
+        compare(sample.y, expected='a')
+
     def test_method_on_instance(self):
 
         class SampleClass:
@@ -820,19 +844,6 @@ class TestOnClass:
 
         compare(SampleClass.method(1), expected=2)
         assert SampleClass.__dict__['method'] is original
-
-    def test_not_callable(self):
-
-        class SampleClass:
-
-            FOO = 1
-
-        sample = SampleClass()
-
-        replace = Replacer()
-        with ShouldRaise(TypeError('attribute must be callable')):
-            replace.on_class(SampleClass.FOO, 2)
-        compare(sample.FOO, expected=1)
 
     def test_method_on_class_in_module(self):
         sample = X()
