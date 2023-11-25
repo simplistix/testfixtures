@@ -595,6 +595,69 @@ will need to make sure that the directory is cleaned up as required.
 
  >>> rmtree(thedir)
 
+
+Changing the current working directory
+--------------------------------------
+
+While it's generally not a good idea to have software that relies on the current working
+directory, there's still plenty of occasions where it ends up mattering during testing.
+
+If you'd like the current working directory to be set to the temporary directory for the
+duration of a managed context, you can do it like this:
+
+>>> import os
+>>> with TempDirectory(cwd=True) as d:
+...     os.getcwd() == str(d.as_path().resolve())
+True
+
+If you'd like the current working directory to be set to the temporary directory for the
+duration of a decorated function or context, you can do it like this:
+
+.. code-block:: python
+
+  from testfixtures import tempdir
+
+  @tempdir(cwd=True)
+  def test_function(d):
+      assert os.getcwd() == str(d.as_path().resolve())
+
+.. check the above raises no assertion error and that thedir still
+   exits:
+
+  >>> test_function()
+
+However, it's better practice to only change the current working directory for the smalled
+context possible, and in this case it's better to use the :func:`~contextlib.chdir` context manager
+from the standard library, available on Python 3.11 or newer:
+
+
+.. invisible-code-block: python
+
+    from testfixtures.compat import PY_311_PLUS
+
+.. skip: start if(not PY_311_PLUS, reason="chdir only in Python 3.11 or newer")
+
+.. code-block:: python
+
+  from contextlib import chdir
+  from testfixtures import tempdir
+
+  @tempdir()
+  def test_function(d):
+      assert os.getcwd() != str(d.as_path().resolve())
+      ...
+      with chdir(d.path):
+          assert os.getcwd() == str(d.as_path().resolve())
+      ...
+      assert os.getcwd() != str(d.as_path().resolve())
+
+.. check the above raises no assertion error and that thedir still
+   exits:
+
+  >>> test_function()
+
+..skip: end
+
 Using with Sybil
 -----------------
 

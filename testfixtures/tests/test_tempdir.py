@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from testfixtures.shouldraise import ShouldAssert
 from testfixtures.mock import Mock
@@ -108,3 +109,15 @@ class TestTempDir(TestCase):
             test_method()
 
             self.assertFalse(m.called)
+
+    def test_cwd_directory(self):
+        @tempdir(cwd=True)
+        def test_method(d):
+            compare(Path(os.getcwd()).resolve(), expected=Path(d.path).resolve())
+
+        original = os.getcwd()
+        try:
+            test_method()
+            compare(Path(os.getcwd()).resolve(), expected=Path(original).resolve())
+        finally:
+            os.chdir(original)

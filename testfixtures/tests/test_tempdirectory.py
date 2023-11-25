@@ -314,6 +314,16 @@ class TempDirectoryTests(TestCase):
         with TempDirectory(encoding='ascii') as d:
             compare((d / 'foo' / 'bar'), expected=Path(d.path) / 'foo' / 'bar', strict=True)
 
+    def test_cwd_context_manager(self):
+        original = os.getcwd()
+        try:
+            # need to resolve links thanks to /tmp location on macos!
+            with TempDirectory(cwd=True) as d:
+                compare(Path(os.getcwd()).resolve(), expected=Path(d.path).resolve())
+            compare(Path(os.getcwd()).resolve(), expected=Path(original).resolve())
+        finally:
+            os.chdir(original)
+
 
 def test_wrap_path(tmp_path: Path):
     with TempDirectory(tmp_path) as d:
