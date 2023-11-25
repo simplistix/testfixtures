@@ -36,6 +36,9 @@ class TempDirectory:
     :param encoding: A default encoding to use for :meth:`read` and
                      :meth:`write` operations when the ``encoding`` parameter
                      is not passed to those methods.
+
+    :param cwd: If ``True``, set the current working directory to be that of the temporary directory
+                when used as a decorator or context manager.
     """
 
     instances = set()
@@ -50,13 +53,16 @@ class TempDirectory:
             *,
             ignore: Sequence[str] = (),
             create: bool = None,
-            encoding: str = None
+            encoding: str = None,
+            cwd: bool = False,
     ):
         self.ignore = []
         for regex in ignore:
             self.ignore.append(compile(regex))
         self.path = str(path) if path else None
         self.encoding = encoding
+        self.cwd = cwd
+        self.original_cwd = None
         self.dont_remove = bool(path)
         if create or (path is None and create is None):
             self.create()
@@ -81,6 +87,9 @@ class TempDirectory:
         if not self.__class__.atexit_setup:
             atexit.register(self.atexit)
             self.__class__.atexit_setup = True
+        if self.cwd:
+            self.original_cwd = os.getcwd()
+            os.chdir(self.path)
         return self
 
     def cleanup(self) -> None:
@@ -89,6 +98,9 @@ class TempDirectory:
         This :class:`TempDirectory` cannot be used again unless
         :meth:`create` is called.
         """
+        if self.cwd:
+            os.chdir(self.original_cwd)
+            self.original_cwd = None
         if self.path and os.path.exists(self.path) and not self.dont_remove:
             rmtree(self.path)
             del self.path
