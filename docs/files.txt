@@ -656,7 +656,7 @@ from the standard library, available on Python 3.11 or newer:
 
   >>> test_function()
 
-..skip: end
+.. skip: end
 
 Using with Sybil
 -----------------
