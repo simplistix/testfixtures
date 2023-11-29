@@ -692,6 +692,31 @@ class TestReplace(TestCase):
             with ShouldRaise(AttributeError("Original 'a' not found")):
                 r(container=nested, target='.a.1', replacement=42)
 
+    def test_alternative_separator(self):
+        nested = {'.b': 1, 'c.d': 2, 'e': {'f': 42}}
+
+        with Replacer() as r:
+            r(container=nested, target=':.b', replacement=3, sep=':')
+            r(container=nested, target=':c.d', replacement=4, sep=':')
+            compare(nested, expected={'.b': 3, 'c.d': 4, 'e': {'f': 42}})
+
+        with Replace(container=nested, target=':e:f', replacement=43, sep=':'):
+            compare(nested, expected={'.b': 1, 'c.d': 2, 'e': {'f': 43}})
+
+        @replace(container=nested, target=':e:f', replacement=43, sep=':')
+        def function():
+            compare(nested, expected={'.b': 1, 'c.d': 2, 'e': {'f': 43}})
+
+        function()
+
+    def test_alternative_separator_traversal_not_valid(self):
+        nested = {'.b': 1}
+
+        with Replacer() as r:
+            with ShouldRaise(AttributeError("Original '.a.1' not found")):
+                r(container=nested, target=':.a.1', replacement=3, sep=':')
+
+
 class TestEnviron:
 
     def test_key_present(self):

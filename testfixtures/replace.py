@@ -47,8 +47,16 @@ class Replacer:
         else:
             resolved.setter(resolved.container, resolved.name, value)
 
-    def __call__(self, target: Any, replacement: R, strict: bool = True,
-                 container: Any = None, accessor: Accessor = None, name: str = None) -> R:
+    def __call__(
+            self,
+            target: Any,
+            replacement: R,
+            strict: bool = True,
+            container: Any = None,
+            accessor: Accessor = None,
+            name: str = None,
+            sep: str = '.',
+    ) -> R:
         """
         Replace the specified target with the supplied replacement.
         """
@@ -56,7 +64,7 @@ class Replacer:
             raise TypeError('accessor is not used unless name is specified')
 
         if isinstance(target, str) and not name:
-            resolved = resolve(target, container)
+            resolved = resolve(target, container, sep)
         else:
             found = not_there
             if container is None:
@@ -215,7 +223,7 @@ class Replacer:
 
 def replace(
         target: Any, replacement: Any, strict: bool = True,
-        container: Any = None, accessor: Accessor = None, name: str = None
+        container: Any = None, accessor: Accessor = None, name: str = None, sep: str ='.'
 ) -> Callable[[Callable], Callable]:
     """
     A decorator to replace a target object for the duration of a test
@@ -223,7 +231,7 @@ def replace(
     """
     r = Replacer()
     return wrap(
-        partial(r.__call__, target, replacement, strict, container, accessor, name),
+        partial(r.__call__, target, replacement, strict, container, accessor, name, sep),
         r.restore
     )
 
@@ -265,7 +273,7 @@ class Replace:
 
     def __init__(
             self, target: Any, replacement: R, strict: bool = True,
-            container: Any = None, accessor: Accessor = None, name: str = None
+            container: Any = None, accessor: Accessor = None, name: str = None, sep: str ='.'
     ):
         self.target = target
         self.replacement = replacement
@@ -273,11 +281,18 @@ class Replace:
         self.container: Any = container
         self.accessor: Accessor = accessor
         self.name: str = name
+        self.sep: str = sep
         self._replacer = Replacer()
 
     def __enter__(self) -> R:
         return self._replacer(
-            self.target, self.replacement, self.strict, self.container, self.accessor, self.name
+            self.target,
+            self.replacement,
+            self.strict,
+            self.container,
+            self.accessor,
+            self.name,
+            self.sep,
         )
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -313,12 +328,14 @@ replace_params_doc = """
   :func:`getattr` or :func:`~operator.getitem`.
   
 :param accessor:
-  Either :func:`getattr` or :func:`~operator.getitem`. If not supplied, this will be inferred
-  preferring :func:`~operator.getitem` over :func:`getattr`.
+  Either :func:`getattr` or :func:`~operator.getitem`. If not supplied, this will be inferred.
   
 :param name:
   The name used to access the ``target`` from the ``container`` using the ``accessor``.
   If required but not specified, the ``__name__`` attribute of the ``target`` will be used. 
+  
+:param sep:
+  When ``target`` is a string, this is the separator between traversal segments. 
 """
 
 # add the param docs, so we only have one copy of them!
