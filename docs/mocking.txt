@@ -427,7 +427,15 @@ Nested traversal can be used:
 ...     print(nested)
 {'key': [1, 2, 42]}
 
+If your dictionary or other item-based traversal key contains periods:
 
+>>> sample_dict = {'.foo': 'bar'}
+
+You can use a different separator:
+
+>>> with Replace(container=sample_dict, target=':.foo', sep=':', replacement='baz'):
+...     print(sample_dict)
+{'.foo': 'baz'}
 
 .. _removing_attr_and_item:
 

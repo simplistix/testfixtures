@@ -23,8 +23,8 @@ class Resolved:
         return f'<Resolved: {self.found}>'
 
 
-def resolve(dotted_name: str, container: Optional[Any] = None) -> Resolved:
-    names = dotted_name.split('.')
+def resolve(dotted_name: str, container: Optional[Any] = None, sep: str = '.') -> Resolved:
+    names = dotted_name.split(sep)
     used = names.pop(0)
     if container is None:
         found = __import__(used)
@@ -43,6 +43,8 @@ def resolve(dotted_name: str, container: Optional[Any] = None) -> Resolved:
             setter = setattr
         except AttributeError:
             try:
+                if sep != '.':
+                    raise ImportError
                 __import__(used)
             except ImportError:
                 setter = setitem
