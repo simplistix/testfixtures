@@ -6,7 +6,7 @@ from operator import setitem, getitem
 from types import ModuleType
 from typing import Any, TypeVar, Callable, Dict, Tuple
 
-from testfixtures.resolve import resolve, not_there, Resolved, classmethod_type, class_type
+from testfixtures.resolve import resolve, not_there, Resolved, classmethod_type, class_type, Setter
 from testfixtures.utils import wrap, extend_docstring
 
 import warnings
@@ -30,7 +30,7 @@ class Replacer:
     """
 
     def __init__(self):
-        self.originals: Dict[int, Tuple[Any, Resolved]] = {}
+        self.originals: Dict[Tuple[int, Setter, str], Tuple[Any, Resolved]] = {}
 
     def _replace(self, resolved: Resolved, value):
         if value is not_there:
@@ -113,7 +113,7 @@ class Replacer:
                 replacement_to_use = staticmethod(replacement)
 
         self._replace(resolved, replacement_to_use)
-        key = id(target)
+        key = resolved.key()
         if key not in self.originals:
             self.originals[key] = target, resolved
         return replacement

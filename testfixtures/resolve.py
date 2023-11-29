@@ -1,5 +1,5 @@
 from operator import setitem
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Tuple
 
 from testfixtures import not_there
 
@@ -15,6 +15,9 @@ class Resolved:
         self.setter: Setter = setter
         self.name: str = name
         self.found: Any = found
+
+    def key(self) -> Tuple[int, Setter, str]:
+        return id(self.container), self.setter, self.name
 
     def __repr__(self):
         return f'<Resolved: {self.found}>'
