@@ -61,6 +61,8 @@ def resolve(dotted_name: str, container: Optional[Any] = None) -> Resolved:
             else:
                 found = getattr(found, name)
                 setter = getattr
+            if found is not_there:
+                break
     return Resolved(container, setter, name, found)
 
 
