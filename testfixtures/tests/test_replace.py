@@ -914,6 +914,23 @@ class TestOnClass:
         compare(X.bMethod(), expected=2)
         assert X.__dict__['bMethod'] is original
 
+    def test_multiple_methods_on_class(self):
+        original_y = X.y
+        original_a_result = X.aMethod()
+        with Replacer() as replace:
+            # y = replace('testfixtures.tests.sample1.X.y', Mock())
+            # y.return_value = 'mock y'
+            # aMethod = replace('testfixtures.tests.sample1.X.aMethod', Mock())
+            # aMethod.return_value = 'mock method'
+            replace.on_class(X.y, lambda self: 'mock y')
+            replace.on_class(X.aMethod, lambda cls: 'mock method')
+            x = X()
+            compare(x.y(), expected='mock y')
+            compare(x.aMethod(), expected='mock method')
+
+        assert X.y is original_y
+        assert X.aMethod() is original_a_result
+
 
 class TestInModule:
 
