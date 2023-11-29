@@ -686,6 +686,11 @@ class TestReplace(TestCase):
             from .sample3 import SOME_CONSTANT as sample3_some_constant
             compare(sample3_some_constant, expected=43)
 
+    def test_relative_nested_but_not_present(self):
+        nested = {'b': [1, 2, 3]}
+        with Replacer() as r:
+            with ShouldRaise(AttributeError("Original 'a' not found")):
+                r(container=nested, target='.a.1', replacement=42)
 
 class TestEnviron:
 
