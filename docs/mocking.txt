@@ -102,6 +102,24 @@ For the duration of the ``with`` block, the replacement is used:
 >>> test_function()
 mock y
 
+You can also use explict relative traversal from an object, which is more friendly to static
+analysis tools such as IDEs:
+
+.. code-block:: python
+
+  from testfixtures import Replace
+  from testfixtures.tests.sample1 import X
+
+  def test_function():
+      with Replace(container=X, target='.y', replacement=mock_y):
+          print(X().y())
+
+For the duration of the ``with`` block, the replacement is used:
+
+>>> test_function()
+mock y
+
+
 For replacements that are friendly to static analysis tools such as IDEs, three convenience
 context managers are provided:
 
@@ -266,12 +284,12 @@ than one thing at a time. For the former, this is fairly obvious:
 
 .. code-block:: python
 
+  from testfixtures.tests.sample1 import X
+
   def test_function():
       with Replacer() as replace:
-          y = replace('testfixtures.tests.sample1.X.y', Mock())
-          y.return_value = 'mock y'
-          aMethod = replace('testfixtures.tests.sample1.X.aMethod', Mock())
-          aMethod.return_value = 'mock method'
+          replace.on_class(X.y, lambda self: 'mock y')
+          replace.on_class(X.aMethod, lambda cls: 'mock method')
           x = X()
           print(x.y(), x.aMethod())
 
@@ -286,14 +304,11 @@ For the decorator, it's less obvious but still pretty easy:
 
   from testfixtures import replace
 
-  @replace('testfixtures.tests.sample1.X.y', Mock())
-  @replace('testfixtures.tests.sample1.X.aMethod', Mock())
+  @replace('testfixtures.tests.sample1.X.y', lambda self: 'mock y')
+  @replace('testfixtures.tests.sample1.X.aMethod', lambda cls: 'mock method')
   def test_function(aMethod, y):
       print(aMethod, y)
-      aMethod().return_value = 'mock method'
-      y().return_value = 'mock y'
       x = X()
-      print(aMethod, y)
       print(x.y(), x.aMethod())
 
 You'll notice that you can still get access to the replacements, even
@@ -322,6 +337,7 @@ shown in the following :class:`~unittest.TestCase`:
 .. imports
 
   >>> import unittest,sys
+  >>> from pprint import pprint
 
 .. code-block:: python
 
@@ -369,40 +385,49 @@ Replacing items in dictionaries and lists
 :func:`~testfixtures.replace` decorator can be used to replace items
 in dictionaries and lists.
 
-For example, suppose you have a data structure like the following:
-
-.. topic:: testfixtures.tests.sample1
-   :class: module
-
-   .. literalinclude:: ../testfixtures/tests/sample1.py
-      :lines: 67-70
-
-You can mock out the value associated with ``key`` and the second
-element in the ``complex_key`` list as follows:
-
-.. code-block:: python
-
-  from pprint import pprint
-  from testfixtures import Replacer
-  from testfixtures.tests.sample1 import some_dict
-
-  def test_function():
-      with Replacer() as replace:
-          replace('testfixtures.tests.sample1.some_dict.key', 'foo')
-          replace('testfixtures.tests.sample1.some_dict.complex_key.1', 42)
-          pprint(some_dict)
-
-While the replacement is in effect, the new items are in place:
-
->>> test_function()
-{'complex_key': [1, 42, 3], 'key': 'foo'}
-
-When it is no longer in effect, the originals are returned:
-
->>> pprint(some_dict)
-{'complex_key': [1, 2, 3], 'key': 'value'}
-
 If the dictionary is :any:`os.environ`, then see :ref:`replacing-in-environ`.
+
+For a lists such as this:
+
+>>> sample_list = [1, 2, 3]
+
+
+An element can be placed as follows:
+
+>>> with Replace(container=sample_list, target='.1', replacement=42):
+...     print(sample_list)
+[1, 42, 3]
+
+For dictionaries such as this:
+
+>>> sample_dict = {1: 'a', 'z': 'b'}
+
+String keys can be replaced as follows:
+
+>>> with Replace(container=sample_dict, target='.z', replacement='c'):
+...     print(sample_dict)
+{1: 'a', 'z': 'c'}
+
+For non-string keys, it takes a bit more work:
+
+>>> from operator import getitem
+>>> with Replace(
+...     container=sample_dict, accessor=getitem, name=1, target='a', replacement='c'
+... ):
+...     print(sample_dict)
+{1: 'c', 'z': 'b'}
+
+For nested data structures such as this:
+
+>>> nested = {'key': [1, 2, 3]}
+
+Nested traversal can be used:
+
+>>> with Replace(container=nested, target='.key.2', replacement=42):
+...     print(nested)
+{'key': [1, 2, 42]}
+
+
 
 .. _removing_attr_and_item:
 
@@ -430,7 +455,7 @@ do so as follows:
   from testfixtures.tests.sample1 import some_dict
 
   def test_function():
-      with Replace('testfixtures.tests.sample1.some_dict.key', not_there):
+      with Replace(container=some_dict, target='.key', replacement=not_there):
           pprint(some_dict)
 
 While the replacement is in effect, ``key`` is gone:
@@ -452,7 +477,7 @@ duration of a test, you would do so as follows:
   from testfixtures.tests import sample1
 
   def test_function():
-      with Replace('testfixtures.tests.sample1.some_dict', not_there):
+      with Replace(container=sample1, target='.some_dict', replacement=not_there):
           print(hasattr(sample1, 'some_dict'))
 
 While the replacement is in effect, ``key`` is gone:
