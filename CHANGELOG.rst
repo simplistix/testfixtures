@@ -1,6 +1,31 @@
 Changes
 =======
 
+8.0.0 (16 Feb 2024)
+-------------------
+
+- Retire ``zope.component`` helpers.
+
+- Support :class:`bytes` in :class:`popen.MockPopen` commands.
+
+- Allow :class:`TempDirectory` instances to be traversed as :class:`~pathlib.Path` objects.
+
+- Use the system default encoding where possible in :class:`TempDirectory`.
+
+- Add :class:`TempDirectory` option to manage current working directory.
+
+- Allow string class attributes to be replaced with :class:`Replacer` and friends.
+
+- Fix nasty bug meaning some :meth:`~Replacer.on_class` and :meth:`~Replacer.in_module`
+  replacements weren't restored.
+
+- Allow an alternative separator to be used for traversal during replacement with
+  :class:`Replacer` and friends.
+
+- Officially support Python 3.12.
+
+- Drop support Python 3.6.
+
 7.2.2 (20 Oct 2023)
 -------------------
 
