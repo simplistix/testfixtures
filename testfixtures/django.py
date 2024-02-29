@@ -1,5 +1,4 @@
-from functools import partial
-from typing import Dict, Any, Sequence, Callable, Optional
+from typing import Dict, Any, Sequence, Optional
 
 from django.db.models import Model
 
