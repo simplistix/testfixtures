@@ -1,6 +1,6 @@
 import re
 from abc import ABC
-from datetime import date, datetime
+from datetime import date, datetime, time
 from decimal import Decimal
 
 from functools import partial
@@ -17,8 +17,8 @@ from testfixtures import (
     ShouldRaise,
     compare,
     generator,
-    singleton,
-    )
+    singleton, mock_datetime,
+)
 from testfixtures.comparison import compare_sequence, compare_object
 from unittest import TestCase
 
@@ -2186,3 +2186,38 @@ class TestBaseClasses(CompareHelper):
             "attributes differ:\n"
             "'thing': 1 != 2"
         ))
+
+
+class TestDateAndTime:
+
+    def test_datetime_with_same_fold(self):
+        compare(datetime(2000, 1, 1, fold=0), datetime(2000, 1, 1, fold=0))
+
+    def test_time_with_same_fold(self):
+        compare(time(fold=0), time(fold=0))
+
+    def test_datetime_with_different_fold(self):
+        # because Python is insane...
+        compare(datetime(2000, 1, 1, fold=1), datetime(2000, 1, 1, fold=0))
+
+    def test_time_with_different_fold(self):
+        # because Python is insane...
+        compare(time(fold=1), time(fold=0))
+
+    def test_datetime_with_same_fold_strict(self):
+        compare(datetime(2000, 1, 1, fold=0), datetime(2000, 1, 1, fold=0), strict=True)
+
+    def test_time_with_same_fold_strict(self):
+        compare(time(fold=0), time(fold=0), strict=True)
+
+    def test_datetime_with_different_fold_strict(self):
+        with ShouldAssert(
+                'datetime.datetime(2000, 1, 1, 0, 0, fold=1) != datetime.datetime(2000, 1, 1, 0, 0)'
+        ):
+            compare(datetime(2000, 1, 1, fold=1), datetime(2000, 1, 1, fold=0), strict=True)
+
+    def test_time_with_different_fold_strict(self):
+        with ShouldAssert(
+                'datetime.time(0, 0, fold=1) != datetime.time(0, 0)'
+        ):
+            compare(time(fold=1), time(fold=0), strict=True)

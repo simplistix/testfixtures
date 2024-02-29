@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from collections.abc import Iterable as IterableABC
+from datetime import datetime, time
 from decimal import Decimal
 from difflib import unified_diff
 from functools import partial as partial_type, reduce
@@ -450,6 +451,11 @@ def compare_path(x: Path, y: Path, context: 'CompareContext') -> Optional[str]:
     return compare_text(str(x), str(y), context)
 
 
+def compare_with_fold(x: datetime, y: datetime, context: 'CompareContext') -> Optional[str]:
+    if not (x == y and x.fold == y.fold):
+        return f'{x!r} != {y!r}'
+
+
 def _short_repr(obj) -> str:
     repr_ = repr(obj)
     if len(repr_) > 30:
@@ -476,6 +482,8 @@ _registry: Registry = {
     BaseException: compare_exception,
     partial_type: compare_partial,
     Path: compare_path,
+    datetime: compare_with_fold,
+    time: compare_with_fold,
     }
 
 

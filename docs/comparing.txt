@@ -249,6 +249,63 @@ following:
   compare('line1\nline2', 'line1 \t\nline2   \n',
           trailing_whitespace=False)
 
+
+datetimes and times
+~~~~~~~~~~~~~~~~~~~
+
+Given the following two :class:`~datetime.datetime` objects:
+
+>>> from datetime import datetime
+>>> from zoneinfo import ZoneInfo
+>>> t1 = datetime(2024, 10, 27, 1, fold=0, tzinfo=ZoneInfo('Europe/London'))
+>>> str(t1)
+'2024-10-27 01:00:00+01:00'
+>>> t2 = datetime(2024, 10, 27, 1, fold=1, tzinfo=ZoneInfo('Europe/London'))
+>>> str(t2)
+'2024-10-27 01:00:00+00:00'
+
+It may well be surprising to find out that Python considers them equivalent:
+
+>>> t1 == t2
+True
+
+Unfortunately, that also means that :func:`compare` will also consider them
+equal:
+
+>>> compare(t1, t2)
+
+If it is important for you to be able to check you have the correct point in time,
+then you can use strict comparison, which will highlight the difference:
+
+>>> compare(t1, t2, strict=True)
+Traceback (most recent call last):
+...
+AssertionError: datetime.datetime(2024, 10, 27, 1, 0, tzinfo=zoneinfo.ZoneInfo(key='Europe/London')) != datetime.datetime(2024, 10, 27, 1, 0, fold=1, tzinfo=zoneinfo.ZoneInfo(key='Europe/London'))
+
+This problem can also be seen with :class:`~datetime.time` objects, where given
+the following two times:
+
+>>> from datetime import time
+>>> t1 = time(1, 30, fold=0)
+>>> str(t1)
+'01:30:00'
+>>> t2 = time(1, 30, fold=1)
+>>> str(t2)
+'01:30:00'
+
+The times will be considered equal:
+
+>>> t1 == t2
+True
+>>> compare(t1, t2)
+
+However, once again, strict comparison will highlight the difference:
+
+>>> compare(t1, t2, strict=True)
+Traceback (most recent call last):
+...
+AssertionError: datetime.time(1, 30) != datetime.time(1, 30, fold=1)
+
 .. _comparer-objects:
 
 objects
