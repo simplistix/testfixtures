@@ -764,6 +764,36 @@ class TestOnClass:
         compare(sample.method(1), expected=2)
         assert SampleClass.__dict__['method'] is original
 
+    def test_method_on_subclass(self):
+
+        class SampleClass:
+
+            def method_a(self, x):
+                return x*2
+
+        class SampleSubClass(SampleClass):
+            """
+            Some doc!
+            """
+
+            def method_b(self, x):
+                return x*3
+
+        original_a = SampleClass.__dict__['method_a']
+        original_b = SampleSubClass.__dict__['method_b']
+        sample = SampleSubClass()
+
+        with Replacer() as replace:
+            replace.on_class(SampleSubClass.method_a, lambda self, x: x*4)
+            replace.on_class(SampleSubClass.method_b, lambda self, x: x*5)
+            compare(sample.method_a(1), expected=4)
+            compare(sample.method_b(1), expected=5)
+
+        compare(sample.method_a(1), expected=2)
+        compare(sample.method_b(1), expected=3)
+        assert SampleClass.__dict__['method_a'] is original_a
+        assert SampleSubClass.__dict__['method_b'] is original_b
+
     def test_attributes_on_class(self):
 
         class SampleClass:

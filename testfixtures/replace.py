@@ -148,7 +148,7 @@ class Replacer:
         for referrer in get_referrers(attribute):
             if break_on_static and isinstance(referrer, staticmethod):
                 return None, referrer
-            elif isinstance(referrer, dict) and '__dict__' in referrer:
+            elif isinstance(referrer, dict):
                 if referrer.get(name) is attribute:
                     for container in get_referrers(referrer):
                         if isinstance(container, type):
