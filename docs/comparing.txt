@@ -3,6 +3,10 @@ Comparing objects and sequences
 
 .. currentmodule:: testfixtures
 
+.. invisible-code-block: python
+
+    from testfixtures.compat import PY_39_PLUS, PY_312_PLUS
+
 The helpers here provide ways of making assertions about object equality
 even when those objects don't natively support comparison. Where differences
 are found, feedback is provided in a way that makes it quick and easy to see what the
@@ -253,6 +257,8 @@ following:
 datetimes and times
 ~~~~~~~~~~~~~~~~~~~
 
+.. skip: start if(not PY_39_PLUS, reason="zoneinfo arrived in 3.9")
+
 Given the following two :class:`~datetime.datetime` objects:
 
 >>> from datetime import datetime
@@ -281,6 +287,8 @@ then you can use strict comparison, which will highlight the difference:
 Traceback (most recent call last):
 ...
 AssertionError: datetime.datetime(2024, 10, 27, 1, 0, tzinfo=zoneinfo.ZoneInfo(key='Europe/London')) != datetime.datetime(2024, 10, 27, 1, 0, fold=1, tzinfo=zoneinfo.ZoneInfo(key='Europe/London'))
+
+.. skip: end
 
 This problem can also be seen with :class:`~datetime.time` objects, where given
 the following two times:
@@ -835,10 +843,6 @@ Mapping Comparison objects
 When comparing mappings such as :class:`dict` and :class:`~collections.OrderedDict`,
 you may need to check the order of the keys is as you expect.
 :class:`MappingComparison` objects can be used for this:
-
-.. invisible-code-block: python
-
-    from testfixtures.compat import PY_312_PLUS
 
 .. skip: start if(not PY_312_PLUS, reason="Python 3.12 has nicer reprs")
 
