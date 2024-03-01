@@ -1,6 +1,14 @@
 Changes
 =======
 
+8.1.0 (1 Mar 2024)
+------------------
+
+- Fix bug where replacement of methods on subclasses failed when using :meth:`Replacer.on_class`.
+
+- Implement :ref:`strict comparison <compare-datetime>` as an option for :class:`~datetime.datetime`
+  and :class:`~datetime.time`.
+
 8.0.0 (16 Feb 2024)
 -------------------
 

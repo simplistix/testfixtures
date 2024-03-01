@@ -254,6 +254,8 @@ following:
           trailing_whitespace=False)
 
 
+.. _compare-datetime:
+
 datetimes and times
 ~~~~~~~~~~~~~~~~~~~
 
