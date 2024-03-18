@@ -453,7 +453,12 @@ def compare_path(x: Path, y: Path, context: 'CompareContext') -> Optional[str]:
 
 def compare_with_fold(x: datetime, y: datetime, context: 'CompareContext') -> Optional[str]:
     if not (x == y and x.fold == y.fold):
-        return f'{x!r} != {y!r}'
+        repr_x = repr(x)
+        repr_y = repr(y)
+        if repr_x == repr_y:
+            repr_x += f' (fold={x.fold})'
+            repr_y += f' (fold={y.fold})'
+        return context.label('x', repr_x)+' != '+context.label('y', repr_y)
 
 
 def _short_repr(obj) -> str:

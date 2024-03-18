@@ -2221,3 +2221,15 @@ class TestDateAndTime:
                 'datetime.time(0, 0, fold=1) != datetime.time(0, 0)'
         ):
             compare(time(fold=1), time(fold=0), strict=True)
+
+    def test_datetime_with_different_fold_strict_but_identical_repr(self):
+        class PandasDatetime(datetime):
+            def __repr__(self):
+                return f'<DT{self.year}-{self.day}-{self.month}>'
+
+        with ShouldAssert(
+                '<DT2000-1-1> (fold=1) != <DT2000-1-1> (fold=0)'
+        ):
+            compare(
+                PandasDatetime(2000, 1, 1, fold=1), PandasDatetime(2000, 1, 1, fold=0), strict=True
+            )
