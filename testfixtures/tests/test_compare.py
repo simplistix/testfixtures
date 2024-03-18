@@ -2133,6 +2133,15 @@ class TestCompareObject:
                 comparers={self.Thing: compare_thing},
                 ignore_attributes=['z'])
 
+    def test_strict_respected_when_nested(self):
+        with ShouldAssert(
+            "Thing not as expected:\n\n"
+            "attributes differ:\n"
+            "'x': datetime.time(0, 0) != datetime.time(0, 0, fold=1)\n\n"
+            "While comparing .x: datetime.time(0, 0) != datetime.time(0, 0, fold=1)",
+        ):
+            compare(self.Thing(x=time()), self.Thing(x=time(fold=1)), strict=True)
+
 
 class BaseClass(ABC):
     pass
