@@ -267,14 +267,9 @@ class TestReplace(TestCase):
         self.assertFalse(hasattr(sample1, 'foo'))
 
     def test_replace_delattr_cant_remove(self):
-        if PY_310_PLUS:
-            message = "cannot set 'today' attribute of " \
-                      "immutable type 'datetime.datetime'"
-        else:
-            message = "can't set attributes of " \
-                      "built-in/extension type 'datetime.datetime'"
+        message = "<class 'datetime.datetime'> has __dict__ but 'today' is not in it"
         with Replacer() as r:
-            with ShouldRaise(TypeError(message)):
+            with ShouldRaise(AttributeError(message)):
                 r.replace('datetime.datetime.today', not_there)
 
     def test_replace_delattr_cant_remove_not_strict(self):
@@ -793,6 +788,7 @@ class TestOnClass:
         compare(sample.method_b(1), expected=3)
         assert SampleClass.__dict__['method_a'] is original_a
         assert SampleSubClass.__dict__['method_b'] is original_b
+        assert 'method_a' not in SampleSubClass.__dict__
 
     def test_attributes_on_class(self):
 
@@ -1058,3 +1054,38 @@ class TestConvenience:
         from .sample3 import z as sample3_z
         compare(sample1_z(), expected='original z')
         compare(sample3_z(), expected='original z')
+
+
+class OriginA:
+    def method(self, x):
+        return x * 2
+
+    original = method
+
+
+class UseB(OriginA):
+    pass
+
+
+class UseC(OriginA):
+    pass
+
+
+class OriginD:
+
+    def __init__(self, attrs):
+        self.attrs = attrs
+
+    def __getattr__(self, item):
+        return self.attrs[item]
+
+
+class TestReplaceWithInterestingOrigins:
+
+    def test_interesting_container_strict(self):
+        replace = Replacer()
+        sample = OriginD({'foo': 'bar'})
+        with ShouldRaise(AttributeError(f"{sample!r} has __dict__ but 'foo' is not in it")):
+            replace(sample.foo, 'baz', name='foo', container=sample)
+        compare(sample.foo, expected='bar')
+        assert 'foo' not in sample.__dict__

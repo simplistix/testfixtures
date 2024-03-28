@@ -103,8 +103,14 @@ class Replacer:
 
         if resolved.setter is None:
             raise ValueError('target must contain at least one dot!')
+
         if resolved.found is not_there and strict:
             raise AttributeError('Original %r not found' % resolved.name)
+        if hasattr(resolved.container, '__dict__') and resolved.name not in resolved.container.__dict__:
+            if strict:
+                raise AttributeError(
+                    f'{resolved.container!r} has __dict__ but {resolved.name!r} is not in it'
+                )
 
         replacement_to_use = replacement
 
@@ -201,8 +207,8 @@ class Replacer:
         Restore all the original objects that have been replaced by
         calls to the :meth:`replace` method of this :class:`Replacer`.
         """
-        for id_, (target, original) in tuple(self.originals.items()):
-            self._replace(original, original.found)
+        for id_, (target, resolved) in tuple(self.originals.items()):
+            self._replace(resolved, resolved.found)
             del self.originals[id_]
 
     def __enter__(self):
