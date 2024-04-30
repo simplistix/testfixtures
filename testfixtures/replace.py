@@ -89,9 +89,11 @@ class Replacer:
                         found = not_there
 
             if strict and not (found is not_there or target is container):
-                expected = accessor(container, name)
-                if target is not expected:
-                    raise AssertionError(f'{name!r} resolved to {found}, expected {target}')
+                if found is not target:
+                    raise AssertionError(
+                        f'{accessor} of {name!r} from {container!r} gave {found!r}, '
+                        f'expected {target}'
+                    )
 
             resolved = Resolved(
                 container,

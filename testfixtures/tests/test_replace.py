@@ -572,10 +572,13 @@ class TestReplace(TestCase):
                 return 2
 
         sample_obj = SampleClass()
+        s_repr = repr(SampleClass)
         a_repr = repr(SampleClass.a)
         b_repr = repr(SampleClass.b)
         replacer = Replacer()
-        with ShouldRaise(AssertionError(f"'b' resolved to {b_repr}, expected {a_repr}")):
+        with ShouldRaise(AssertionError(
+                f"<built-in function getattr> of 'b' from {s_repr} gave {b_repr}, expected {a_repr}"
+        )):
             replacer(SampleClass.a, lambda self: 3,
                      container=SampleClass, name='b', accessor=getattr)
 
