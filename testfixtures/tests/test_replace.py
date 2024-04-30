@@ -1061,3 +1061,107 @@ class TestConvenience:
         from .sample3 import z as sample3_z
         compare(sample1_z(), expected='original z')
         compare(sample3_z(), expected='original z')
+
+
+class OriginA:
+    def method(self, x):
+        return x * 2
+
+    original = method
+
+
+class UseB(OriginA):
+    pass
+
+
+class UseC(OriginA):
+    pass
+
+
+def check_originals_not_modified():
+    assert OriginA.__dict__['method'] is OriginA.original
+    assert 'method' not in UseB.__dict__
+    assert 'method' not in UseC.__dict__
+
+
+def check_behaviour_is_unchanged(*callables):
+    for c in callables:
+        compare(c(1), expected=2, prefix=repr(c))
+
+
+class TestReplaceWithInterestingOriginsStrict:
+
+    def test_method_on_instance_of_class(self):
+
+        sample_a = OriginA()
+        sample_b = UseB()
+        sample_c = UseC()
+
+        replace = Replacer()
+        with ShouldRaise(TypeError(
+                "Cannot replace methods on instances with strict=True, "
+                "replace on class or use strict=False")
+        ):
+            replace(sample_a.method, lambda self_, x: x*4, name='method', container=sample_a)
+
+        check_behaviour_is_unchanged(sample_a.method, sample_b.method, sample_c.method)
+        check_originals_not_modified()
+
+    def test_method_on_instance_of_subclass(self):
+        obj = UseB()
+        replace = Replacer()
+        with ShouldRaise(TypeError(
+                "Cannot replace methods on instances with strict=True, "
+                "replace on class or use strict=False")
+        ):
+            replace(obj.method, lambda self_, x: x*4, name='method', container=obj)
+        check_behaviour_is_unchanged(obj.method)
+        check_originals_not_modified()
+
+
+class TestReplaceWithInterestingOriginsNotStrict:
+
+    def test_replace_method_on_subclass_not_using_on_class(self):
+
+        sample_a = OriginA()
+        sample_b = UseB()
+        sample_c = UseC()
+
+        with Replace(
+                UseB.method, lambda self_, x: x*4, name='method', container=UseB, strict=False
+        ):
+            compare(sample_b.method(1), expected=4)
+            check_behaviour_is_unchanged(sample_a.method, sample_c.method)
+
+        check_behaviour_is_unchanged(sample_a.method, sample_b.method, sample_c.method)
+        check_originals_not_modified()
+
+    def test_replace_on_instance_of_class(self):
+
+        sample_a = OriginA()
+        sample_b = UseB()
+        sample_c = UseC()
+
+        with Replace(
+                sample_a.method, lambda x: x*4, name='method', container=sample_a, strict=False
+        ):
+            compare(sample_a.method(1), expected=4)
+            check_behaviour_is_unchanged(sample_b.method, sample_c.method)
+
+        check_behaviour_is_unchanged(sample_a.method, sample_b.method, sample_c.method)
+        check_originals_not_modified()
+
+    def test_replace_on_instance_of_subclass(self):
+
+        sample_a = OriginA()
+        sample_b = UseB()
+        sample_c = UseC()
+
+        with Replace(
+                sample_b.method, lambda x: x*4, name='method', container=sample_b, strict=False
+        ):
+            compare(sample_b.method(1), expected=4)
+            check_behaviour_is_unchanged(sample_a.method, sample_c.method)
+
+        check_behaviour_is_unchanged(sample_a.method, sample_b.method, sample_c.method)
+        check_originals_not_modified()

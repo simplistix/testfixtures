@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from functools import partial
 from gc import get_referrers, get_referents
 from operator import setitem, getitem
-from types import ModuleType
+from types import ModuleType, MethodType
 from typing import Any, TypeVar, Callable, Dict, Tuple
 
 from testfixtures.resolve import resolve, not_there, Resolved, classmethod_type, class_type, Setter
@@ -90,6 +90,11 @@ class Replacer:
 
             if strict and not (found is not_there or target is container):
                 if found is not target:
+                    if isinstance(found, MethodType):
+                        raise TypeError(
+                            'Cannot replace methods on instances with strict=True, '
+                            'replace on class or use strict=False'
+                        )
                     raise AssertionError(
                         f'{accessor} of {name!r} from {container!r} gave {found!r}, '
                         f'expected {target}'
