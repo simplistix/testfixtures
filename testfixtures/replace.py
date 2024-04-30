@@ -202,8 +202,8 @@ class Replacer:
         Restore all the original objects that have been replaced by
         calls to the :meth:`replace` method of this :class:`Replacer`.
         """
-        for id_, (target, original) in tuple(self.originals.items()):
-            self._replace(original, original.found)
+        for id_, (target, resolved) in tuple(self.originals.items()):
+            self._replace(resolved, resolved.found)
             del self.originals[id_]
 
     def __enter__(self):
