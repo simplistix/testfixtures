@@ -66,7 +66,6 @@ class Replacer:
         if isinstance(target, str) and not name:
             resolved = resolve(target, container, sep)
         else:
-            found = not_there
             if container is None:
                 container = target
 
@@ -79,7 +78,7 @@ class Replacer:
                         accessor = getitem
                         found = accessor(container, name)
                     except KeyError:
-                        pass
+                        found = not_there
                     except TypeError:
                         accessor = getattr
                         found = accessor(container, name, not_there)
@@ -87,7 +86,7 @@ class Replacer:
                     try:
                         found = accessor(container, name)
                     except (KeyError, AttributeError):
-                        pass
+                        found = not_there
 
             if strict and not (found is not_there or target is container):
                 expected = accessor(container, name)
