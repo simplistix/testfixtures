@@ -109,8 +109,22 @@ class Replacer:
 
         if resolved.setter is None:
             raise ValueError('target must contain at least one dot!')
+
         if resolved.found is not_there and strict:
             raise AttributeError('Original %r not found' % resolved.name)
+
+        if (
+                hasattr(resolved.container, '__dict__') and
+                resolved.setter is setattr and
+                resolved.name not in resolved.container.__dict__
+        ):
+            if strict:
+                raise AttributeError(
+                    f'{resolved.container!r} has __dict__ but {resolved.name!r} is not in it'
+                )
+            else:
+                resolved.found = not_there
+
 
         replacement_to_use = replacement
 

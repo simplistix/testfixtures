@@ -267,14 +267,9 @@ class TestReplace(TestCase):
         self.assertFalse(hasattr(sample1, 'foo'))
 
     def test_replace_delattr_cant_remove(self):
-        if PY_310_PLUS:
-            message = "cannot set 'today' attribute of " \
-                      "immutable type 'datetime.datetime'"
-        else:
-            message = "can't set attributes of " \
-                      "built-in/extension type 'datetime.datetime'"
+        message = "<class 'datetime.datetime'> has __dict__ but 'today' is not in it"
         with Replacer() as r:
-            with ShouldRaise(TypeError(message)):
+            with ShouldRaise(AttributeError(message)):
                 r.replace('datetime.datetime.today', not_there)
 
     def test_replace_delattr_cant_remove_not_strict(self):
@@ -627,15 +622,6 @@ class TestReplace(TestCase):
 
         compare(environ, expected={})
 
-    def test_obj_and_name(self):
-        my_obj = Mock()
-        foo = my_obj.foo
-
-        with Replace(my_obj, name='foo', replacement=42, strict=False):
-            compare(my_obj.foo, expected=42)
-
-        assert my_obj.foo is foo
-
     def test_non_string_target_and_no_name(self):
         my_dict = {}
 
@@ -796,6 +782,7 @@ class TestOnClass:
         compare(sample.method_b(1), expected=3)
         assert SampleClass.__dict__['method_a'] is original_a
         assert SampleSubClass.__dict__['method_b'] is original_b
+        assert 'method_a' not in SampleSubClass.__dict__
 
     def test_attributes_on_class(self):
 
@@ -1064,6 +1051,12 @@ class TestConvenience:
 
 
 class OriginA:
+
+    bar = 13
+
+    def __init__(self):
+        self.foo = 43
+
     def method(self, x):
         return x * 2
 
@@ -1078,10 +1071,38 @@ class UseC(OriginA):
     pass
 
 
+class OriginD:
+
+    def __init__(self, attrs):
+        self.attrs = attrs
+
+    def __getattr__(self, item):
+        return self.attrs[item]
+
+
+class OriginE:
+    __slots__ = 'attr',
+
+    def method(self, x):
+        return x * 2
+
+    original = method
+
+
+class UseF(OriginE):
+    __slots__ = 'attr',
+
+
+class UseG(OriginE):
+    __slots__ = 'attr',
+
+
 def check_originals_not_modified():
     assert OriginA.__dict__['method'] is OriginA.original
+    assert OriginA.__dict__['bar'] == 13
     assert 'method' not in UseB.__dict__
     assert 'method' not in UseC.__dict__
+    assert OriginE.method is OriginE.original
 
 
 def check_behaviour_is_unchanged(*callables):
@@ -1090,6 +1111,74 @@ def check_behaviour_is_unchanged(*callables):
 
 
 class TestReplaceWithInterestingOriginsStrict:
+
+    strict = True
+
+    def test_class_attribute_on_class(self):
+        sample_a = OriginA()
+        sample_b = UseB()
+        sample_c = UseC()
+
+        with Replace(OriginA.bar, name='bar', replacement=31, strict=self.strict, container=OriginA):
+            compare(sample_a.bar, expected=31)
+            compare(sample_b.bar, expected=31)
+            compare(sample_c.bar, expected=31)
+
+        compare(sample_a.bar, expected=13)
+        compare(sample_b.bar, expected=13)
+        compare(sample_c.bar, expected=13)
+
+        check_originals_not_modified()
+
+    def test_class_attribute_on_subclass(self):
+        sample_a = OriginA()
+        sample_b = UseB()
+        sample_c = UseC()
+
+        replace_ = Replacer()
+        with ShouldRaise(AttributeError(f"{UseB!r} has __dict__ but 'bar' is not in it")):
+            replace_(UseB.bar, name='bar', replacement=31, strict=self.strict, container=UseB)
+
+        compare(sample_a.bar, expected=13)
+        compare(sample_b.bar, expected=13)
+        compare(sample_c.bar, expected=13)
+
+        check_originals_not_modified()
+
+    def test_method_on_subclass(self):
+
+        sample_a = OriginA()
+        sample_b = UseB()
+        sample_c = UseC()
+
+        replace_ = Replacer()
+        with ShouldRaise(AttributeError(f"{UseB!r} has __dict__ but 'method' is not in it")):
+            replace_(
+                UseB.method, lambda self_, x: x*4, name='method', container=UseB, strict=self.strict
+            )
+
+        check_behaviour_is_unchanged(sample_a.method, sample_b.method, sample_c.method)
+        check_originals_not_modified()
+
+    def test_class_attribute_on_instance_of_class(self):
+        obj = OriginA()
+        bar = obj.bar
+
+        replace_ = Replacer()
+        with ShouldRaise(AttributeError(f"{obj!r} has __dict__ but 'bar' is not in it")):
+            replace_(obj, name='bar', replacement=31, strict=self.strict)
+            compare(obj.bar, expected=31)
+
+        assert obj.bar is bar
+
+    def test_instance_attribute_on_instance_of_class(self):
+        obj = OriginA()
+        foo = obj.foo
+
+        with Replace(obj, name='foo', replacement=42, strict=self.strict):
+            compare(obj.foo, expected=42)
+
+        assert obj.foo is foo
 
     def test_method_on_instance_of_class(self):
 
@@ -1102,7 +1191,10 @@ class TestReplaceWithInterestingOriginsStrict:
                 "Cannot replace methods on instances with strict=True, "
                 "replace on class or use strict=False")
         ):
-            replace(sample_a.method, lambda self_, x: x*4, name='method', container=sample_a)
+            replace(
+                sample_a.method, lambda self_, x: x*4, name='method', container=sample_a,
+                strict=self.strict
+            )
 
         check_behaviour_is_unchanged(sample_a.method, sample_b.method, sample_c.method)
         check_originals_not_modified()
@@ -1114,21 +1206,101 @@ class TestReplaceWithInterestingOriginsStrict:
                 "Cannot replace methods on instances with strict=True, "
                 "replace on class or use strict=False")
         ):
-            replace(obj.method, lambda self_, x: x*4, name='method', container=obj)
+            replace(
+                obj.method, lambda self_, x: x*4, name='method', container=obj, strict=self.strict
+            )
         check_behaviour_is_unchanged(obj.method)
         check_originals_not_modified()
 
+    def test_valid_attribute_on_instance_of_slotted_class(self):
 
-class TestReplaceWithInterestingOriginsNotStrict:
+        obj = OriginE()
+        assert not hasattr(obj, '__dict__')
+        obj.attr = 41
 
-    def test_replace_method_on_subclass_not_using_on_class(self):
+        with Replace(obj, name='attr', replacement=42, strict=self.strict):
+            compare(obj.attr, expected=42)
+
+        assert obj.attr == 41
+
+    def test_invalid_attribute_on_instance_of_slotted_class(self):
+        obj = OriginE()
+        assert not hasattr(obj, '__dict__')
+        replace_ = Replacer()
+        with ShouldRaise(AttributeError("Original 'bad' not found")):
+            replace_(obj, name='bad', replacement=42, strict=self.strict)
+
+    def test_method_on_instance_of_slotted_subclass(self):
+
+        sample_e = OriginE()
+        sample_f = UseF()
+        sample_g = UseG()
+
+        obj = UseF()
+
+        assert not hasattr(obj, '__dict__')
+
+        replace_ = Replacer()
+        with ShouldRaise(TypeError(
+                "Cannot replace methods on instances with strict=True, "
+                "replace on class or use strict=False"
+        )):
+            replace_(
+                obj.method, lambda self_, x: x*4, name='method', container=obj, strict=self.strict
+            )
+
+        check_behaviour_is_unchanged(sample_e.method, sample_f.method, sample_g.method)
+        check_behaviour_is_unchanged()
+
+    def test_interesting_container(self):
+        replace_ = Replacer()
+        sample = OriginD({'foo': 'bar'})
+        with ShouldRaise(AttributeError(f"{sample!r} has __dict__ but 'foo' is not in it")):
+            replace_(sample.foo, 'baz', name='foo', container=sample, strict=self.strict)
+        compare(sample.foo, expected='bar')
+        assert 'foo' not in sample.__dict__
+
+    def test_mock_and_name(self):
+        my_obj = Mock()
+        foo = my_obj.foo
+
+        # Mock instances are tricky in that they have a __dict__ but
+        # their attributes are not in it:
+        replace_ = Replacer()
+        with ShouldRaise(AttributeError(f"{my_obj!r} has __dict__ but 'foo' is not in it")):
+            replace_(my_obj, name='foo', replacement=42, strict=self.strict)
+
+        assert my_obj.foo is foo
+
+
+class TestReplaceWithInterestingOriginsNotStrict(TestReplaceWithInterestingOriginsStrict):
+    # This subclasses TestReplaceWithInterestingOriginsStrict to ensure we check all the same cases
+    strict = False
+
+    def test_class_attribute_on_subclass(self):
+        sample_a = OriginA()
+        sample_b = UseB()
+        sample_c = UseC()
+
+        with Replace(UseB.bar, name='bar', replacement=31, strict=self.strict, container=UseB):
+            compare(sample_a.bar, expected=13)
+            compare(sample_b.bar, expected=31)
+            compare(sample_c.bar, expected=13)
+
+        compare(sample_a.bar, expected=13)
+        compare(sample_b.bar, expected=13)
+        compare(sample_c.bar, expected=13)
+
+        check_originals_not_modified()
+
+    def test_method_on_subclass(self):
 
         sample_a = OriginA()
         sample_b = UseB()
         sample_c = UseC()
 
         with Replace(
-                UseB.method, lambda self_, x: x*4, name='method', container=UseB, strict=False
+                UseB.method, lambda self_, x: x*4, name='method', container=UseB, strict=self.strict
         ):
             compare(sample_b.method(1), expected=4)
             check_behaviour_is_unchanged(sample_a.method, sample_c.method)
@@ -1136,14 +1308,33 @@ class TestReplaceWithInterestingOriginsNotStrict:
         check_behaviour_is_unchanged(sample_a.method, sample_b.method, sample_c.method)
         check_originals_not_modified()
 
-    def test_replace_on_instance_of_class(self):
+    def test_class_attribute_on_instance_of_class(self):
+        obj = OriginA()
+        bar = obj.bar
+
+        with Replace(obj, name='bar', replacement=31, strict=self.strict):
+            compare(obj.bar, expected=31)
+
+        assert obj.bar is bar
+
+    def test_instance_attribute_on_instance_of_class(self):
+        obj = OriginA()
+        foo = obj.foo
+
+        with Replace(obj, name='foo', replacement=42, strict=self.strict):
+            compare(obj.foo, expected=42)
+
+        assert obj.foo is foo
+
+    def test_method_on_instance_of_class(self):
 
         sample_a = OriginA()
         sample_b = UseB()
         sample_c = UseC()
 
         with Replace(
-                sample_a.method, lambda x: x*4, name='method', container=sample_a, strict=False
+                sample_a.method, lambda x: x*4, name='method', container=sample_a,
+                strict=self.strict
         ):
             compare(sample_a.method(1), expected=4)
             check_behaviour_is_unchanged(sample_b.method, sample_c.method)
@@ -1151,17 +1342,67 @@ class TestReplaceWithInterestingOriginsNotStrict:
         check_behaviour_is_unchanged(sample_a.method, sample_b.method, sample_c.method)
         check_originals_not_modified()
 
-    def test_replace_on_instance_of_subclass(self):
+    def test_method_on_instance_of_subclass(self):
 
         sample_a = OriginA()
         sample_b = UseB()
         sample_c = UseC()
 
         with Replace(
-                sample_b.method, lambda x: x*4, name='method', container=sample_b, strict=False
+                sample_b.method, lambda x: x*4, name='method', container=sample_b,
+                strict=self.strict
         ):
             compare(sample_b.method(1), expected=4)
             check_behaviour_is_unchanged(sample_a.method, sample_c.method)
 
         check_behaviour_is_unchanged(sample_a.method, sample_b.method, sample_c.method)
         check_originals_not_modified()
+
+    def test_invalid_attribute_on_instance_of_slotted_class(self):
+        obj = OriginE()
+        assert not hasattr(obj, '__dict__')
+        replace_ = Replacer()
+        with ShouldRaise(AttributeError("'OriginE' object has no attribute 'bad'")):
+            replace_(obj, name='bad', replacement=42, strict=self.strict)
+
+    def test_method_on_instance_of_slotted_subclass(self):
+
+        sample_e = OriginE()
+        sample_f = UseF()
+        sample_g = UseG()
+
+        obj = UseF()
+
+        assert not hasattr(obj, '__dict__')
+
+        replace_ = Replacer()
+        with ShouldRaise(AttributeError("'UseF' object attribute 'method' is read-only")):
+            replace_(
+                obj.method, lambda self_, x: x*4, name='method', container=obj, strict=self.strict
+            )
+
+        check_behaviour_is_unchanged(sample_e.method, sample_f.method, sample_g.method)
+        check_behaviour_is_unchanged()
+
+    def test_interesting_container(self):
+        sample = OriginD({'foo': 'bar'})
+        with Replace(sample.foo, 'baz', name='foo', container=sample, strict=self.strict):
+            compare(sample.foo, expected='baz')
+        compare(sample.foo, expected='bar')
+        assert 'foo' not in sample.__dict__
+
+    def test_mock_and_name(self):
+        my_obj = Mock()
+        foo = my_obj.foo
+
+        assert hasattr(my_obj, 'foo')
+        assert getattr(my_obj, 'foo', None)
+
+        with Replace(my_obj, name='foo', replacement=42, strict=self.strict):
+            compare(my_obj.foo, expected=42)
+
+        with ShouldRaise(AttributeError('foo')):
+            # Mock instances are tricky in that they have a __dict__ but
+            # their attributes are not in it, confusing Replace, which deletes
+            # the attribute on restore as a result:
+            assert my_obj.foo is foo
