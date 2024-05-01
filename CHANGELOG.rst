@@ -1,6 +1,22 @@
 Changes
 =======
 
+8.2.0 (1 May 2024)
+------------------
+
+- The ``strict`` option is now correctly respected when :doc:`comparing <comparing>` nested objects.
+
+- When comparing :class:`~datetime.datetime` or :class:`~datetime.time` instances, if the fold
+  is the only thing that's different, it's now shown in the output.
+
+- A more detailed exception is now raised when resolving a :doc:`replacement <mocking>` doesn't give
+  what's expected.
+
+- :doc:`Replacement <mocking>` of methods on instances is now prevented when ``strict=True``.
+
+- An exception is now raised when :doc:`mocking <mocking>` and the original is not in the
+  ``__dict__`` of its containing objects.
+
 8.1.0 (1 Mar 2024)
 ------------------
 
