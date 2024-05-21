@@ -770,6 +770,32 @@ class TestCompare(CompareHelper, TestCase):
             pass
         compare(TestFloat(0.75), TestFloat(0.75), strict=True)
 
+    def test_float_int_strict(self):
+        self.check_raises(
+            float(7.0), int(7),
+            "7.0 (<class 'float'>) != 7 (<class 'int'>)",
+            strict=True,
+        )
+
+    def test_bug(self):
+        self.check_raises(
+            generator(1.0),
+            generator(1),
+            'sequence not as expected:\n'
+            '\n'
+            'same:\n'
+            '()\n'
+            '\n'
+            'first:\n'
+            '(1.0,)\n'
+            '\n'
+            'second:\n'
+            '(1,)\n'
+            '\n'
+            "While comparing [0]: 1.0 (<class 'float'>) != 1 (<class 'int'>)",
+            strict=True,
+        )
+
     def test_old_style_classes_same(self):
         class X:
             pass

@@ -132,7 +132,7 @@ def compare_object(
     y_attrs = _extract_attrs(y, _attrs_to_ignore(context, ignore_attributes, y))
     if x_attrs is None or y_attrs is None or not (x_attrs and y_attrs):
         return compare_simple(x, y, context)
-    if context.strict or context.ignore_eq or x_attrs != y_attrs:
+    if not context.simple_equals(x_attrs, y_attrs):
         return _compare_mapping(x_attrs, y_attrs, context, x,
                                 'attributes ', '.%s')
 
@@ -206,7 +206,7 @@ def compare_generator(x: Generator, y: Generator, context: 'CompareContext') -> 
     x = tuple(x)
     y = tuple(y)
 
-    if not context.ignore_eq and x == y:
+    if context.simple_equals(x, y):
         return
 
     return compare_sequence(x, y, context)
@@ -630,6 +630,9 @@ class CompareContext:
         else:
             self._seen[id_] = breadcrumb
             return obj
+
+    def simple_equals(self, x: Any, y: Any) -> bool:
+        return not (self.strict or self.ignore_eq) and x == y
 
     def different(self, x: Any, y: Any, breadcrumb: str) -> Union[bool, Optional[str]]:
 
