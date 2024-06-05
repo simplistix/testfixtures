@@ -15,6 +15,7 @@ from types import GeneratorType
 import re
 
 from testfixtures import not_there, singleton
+from testfixtures.compat import PY_311_PLUS
 from testfixtures.resolve import resolve
 from testfixtures.utils import indent
 from testfixtures.mock import parent_name, mock_call
@@ -489,7 +490,25 @@ _registry: Registry = {
     Path: compare_path,
     datetime: compare_with_fold,
     time: compare_with_fold,
-    }
+}
+
+if PY_311_PLUS:
+
+    def compare_exception_group(
+        x: BaseExceptionGroup, y: BaseExceptionGroup, context: 'CompareContext'
+    ) -> Optional[str]:
+        """
+        Compare the two supplied exception groups
+        """
+
+        x_msg, x_excs = x.args
+        y_msg, y_excs = y.args
+        msg_different = context.different(x_msg, y_msg, 'msg')
+        excs_different = context.different(x_excs, y_excs, 'excs')
+        if msg_different or excs_different:
+            return 'exception group not as expected:'
+
+    _registry[BaseExceptionGroup] = compare_exception_group
 
 
 def register(type_: type, comparer: Comparer):
