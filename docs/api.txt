@@ -46,6 +46,8 @@ testfixtures.comparison
 
 .. autofunction:: testfixtures.comparison.compare_exception
 
+.. autofunction:: testfixtures.comparison.compare_exception_group
+
 .. autofunction:: testfixtures.comparison.compare_with_type
 
 .. autofunction:: testfixtures.comparison.compare_sequence

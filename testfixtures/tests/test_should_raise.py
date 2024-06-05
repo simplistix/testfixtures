@@ -1,8 +1,11 @@
 from textwrap import dedent
 
+import pytest
+
 from testfixtures import Comparison as C, ShouldRaise, should_raise
 from unittest import TestCase
 
+from ..compat import PY_311_PLUS
 from ..shouldraise import ShouldAssert
 
 
@@ -34,7 +37,6 @@ class TestShouldAssert:
                 -foo
                 +bar
                 +assert False""")
-
 
 
 class TestShouldRaise(TestCase):
@@ -301,4 +303,26 @@ class TestShouldRaise(TestCase):
             with ShouldRaise(MessageError('foo')):
                 raise MessageError('foo', None)
 
+    @pytest.mark.skipif(not PY_311_PLUS, reason="requires python3.11 or higher")
+    def test_exception_group_okay(self):
+        with ShouldRaise(ExceptionGroup('foo', [Exception('bar')])):
+            raise ExceptionGroup('foo', [Exception('bar')])
+
+    @pytest.mark.skipif(not PY_311_PLUS, reason="requires python3.11 or higher")
+    def test_exception_group_different(self):
+        with ShouldAssert(
+                "exception group not as expected:\n\n"
+                "While comparing msg: 'fob' (expected) != 'foo' (raised)\n\n"
+                "While comparing excs: sequence not as expected:\n\n"
+                "same:\n"
+                "[]\n\n"
+                "expected:\n"
+                "[Exception('baz')]\n\n"
+                "raised:\n"
+                "[Exception('bar')]\n\n"
+                "While comparing excs[0]: "
+                "Exception('baz') (expected) != Exception('bar') (raised)"
+        ):
+            with ShouldRaise(ExceptionGroup('fob', [Exception('baz')])):
+                raise ExceptionGroup('foo', [Exception('bar')])
 
