@@ -139,7 +139,7 @@ def compare_object(
 
 
 def compare_exception(
-        x: Exception, y: Exception, context: 'CompareContext'
+        x: BaseException, y: BaseException, context: 'CompareContext'
 ) -> Optional[str]:
     """
     Compare the two supplied exceptions based on their message, type and

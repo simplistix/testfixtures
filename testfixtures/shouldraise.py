@@ -4,7 +4,7 @@ from typing import Union, Type, Callable
 
 from testfixtures import diff, compare
 
-ExceptionOrType = Union[Exception, Type[Exception]]
+ExceptionOrType = Union[BaseException, Type[BaseException]]
 
 
 param_docs = """
