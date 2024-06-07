@@ -1,12 +1,11 @@
-from logging import getLogger, ERROR, Filter
+from logging import getLogger, ERROR, Filter, shutdown
 from textwrap import dedent
 from unittest import TestCase
 from warnings import catch_warnings
 
-from testfixtures.shouldraise import ShouldAssert
-from testfixtures.mock import Mock
-
 from testfixtures import Replacer, LogCapture, compare, Replace
+from testfixtures.mock import Mock
+from testfixtures.shouldraise import ShouldAssert
 
 root = getLogger()
 one = getLogger('one')
@@ -371,6 +370,18 @@ class LogCaptureTests(TestCase):
         handler = LogCapture(install=False)
         assert handler
         assert bool(handler)
+
+    def test_shutdown_while_installed(self):
+        with LogCapture():
+            with ShouldAssert(
+                    'LogCapture instance closed while still installed, loggers captured:\n'
+                    '(None,)'
+            ):
+                shutdown()
+        # second shutdown should be fine:
+        shutdown()
+
+
 class TestCheckPresent:
 
     def test_order_matters_ok(self):

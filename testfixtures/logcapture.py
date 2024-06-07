@@ -298,6 +298,15 @@ class LogCapture(logging.Handler):
         self.uninstall()
         self.ensure_checked()
 
+    def close(self):
+        super().close()
+        if self in self.instances:
+            raise AssertionError(
+                'LogCapture instance closed while still installed, '
+                'loggers captured:\n'
+                '%s' % ('\n'.join((str(i.names) for i in self.instances)))
+            )
+
 
 class LogCaptureForDecorator(LogCapture):
 
