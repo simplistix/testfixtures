@@ -360,6 +360,12 @@ class LogCaptureTests(TestCase):
         global_log.check()
         compare(logger.propagate, True)
 
+    def test_len_and_getitem(self):
+        with LogCapture() as log:
+            compare(len(log), expected=0)
+            getLogger('foo').info('a log message')
+        compare(len(log), expected=1)
+        compare(log[0], expected=('foo', 'INFO', 'a log message'))
 
 class TestCheckPresent:
 
