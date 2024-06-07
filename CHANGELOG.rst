@@ -1,6 +1,20 @@
 Changes
 =======
 
+8.3.0 (7 Jun 2024)
+------------------
+
+- :class:`ShouldRaise` now supports :class:`ExceptionGroup`.
+
+- Fixed bug where :func:`~testfixtures.comparison.compare_generator` did not respect
+  ``strict=True``.
+
+- Fixed bug in the type annotations for :class:`ShouldRaise` and
+  :func:`~testfixtures.comparison.compare_exception`.
+
+- :class:`LogCapture` will now raise an exception if closed while still installed.
+  This can be a source of particularly confusing bugs.
+
 8.2.0 (1 May 2024)
 ------------------
 
