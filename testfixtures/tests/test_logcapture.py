@@ -367,6 +367,10 @@ class LogCaptureTests(TestCase):
         compare(len(log), expected=1)
         compare(log[0], expected=('foo', 'INFO', 'a log message'))
 
+    def test_truthiness_when_empty(self):
+        handler = LogCapture(install=False)
+        assert handler
+        assert bool(handler)
 class TestCheckPresent:
 
     def test_order_matters_ok(self):

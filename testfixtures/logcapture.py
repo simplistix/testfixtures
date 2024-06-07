@@ -100,6 +100,10 @@ class LogCapture(logging.Handler):
                 '%s' % ('\n'.join((str(i.names) for i in cls.instances)))
                 )
 
+    def __bool__(self) -> bool:
+        # Some logging internals check boolean rather than identity for handlers :-(r
+        return True
+
     def __len__(self):
         return len(self.records)
 
