@@ -15,6 +15,7 @@ from testfixtures import (
 from unittest import TestCase
 
 import os
+import sys
 
 from testfixtures.mock import Mock
 from testfixtures.tests import sample1, sample3
@@ -1362,7 +1363,10 @@ class TestReplaceWithInterestingOriginsNotStrict(TestReplaceWithInterestingOrigi
         obj = OriginE()
         assert not hasattr(obj, '__dict__')
         replace_ = Replacer()
-        with ShouldRaise(AttributeError("'OriginE' object has no attribute 'bad'")):
+        msg = "'OriginE' object has no attribute 'bad'"
+        if sys.version_info >= (3, 13):
+            msg += " and no __dict__ for setting new attributes"
+        with ShouldRaise(AttributeError(msg)):
             replace_(obj, name='bad', replacement=42, strict=self.strict)
 
     def test_method_on_instance_of_slotted_subclass(self):
