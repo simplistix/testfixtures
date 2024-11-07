@@ -37,6 +37,7 @@ common: &common
               - cimg/python:3.10
               - cimg/python:3.11
               - cimg/python:3.12
+              - cimg/python:3.13
     - python/pip-run-tests:
         name: mock-backport
         image: cimg/python:3.11
