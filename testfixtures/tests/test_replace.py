@@ -21,7 +21,7 @@ from testfixtures.tests import sample1, sample3
 from testfixtures.tests import sample2
 from .sample1 import z, X
 from .sample3 import SOME_CONSTANT
-from ..compat import PY_310_PLUS
+from ..compat import PY_310_PLUS, PY_313_PLUS
 
 from warnings import catch_warnings
 
@@ -1362,7 +1362,10 @@ class TestReplaceWithInterestingOriginsNotStrict(TestReplaceWithInterestingOrigi
         obj = OriginE()
         assert not hasattr(obj, '__dict__')
         replace_ = Replacer()
-        with ShouldRaise(AttributeError("'OriginE' object has no attribute 'bad'")):
+        message = "'OriginE' object has no attribute 'bad'"
+        if PY_313_PLUS:
+            message += " and no __dict__ for setting new attributes"
+        with ShouldRaise(AttributeError(message)):
             replace_(obj, name='bad', replacement=42, strict=self.strict)
 
     def test_method_on_instance_of_slotted_subclass(self):
