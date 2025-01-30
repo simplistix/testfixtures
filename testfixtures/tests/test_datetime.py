@@ -13,7 +13,8 @@ from unittest import TestCase
 
 class SampleTZInfo(tzinfo):
 
-    __test__ = False
+    def tzname(self, dt: datetime | None) -> str:
+        return "SAMPLE"
 
     def utcoffset(self, dt):
         return timedelta(minutes=3) + self.dst(dt)
@@ -24,13 +25,34 @@ class SampleTZInfo(tzinfo):
 
 class SampleTZInfo2(tzinfo):
 
-    __test__ = False
+    def tzname(self, dt: datetime | None) -> str:
+        return "SAMPLE2"
 
     def utcoffset(self, dt):
         return timedelta(minutes=5)
 
     def dst(self, dt):
         return timedelta(minutes=0)
+
+
+class WeirdTZInfo(tzinfo):
+
+    def tzname(self, dt: datetime | None) -> str:
+        return "WEIRD"
+
+    def utcoffset(self, dt):
+        return None
+
+    def dst(self, dt):
+        return None
+
+
+def test_sample_tzinfos():
+    compare(SampleTZInfo().tzname(None), expected='SAMPLE')
+    compare(SampleTZInfo2().tzname(None), expected='SAMPLE2')
+    compare(WeirdTZInfo().tzname(None), expected='WEIRD')
+    compare(WeirdTZInfo().utcoffset(datetime(1, 2, 3)), expected=None)
+    compare(WeirdTZInfo().dst(datetime(1, 2, 3)), expected=None)
 
 
 class TestDateTime(TestCase):
@@ -52,6 +74,12 @@ class TestDateTime(TestCase):
     def test_now_with_tz_setup(self):
         from datetime import datetime
         compare(datetime.now(), d(2001, 1, 1))
+
+    @replace('datetime.datetime', mock_datetime(tzinfo=WeirdTZInfo()))
+    def test_now_with_werid_tz_setup(self):
+        from datetime import datetime
+        with ShouldRaise(TypeError('tzinfo with .utcoffset() returning None is not supported')):
+            datetime.now(tz=SampleTZInfo())
 
     @replace('datetime.datetime', mock_datetime(tzinfo=SampleTZInfo()))
     def test_now_with_tz_setup_and_supplied(self):
@@ -262,17 +290,13 @@ class TestDateTime(TestCase):
 
     @replace('datetime.datetime', mock_datetime(None))
     def test_add_tzinfo_kw(self, t: Type[MockDateTime]):
-        from datetime import datetime
-        datetime = cast(Type[MockDateTime], datetime)
         with ShouldRaise(TypeError('Cannot add using tzinfo on MockDateTime')):
-            datetime.add(year=2002, month=1, day=1, tzinfo=SampleTZInfo())
+            t.add(year=2002, month=1, day=1, tzinfo=SampleTZInfo())
 
     @replace('datetime.datetime', mock_datetime(None))
     def test_add_tzinfo_args(self, t: Type[MockDateTime]):
-        from datetime import datetime
-        datetime = cast(Type[MockDateTime], datetime)
         with ShouldRaise(TypeError('Cannot add using tzinfo on MockDateTime')):
-            datetime.add(2002, 1, 2, 3, 4, 5, 6, SampleTZInfo())
+            t.add(2002, 1, 2, 3, 4, 5, 6, SampleTZInfo())
 
     @replace('datetime.datetime',
              mock_datetime(2001, 1, 2, 3, 4, 5, 6, SampleTZInfo()))

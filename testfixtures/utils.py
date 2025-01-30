@@ -5,18 +5,7 @@ from textwrap import dedent
 from inspect import getfullargspec
 from typing import Callable, Sequence, Any
 
-from . import singleton
-
-DEFAULT = singleton('DEFAULT')
-defaults = [DEFAULT]
-
-
-try:
-    from .mock import DEFAULT
-except ImportError:  # pragma: no cover
-    pass
-else:
-    defaults.append(DEFAULT)
+from .mock import DEFAULT, _Sentinel
 
 
 def generator(*args):
@@ -33,7 +22,7 @@ class Wrapping:
     attribute_name = None
     new = DEFAULT
 
-    def __init__(self, before: Callable[[], None], after: Callable[[], None]):
+    def __init__(self, before: Callable[[], None], after: Callable[[], None] | None):
         self.before, self.after = before, after
 
     def __enter__(self):
@@ -72,7 +61,7 @@ def wrap(before: Callable[[], Any], after: Callable[[], Any] | None = None):
                     entered_patchers.append(patching)
                     if patching.attribute_name is not None:
                         keywargs.update(arg)
-                    elif patching.new in defaults and added < to_add:
+                    elif patching.new is DEFAULT and added < to_add:
                         extra_args.append(arg)
                         added += 1
 

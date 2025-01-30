@@ -50,7 +50,7 @@ def compare_model(x, y, context: CompareContext):
     """
     ignore_fields = context.get_option('ignore_fields', set())
     non_editable_fields= context.get_option('non_editable_fields', False)
-    args = []
+    args: Any = []
     for obj in x, y:
         args.append(model_to_dict(obj, ignore_fields, non_editable_fields))
     args.append(context)

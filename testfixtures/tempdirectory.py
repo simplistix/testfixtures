@@ -5,7 +5,7 @@ from pathlib import Path
 
 from re import compile
 from tempfile import mkdtemp
-from typing import Sequence, Tuple, Callable, TypeAlias
+from typing import Sequence, Tuple, Callable, TypeAlias, cast
 
 from testfixtures.comparison import compare
 from testfixtures.utils import wrap
@@ -13,7 +13,7 @@ from testfixtures.utils import wrap
 from .rmtree import rmtree
 
 
-PathStrings: TypeAlias = str | Tuple[str, ...]
+PathStrings: TypeAlias = str | Sequence[str]
 
 
 class TempDirectory:
@@ -41,7 +41,7 @@ class TempDirectory:
                 when used as a decorator or context manager.
     """
 
-    instances = set()
+    instances = set['TempDirectory']()
     atexit_setup = False
 
     #: The absolute path of the :class:`TempDirectory` on disk
@@ -62,7 +62,7 @@ class TempDirectory:
         self.path = str(path) if path else None
         self.encoding = encoding
         self.cwd = cwd
-        self.original_cwd = None
+        self.original_cwd: str | None = None
         self.dont_remove = bool(path)
         if create or (path is None and create is None):
             self.create()
@@ -98,7 +98,7 @@ class TempDirectory:
         This :class:`TempDirectory` cannot be used again unless
         :meth:`create` is called.
         """
-        if self.cwd:
+        if self.cwd and self.original_cwd:
             os.chdir(self.original_cwd)
             self.original_cwd = None
         if self.path and os.path.exists(self.path) and not self.dont_remove:
@@ -116,6 +116,11 @@ class TempDirectory:
         for i in tuple(cls.instances):
             i.cleanup()
 
+    def _resolve(self, path: PathStrings | None) -> str:
+        if self.path is None:
+            raise RuntimeError('Instantiated with create=False and .create() not called')
+        return self._join(path) if path else self.path
+
     def actual(
             self,
             path: PathStrings | None = None,
@@ -123,13 +128,11 @@ class TempDirectory:
             files_only: bool = False,
             followlinks: bool = False,
     ):
-        path = self._join(path) if path else self.path
+        path = self._resolve(path)
 
-        result = []
+        result: list[str] = []
         if recursive:
-            for dirpath, dirnames, filenames in os.walk(
-                    path, followlinks=followlinks
-            ):
+            for dirpath, dirnames, filenames in os.walk(path, followlinks=followlinks):
                 dirpath = '/'.join(dirpath[len(path)+1:].split(os.sep))
                 if dirpath:
                     dirpath += '/'
@@ -145,15 +148,15 @@ class TempDirectory:
                 result.append(n)
 
         filtered = []
-        for path in sorted(result):
+        for result_path in sorted(result):
             ignore = False
             for regex in self.ignore:
-                if regex.search(path):
+                if regex.search(result_path):
                     ignore = True
                     break
             if ignore:
                 continue
-            filtered.append(path)
+            filtered.append(result_path)
         return filtered
 
     def listdir(self, path: PathStrings | None = None, recursive: bool = False):
@@ -291,15 +294,16 @@ class TempDirectory:
 
         :returns: The absolute path of the file written.
         """
-        if isinstance(filepath, str):
-            filepath = filepath.split('/')
-        if len(filepath) > 1:
-            dirpath = self._join(filepath[:-1])
+        filepath_parts = filepath.split('/') if isinstance(filepath, str) else filepath
+        if len(filepath_parts) > 1:
+            dirpath = self._join(filepath_parts[:-1])
             if not os.path.exists(dirpath):
                 os.makedirs(dirpath)
-        thepath = self._join(filepath)
+        thepath = self._join(filepath_parts)
         encoding = encoding or self.encoding
         if encoding is not None:
+            if isinstance(data, bytes):
+                raise TypeError('Cannot specify encoding when data is bytes')
             data = data.encode(encoding)
         elif isinstance(data, str):
             data = data.encode()
@@ -321,7 +325,7 @@ class TempDirectory:
         :returns: A string containing the absolute path.
 
         """
-        return self.path if path is None else self._join(path)
+        return self._resolve(path)
 
     #: .. deprecated:: 7
     #:
@@ -339,7 +343,7 @@ class TempDirectory:
 
                      * A forward-slash separated string.
         """
-        return Path(self.path if path is None else self._join(path))
+        return Path(self._resolve(path))
 
     def __truediv__(self, other: str) -> Path:
         return self.as_path() / other

@@ -1,3 +1,4 @@
+import re
 from collections import OrderedDict
 from collections.abc import Iterable as IterableABC
 from datetime import datetime, time
@@ -7,25 +8,23 @@ from functools import partial as partial_type, reduce
 from operator import __or__
 from pathlib import Path
 from pprint import pformat
-from typing import (
-    Dict, Any, Sequence, Generator, TypeVar, List, Mapping, Pattern,
-    Callable, Iterable
-)
 from types import GeneratorType
-import re
-
-from testfixtures import not_there, singleton
-from testfixtures.resolve import resolve
-from testfixtures.utils import indent
-from testfixtures.mock import parent_name, mock_call
+from typing import (
+    Dict, Any, Sequence, TypeVar, List, Mapping, Pattern,
+    Callable, Iterable, cast
+)
 from unittest.mock import call as unittest_mock_call
 
+from testfixtures import not_there, singleton
+from testfixtures.mock import parent_name, mock_call
+from testfixtures.resolve import resolve
+from testfixtures.utils import indent
 
 # Some common types that are immutable, for optimisation purposes within CompareContext
 IMMUTABLE_TYPEs = str, bytes, int, float, tuple, type(None)
 
 
-def diff(x: str, y: str, x_label: str = '', y_label: str = ''):
+def diff(x: str, y: str, x_label: str | None = '', y_label: str | None = ''):
     """
     A shorthand function that uses :mod:`difflib` to return a
     string representing the differences between the two string
@@ -67,7 +66,7 @@ def compare_simple(x, y, context: 'CompareContext'):
         return context.label('x', repr_x) + ' != ' + context.label('y', repr_y)
 
 
-def _extract_attrs(obj, ignore: Iterable[str] | None = None) -> Dict[str, Any] | None:
+def _extract_attrs(obj, ignore: Iterable[str] | None = None) -> dict[str, Any] | None:
     try:
         attrs = vars(obj).copy()
     except TypeError:
@@ -78,7 +77,7 @@ def _extract_attrs(obj, ignore: Iterable[str] | None = None) -> Dict[str, Any] |
 
     has_slots = getattr(obj, '__slots__', not_there) is not not_there
     if has_slots:
-        slots = set()
+        slots = set[str]()
         for cls in type(obj).__mro__:
             slots.update(getattr(cls, '__slots__', ()))
         if slots and attrs is None:
@@ -135,6 +134,7 @@ def compare_object(
     if not context.simple_equals(x_attrs, y_attrs):
         return _compare_mapping(x_attrs, y_attrs, context, x,
                                 'attributes ', '.%s')
+    return None
 
 
 def compare_exception(
@@ -183,7 +183,7 @@ def compare_sequence(
         i += 1
 
     if l_x == l_y and i == l_x:
-        return
+        return None
 
     return (('sequence not as expected:\n\n' if prefix else '')+
             'same:\n%s\n\n'
@@ -194,7 +194,7 @@ def compare_sequence(
                           )
 
 
-def compare_generator(x: Generator, y: Generator, context: 'CompareContext') -> str | None:
+def compare_generator(x: Iterable, y: Iterable, context: 'CompareContext') -> str | None:
     """
     Returns a textual description of the differences between the two
     supplied generators.
@@ -207,7 +207,7 @@ def compare_generator(x: Generator, y: Generator, context: 'CompareContext') -> 
     y = tuple(y)
 
     if context.simple_equals(x, y):
-        return
+        return None
 
     return compare_sequence(x, y, context)
 
@@ -271,7 +271,7 @@ def _compare_mapping(
             same.append(key)
 
     if not (x_not_y or (check_y_not_x and y_not_x) or diffs):
-        return
+        return None
 
     if obj_for_class is not_there:
         lines = []
@@ -316,7 +316,7 @@ def compare_set(x: set, y: set, context: 'CompareContext') -> str | None:
     x_not_y = x - y
     y_not_x = y - x
     if not (y_not_x or x_not_y):
-        return
+        return None
     lines = ['%s not as expected:' % x.__class__.__name__, '']
     x_label = context.x_label or 'first'
     y_label = context.y_label or 'second'
@@ -401,7 +401,7 @@ def compare_text(x: str, y: str, context: 'CompareContext'):
 
 def compare_bytes(x: bytes, y: bytes, context: 'CompareContext') -> str | None:
     if x == y:
-        return
+        return None
     labelled_x = context.label('x', repr(x))
     labelled_y = context.label('y', repr(y))
     return '\n%s\n!=\n%s' % (labelled_x, labelled_y)
@@ -409,7 +409,7 @@ def compare_bytes(x: bytes, y: bytes, context: 'CompareContext') -> str | None:
 
 def compare_call(x, y, context: 'CompareContext') -> str | None:
     if x == y:
-        return
+        return None
 
     def extract(call):
         try:
@@ -434,7 +434,7 @@ def compare_call(x, y, context: 'CompareContext') -> str | None:
         context.different(x_kw, y_kw, ' kw')
     )
     if not different:
-        return
+        return None
 
     return 'mock.call not as expected:'
 
@@ -445,6 +445,7 @@ def compare_partial(x: partial_type, y: partial_type, context: 'CompareContext')
     if x_attrs != y_attrs:
         return _compare_mapping(x_attrs, y_attrs, context, x,
                                 'attributes ', '.%s')
+    return None
 
 
 def compare_path(x: Path, y: Path, context: 'CompareContext') -> str | None:
@@ -459,7 +460,7 @@ def compare_with_fold(x: datetime, y: datetime, context: 'CompareContext') -> st
             repr_x += f' (fold={x.fold})'
             repr_y += f' (fold={y.fold})'
         return context.label('x', repr_x)+' != '+context.label('y', repr_y)
-
+    return None
 
 def _short_repr(obj) -> str:
     repr_ = repr(obj)
@@ -505,6 +506,8 @@ def compare_exception_group(
     excs_different = context.different(x_excs, y_excs, 'excs')
     if msg_different or excs_different:
         return 'exception group not as expected:'
+    return None
+
 
 _registry[BaseExceptionGroup] = compare_exception_group
 
@@ -574,7 +577,7 @@ class CompareContext:
         self.options: Dict[str, Any] = options or {}
         self.message: str = ''
         self.breadcrumbs: List[str] = []
-        self._seen = {}
+        self._seen: dict[int, str] = {}
 
     def extract_args(self, args: tuple, x: Any, y: Any, expected: Any, actual: Any) -> List:
 
@@ -635,7 +638,7 @@ class CompareContext:
     def _separator(self) -> str:
         return '\n\nWhile comparing %s: ' % ''.join(self.breadcrumbs[1:])
 
-    def _break_loops(self, obj, breadcrumb):
+    def _break_loops(self, obj: Any, breadcrumb: str):
         # Don't bother with this process for simple, immutable types:
         if isinstance(obj, IMMUTABLE_TYPEs):
             return obj
@@ -785,7 +788,7 @@ def compare(
     context = CompareContext(x_label, y_label, recursive, strict, ignore_eq, comparers, options)
     x, y = context.extract_args(args, x, y, expected, actual)
     if not context.different(x, y, ''):
-        return
+        return None
 
     message = context.message
     if prefix:
@@ -803,7 +806,7 @@ class StatefulComparison:
     A base class for stateful comparison objects.
     """
 
-    failed: str = ''
+    failed: str | None = ''
     expected: Any = None
     name_attrs: Sequence[str] = ()
 
@@ -885,10 +888,11 @@ class Comparison(StatefulComparison):
             return False
 
         attribute_names = set(self.expected_attributes.keys())
+        actual_attributes: dict[str, Any]
         if self.partial:
             actual_attributes = {}
         else:
-            actual_attributes = _extract_attrs(other)
+            actual_attributes = cast(dict[str, Any], _extract_attrs(other))
             attribute_names -= set(actual_attributes)
 
         for name in attribute_names:
@@ -947,7 +951,7 @@ class SequenceComparison(StatefulComparison):
       Defaults to ``False``.
     """
 
-    name_attrs = ('ordered', 'partial')
+    name_attrs: Sequence[str] = ('ordered', 'partial')
 
     def __init__(
             self, *expected, ordered: bool = True, partial: bool = False, recursive: bool = False
@@ -956,9 +960,10 @@ class SequenceComparison(StatefulComparison):
         self.ordered = ordered
         self.partial = partial
         self.recursive = recursive
-        self.checked_indices = set()
+        self.checked_indices = set[int]()
 
     def __ne__(self, other) -> bool:
+        actual: list[Any]
         try:
             actual = original_actual = list(other)
         except TypeError:
@@ -1010,7 +1015,7 @@ class SequenceComparison(StatefulComparison):
                 missing_from_expected.pop(0)
 
             ignored = missing_from_expected
-            missing_from_expected = None
+            missing_from_expected = []
         else:
             actual_indices += missing_from_expected_indices
             ignored = None
@@ -1024,12 +1029,12 @@ class SequenceComparison(StatefulComparison):
         add_section('ignored', ignored)
 
         if self.ordered:
-            message.append(compare(
+            message.append(cast(str, compare(
                 expected=[self.expected[i] for i in sorted(expected_indices)],
                 actual=[original_actual[i] for i in sorted(actual_indices)],
                 recursive=self.recursive,
                 raises=False
-            ).split('\n\n', 1)[1])
+            )).split('\n\n', 1)[1])
         else:
             add_section('same', matched)
             add_section('in expected but not actual', missing_from_actual)
@@ -1184,7 +1189,7 @@ class StringComparison:
     :param flag_names: See the :ref:`examples <stringcomparison>`.
     """
     def __init__(self, regex_source: str, flags: int | None = None, **flag_names: str):
-        args = [regex_source]
+        args: list[Any] = [regex_source]
 
         flags_ = []
         if flags:

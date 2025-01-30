@@ -55,16 +55,16 @@ class LogCapture(logging.Handler):
     #: The records captured by this :class:`LogCapture`.
     records: List[LogRecord]
     #: The log level above which checks must be made for logged events.
-    ensure_checks_above: int | None
+    ensure_checks_above: int
 
-    instances = set()
+    instances = set['LogCapture']()
     atexit_setup = False
     installed = False
     default_ensure_checks_above = logging.NOTSET
 
     def __init__(
             self,
-            names: str | Tuple[str, ...] | None = None,
+            names: str | Tuple[str | None, ...] | None = None,
             install: bool = True,
             level: int = 1,
             propagate: bool | None = None,
@@ -82,7 +82,7 @@ class LogCapture(logging.Handler):
         self.propagate = propagate
         self.attributes = attributes
         self.recursive_check = recursive_check
-        self.old = defaultdict(dict)
+        self.old: dict[str, dict[str, Any]] = defaultdict(dict)
         if ensure_checks_above is None:
             self.ensure_checks_above = self.default_ensure_checks_above
         else:
@@ -142,7 +142,7 @@ class LogCapture(logging.Handler):
             return
         un_checked = []
         for record in self.records:
-            if record.levelno >= level and not record.checked:
+            if record.levelno >= level and not record.checked:  # type: ignore[attr-defined]
                 un_checked.append(self._actual_row(record))
         if un_checked:
             raise AssertionError((
@@ -283,12 +283,12 @@ class LogCapture(logging.Handler):
           Defaults to ``True``.
         """
         actual = self.actual()
-        expected = SequenceComparison(
+        expected_ = SequenceComparison(
             *expected, ordered=order_matters, partial=True, recursive=self.recursive_check
         )
-        if expected != actual:
-            raise AssertionError(expected.failed)
-        for index in expected.checked_indices:
+        if expected_ != actual:
+            raise AssertionError(expected_.failed)
+        for index in expected_.checked_indices:
             self.records[index].checked = True
 
     def __enter__(self):

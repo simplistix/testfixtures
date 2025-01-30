@@ -125,6 +125,16 @@ class TempDirectoryTests(TestCase):
         self.assertEqual(d, td.path)
         self.assertFalse(os.path.exists(d))
 
+    def test_delay_create(self):
+        td = TempDirectory(create=False)
+        assert td.path is None
+        with ShouldRaise(RuntimeError('Instantiated with create=False and .create() not called')):
+            td.as_path()
+        td.create()
+        assert td.path is not None
+        td.cleanup()
+        assert td.path is None
+
     def test_compare_sort_actual(self):
         with TempDirectory() as d:
             d.write('ga', b'')
@@ -297,6 +307,11 @@ class TempDirectoryTests(TestCase):
         with TempDirectory(encoding='ascii') as d:
             d.write('test.txt', decoded, encoding='utf-8')
             compare(d.read('test.txt', encoding='utf-8'), expected=decoded)
+
+    def test_attempt_to_encode_bytes(self):
+        with TempDirectory() as d:
+            with ShouldRaise(TypeError("Cannot specify encoding when data is bytes")):
+                d.write('test.txt', b'\xc2\xa3', encoding='utf-8')
 
     def test_as_path_minimal(self):
         with TempDirectory(encoding='ascii') as d:

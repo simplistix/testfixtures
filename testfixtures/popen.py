@@ -5,7 +5,7 @@ from itertools import chain, zip_longest
 from os import PathLike
 from subprocess import STDOUT, PIPE
 from tempfile import TemporaryFile
-from typing import Callable, List, Sequence, Tuple, Dict, Iterable, TypeAlias
+from typing import Callable, List, Sequence, Tuple, Dict, Iterable, TextIO, TypeAlias
 
 from testfixtures.utils import extend_docstring
 from .mock import Mock, call, _Call as Call
@@ -31,7 +31,7 @@ def shell_join(command: Command) -> str:
             elif isinstance(part, PathLike):
                 part = str(part)
             elif not isinstance(part, (str, bytes)):
-                raise TypeError(f'{part!r} in {command} was {type(part)}, must be str')
+                raise TypeError(f'{part!r} in {command!r} was {type(part)}, must be str')
             quoted_parts.append(shlex.quote(part))
         return " ".join(quoted_parts)
     else:
@@ -78,10 +78,10 @@ class MockPopenInstance:
     stdin: Mock | None = None
 
     #: A file representing standard output from this process.
-    stdout: TemporaryFile = None
+    stdout: TextIO | None = None
 
     #: A file representing error output from this process.
-    stderr: TemporaryFile = None
+    stderr: TextIO | None = None
 
     # These are not types as instantiation of this class is an internal implementation detail.
     def __init__(self, mock_class, root_call,
@@ -175,11 +175,14 @@ class MockPopenInstance:
         return self.returncode
 
     @record
-    def communicate(self, input: AnyStr | None = None, timeout: float | None = None) -> Tuple[AnyStr, AnyStr]:
+    def communicate(
+            self, input: AnyStr | None = None, timeout: float | None = None
+    ) -> Tuple[AnyStr | None, AnyStr | None]:
         "Simulate calls to :meth:`subprocess.Popen.communicate`"
         self.returncode = self.behaviour.returncode
-        return (self.stdout and self.stdout.read(),
-                self.stderr and self.stderr.read())
+        stdout = None if self.stdout is None else self.stdout.read()
+        stderr = None if self.stderr is None else self.stderr.read()
+        return stdout, stderr
 
     @record
     def poll(self) -> int | None:

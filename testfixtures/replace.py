@@ -1,17 +1,15 @@
 import os
+import warnings
 from contextlib import contextmanager
 from functools import partial
 from gc import get_referrers, get_referents
 from operator import setitem, getitem
 from types import ModuleType, MethodType
-from typing import Any, TypeVar, Callable, Dict, Tuple
+from typing import Any, TypeVar, Callable, Dict, Tuple, Generic
 
-from testfixtures.resolve import resolve, not_there, Resolved, classmethod_type, class_type, Setter
 from testfixtures.utils import wrap, extend_docstring
+from .resolve import resolve, not_there, Resolved, classmethod_type, class_type, Key
 
-import warnings
-
-# Should be Literal[setattr, getattr] but Python 3.8 only.
 Accessor = Callable[[Any, str], Any]
 
 
@@ -30,7 +28,7 @@ class Replacer:
     """
 
     def __init__(self):
-        self.originals: Dict[Tuple[int, Setter, str], Tuple[Any, Resolved]] = {}
+        self.originals: Dict[Key, Tuple[Any, Resolved]] = {}
 
     def _replace(self, resolved: Resolved, value):
         if value is not_there:
@@ -44,7 +42,7 @@ class Replacer:
                     del resolved.container[resolved.name]
                 except KeyError:
                     pass
-        else:
+        elif resolved.setter is not None:
             resolved.setter(resolved.container, resolved.name, value)
 
     def __call__(
@@ -126,7 +124,7 @@ class Replacer:
                 resolved.found = not_there
 
 
-        replacement_to_use = replacement
+        replacement_to_use: Any = replacement
 
         if isinstance(resolved.container, type):
 
@@ -135,10 +133,10 @@ class Replacer:
                 resolved.found = resolved.container.__dict__[resolved.name]
 
             if not_same_descriptor(resolved.found, replacement, classmethod):
-                replacement_to_use = classmethod(replacement)
+                replacement_to_use = classmethod(replacement)  # type: ignore[arg-type]
 
             elif not_same_descriptor(resolved.found, replacement, staticmethod):
-                replacement_to_use = staticmethod(replacement)
+                replacement_to_use = staticmethod(replacement)  # type: ignore[arg-type]
 
         self._replace(resolved, replacement_to_use)
         key = resolved.key()
@@ -164,7 +162,7 @@ class Replacer:
         self(os.environ, name=name, accessor=getitem, strict=False,
              replacement=not_there if replacement is not_there else str(replacement))
 
-    def _find_container(self, attribute, name: str, break_on_static: bool):
+    def _find_container(self, attribute, name: str | None, break_on_static: bool):
         for referrer in get_referrers(attribute):
             if break_on_static and isinstance(referrer, staticmethod):
                 return None, referrer
@@ -286,7 +284,7 @@ def replace_in_module(target: Any, replacement: Any, module: ModuleType | None =
         yield
 
 
-class Replace:
+class Replace(Generic[R]):
     """
     A context manager that uses a :class:`Replacer` to replace a single target.
     """
@@ -299,8 +297,8 @@ class Replace:
         self.replacement = replacement
         self.strict = strict
         self.container: Any = container
-        self.accessor: Accessor = accessor
-        self.name: str = name
+        self.accessor = accessor
+        self.name = name
         self.sep: str = sep
         self._replacer = Replacer()
 

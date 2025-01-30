@@ -411,7 +411,7 @@ class TestReplace(TestCase):
 
                 r.replace('module.submodule.foo', bar)
 
-                from module.submodule import foo
+                from module.submodule import foo  # type: ignore[import-not-found]
                 compare(foo(), "bar")
 
     def test_staticmethod(self):
