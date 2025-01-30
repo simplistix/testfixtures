@@ -44,7 +44,7 @@ class Wrapping:
             self.after()
 
 
-def wrap(before: Callable[[], Any], after: Callable[[], Any] = None):
+def wrap(before: Callable[[], Any], after: Callable[[], Any] | None = None):
     """
     A decorator that causes the supplied callables to be called before
     or after the wrapped callable, as appropriate.

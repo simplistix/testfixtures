@@ -39,7 +39,7 @@ class ShouldRaise:
     #: Can be used to inspect specific attributes of the exception.
     raised = None
 
-    def __init__(self, exception: ExceptionOrType = None, unless: bool = False):
+    def __init__(self, exception: ExceptionOrType | None = None, unless: bool = False):
         self.exception = exception
         self.expected = not unless
 
@@ -78,7 +78,7 @@ class should_raise:
     raised.
     """ + param_docs
 
-    def __init__(self, exception: ExceptionOrType = None, unless: bool = None):
+    def __init__(self, exception: ExceptionOrType | None = None, unless: bool | None = None):
         self.exception = exception
         self.unless = unless
 

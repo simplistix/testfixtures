@@ -75,7 +75,7 @@ class MockPopenInstance:
     #: A :class:`~unittest.mock.Mock` representing the pipe into this process.
     #: This is only set if ``stdin=PIPE`` is passed the constructor.
     #: The mock records writes and closes in :attr:`MockPopen.all_calls`.
-    stdin: Mock = None
+    stdin: Mock | None = None
 
     #: A file representing standard output from this process.
     stdout: TemporaryFile = None
@@ -169,13 +169,13 @@ class MockPopenInstance:
                 stream.close()
 
     @record
-    def wait(self, timeout: float = None) -> int:
+    def wait(self, timeout: float | None = None) -> int:
         "Simulate calls to :meth:`subprocess.Popen.wait`"
         self.returncode = self.behaviour.returncode
         return self.returncode
 
     @record
-    def communicate(self, input: AnyStr = None, timeout: float = None) -> Tuple[AnyStr, AnyStr]:
+    def communicate(self, input: AnyStr | None = None, timeout: float | None = None) -> Tuple[AnyStr, AnyStr]:
         "Simulate calls to :meth:`subprocess.Popen.communicate`"
         self.returncode = self.behaviour.returncode
         return (self.stdout and self.stdout.read(),
@@ -218,7 +218,7 @@ class MockPopen:
     :func:`unittest.mock.patch` or a :class:`~testfixtures.Replacer`.
     """
 
-    default_behaviour: PopenBehaviour = None
+    default_behaviour: PopenBehaviour | None = None
 
     def __init__(self):
         self.commands: Dict[str, PopenBehaviour] = {}
@@ -244,7 +244,7 @@ class MockPopen:
             returncode: int = 0,
             pid: int = 1234,
             poll_count: int = 3,
-            behaviour: Union[PopenBehaviour, Callable] = None
+            behaviour: Union[PopenBehaviour, Callable] | None = None
     ):
         """
         Set the behaviour of this mock when it is used to simulate the
