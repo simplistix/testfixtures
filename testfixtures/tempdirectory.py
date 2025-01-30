@@ -49,11 +49,11 @@ class TempDirectory:
 
     def __init__(
             self,
-            path: Union[str, Path] = None,
+            path: Union[str, Path] | None = None,
             *,
             ignore: Sequence[str] = (),
-            create: bool = None,
-            encoding: str = None,
+            create: bool | None = None,
+            encoding: str | None = None,
             cwd: bool = False,
     ):
         self.ignore = []
@@ -118,7 +118,7 @@ class TempDirectory:
 
     def actual(
             self,
-            path: PathStrings = None,
+            path: PathStrings | None = None,
             recursive: bool = False,
             files_only: bool = False,
             followlinks: bool = False,
@@ -156,7 +156,7 @@ class TempDirectory:
             filtered.append(path)
         return filtered
 
-    def listdir(self, path: PathStrings = None, recursive: bool = False):
+    def listdir(self, path: PathStrings | None = None, recursive: bool = False):
         """
         Print the contents of the specified directory.
 
@@ -188,7 +188,7 @@ class TempDirectory:
     def compare(
             self,
             expected: Sequence[str],
-            path: PathStrings = None,
+            path: PathStrings | None = None,
             files_only: bool = False,
             recursive: bool = True,
             followlinks: bool = False,
@@ -265,7 +265,7 @@ class TempDirectory:
         os.makedirs(thepath)
         return thepath
 
-    def write(self, filepath: PathStrings, data: Union[bytes, str], encoding: str = None):
+    def write(self, filepath: PathStrings, data: Union[bytes, str], encoding: str | None = None):
         """
         Write the supplied data to a file at the specified path within
         the temporary directory. Any subdirectories specified that do
@@ -307,7 +307,7 @@ class TempDirectory:
             f.write(data)
         return thepath
 
-    def as_string(self, path: Union[str, Sequence[str]] = None) -> str:
+    def as_string(self, path: Union[str, Sequence[str]] | None = None) -> str:
         """
         Return the full path on disk that corresponds to the path
         relative to the temporary directory that is passed in.
@@ -328,7 +328,7 @@ class TempDirectory:
     #:   Use :meth:`as_string` instead.
     getpath = as_string
 
-    def as_path(self, path: PathStrings = None) -> Path:
+    def as_path(self, path: PathStrings | None = None) -> Path:
         """
         Return the :class:`~pathlib.Path` that corresponds to the path
         relative to the temporary directory that is passed in.
@@ -344,7 +344,7 @@ class TempDirectory:
     def __truediv__(self, other: str) -> Path:
         return self.as_path() / other
 
-    def read(self, filepath: PathStrings, encoding: str = None) -> Union[bytes, str]:
+    def read(self, filepath: PathStrings, encoding: str | None = None) -> Union[bytes, str]:
         """
         Reads the file at the specified path within the temporary
         directory.

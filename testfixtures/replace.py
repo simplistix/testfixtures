@@ -52,9 +52,9 @@ class Replacer:
             target: Any,
             replacement: R,
             strict: bool = True,
-            container: Any = None,
-            accessor: Accessor = None,
-            name: str = None,
+            container: Any | None = None,
+            accessor: Accessor | None = None,
+            name: str | None = None,
             sep: str = '.',
     ) -> R:
         """
@@ -147,7 +147,7 @@ class Replacer:
         return replacement
 
     def replace(self, target: Any, replacement: Any, strict: bool = True,
-                container: Any = None, accessor: Accessor = None, name: str = None) -> None:
+                container: Any | None = None, accessor: Accessor | None = None, name: str | None = None) -> None:
         """
         Replace the specified target with the supplied replacement.
         """
@@ -175,7 +175,7 @@ class Replacer:
                             return container, None
         return None, None
 
-    def on_class(self, attribute: Callable, replacement: Any, name: str = None) -> None:
+    def on_class(self, attribute: Callable, replacement: Any, name: str | None = None) -> None:
         """
         This method provides a convenient way to replace methods, static methods and class
         methods on their classes.
@@ -203,7 +203,7 @@ class Replacer:
 
         self(container, name=name, accessor=getattr, replacement=replacement)
 
-    def in_module(self, target: Any, replacement: Any, module: ModuleType = None) -> None:
+    def in_module(self, target: Any, replacement: Any, module: ModuleType | None = None) -> None:
         """
         This method provides a convenient way to replace targets that are module globals,
         particularly functions or other objects with a ``__name__`` attribute.
@@ -243,7 +243,7 @@ class Replacer:
 
 def replace(
         target: Any, replacement: Any, strict: bool = True,
-        container: Any = None, accessor: Accessor = None, name: str = None, sep: str ='.'
+        container: Any | None = None, accessor: Accessor | None = None, name: str | None = None, sep: str ='.'
 ) -> Callable[[Callable], Callable]:
     """
     A decorator to replace a target object for the duration of a test
@@ -267,7 +267,7 @@ def replace_in_environ(name: str, replacement: Any):
 
 
 @contextmanager
-def replace_on_class(attribute: Callable, replacement: Any, name: str = None):
+def replace_on_class(attribute: Callable, replacement: Any, name: str | None = None):
     """
     This context manager provides a quick way to use :meth:`Replacer.on_class`.
     """
@@ -277,7 +277,7 @@ def replace_on_class(attribute: Callable, replacement: Any, name: str = None):
 
 
 @contextmanager
-def replace_in_module(target: Any, replacement: Any, module: ModuleType = None):
+def replace_in_module(target: Any, replacement: Any, module: ModuleType | None = None):
     """
     This context manager provides a quick way to use :meth:`Replacer.in_module`.
     """
@@ -293,7 +293,7 @@ class Replace:
 
     def __init__(
             self, target: Any, replacement: R, strict: bool = True,
-            container: Any = None, accessor: Accessor = None, name: str = None, sep: str ='.'
+            container: Any | None = None, accessor: Accessor | None = None, name: str | None = None, sep: str ='.'
     ):
         self.target = target
         self.replacement = replacement

@@ -64,15 +64,15 @@ class LogCapture(logging.Handler):
 
     def __init__(
             self,
-            names: Union[str, Tuple[str, ...]] = None,
+            names: Union[str, Tuple[str, ...]] | None = None,
             install: bool = True,
             level: int = 1,
-            propagate: bool = None,
+            propagate: bool | None = None,
             attributes: Union[Sequence[str], Callable[[LogRecord], Any]] = (
                     'name', 'levelname', 'getMessage'
             ),
             recursive_check: bool = False,
-            ensure_checks_above: int = None
+            ensure_checks_above: int | None = None
     ):
         logging.Handler.__init__(self)
         if not isinstance(names, tuple):
@@ -129,7 +129,7 @@ class LogCapture(logging.Handler):
         for record in self.records:
             record.checked = True
 
-    def ensure_checked(self, level: int = None):
+    def ensure_checked(self, level: int | None = None):
         """
         Ensure every entry logged above the specified `level` has been checked.
         Raises an :class:`AssertionError` if this is not the case.

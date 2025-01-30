@@ -67,7 +67,7 @@ def compare_simple(x, y, context: 'CompareContext'):
         return context.label('x', repr_x) + ' != ' + context.label('y', repr_y)
 
 
-def _extract_attrs(obj, ignore: Iterable[str] = None) -> Optional[Dict[str, Any]]:
+def _extract_attrs(obj, ignore: Iterable[str] | None = None) -> Optional[Dict[str, Any]]:
     try:
         attrs = vars(obj).copy()
     except TypeError:
@@ -558,8 +558,8 @@ class CompareContext:
             recursive: bool = True,
             strict: bool = False,
             ignore_eq: bool = False,
-            comparers: Registry = None,
-            options: Dict[str, Any] = None,
+            comparers: Registry | None = None,
+            options: Dict[str, Any] | None = None,
     ):
         self.registries = []
         if comparers:
@@ -706,15 +706,15 @@ def compare(
         y: Any = unspecified,
         expected: Any = unspecified,
         actual: Any = unspecified,
-        prefix: str = None,
-        suffix: str = None,
-        x_label: str = None,
-        y_label: str = None,
+        prefix: str | None = None,
+        suffix: str | None = None,
+        x_label: str | None = None,
+        y_label: str | None = None,
         raises: bool = True,
         recursive: bool = True,
         strict: bool = False,
         ignore_eq: bool = False,
-        comparers: Registry = None,
+        comparers: Registry | None = None,
         **options: Any
 ) -> Optional[str]:
     """
@@ -852,7 +852,7 @@ class Comparison(StatefulComparison):
 
     def __init__(self,
                  object_or_type,
-                 attribute_dict: Dict[str, Any] = None,
+                 attribute_dict: Dict[str, Any] | None = None,
                  partial: bool = False,
                  **attributes: Any):
         self.partial = partial
@@ -1183,7 +1183,7 @@ class StringComparison:
 
     :param flag_names: See the :ref:`examples <stringcomparison>`.
     """
-    def __init__(self, regex_source: str, flags: int = None, **flag_names: str):
+    def __init__(self, regex_source: str, flags: int | None = None, **flag_names: str):
         args = [regex_source]
 
         flags_ = []

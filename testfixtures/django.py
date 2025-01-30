@@ -67,15 +67,15 @@ def compare(
         y: Any = unspecified,
         expected: Any = unspecified,
         actual: Any = unspecified,
-        prefix: str = None,
-        suffix: str = None,
-        x_label: str = None,
-        y_label: str = None,
+        prefix: str | None = None,
+        suffix: str | None = None,
+        x_label: str | None = None,
+        y_label: str | None = None,
         raises: bool = True,
         recursive: bool = True,
         strict: bool = False,
         ignore_eq: bool = True,
-        comparers: Registry = None,
+        comparers: Registry | None = None,
         **options: Any
 ) -> Optional[str]:
     """
