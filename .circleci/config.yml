@@ -30,7 +30,7 @@ common: &common
     - python/pip-run-tests:
         matrix:
           parameters:
-            image:
+            image: &python_versions
               - cimg/python:3.11
               - cimg/python:3.12
               - cimg/python:3.13
@@ -42,6 +42,12 @@ common: &common
         name: django-latest
         image: cimg/python:3.11
         extra_packages: "django"
+
+    - python/typing:
+        packages: testfixtures
+        matrix:
+          parameters:
+            image: *python_versions
 
     - python/coverage:
         name: coverage
@@ -90,6 +96,7 @@ common: &common
         name: release
         config: .carthorse.yml
         requires:
+          - python/typing
           - check-package-python
           - check-package-python-mock
           - check-package-python-django
