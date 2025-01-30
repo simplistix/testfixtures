@@ -2,7 +2,7 @@
 Tools for helping to test Twisted applications.
 """
 from pprint import pformat
-from typing import Sequence, Callable
+from typing import Sequence, Callable, Any, TypeAlias
 from unittest import TestCase
 
 from constantly import NamedConstant
@@ -10,6 +10,7 @@ from twisted.logger import globalLogPublisher, formatEvent, LogLevel
 
 from . import compare
 
+Event: TypeAlias = dict[str, Any]
 
 class LogCapture:
     """
@@ -26,10 +27,10 @@ class LogCapture:
 
     def __init__(self, fields: Sequence[str | Callable] = ('log_level', formatEvent,)):
         #: The list of events captured.
-        self.events = []
+        self.events: list[Event] = []
         self.fields = fields
 
-    def __call__(self, event):
+    def __call__(self, event: Event) -> None:
         self.events.append(event)
 
     def install(self):
@@ -50,6 +51,7 @@ class LogCapture:
           This defaults to ``True``. If ``False``, the order of expected logging versus
           actual logging will be ignored.
         """
+        actual_event: Any
         actual = []
         for event in self.events:
             actual_event = tuple(field(event) if callable(field) else event.get(field)
@@ -60,23 +62,23 @@ class LogCapture:
         if order_matters:
             compare(expected=expected, actual=actual)
         else:
-            expected = list(expected)
+            expected_ = list(expected)
             matched = []
             unmatched = []
             for entry in actual:
                 try:
-                    index = expected.index(entry)
+                    index = expected_.index(entry)
                 except ValueError:
                     unmatched.append(entry)
                 else:
-                    matched.append(expected.pop(index))
-            if expected:
+                    matched.append(expected_.pop(index))
+            if expected_:
                 raise AssertionError((
                     'entries not as expected:\n\n'
                     'expected and found:\n%s\n\n'
                     'expected but not found:\n%s\n\n'
                     'other entries:\n%s'
-                ) % (pformat(matched), pformat(expected), pformat(unmatched)))
+                ) % (pformat(matched), pformat(expected_), pformat(unmatched)))
 
     def check_failure_text(self, expected: str, index: int = -1, attribute: str = 'value'):
         """

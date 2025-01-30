@@ -10,27 +10,26 @@ __ https://mock.readthedocs.io
 """
 import sys
 
+backport_version: tuple[int, int, int] | None
+
 try:
     from mock import *
-    from mock.mock import _Call
+    from mock.mock import _Call, _Sentinel
     from mock.mock import call as mock_call
     from mock import version_info as backport_version
 except ImportError:
     backport_version = None
     class MockCall:
         pass
-    mock_call = MockCall()
-    try:
-        from unittest.mock import *
-        from unittest.mock import _Call
-    except ImportError:  # pragma: no cover
-        pass
+    mock_call = MockCall()  # type: ignore[assignment]
+    from unittest.mock import *  # type: ignore[assignment]
+    from unittest.mock import _Call, _Sentinel  # type: ignore[assignment]
 
 
 has_backport = backport_version is not None
 
 if not (
-        (has_backport and backport_version[:3] > (2, 0, 0)) or
+        (has_backport and backport_version[:3] > (2, 0, 0)) or  # type: ignore[index]
         (sys.version_info < (3, 0, 0) and not has_backport) or
         (3, 6, 7) < sys.version_info[:3] < (3, 7, 0) or
         sys.version_info[:3] > (3, 7, 1)

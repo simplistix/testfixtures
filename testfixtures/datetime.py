@@ -37,8 +37,8 @@ class MockedCurrent:
     _mock_base_class: Type
     _mock_class: Type
     _mock_tzinfo: TZInfo | None
-    _mock_date_type: Type[date]
-    _correct_mock_type: Callable = None
+    _mock_date_type: Type[date] | None
+    _correct_mock_type: Callable | None = None
 
     def __init_subclass__(
             cls,
@@ -49,6 +49,7 @@ class MockedCurrent:
             date_type: Type[date] | None = None
     ):
         if concrete:
+            assert not queue is None, 'queue must be passed if concrete=True'
             cls._mock_queue = queue
             cls._mock_base_class = cls.__bases__[0].__bases__[1]
             cls._mock_class = cls if strict else cls._mock_base_class
@@ -88,7 +89,7 @@ class MockedCurrent:
             delta, = args
         cls._mock_queue.advance_next(delta)
 
-    def __add__(self, other) -> 'MockedCurrent':
+    def __add__(self, other):
         instance = super().__add__(other)
         if self._correct_mock_type:
             instance = self._correct_mock_type(instance)
@@ -252,7 +253,16 @@ class MockDateTime(MockedCurrent, datetime):
         )
 
     @classmethod
-    def now(cls, tz: TZInfo | None = None) -> datetime:
+    def _adjust_instance_using_tzinfo(cls, instance: datetime) -> datetime:
+        if cls._mock_tzinfo:
+            offset = cls._mock_tzinfo.utcoffset(instance)
+            if offset is None:
+                raise TypeError('tzinfo with .utcoffset() returning None is not supported')
+            instance = instance - offset
+        return instance
+
+    @classmethod
+    def now(cls, tz: TZInfo | None = None) -> datetime:  # type: ignore[override]
         """
         :param tz: An optional timezone to apply to the returned time.
                 If supplied, it must be an instance of a
@@ -265,13 +275,11 @@ class MockDateTime(MockedCurrent, datetime):
         """
         instance = cast(datetime, cls._mock_queue.next())
         if tz is not None:
-            if cls._mock_tzinfo:
-                instance = instance - cls._mock_tzinfo.utcoffset(instance)
-            instance = tz.fromutc(instance.replace(tzinfo=tz))
+            instance = tz.fromutc(cls._adjust_instance_using_tzinfo(instance).replace(tzinfo=tz))
         return cls._correct_mock_type(instance)
 
     @classmethod
-    def utcnow(cls) -> datetime:
+    def utcnow(cls) -> datetime:  # type: ignore[override]
         """
         This will return the next supplied or calculated datetime from the
         internal queue, rather than the actual current UTC datetime.
@@ -279,9 +287,9 @@ class MockDateTime(MockedCurrent, datetime):
         If you care about timezones, see :ref:`timezones`.
         """
         instance = cast(datetime, cls._mock_queue.next())
-        if cls._mock_tzinfo is not None:
-            instance = instance - cls._mock_tzinfo.utcoffset(instance)
-        return instance
+        return cls._adjust_instance_using_tzinfo(instance)
+
+    _mock_date_type: Type[date]
 
     def date(self) -> date:
         """
@@ -538,7 +546,7 @@ class MockDate(MockedCurrent, date):
         return super().tick(*args, **kw)
 
     @classmethod
-    def today(cls) -> date:
+    def today(cls) -> date:  # type: ignore[override]
         """
         This will return the next supplied or calculated date from the
         internal queue, rather than the actual current date.
@@ -550,7 +558,7 @@ class MockDate(MockedCurrent, date):
 @overload
 def mock_date(
         delta: float | None = None,
-        delta_type: str | None = None,
+        delta_type: str = 'days',
         date_type: Type[date] = date,
         strict: bool = False
 ) -> Type[MockDate]:
@@ -751,7 +759,7 @@ class MockTime(MockedCurrent, datetime):
         """
         return super().tick(*args, **kw)
 
-    def __new__(cls, *args, **kw) -> float:
+    def __new__(cls, *args, **kw) -> float:  # type: ignore[misc]
         """
         Return a :class:`float` representing the mocked current time as would normally
         be returned by :func:`time.time`.
@@ -761,7 +769,7 @@ class MockTime(MockedCurrent, datetime):
             return super().__new__(cls, *args, **kw)
         else:
             instance = cast(datetime, cls._mock_queue.next())
-            time = timegm(instance.utctimetuple())
+            time: float = timegm(instance.utctimetuple())
             time += (float(instance.microsecond)/ms)
             return time
 

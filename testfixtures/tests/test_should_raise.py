@@ -206,7 +206,7 @@ class TestShouldRaise(TestCase):
 
     def test_import_errors_1(self):
         with ShouldRaise(ModuleNotFoundError("No module named 'textfixtures'")):
-            import textfixtures.foo.bar
+            import textfixtures.foo.bar  # type: ignore[import-not-found]
 
     def test_import_errors_2(self):
         with ShouldRaise(ImportError('X')):
