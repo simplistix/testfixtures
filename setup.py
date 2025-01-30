@@ -36,7 +36,8 @@ setup(
     include_package_data=True,
     python_requires=">=3.11",
     extras_require=dict(
-        test=['mypy',
+        test=['django-stubs',
+              'mypy',
               'pytest>=7.1',
               'pytest-cov',
               'pytest-django',
