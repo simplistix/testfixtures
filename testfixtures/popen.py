@@ -5,13 +5,13 @@ from itertools import chain, zip_longest
 from os import PathLike
 from subprocess import STDOUT, PIPE
 from tempfile import TemporaryFile
-from typing import Union, Callable, List, Sequence, Tuple, Dict, Iterable
+from typing import Callable, List, Sequence, Tuple, Dict, Iterable, TypeAlias
 
 from testfixtures.utils import extend_docstring
 from .mock import Mock, call, _Call as Call
 
-AnyStr = Union[str, bytes]
-Command = Union[str, bytes, PathLike, Sequence[str], Sequence[bytes]]
+AnyStr: TypeAlias = str | bytes
+Command: TypeAlias = str | bytes | PathLike | Sequence[str] | Sequence[bytes]
 
 
 def shell_join(command: Command) -> str:
@@ -244,7 +244,7 @@ class MockPopen:
             returncode: int = 0,
             pid: int = 1234,
             poll_count: int = 3,
-            behaviour: Union[PopenBehaviour, Callable] | None = None
+            behaviour: PopenBehaviour | Callable | None = None
     ):
         """
         Set the behaviour of this mock when it is used to simulate the

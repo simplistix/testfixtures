@@ -1,10 +1,10 @@
 import warnings
-from typing import Union, Type
+from typing import Type, TypeAlias
 
 from testfixtures import Comparison, SequenceComparison, compare
 
 
-WarningOrType = Union[Warning, Type[Warning]]
+WarningOrType: TypeAlias = Warning | Type[Warning]
 
 
 class ShouldWarn(warnings.catch_warnings):

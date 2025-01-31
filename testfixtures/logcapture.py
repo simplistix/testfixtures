@@ -1,6 +1,6 @@
 from collections import defaultdict
 from logging import LogRecord
-from typing import List, Union, Tuple, Sequence, Callable, Any
+from typing import List, Tuple, Sequence, Callable, Any
 import atexit
 import logging
 import warnings
@@ -64,11 +64,11 @@ class LogCapture(logging.Handler):
 
     def __init__(
             self,
-            names: Union[str, Tuple[str, ...]] | None = None,
+            names: str | Tuple[str, ...] | None = None,
             install: bool = True,
             level: int = 1,
             propagate: bool | None = None,
-            attributes: Union[Sequence[str], Callable[[LogRecord], Any]] = (
+            attributes: Sequence[str] | Callable[[LogRecord], Any] = (
                     'name', 'levelname', 'getMessage'
             ),
             recursive_check: bool = False,

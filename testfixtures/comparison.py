@@ -8,7 +8,7 @@ from operator import __or__
 from pathlib import Path
 from pprint import pformat
 from typing import (
-    Dict, Any, Sequence, Generator, TypeVar, List, Mapping, Pattern, Union,
+    Dict, Any, Sequence, Generator, TypeVar, List, Mapping, Pattern,
     Callable, Iterable
 )
 from types import GeneratorType
@@ -651,7 +651,7 @@ class CompareContext:
     def simple_equals(self, x: Any, y: Any) -> bool:
         return not (self.strict or self.ignore_eq) and x == y
 
-    def different(self, x: Any, y: Any, breadcrumb: str) -> Union[bool, str | None]:
+    def different(self, x: Any, y: Any, breadcrumb: str) -> bool | str | None:
 
         x = self._break_loops(x, breadcrumb)
         y = self._break_loops(y, breadcrumb)

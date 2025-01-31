@@ -2,13 +2,13 @@
 Tools for helping to test Twisted applications.
 """
 from pprint import pformat
-from typing import Union, Sequence, Callable
+from typing import Sequence, Callable
 from unittest import TestCase
 
 from constantly import NamedConstant
+from twisted.logger import globalLogPublisher, formatEvent, LogLevel
 
 from . import compare
-from twisted.logger import globalLogPublisher, formatEvent, LogLevel
 
 
 class LogCapture:
@@ -24,7 +24,7 @@ class LogCapture:
       otherwise they will be a tuple of the specified fields.
     """
 
-    def __init__(self, fields: Sequence[Union[str, Callable]] = ('log_level', formatEvent,)):
+    def __init__(self, fields: Sequence[str | Callable] = ('log_level', formatEvent,)):
         #: The list of events captured.
         self.events = []
         self.fields = fields

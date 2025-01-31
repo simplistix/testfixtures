@@ -5,7 +5,7 @@ from pathlib import Path
 
 from re import compile
 from tempfile import mkdtemp
-from typing import Union, Sequence, TYPE_CHECKING, Tuple, Callable
+from typing import Sequence, Tuple, Callable, TypeAlias
 
 from testfixtures.comparison import compare
 from testfixtures.utils import wrap
@@ -13,7 +13,7 @@ from testfixtures.utils import wrap
 from .rmtree import rmtree
 
 
-PathStrings = Union[str, Tuple[str, ...]]
+PathStrings: TypeAlias = str | Tuple[str, ...]
 
 
 class TempDirectory:
@@ -49,7 +49,7 @@ class TempDirectory:
 
     def __init__(
             self,
-            path: Union[str, Path] | None = None,
+            path: str | Path | None = None,
             *,
             ignore: Sequence[str] = (),
             create: bool | None = None,
@@ -265,7 +265,7 @@ class TempDirectory:
         os.makedirs(thepath)
         return thepath
 
-    def write(self, filepath: PathStrings, data: Union[bytes, str], encoding: str | None = None):
+    def write(self, filepath: PathStrings, data: str | bytes, encoding: str | None = None):
         """
         Write the supplied data to a file at the specified path within
         the temporary directory. Any subdirectories specified that do
@@ -307,7 +307,7 @@ class TempDirectory:
             f.write(data)
         return thepath
 
-    def as_string(self, path: Union[str, Sequence[str]] | None = None) -> str:
+    def as_string(self, path: str | Sequence[str] | None = None) -> str:
         """
         Return the full path on disk that corresponds to the path
         relative to the temporary directory that is passed in.
@@ -344,7 +344,7 @@ class TempDirectory:
     def __truediv__(self, other: str) -> Path:
         return self.as_path() / other
 
-    def read(self, filepath: PathStrings, encoding: str | None = None) -> Union[bytes, str]:
+    def read(self, filepath: PathStrings, encoding: str | None = None) -> str | bytes:
         """
         Reads the file at the specified path within the temporary
         directory.
