@@ -8,7 +8,7 @@ from operator import __or__
 from pathlib import Path
 from pprint import pformat
 from typing import (
-    Dict, Any, Optional, Sequence, Generator, TypeVar, List, Mapping, Pattern, Union,
+    Dict, Any, Sequence, Generator, TypeVar, List, Mapping, Pattern, Union,
     Callable, Iterable
 )
 from types import GeneratorType
@@ -67,7 +67,7 @@ def compare_simple(x, y, context: 'CompareContext'):
         return context.label('x', repr_x) + ' != ' + context.label('y', repr_y)
 
 
-def _extract_attrs(obj, ignore: Iterable[str] | None = None) -> Optional[Dict[str, Any]]:
+def _extract_attrs(obj, ignore: Iterable[str] | None = None) -> Dict[str, Any] | None:
     try:
         attrs = vars(obj).copy()
     except TypeError:
@@ -110,7 +110,7 @@ def _attrs_to_ignore(
 
 def compare_object(
         x, y, context: 'CompareContext', ignore_attributes: Iterable[str] = ()
-) -> Optional[str]:
+) -> str | None:
     """
     Compare the two supplied objects based on their type and attributes.
 
@@ -139,7 +139,7 @@ def compare_object(
 
 def compare_exception(
         x: BaseException, y: BaseException, context: 'CompareContext'
-) -> Optional[str]:
+) -> str | None:
     """
     Compare the two supplied exceptions based on their message, type and
     attributes.
@@ -169,7 +169,7 @@ def compare_with_type(x, y, context: 'CompareContext') -> str:
 
 def compare_sequence(
         x: Sequence, y: Sequence, context: 'CompareContext', prefix: bool = True
-) -> Optional[str]:
+) -> str | None:
     """
     Returns a textual description of the differences between the two
     supplied sequences.
@@ -194,7 +194,7 @@ def compare_sequence(
                           )
 
 
-def compare_generator(x: Generator, y: Generator, context: 'CompareContext') -> Optional[str]:
+def compare_generator(x: Generator, y: Generator, context: 'CompareContext') -> str | None:
     """
     Returns a textual description of the differences between the two
     supplied generators.
@@ -212,7 +212,7 @@ def compare_generator(x: Generator, y: Generator, context: 'CompareContext') -> 
     return compare_sequence(x, y, context)
 
 
-def compare_tuple(x: tuple, y: tuple, context: 'CompareContext') -> Optional[str]:
+def compare_tuple(x: tuple, y: tuple, context: 'CompareContext') -> str | None:
     """
     Returns a textual difference between two tuples or
     :func:`collections.namedtuple` instances.
@@ -233,7 +233,7 @@ def compare_tuple(x: tuple, y: tuple, context: 'CompareContext') -> Optional[str
     return compare_sequence(x, y, context)
 
 
-def compare_dict(x: dict, y: dict, context: 'CompareContext') -> Optional[str]:
+def compare_dict(x: dict, y: dict, context: 'CompareContext') -> str | None:
     """
     Returns a textual description of the differences between the two
     supplied dictionaries.
@@ -252,7 +252,7 @@ def _compare_mapping(
         x: Mapping, y: Mapping, context: 'CompareContext', obj_for_class: Any,
         prefix: str = '', breadcrumb: str = '[%r]',
         check_y_not_x: bool = True
-) -> Optional[str]:
+) -> str | None:
 
     x_keys = set(x.keys())
     y_keys = set(y.keys())
@@ -308,7 +308,7 @@ def _compare_mapping(
     return '\n'.join(lines)
 
 
-def compare_set(x: set, y: set, context: 'CompareContext') -> Optional[str]:
+def compare_set(x: set, y: set, context: 'CompareContext') -> str | None:
     """
     Returns a textual description of the differences between the two
     supplied sets.
@@ -399,7 +399,7 @@ def compare_text(x: str, y: str, context: 'CompareContext'):
     return message
 
 
-def compare_bytes(x: bytes, y: bytes, context: 'CompareContext') -> Optional[str]:
+def compare_bytes(x: bytes, y: bytes, context: 'CompareContext') -> str | None:
     if x == y:
         return
     labelled_x = context.label('x', repr(x))
@@ -407,7 +407,7 @@ def compare_bytes(x: bytes, y: bytes, context: 'CompareContext') -> Optional[str
     return '\n%s\n!=\n%s' % (labelled_x, labelled_y)
 
 
-def compare_call(x, y, context: 'CompareContext') -> Optional[str]:
+def compare_call(x, y, context: 'CompareContext') -> str | None:
     if x == y:
         return
 
@@ -439,7 +439,7 @@ def compare_call(x, y, context: 'CompareContext') -> Optional[str]:
     return 'mock.call not as expected:'
 
 
-def compare_partial(x: partial_type, y: partial_type, context: 'CompareContext') -> Optional[str]:
+def compare_partial(x: partial_type, y: partial_type, context: 'CompareContext') -> str | None:
     x_attrs = dict(func=x.func, args=x.args, keywords=x.keywords)
     y_attrs = dict(func=y.func, args=y.args, keywords=y.keywords)
     if x_attrs != y_attrs:
@@ -447,11 +447,11 @@ def compare_partial(x: partial_type, y: partial_type, context: 'CompareContext')
                                 'attributes ', '.%s')
 
 
-def compare_path(x: Path, y: Path, context: 'CompareContext') -> Optional[str]:
+def compare_path(x: Path, y: Path, context: 'CompareContext') -> str | None:
     return compare_text(str(x), str(y), context)
 
 
-def compare_with_fold(x: datetime, y: datetime, context: 'CompareContext') -> Optional[str]:
+def compare_with_fold(x: datetime, y: datetime, context: 'CompareContext') -> str | None:
     if not (x == y and x.fold == y.fold):
         repr_x = repr(x)
         repr_y = repr(y)
@@ -468,7 +468,7 @@ def _short_repr(obj) -> str:
     return repr_
 
 
-Comparer = Callable[[Any, Any, 'CompareContext'], Optional[str]]
+Comparer = Callable[[Any, Any, 'CompareContext'], str | None]
 Registry = Dict[type, Comparer]
 
 _registry: Registry = {
@@ -494,7 +494,7 @@ _registry: Registry = {
 
 def compare_exception_group(
     x: BaseExceptionGroup, y: BaseExceptionGroup, context: 'CompareContext'
-) -> Optional[str]:
+) -> str | None:
     """
     Compare the two supplied exception groups
     """
@@ -553,8 +553,8 @@ class CompareContext:
 
     def __init__(
             self,
-            x_label: Optional[str],
-            y_label: Optional[str],
+            x_label: str | None,
+            y_label: str | None,
             recursive: bool = True,
             strict: bool = False,
             ignore_eq: bool = False,
@@ -651,7 +651,7 @@ class CompareContext:
     def simple_equals(self, x: Any, y: Any) -> bool:
         return not (self.strict or self.ignore_eq) and x == y
 
-    def different(self, x: Any, y: Any, breadcrumb: str) -> Union[bool, Optional[str]]:
+    def different(self, x: Any, y: Any, breadcrumb: str) -> Union[bool, str | None]:
 
         x = self._break_loops(x, breadcrumb)
         y = self._break_loops(y, breadcrumb)
@@ -716,7 +716,7 @@ def compare(
         ignore_eq: bool = False,
         comparers: Registry | None = None,
         **options: Any
-) -> Optional[str]:
+) -> str | None:
     """
     Compare two objects, raising an :class:`AssertionError` if they are not
     the same. The :class:`AssertionError` raised will attempt to provide
