@@ -1,6 +1,6 @@
 from collections import defaultdict
 from logging import LogRecord
-from typing import List, Union, Tuple, Sequence, Callable, Any, Optional
+from typing import List, Union, Tuple, Sequence, Callable, Any
 import atexit
 import logging
 import warnings
@@ -55,7 +55,7 @@ class LogCapture(logging.Handler):
     #: The records captured by this :class:`LogCapture`.
     records: List[LogRecord]
     #: The log level above which checks must be made for logged events.
-    ensure_checks_above: Optional[int]
+    ensure_checks_above: int | None
 
     instances = set()
     atexit_setup = False

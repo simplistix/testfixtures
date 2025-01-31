@@ -1,4 +1,4 @@
-from typing import Dict, Any, Sequence, Optional
+from typing import Dict, Any, Sequence
 
 from django.db.models import Model
 
@@ -77,7 +77,7 @@ def compare(
         ignore_eq: bool = True,
         comparers: Registry | None = None,
         **options: Any
-) -> Optional[str]:
+) -> str | None:
     """
     This is identical to :func:`~testfixtures.compare`, but with ``ignore=True``
     automatically set to make comparing django :class:`~django.db.models.Model`

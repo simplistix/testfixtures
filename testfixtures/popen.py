@@ -5,10 +5,10 @@ from itertools import chain, zip_longest
 from os import PathLike
 from subprocess import STDOUT, PIPE
 from tempfile import TemporaryFile
-from testfixtures.utils import extend_docstring
-from typing import Union, Callable, List, Optional, Sequence, Tuple, Dict, Iterable
-from .mock import Mock, call, _Call as Call
+from typing import Union, Callable, List, Sequence, Tuple, Dict, Iterable
 
+from testfixtures.utils import extend_docstring
+from .mock import Mock, call, _Call as Call
 
 AnyStr = Union[str, bytes]
 Command = Union[str, bytes, PathLike, Sequence[str], Sequence[bytes]]
@@ -147,7 +147,7 @@ class MockPopenInstance:
 
         self.pid: int = behaviour.pid
         #: The return code of this mock process.
-        self.returncode: Optional[int] = None
+        self.returncode: int | None = None
         self.args: Command = args
 
     def _record(self, names, *args, **kw):
@@ -182,7 +182,7 @@ class MockPopenInstance:
                 self.stderr and self.stderr.read())
 
     @record
-    def poll(self) -> Optional[int]:
+    def poll(self) -> int | None:
         "Simulate calls to :meth:`subprocess.Popen.poll`"
         while self.poll_count and self.returncode is None:
             self.poll_count -= 1

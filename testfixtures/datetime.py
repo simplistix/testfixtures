@@ -1,6 +1,6 @@
 from calendar import timegm
 from datetime import datetime, timedelta, date, tzinfo as TZInfo
-from typing import Optional, Callable, Type, Tuple, Dict, Any, cast, overload
+from typing import Callable, Type, Tuple, Dict, Any, cast, overload
 
 
 class Queue(list):
@@ -9,7 +9,7 @@ class Queue(list):
     delta_delta: float
     delta_type: str
 
-    def __init__(self, delta: Optional[float], delta_delta: float, delta_type: str):
+    def __init__(self, delta: float | None, delta_delta: float, delta_type: str):
         super().__init__()
         if delta is None:
             self.delta = 0
@@ -36,7 +36,7 @@ class MockedCurrent:
     _mock_queue: Queue
     _mock_base_class: Type
     _mock_class: Type
-    _mock_tzinfo: Optional[TZInfo]
+    _mock_tzinfo: TZInfo | None
     _mock_date_type: Type[date]
     _correct_mock_type: Callable = None
 
@@ -107,7 +107,7 @@ def mock_factory(
         default: Tuple[int, ...],
         args: tuple,
         kw: Dict[str, Any],
-        delta: Optional[float],
+        delta: float | None,
         delta_type: str,
         delta_delta: float = 1,
         date_type: Type[date] | None = None,
