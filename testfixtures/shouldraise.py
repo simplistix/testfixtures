@@ -1,10 +1,10 @@
 from contextlib import contextmanager
 from functools import wraps
-from typing import Union, Type, Callable
+from typing import Type, Callable, TypeAlias
 
 from testfixtures import diff, compare
 
-ExceptionOrType = Union[BaseException, Type[BaseException]]
+ExceptionOrType: TypeAlias = BaseException | Type[BaseException]
 
 
 param_docs = """
