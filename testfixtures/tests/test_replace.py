@@ -21,7 +21,7 @@ from testfixtures.tests import sample1, sample3
 from testfixtures.tests import sample2
 from .sample1 import z, X
 from .sample3 import SOME_CONSTANT
-from ..compat import PY_310_PLUS, PY_313_PLUS
+from ..compat import PY_313_PLUS
 
 from warnings import catch_warnings
 
@@ -273,12 +273,7 @@ class TestReplace(TestCase):
                 r.replace('datetime.datetime.today', not_there)
 
     def test_replace_delattr_cant_remove_not_strict(self):
-        if PY_310_PLUS:
-            message = "cannot set 'today' attribute of " \
-                      "immutable type 'datetime.datetime'"
-        else:
-            message = "can't set attributes of " \
-                      "built-in/extension type 'datetime.datetime'"
+        message = "cannot set 'today' attribute of immutable type 'datetime.datetime'"
         with Replacer() as r:
             with ShouldRaise(TypeError(message)):
                 r.replace('datetime.datetime.today', not_there, strict=False)
