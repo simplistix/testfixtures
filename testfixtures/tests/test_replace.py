@@ -1162,7 +1162,7 @@ class TestReplaceWithInterestingOriginsStrict:
         replace_ = Replacer()
         with ShouldRaise(AttributeError(f"{obj!r} has __dict__ but 'bar' is not in it")):
             replace_(obj, name='bar', replacement=31, strict=self.strict)
-            compare(obj.bar, expected=31)
+        compare(obj.bar, expected=13)
 
         assert obj.bar is bar
 
