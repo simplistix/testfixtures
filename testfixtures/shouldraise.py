@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 from functools import wraps
-from typing import Type, Callable, TypeAlias, Iterator
+from types import TracebackType
+from typing import Callable, TypeAlias, Iterator, Self, ParamSpec, TypeVar
 
 from testfixtures import diff, compare
 from .comparison import split_repr
@@ -40,28 +41,34 @@ class ShouldRaise:
     #: Can be used to inspect specific attributes of the exception.
     raised = None
 
-    def __init__(self, exception: ExceptionOrType | None = None, unless: bool = False):
+    def __init__(self, exception: ExceptionOrType | None = None, unless: bool | None = False):
         self.exception = exception
         self.expected = not unless
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         return self
 
-    def __exit__(self, type_, actual, traceback):
+    def __exit__(
+            self,
+            exc_type: type[BaseException] | None,
+            actual: BaseException | None,
+            traceback: TracebackType | None,
+    ) -> bool:
         __tracebackhide__ = True
         self.raised = actual
         if self.expected:
             if self.exception:
+                actual_: type[BaseException] | BaseException | None = actual
                 if actual is not None:
                     if isinstance(self.exception, type):
-                        actual = type(actual)
-                        if self.exception is not actual:
+                        actual_ = type(actual)
+                        if self.exception is not actual_:
                             return False
                     else:
                         if type(self.exception) is not type(actual):
                             return False
                 compare(self.exception,
-                        actual,
+                        actual_,
                         x_label='expected',
                         y_label='raised')
             elif not actual:
@@ -69,6 +76,10 @@ class ShouldRaise:
         elif actual:
             return False
         return True
+
+
+P = ParamSpec("P")
+T = TypeVar("T")
 
 
 class should_raise:
@@ -83,10 +94,10 @@ class should_raise:
         self.exception = exception
         self.unless = unless
 
-    def __call__(self, target: Callable) -> Callable:
+    def __call__(self, target: Callable[P, T]) -> Callable[P, None]:
 
         @wraps(target)
-        def _should_raise_wrapper(*args, **kw):
+        def _should_raise_wrapper(*args: P.args, **kw: P.kwargs) -> None:
             with ShouldRaise(self.exception, self.unless):
                 target(*args, **kw)
 

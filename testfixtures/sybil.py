@@ -51,7 +51,7 @@ class FileParser:
                     region.evaluator = self.evaluate
                     yield region
 
-    def evaluate(self, example: Example):
+    def evaluate(self, example: Example) -> str | None:
         block: FileBlock = example.parsed
         temp_directory = example.namespace[self.name]
         if block.action == 'read':
@@ -65,3 +65,4 @@ class FileParser:
                 )
         if block.action == 'write':
             temp_directory.write(block.path, block.content)
+        return None

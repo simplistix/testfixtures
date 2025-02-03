@@ -1,12 +1,12 @@
-from typing import Dict, Any, Sequence
+from typing import Any, Sequence, Iterable
 
-from django.db.models import Model
+from django.db.models import Model, Field
 
 from . import compare as base_compare
 from .comparison import _compare_mapping, register, CompareContext, unspecified, Registry
 
 
-def instance_fields(instance):
+def instance_fields(instance: Model) -> Iterable[Field]:
     opts = instance._meta
     for name in (
         'concrete_fields',
@@ -20,10 +20,10 @@ def instance_fields(instance):
 
 
 def model_to_dict(
-        instance: Any,
+        instance: Model,
         exclude: Sequence[str],
         include_not_editable: bool,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     data = {}
     for f in instance_fields(instance):
         if f.name in exclude:
@@ -34,7 +34,7 @@ def model_to_dict(
     return data
 
 
-def compare_model(x, y, context: CompareContext):
+def compare_model(x: Model, y: Model, context: CompareContext) -> str | None:
     """
     Returns an informative string describing the differences between the two
     supplied Django model instances. The way in which this comparison is
@@ -62,7 +62,7 @@ register(Model, compare_model)
 
 
 def compare(
-        *args,
+        *args: Any,
         x: Any = unspecified,
         y: Any = unspecified,
         expected: Any = unspecified,

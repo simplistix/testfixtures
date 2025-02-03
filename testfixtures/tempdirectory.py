@@ -2,16 +2,14 @@ import atexit
 import os
 import warnings
 from pathlib import Path
-
 from re import compile
 from tempfile import mkdtemp
-from typing import Sequence, Tuple, Callable, TypeAlias, cast
+from types import TracebackType
+from typing import Sequence, Callable, TypeAlias, Self
 
 from testfixtures.comparison import compare
 from testfixtures.utils import wrap
-
 from .rmtree import rmtree
-
 
 PathStrings: TypeAlias = str | Sequence[str]
 
@@ -68,11 +66,11 @@ class TempDirectory:
             self.create()
 
     @classmethod
-    def atexit(cls):
+    def atexit(cls) -> None:
         if cls.instances:
             warnings.warn(
                 'TempDirectory instances not cleaned up by shutdown:\n'
-                '%s' % ('\n'.join(i.path for i in cls.instances))
+                '%s' % ('\n'.join(i.path for i in cls.instances if i.path))
                 )
 
     def create(self) -> 'TempDirectory':
@@ -154,7 +152,7 @@ class TempDirectory:
             filtered.append(result_path)
         return filtered
 
-    def listdir(self, path: PathStrings | None = None, recursive: bool = False):
+    def listdir(self, path: PathStrings | None = None, recursive: bool = False) -> None:
         """
         Print the contents of the specified directory.
 
@@ -190,7 +188,7 @@ class TempDirectory:
             files_only: bool = False,
             recursive: bool = True,
             followlinks: bool = False,
-    ):
+    ) -> None:
         """
         Compare the expected contents with the actual contents of the temporary
         directory. An :class:`AssertionError` will be raised if they are not the
@@ -249,7 +247,7 @@ class TempDirectory:
                 )
         return os.path.join(self.path, relative)
 
-    def makedir(self, dirpath: PathStrings):
+    def makedir(self, dirpath: PathStrings) -> str:
         """
         Make an empty directory at the specified path within the
         temporary directory. Any intermediate subdirectories that do
@@ -267,7 +265,7 @@ class TempDirectory:
         os.makedirs(thepath)
         return thepath
 
-    def write(self, filepath: PathStrings, data: str | bytes, encoding: str | None = None):
+    def write(self, filepath: PathStrings, data: str | bytes, encoding: str | None = None) -> str:
         """
         Write the supplied data to a file at the specified path within
         the temporary directory. Any subdirectories specified that do
@@ -376,14 +374,25 @@ class TempDirectory:
             return data.decode(encoding)
         return data
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(
+            self,
+            exc_type: type[BaseException] | None,
+            value: BaseException | None,
+            traceback: TracebackType | None,
+    ) -> None:
         self.cleanup()
 
 
-def tempdir(*args, **kw) -> Callable[[Callable], Callable]:
+def tempdir(
+        path: str | Path | None = None,
+        *,
+        ignore: Sequence[str] = (),
+        encoding: str | None = None,
+        cwd: bool = False,
+) -> Callable[[Callable], Callable]:
     """
     A decorator for making a :class:`TempDirectory` available for the
     duration of a test function.
@@ -391,6 +400,5 @@ def tempdir(*args, **kw) -> Callable[[Callable], Callable]:
     All arguments and parameters are passed through to the
     :class:`TempDirectory` constructor.
     """
-    kw['create'] = False
-    l = TempDirectory(*args, **kw)
+    l = TempDirectory(path, ignore=ignore, encoding=encoding, cwd=cwd, create=False)
     return wrap(l.create, l.cleanup)

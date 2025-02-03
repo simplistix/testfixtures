@@ -18,7 +18,7 @@ class Resolved:
     def key(self) -> Key:
         return id(self.container), self.setter, self.name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'<Resolved: {self.found}>'
 
 
@@ -71,11 +71,11 @@ def resolve(dotted_name: str, container: Any | None = None, sep: str = '.') -> R
 class _Reference:
 
     @classmethod
-    def classmethod(cls):  # pragma: no cover
+    def classmethod(cls) -> None:  # pragma: no cover
         pass
 
     @staticmethod
-    def staticmethod(cls):  # pragma: no cover
+    def staticmethod() -> None:  # pragma: no cover
         pass
 
 

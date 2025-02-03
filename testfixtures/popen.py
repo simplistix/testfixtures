@@ -5,13 +5,18 @@ from itertools import chain, zip_longest
 from os import PathLike
 from subprocess import STDOUT, PIPE
 from tempfile import TemporaryFile
-from typing import Callable, List, Sequence, Tuple, Dict, Iterable, TextIO, TypeAlias
+from types import TracebackType
+from typing import (
+    Callable, List, Sequence, Tuple, Iterable, TextIO, TypeAlias, ParamSpec,
+    TypeVar, Concatenate, IO, Any, Mapping, Collection, Literal, Self, Protocol
+)
 
-from testfixtures.utils import extend_docstring
 from .mock import Mock, call, _Call as Call
+from .utils import extend_docstring
 
-AnyStr: TypeAlias = str | bytes
-Command: TypeAlias = str | bytes | PathLike | Sequence[str] | Sequence[bytes]
+StrOrBytesPath: TypeAlias = str | bytes | PathLike
+Command: TypeAlias = StrOrBytesPath | Sequence[StrOrBytesPath]
+File : TypeAlias = None | int | IO[Any]
 
 
 def shell_join(command: Command) -> str:
@@ -37,7 +42,6 @@ def shell_join(command: Command) -> str:
     else:
         raise TypeError(f'{command!r} was {type(command)}, must be str')
 
-
 class PopenBehaviour:
     """
     An object representing the behaviour of a :class:`MockPopen` when
@@ -59,9 +63,20 @@ class PopenBehaviour:
         self.poll_count = poll_count
 
 
-def record(func) -> Callable:
+class CallableBehaviour(Protocol):
+
+    def __call__(self, command: str, stdin: File) -> PopenBehaviour: ...
+
+
+P = ParamSpec('P')
+R = TypeVar('R')
+
+
+def record(
+        func: Callable[Concatenate['MockPopenInstance', P], R]
+) -> Callable[Concatenate['MockPopenInstance', P], R]:
     @wraps(func)
-    def recorder(self, *args, **kw):
+    def recorder(self: 'MockPopenInstance', *args: P.args, **kw: P.kwargs) -> R:
         self._record((func.__name__,), *args, **kw)
         return func(self, *args, **kw)
     return recorder
@@ -84,14 +99,32 @@ class MockPopenInstance:
     stderr: TextIO | None = None
 
     # These are not types as instantiation of this class is an internal implementation detail.
-    def __init__(self, mock_class, root_call,
-                 args, bufsize=0, executable=None,
-                 stdin=None, stdout=None, stderr=None,
-                 preexec_fn=None, close_fds=False, shell=False, cwd=None,
-                 env=None, universal_newlines=False,
-                 startupinfo=None, creationflags=0, restore_signals=True,
-                 start_new_session=False, pass_fds=(),
-                 encoding=None, errors=None, text=None):
+    def __init__(
+            self,
+            mock_class: 'MockPopen',
+            root_call: Call,
+            args: Command,
+            bufsize: int = 0,
+            executable: StrOrBytesPath | None = None,
+            stdin: File = None,
+            stdout: File = None,
+            stderr: File = None,
+            preexec_fn: Callable[[], Any] | None = None,
+            close_fds: bool = False,
+            shell: bool = False,
+            cwd: StrOrBytesPath | None = None,
+            env: Mapping[str, str] | None = None,
+            universal_newlines: bool = False,
+            startupinfo: Any = None,
+            creationflags: int = 0,
+            restore_signals: bool = True,
+            start_new_session: bool = False,
+            pass_fds: Collection[int] = (),
+            *,
+            encoding: str | None = None,
+            errors: str | None = None,
+            text: bool | None = None,
+    ) -> None:
         self.mock: Mock = Mock()
         self.class_instance_mock: Mock = mock_class.mock.Popen_instance
         #: A :func:`unittest.mock.call` representing the call made to instantiate
@@ -104,6 +137,7 @@ class MockPopenInstance:
 
         cmd = shell_join(args)
 
+        behaviour: Any
         behaviour = mock_class.commands.get(cmd, mock_class.default_behaviour)
         if behaviour is None:
             raise KeyError('Nothing specified for command %r' % cmd)
@@ -129,7 +163,7 @@ class MockPopenInstance:
             ('stdout', stdout, stdout_value),
             ('stderr', stderr, stderr_value)
         ):
-            value = None
+            value: Any = None
             if option is PIPE:
                 value = TemporaryFile()
                 value.write(mock_value)
@@ -150,7 +184,7 @@ class MockPopenInstance:
         self.returncode: int | None = None
         self.args: Command = args
 
-    def _record(self, names, *args, **kw):
+    def _record(self, names: Sequence[str], *args: Any, **kw: Any) -> None:
         for mock in self.class_instance_mock, self.mock:
             reduce(getattr, names, mock)(*args, **kw)
         for base_call, store in (
@@ -159,10 +193,15 @@ class MockPopenInstance:
         ):
             store.append(reduce(getattr, names, base_call)(*args, **kw))
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+            self,
+            exc_type: type[BaseException] | None,
+            value: BaseException | None,
+            traceback: TracebackType | None,
+    ) -> None:
         self.wait()
         for stream in self.stdout, self.stderr:
             if stream:
@@ -176,8 +215,8 @@ class MockPopenInstance:
 
     @record
     def communicate(
-            self, input: AnyStr | None = None, timeout: float | None = None
-    ) -> Tuple[AnyStr | None, AnyStr | None]:
+            self, input: str | bytes | None = None, timeout: float | None = None
+    ) -> Tuple[str | bytes | None, str | bytes | None]:
         "Simulate calls to :meth:`subprocess.Popen.communicate`"
         self.returncode = self.behaviour.returncode
         stdout = None if self.stdout is None else self.stdout.read()
@@ -221,17 +260,24 @@ class MockPopen:
     :func:`unittest.mock.patch` or a :class:`~testfixtures.Replacer`.
     """
 
-    default_behaviour: PopenBehaviour | None = None
+    default_behaviour: PopenBehaviour | CallableBehaviour | None = None
 
-    def __init__(self):
-        self.commands: Dict[str, PopenBehaviour] = {}
+    def __init__(self) -> None:
+        self.commands: dict[str, PopenBehaviour | CallableBehaviour] = {}
         self.mock: Mock = Mock()
         #: All calls made using this mock and the objects it returns, represented using
         #: :func:`~unittest.mock.call` instances.
         self.all_calls: List[Call] = []
 
-    def _resolve_behaviour(self, stdout, stderr, returncode,
-                           pid, poll_count, behaviour):
+    def _resolve_behaviour(
+            self,
+            stdout: bytes,
+            stderr: bytes,
+            returncode: int,
+            pid: int,
+            poll_count: int,
+            behaviour: PopenBehaviour | CallableBehaviour | None
+    ) -> PopenBehaviour | CallableBehaviour:
         if behaviour is None:
             return PopenBehaviour(
                 stdout, stderr, returncode, pid, poll_count
@@ -247,8 +293,8 @@ class MockPopen:
             returncode: int = 0,
             pid: int = 1234,
             poll_count: int = 3,
-            behaviour: PopenBehaviour | Callable | None = None
-    ):
+            behaviour: PopenBehaviour | CallableBehaviour | None = None
+    ) -> None:
         """
         Set the behaviour of this mock when it is used to simulate the
         specified command.
@@ -259,8 +305,15 @@ class MockPopen:
             stdout, stderr, returncode, pid, poll_count, behaviour
         )
 
-    def set_default(self, stdout=b'', stderr=b'', returncode=0,
-                    pid=1234, poll_count=3, behaviour=None):
+    def set_default(
+            self,
+            stdout: bytes = b'',
+            stderr: bytes = b'',
+            returncode: int =0,
+            pid: int = 1234,
+            poll_count: int = 3,
+            behaviour: PopenBehaviour | CallableBehaviour | None = None
+    ) -> None:
         """
         Set the behaviour of this mock when it is used to simulate commands
         that have no explicit behavior specified using
@@ -270,7 +323,7 @@ class MockPopen:
             stdout, stderr, returncode, pid, poll_count, behaviour
         )
 
-    def __call__(self, *args, **kw):
+    def __call__(self, *args: Any, **kw: Any) -> MockPopenInstance:
         self.mock.Popen(*args, **kw)
         root_call = call.Popen(*args, **kw)
         self.all_calls.append(root_call)
