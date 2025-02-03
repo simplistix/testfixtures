@@ -633,10 +633,6 @@ from the standard library, available on Python 3.11 or newer:
 
 .. invisible-code-block: python
 
-    from testfixtures.compat import PY_311_PLUS
-
-.. skip: start if(not PY_311_PLUS, reason="chdir only in Python 3.11 or newer")
-
 .. code-block:: python
 
   from contextlib import chdir
@@ -655,8 +651,6 @@ from the standard library, available on Python 3.11 or newer:
    exits:
 
   >>> test_function()
-
-.. skip: end
 
 Using with Sybil
 -----------------

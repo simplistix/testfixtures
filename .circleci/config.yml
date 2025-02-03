@@ -31,7 +31,6 @@ common: &common
         matrix:
           parameters:
             image:
-              - cimg/python:3.10
               - cimg/python:3.11
               - cimg/python:3.12
               - cimg/python:3.13

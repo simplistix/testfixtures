@@ -5,7 +5,6 @@ import pytest
 from testfixtures import Comparison as C, ShouldRaise, should_raise
 from unittest import TestCase
 
-from ..compat import PY_311_PLUS
 from ..shouldraise import ShouldAssert
 
 
@@ -303,12 +302,10 @@ class TestShouldRaise(TestCase):
             with ShouldRaise(MessageError('foo')):
                 raise MessageError('foo', None)
 
-    @pytest.mark.skipif(not PY_311_PLUS, reason="requires python3.11 or higher")
     def test_exception_group_okay(self):
         with ShouldRaise(ExceptionGroup('foo', [Exception('bar')])):
             raise ExceptionGroup('foo', [Exception('bar')])
 
-    @pytest.mark.skipif(not PY_311_PLUS, reason="requires python3.11 or higher")
     def test_exception_group_different(self):
         with ShouldAssert(
                 "exception group not as expected:\n\n"

@@ -34,7 +34,7 @@ setup(
     zip_safe=False,
     package_data={'testfixtures': ['py.typed']},
     include_package_data=True,
-    python_requires=">=3.10",
+    python_requires=">=3.11",
     extras_require=dict(
         test=['mypy',
               'pytest>=7.1',
