@@ -41,6 +41,7 @@ setup(
               'pytest>=7.1',
               'pytest-cov',
               'pytest-django',
+              'types-mock',
               ]+optional,
         docs=['sphinx', 'furo']+optional,
         build=['setuptools-git', 'wheel', 'twine']
