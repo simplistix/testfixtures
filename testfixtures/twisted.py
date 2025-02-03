@@ -2,7 +2,7 @@
 Tools for helping to test Twisted applications.
 """
 from pprint import pformat
-from typing import Sequence, Callable, Any, TypeAlias
+from typing import Sequence, Callable, Any, TypeAlias, Self
 from unittest import TestCase
 
 from constantly import NamedConstant
@@ -33,12 +33,12 @@ class LogCapture:
     def __call__(self, event: LogEvent) -> None:
         self.events.append(event)
 
-    def install(self):
+    def install(self) -> None:
         "Start capturing."
         self.original_observers = globalLogPublisher._observers
         globalLogPublisher._observers = [self]
 
-    def uninstall(self):
+    def uninstall(self) -> None:
         "Stop capturing."
         globalLogPublisher._observers = self.original_observers
 
@@ -80,7 +80,7 @@ class LogCapture:
                     'other entries:\n%s'
                 ) % (pformat(matched), pformat(expected_), pformat(unmatched)))
 
-    def check_failure_text(self, expected: str, index: int = -1, attribute: str = 'value'):
+    def check_failure_text(self, expected: str, index: int = -1, attribute: str = 'value') -> None:
         """
         Check the string representation of an attribute of a logged ``Failure`` is as expected.
 
@@ -90,7 +90,7 @@ class LogCapture:
         """
         compare(expected, actual=str(getattr(self.events[index]['log_failure'], attribute)))
 
-    def raise_logged_failure(self, start_index: int = 0):
+    def raise_logged_failure(self, start_index: int = 0) -> None:
         """
         A debugging tool that raises the first failure encountered in captured logging.
 
@@ -102,7 +102,7 @@ class LogCapture:
                 raise failure
 
     @classmethod
-    def make(cls, testcase: TestCase, **kw):
+    def make(cls, testcase: TestCase, **kw: Sequence[str | Callable]) -> Self:
         """
         Instantiate, install and add a cleanup for a :class:`LogCapture`.
 

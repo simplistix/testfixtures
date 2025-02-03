@@ -10,13 +10,13 @@ from pathlib import Path
 from pprint import pformat
 from types import GeneratorType
 from typing import (
-    Dict, Any, Sequence, TypeVar, List, Mapping, Pattern,
-    Callable, Iterable, cast
+    Any, Sequence, TypeVar, List, Mapping, Pattern,
+    Callable, Iterable, cast, Type
 )
 from unittest.mock import call as unittest_mock_call
 
 from testfixtures import not_there, singleton
-from testfixtures.mock import parent_name, mock_call
+from testfixtures.mock import parent_name, mock_call, _Call
 from testfixtures.resolve import resolve
 from testfixtures.utils import indent
 
@@ -24,7 +24,7 @@ from testfixtures.utils import indent
 IMMUTABLE_TYPEs = str, bytes, int, float, tuple, type(None)
 
 
-def diff(x: str, y: str, x_label: str | None = '', y_label: str | None = ''):
+def diff(x: str, y: str, x_label: str | None = '', y_label: str | None = '') -> str:
     """
     A shorthand function that uses :mod:`difflib` to return a
     string representing the differences between the two string
@@ -42,7 +42,7 @@ def diff(x: str, y: str, x_label: str | None = '', y_label: str | None = ''):
     )
 
 
-def compare_simple(x, y, context: 'CompareContext'):
+def compare_simple(x: Any, y: Any, context: 'CompareContext') -> str | None:
     """
     Returns a very simple textual difference between the two supplied objects.
     """
@@ -64,9 +64,10 @@ def compare_simple(x, y, context: 'CompareContext'):
                 context.x_label or 'x', context.y_label or 'y', repr_x
             )
         return context.label('x', repr_x) + ' != ' + context.label('y', repr_y)
+    return None
 
 
-def _extract_attrs(obj, ignore: Iterable[str] | None = None) -> dict[str, Any] | None:
+def _extract_attrs(obj: Any, ignore: Iterable[str] | None = None) -> dict[str, Any] | None:
     try:
         attrs = vars(obj).copy()
     except TypeError:
@@ -97,7 +98,7 @@ def _extract_attrs(obj, ignore: Iterable[str] | None = None) -> dict[str, Any] |
 
 
 def _attrs_to_ignore(
-        context: 'CompareContext', ignore_attributes: Iterable[str], obj
+        context: 'CompareContext', ignore_attributes: Iterable[str], obj: Any
 ) -> Iterable[str]:
     ignore = context.get_option('ignore_attributes', ())
     if isinstance(ignore, dict):
@@ -108,7 +109,7 @@ def _attrs_to_ignore(
 
 
 def compare_object(
-        x, y, context: 'CompareContext', ignore_attributes: Iterable[str] = ()
+        x: object, y: object, context: 'CompareContext', ignore_attributes: Iterable[str] = ()
 ) -> str | None:
     """
     Compare the two supplied objects based on their type and attributes.
@@ -149,7 +150,7 @@ def compare_exception(
     return compare_object(x, y, context)
 
 
-def compare_with_type(x, y, context: 'CompareContext') -> str:
+def compare_with_type(x: Any, y: Any, context: 'CompareContext') -> str:
     """
     Return a textual description of the difference between two objects
     including information about their types.
@@ -354,7 +355,7 @@ def split_repr(text: str) -> str:
     return '\n'.join(parts)
 
 
-def compare_text(x: str, y: str, context: 'CompareContext'):
+def compare_text(x: str, y: str, context: 'CompareContext') -> str | None:
     """
     Returns an informative string describing the differences between the two
     supplied strings. The way in which this comparison is performed
@@ -383,7 +384,7 @@ def compare_text(x: str, y: str, context: 'CompareContext'):
         x = strip_blank_lines(x)
         y = strip_blank_lines(y)
     if x == y:
-        return
+        return None
     labelled_x = context.label('x', repr(x))
     labelled_y = context.label('y', repr(y))
     if len(x) > 10 or len(y) > 10:
@@ -407,11 +408,11 @@ def compare_bytes(x: bytes, y: bytes, context: 'CompareContext') -> str | None:
     return '\n%s\n!=\n%s' % (labelled_x, labelled_y)
 
 
-def compare_call(x, y, context: 'CompareContext') -> str | None:
+def compare_call(x: _Call, y: _Call, context: 'CompareContext') -> str | None:
     if x == y:
         return None
 
-    def extract(call):
+    def extract(call: _Call) -> tuple[str, tuple[Any], dict[str, Any]]:
         try:
             name, args, kwargs = call
         except ValueError:
@@ -462,7 +463,7 @@ def compare_with_fold(x: datetime, y: datetime, context: 'CompareContext') -> st
         return context.label('x', repr_x)+' != '+context.label('y', repr_y)
     return None
 
-def _short_repr(obj) -> str:
+def _short_repr(obj: Any) -> str:
     repr_ = repr(obj)
     if len(repr_) > 30:
         repr_ = repr_[:30] + '...'
@@ -470,7 +471,7 @@ def _short_repr(obj) -> str:
 
 
 Comparer = Callable[[Any, Any, 'CompareContext'], str | None]
-Registry = Dict[type, Comparer]
+Registry = dict[type, Comparer]
 
 _registry: Registry = {
     dict: compare_dict,
@@ -512,7 +513,7 @@ def compare_exception_group(
 _registry[BaseExceptionGroup] = compare_exception_group
 
 
-def register(type_: type, comparer: Comparer):
+def register(type_: type, comparer: Comparer) -> None:
     """
     Register the supplied comparer for the specified type.
     This registration is global and will be in effect from the point
@@ -521,7 +522,7 @@ def register(type_: type, comparer: Comparer):
     _registry[type_] = comparer
 
 
-def _shared_mro(x, y):
+def _shared_mro(x: Any, y: Any) -> Iterable[Type]:
     y_mro = set(type(y).__mro__)
     for class_ in type(x).__mro__:
         if class_ in y_mro:
@@ -533,15 +534,15 @@ _unsafe_iterables = str, bytes, dict
 
 class AlreadySeen:
 
-    def __init__(self, id_, obj, breadcrumb):
+    def __init__(self, id_: int, obj: Any, breadcrumb: str) -> None:
         self.id = id_
         self.obj = obj
         self.breadcrumb = breadcrumb
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'<AlreadySeen for {self.obj!r} at {self.breadcrumb} with id {self.id}>'
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any)-> bool:
         if isinstance(other, AlreadySeen):
             return self.breadcrumb == other.breadcrumb
         else:
@@ -562,7 +563,7 @@ class CompareContext:
             strict: bool = False,
             ignore_eq: bool = False,
             comparers: Registry | None = None,
-            options: Dict[str, Any] | None = None,
+            options: dict[str, Any] | None = None,
     ):
         self.registries = []
         if comparers:
@@ -574,16 +575,16 @@ class CompareContext:
         self.recursive: bool = recursive
         self.strict: bool = strict
         self.ignore_eq: bool = ignore_eq
-        self.options: Dict[str, Any] = options or {}
+        self.options: dict[str, Any] = options or {}
         self.message: str = ''
         self.breadcrumbs: List[str] = []
         self._seen: dict[int, str] = {}
 
     def extract_args(self, args: tuple, x: Any, y: Any, expected: Any, actual: Any) -> List:
 
-        possible = []
+        possible = list[Any]()
 
-        def append_if_specified(source):
+        def append_if_specified(source: Any) -> None:
             if source is not unspecified:
                 possible.append(source)
 
@@ -603,7 +604,7 @@ class CompareContext:
 
         return possible
 
-    def get_option(self, name: str, default=None):
+    def get_option(self, name: str, default: Any = None) -> Any:
         return self.options.get(name, default)
 
     def label(self, side: str, value: Any) -> str:
@@ -638,7 +639,7 @@ class CompareContext:
     def _separator(self) -> str:
         return '\n\nWhile comparing %s: ' % ''.join(self.breadcrumbs[1:])
 
-    def _break_loops(self, obj: Any, breadcrumb: str):
+    def _break_loops(self, obj: Any, breadcrumb: str) -> Any:
         # Don't bother with this process for simple, immutable types:
         if isinstance(obj, IMMUTABLE_TYPEs):
             return obj
@@ -696,7 +697,7 @@ class CompareContext:
             self.breadcrumbs.pop()
 
 
-def _resolve_lazy(source):
+def _resolve_lazy(source: Any) -> str:
     return str(source() if callable(source) else source)
 
 
@@ -704,7 +705,7 @@ unspecified = singleton('unspecified')
 
 
 def compare(
-        *args,
+        *args: Any,
         x: Any = unspecified,
         y: Any = unspecified,
         expected: Any = unspecified,
@@ -810,7 +811,7 @@ class StatefulComparison:
     expected: Any = None
     name_attrs: Sequence[str] = ()
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         return not(self != other)
 
     def name(self) -> str:
@@ -854,8 +855,8 @@ class Comparison(StatefulComparison):
     """
 
     def __init__(self,
-                 object_or_type,
-                 attribute_dict: Dict[str, Any] | None = None,
+                 object_or_type: Any,
+                 attribute_dict: dict[str, Any] | None = None,
                  partial: bool = False,
                  **attributes: Any):
         self.partial = partial
@@ -954,7 +955,11 @@ class SequenceComparison(StatefulComparison):
     name_attrs: Sequence[str] = ('ordered', 'partial')
 
     def __init__(
-            self, *expected, ordered: bool = True, partial: bool = False, recursive: bool = False
+            self,
+            *expected: Any,
+            ordered: bool = True,
+            partial: bool = False,
+            recursive: bool = False,
     ):
         self.expected = expected
         self.ordered = ordered
@@ -962,7 +967,7 @@ class SequenceComparison(StatefulComparison):
         self.recursive = recursive
         self.checked_indices = set[int]()
 
-    def __ne__(self, other) -> bool:
+    def __ne__(self, other: Any) -> bool:
         actual: list[Any]
         try:
             actual = original_actual = list(other)
@@ -1022,7 +1027,7 @@ class SequenceComparison(StatefulComparison):
 
         message = []
 
-        def add_section(name, content):
+        def add_section(name: str, content: Any) -> None:
             if content:
                 message.append(name+':\n'+pformat(content))
 
@@ -1052,7 +1057,7 @@ class Subset(SequenceComparison):
 
     name_attrs = ()
 
-    def __init__(self, *expected):
+    def __init__(self, *expected: Any) -> None:
         super(Subset, self).__init__(*expected, ordered=False, partial=True)
 
 
@@ -1062,7 +1067,7 @@ class Permutation(SequenceComparison):
     in the sequence is as expected, but without checking ordering.
     """
 
-    def __init__(self, *expected):
+    def __init__(self, *expected: Any) -> None:
         super(Permutation, self).__init__(*expected, ordered=False, partial=False)
 
 
@@ -1122,7 +1127,7 @@ class MappingComparison(StatefulComparison):
             sep = ', '
         return sep.join(parts)
 
-    def __ne__(self, other) -> bool:
+    def __ne__(self, other: Any) -> bool:
         try:
             actual_keys = other.keys()
             actual_mapping = dict(other.items())
@@ -1205,23 +1210,23 @@ class StringComparison:
 
         self.re = re.compile(*args)
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, str):
             return False
         if self.re.match(other):
             return True
         return False
 
-    def __ne__(self, other) -> bool:
+    def __ne__(self, other: Any) -> bool:
         return not self == other
 
     def __repr__(self) -> str:
         return '<S:%s>' % self.re.pattern
 
-    def __lt__(self, other) -> bool:
+    def __lt__(self, other: Any) -> bool:
         return self.re.pattern < other
 
-    def __gt__(self, other) -> bool:
+    def __gt__(self, other: Any) -> bool:
         return self.re.pattern > other
 
 
@@ -1239,13 +1244,13 @@ class RoundComparison:
         self.rounded = round(value, precision)
         self.precision = precision
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Any) -> bool:
         other_rounded = round(other, self.precision)
         if type(self.rounded) is not type(other_rounded):
             raise TypeError('Cannot compare %r with %r' % (self, type(other)))
         return self.rounded == other_rounded
 
-    def __ne__(self, other) -> bool:
+    def __ne__(self, other: Any) -> bool:
         return not self == other
 
     def __repr__(self) -> str:
@@ -1261,14 +1266,14 @@ class RangeComparison:
 
     :param upper_bound: the inclusive upper bound for the acceptable range.
     """
-    def __init__(self, lower_bound, upper_bound):
+    def __init__(self, lower_bound: Any, upper_bound: Any) -> None:
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Any) -> bool:
         return self.lower_bound <= other <= self.upper_bound
 
-    def __ne__(self, other) -> bool:
+    def __ne__(self, other: Any) -> bool:
         return not self == other
 
     def __repr__(self) -> str:

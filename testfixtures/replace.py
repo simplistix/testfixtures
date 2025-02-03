@@ -4,8 +4,8 @@ from contextlib import contextmanager
 from functools import partial
 from gc import get_referrers, get_referents
 from operator import setitem, getitem
-from types import ModuleType, MethodType
-from typing import Any, TypeVar, Callable, Dict, Tuple, Generic
+from types import ModuleType, MethodType, TracebackType
+from typing import Any, TypeVar, Callable, Tuple, Generic, Self, Iterator
 
 from testfixtures.utils import wrap, extend_docstring
 from .resolve import resolve, not_there, Resolved, classmethod_type, class_type, Key
@@ -13,7 +13,7 @@ from .resolve import resolve, not_there, Resolved, classmethod_type, class_type,
 Accessor = Callable[[Any, str], Any]
 
 
-def not_same_descriptor(x, y, descriptor):
+def not_same_descriptor(x: Any, y: Any, descriptor: type[classmethod] | type[staticmethod]) -> bool:
     return isinstance(x, descriptor) and not isinstance(y, descriptor)
 
 
@@ -27,10 +27,10 @@ class Replacer:
     dependencies.
     """
 
-    def __init__(self):
-        self.originals: Dict[Key, Tuple[Any, Resolved]] = {}
+    def __init__(self) -> None:
+        self.originals: dict[Key, Tuple[Any, Resolved]] = {}
 
-    def _replace(self, resolved: Resolved, value):
+    def _replace(self, resolved: Resolved, value: Any) -> None:
         if value is not_there:
             if resolved.setter is setattr:
                 try:
@@ -162,7 +162,9 @@ class Replacer:
         self(os.environ, name=name, accessor=getitem, strict=False,
              replacement=not_there if replacement is not_there else str(replacement))
 
-    def _find_container(self, attribute, name: str | None, break_on_static: bool):
+    def _find_container(
+            self, attribute: Callable, name: str | None, break_on_static: bool
+    ) -> tuple[Any, Any]:
         for referrer in get_referrers(attribute):
             if break_on_static and isinstance(referrer, staticmethod):
                 return None, referrer
@@ -223,13 +225,18 @@ class Replacer:
             self._replace(resolved, resolved.found)
             del self.originals[id_]
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(
+            self,
+            exc_type: type[BaseException] | None,
+            value: BaseException | None,
+            traceback: TracebackType | None,
+    ) -> None:
         self.restore()
 
-    def __del__(self):
+    def __del__(self) -> None:
         if self.originals:
             # no idea why coverage misses the following statement
             # it's covered by test_replace.TestReplace.test_replacer_del
@@ -255,7 +262,7 @@ def replace(
 
 
 @contextmanager
-def replace_in_environ(name: str, replacement: Any):
+def replace_in_environ(name: str, replacement: Any) -> Iterator[None]:
     """
     This context manager provides a quick way to use :meth:`Replacer.in_environ`.
     """
@@ -265,7 +272,9 @@ def replace_in_environ(name: str, replacement: Any):
 
 
 @contextmanager
-def replace_on_class(attribute: Callable, replacement: Any, name: str | None = None):
+def replace_on_class(
+        attribute: Callable, replacement: Any, name: str | None = None
+) -> Iterator[None]:
     """
     This context manager provides a quick way to use :meth:`Replacer.on_class`.
     """
@@ -275,7 +284,9 @@ def replace_on_class(attribute: Callable, replacement: Any, name: str | None = N
 
 
 @contextmanager
-def replace_in_module(target: Any, replacement: Any, module: ModuleType | None = None):
+def replace_in_module(
+        target: Any, replacement: Any, module: ModuleType | None = None
+) -> Iterator[None]:
     """
     This context manager provides a quick way to use :meth:`Replacer.in_module`.
     """
@@ -313,7 +324,12 @@ class Replace(Generic[R]):
             self.sep,
         )
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+            self,
+            exc_type: type[BaseException] | None,
+            value: BaseException | None,
+            traceback: TracebackType | None,
+    ) -> None:
         self._replacer.restore()
 
 

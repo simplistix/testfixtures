@@ -6,6 +6,7 @@ import shutil
 import sys
 import time
 import warnings
+from pathlib import Path
 
 if sys.platform.startswith("win"): # pragma: no cover
     def _waitfor(func, pathname, waitall=False):
@@ -57,7 +58,7 @@ else:
     _rmtree = shutil.rmtree
 
 
-def rmtree(path):
+def rmtree(path: str | Path) -> None:
     try:
         _rmtree(path)
     except OSError as e:  # pragma: no cover

@@ -2,6 +2,7 @@ import os
 import sys
 from io import StringIO
 from tempfile import TemporaryFile
+from typing import Self, Any, IO
 
 from testfixtures.comparison import compare
 
@@ -29,15 +30,19 @@ class OutputCapture:
               :attr:`OutputCapture.captured` will be an empty string.
     """
 
-    original_stdout = None
-    original_stderr = None
+    output: IO
+    stdout: IO
+    stderr: IO
+
+    original_stdout: IO[str] | int | None = None
+    original_stderr: IO[str] | int | None = None
 
     def __init__(self, separate: bool = False, fd: bool = False, strip_whitespace: bool = True):
         self.separate = separate
         self.fd = fd
         self.strip_whitespace = strip_whitespace
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         if self.fd:
             self.output = TemporaryFile()
             self.stdout = TemporaryFile()
@@ -49,24 +54,24 @@ class OutputCapture:
         self.enable()
         return self
 
-    def __exit__(self, *args):
+    def __exit__(self, *args: Any) -> None:
         self.disable()
 
-    def disable(self):
+    def disable(self) -> None:
         "Disable the output capture if it is enabled."
         if self.fd:
             for original, current in (
                 (self.original_stdout, sys.stdout),
                 (self.original_stderr, sys.stderr),
             ):
-                os.dup2(original, current.fileno())
-                os.close(original)
+                os.dup2(original, current.fileno())  # type: ignore[arg-type]
+                os.close(original)  # type: ignore[arg-type]
 
         else:
             sys.stdout = self.original_stdout
             sys.stderr = self.original_stderr
 
-    def enable(self):
+    def enable(self) -> None:
         "Enable the output capture if it is disabled."
         if self.original_stdout is None:
             if self.fd:
@@ -89,19 +94,19 @@ class OutputCapture:
             else:
                 sys.stdout = sys.stderr = self.output
 
-    def _read(self, stream):
+    def _read(self, stream: IO | StringIO) -> str:
         if self.fd:
             stream.seek(0)
-            return stream.read().decode()
+            return stream.read().decode()  # type: ignore[union-attr]
         else:
-            return stream.getvalue()
+            return stream.getvalue()  # type: ignore[union-attr]
 
     @property
     def captured(self) -> str:
         "A property containing any output that has been captured so far."
         return self._read(self.output)
 
-    def compare(self, expected: str = '', stdout: str = '', stderr: str = ''):
+    def compare(self, expected: str = '', stdout: str = '', stderr: str = '') -> None:
         """
         Compare the captured output to that expected. If the output is
         not the same, an :class:`AssertionError` will be raised.

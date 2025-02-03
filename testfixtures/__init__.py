@@ -1,9 +1,9 @@
 class singleton:
 
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         self.name = name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '<%s>' % self.name
 
     __str__ = __repr__

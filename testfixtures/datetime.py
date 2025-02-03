@@ -1,6 +1,6 @@
 from calendar import timegm
 from datetime import datetime, timedelta, date, tzinfo as TZInfo
-from typing import Callable, Tuple, Dict, Any, cast, overload
+from typing import Callable, Tuple, Any, cast, overload
 
 
 class Queue(list):
@@ -107,7 +107,7 @@ def mock_factory(
         mock_class: type[MockedCurrent],
         default: Tuple[int, ...],
         args: tuple,
-        kw: Dict[str, Any],
+        kw: dict[str, Any],
         delta: float | None,
         delta_type: str,
         delta_delta: float = 1,
