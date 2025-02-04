@@ -1,6 +1,6 @@
 from calendar import timegm
 from datetime import datetime, timedelta, date, tzinfo as TZInfo
-from typing import Callable, Type, Tuple, Dict, Any, cast, overload
+from typing import Callable, Tuple, Dict, Any, cast, overload
 
 
 class Queue(list):
@@ -34,10 +34,10 @@ class Queue(list):
 class MockedCurrent:
 
     _mock_queue: Queue
-    _mock_base_class: Type
-    _mock_class: Type
+    _mock_base_class: type
+    _mock_class: type
     _mock_tzinfo: TZInfo | None
-    _mock_date_type: Type[date] | None
+    _mock_date_type: type[date] | None
     _correct_mock_type: Callable | None = None
 
     def __init_subclass__(
@@ -46,7 +46,7 @@ class MockedCurrent:
             queue: Queue | None = None,
             strict: bool | None = None,
             tzinfo: TZInfo | None = None,
-            date_type: Type[date] | None = None
+            date_type: type[date] | None = None
     ):
         if concrete:
             assert not queue is None, 'queue must be passed if concrete=True'
@@ -104,18 +104,18 @@ class MockedCurrent:
 
 def mock_factory(
         type_name: str,
-        mock_class: Type[MockedCurrent],
+        mock_class: type[MockedCurrent],
         default: Tuple[int, ...],
         args: tuple,
         kw: Dict[str, Any],
         delta: float | None,
         delta_type: str,
         delta_delta: float = 1,
-        date_type: Type[date] | None = None,
+        date_type: type[date] | None = None,
         tzinfo: TZInfo | None = None,
         strict: bool = False
 ):
-    cls = cast(Type[MockedCurrent], type(
+    cls = cast(type[MockedCurrent], type(
         type_name,
         (mock_class,),
         {},
@@ -289,7 +289,7 @@ class MockDateTime(MockedCurrent, datetime):
         instance = cast(datetime, cls._mock_queue.next())
         return cls._adjust_instance_using_tzinfo(instance)
 
-    _mock_date_type: Type[date]
+    _mock_date_type: type[date]
 
     def date(self) -> date:
         """
@@ -308,9 +308,9 @@ def mock_datetime(
         tzinfo: TZInfo | None = None,
         delta: float | None = None,
         delta_type: str = 'seconds',
-        date_type: Type[date] = date,
+        date_type: type[date] = date,
         strict: bool = False
-) -> Type[MockDateTime]:
+) -> type[MockDateTime]:
     ...
 
 
@@ -326,9 +326,9 @@ def mock_datetime(
         tzinfo: TZInfo | None = None,
         delta: float | None = None,
         delta_type: str = 'seconds',
-        date_type: Type[date] = date,
+        date_type: type[date] = date,
         strict: bool = False
-) -> Type[MockDateTime]:
+) -> type[MockDateTime]:
     ...
 
 
@@ -338,9 +338,9 @@ def mock_datetime(
         tzinfo: TZInfo | None = None,
         delta: float | None = None,
         delta_type: str = 'seconds',
-        date_type: Type[date] = date,
+        date_type: type[date] = date,
         strict: bool = False
-) -> Type[MockDateTime]:
+) -> type[MockDateTime]:
     ...
 
 
@@ -350,9 +350,9 @@ def mock_datetime(
         tzinfo: TZInfo | None = None,
         delta: float | None = None,
         delta_type: str = 'seconds',
-        date_type: Type[date] = date,
+        date_type: type[date] = date,
         strict: bool = False
-) -> Type[MockDateTime]:
+) -> type[MockDateTime]:
     ...
 
 
@@ -361,10 +361,10 @@ def mock_datetime(
         tzinfo: TZInfo | None = None,
         delta: float | None = None,
         delta_type: str = 'seconds',
-        date_type: Type[date] = date,
+        date_type: type[date] = date,
         strict: bool = False,
         **kw,
-) -> Type[MockDateTime]:
+) -> type[MockDateTime]:
     """
     .. currentmodule:: testfixtures.datetime
 
@@ -432,7 +432,7 @@ def mock_datetime(
         args = args[:7]
     else:
         tzinfo = tzinfo or (getattr(args[0], 'tzinfo', None) if args else None)
-    return cast(Type[MockDateTime], mock_factory(
+    return cast(type[MockDateTime], mock_factory(
         'MockDateTime',
         MockDateTime,
         (2001, 1, 1, 0, 0, 0),
@@ -559,9 +559,9 @@ class MockDate(MockedCurrent, date):
 def mock_date(
         delta: float | None = None,
         delta_type: str = 'days',
-        date_type: Type[date] = date,
+        date_type: type[date] = date,
         strict: bool = False
-) -> Type[MockDate]:
+) -> type[MockDate]:
     ...
 
 
@@ -573,7 +573,7 @@ def mock_date(
         delta: float | None = None,
         delta_type: str = 'days',
         strict: bool = False,
-) -> Type[MockDate]:
+) -> type[MockDate]:
     ...
 
 
@@ -583,7 +583,7 @@ def mock_date(
         delta: float | None = None,
         delta_type: str = 'days',
         strict: bool = False,
-) -> Type[MockDate]:
+) -> type[MockDate]:
     ...
 
 
@@ -593,7 +593,7 @@ def mock_date(
         delta: float | None = None,
         delta_type: str = 'days',
         strict: bool = False,
-) -> Type[MockDate]:
+) -> type[MockDate]:
     ...
 
 
@@ -603,7 +603,7 @@ def mock_date(
         delta_type: str = 'days',
         strict: bool = False,
         **kw
-) -> Type[MockDate]:
+) -> type[MockDate]:
     """
     .. currentmodule:: testfixtures.datetime
 
@@ -645,7 +645,7 @@ def mock_date(
     The mock returned will behave exactly as the :class:`datetime.date` class
     as well as being a subclass of :class:`~testfixtures.datetime.MockDate`.
     """
-    return cast(Type[MockDate], mock_factory(
+    return cast(type[MockDate], mock_factory(
         'MockDate', MockDate, (2001, 1, 1), args, kw,
         delta=delta,
         delta_type=delta_type,
@@ -778,7 +778,7 @@ class MockTime(MockedCurrent, datetime):
 def mock_time(
         delta: float | None = None,
         delta_type: str = 'seconds',
-) -> Type[MockTime]:
+) -> type[MockTime]:
     ...
 
 
@@ -793,7 +793,7 @@ def mock_time(
         microsecond: int = ...,
         delta: float | None = None,
         delta_type: str = 'seconds',
-) -> Type[MockTime]:
+) -> type[MockTime]:
     ...
 
 
@@ -802,7 +802,7 @@ def mock_time(
         default: datetime,
         delta: float | None = None,
         delta_type: str = 'seconds',
-) -> Type[MockTime]:
+) -> type[MockTime]:
     ...
 
 
@@ -811,11 +811,11 @@ def mock_time(
         default: None,  # explicit None positional
         delta: float | None = None,
         delta_type: str = 'seconds',
-) -> Type[MockTime]:
+) -> type[MockTime]:
     ...
 
 
-def mock_time(*args, delta: float | None = None, delta_type: str = 'seconds', **kw) -> Type[MockTime]:
+def mock_time(*args, delta: float | None = None, delta_type: str = 'seconds', **kw) -> type[MockTime]:
     """
     .. currentmodule:: testfixtures.datetime
 
@@ -859,7 +859,7 @@ def mock_time(*args, delta: float | None = None, delta_type: str = 'seconds', **
     """
     if 'tzinfo' in kw or len(args) > 7 or (args and getattr(args[0], 'tzinfo', None)):
         raise TypeError("You don't want to use tzinfo with test_time")
-    return cast(Type[MockTime], mock_factory(
+    return cast(type[MockTime], mock_factory(
         'MockTime', MockTime, (2001, 1, 1, 0, 0, 0), args, kw,
         delta=delta,
         delta_type=delta_type,

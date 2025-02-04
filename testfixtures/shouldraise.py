@@ -5,7 +5,7 @@ from typing import Type, Callable, TypeAlias, Iterator
 from testfixtures import diff, compare
 from .comparison import split_repr
 
-ExceptionOrType: TypeAlias = BaseException | Type[BaseException]
+ExceptionOrType: TypeAlias = BaseException | type[BaseException]
 
 
 param_docs = """

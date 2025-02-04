@@ -2,7 +2,7 @@ from datetime import date, datetime
 from datetime import datetime as d
 from datetime import timedelta
 from datetime import tzinfo
-from typing import cast, Type
+from typing import cast
 
 from testfixtures import mock_datetime, mock_date
 from testfixtures import replace, Replacer, compare, ShouldRaise
@@ -133,7 +133,7 @@ class TestDateTime(TestCase):
         compare(datetime.now(), d(2002, 1, 1, 3, 0, 30))
 
     @replace('datetime.datetime', mock_datetime(None))
-    def test_add_datetime_supplied(self, t: Type[MockDateTime]):
+    def test_add_datetime_supplied(self, t: type[MockDateTime]):
         from datetime import datetime
         t.add(d(2002, 1, 1, 1))
         t.add(datetime(2002, 1, 1, 2))
@@ -153,7 +153,7 @@ class TestDateTime(TestCase):
         compare(t.now(), d(2002, 1, 1, 1, 0, 0))
 
     @replace('datetime.datetime', mock_datetime(None))
-    def test_now_requested_longer_than_supplied(self, t: Type[MockDateTime]):
+    def test_now_requested_longer_than_supplied(self, t: type[MockDateTime]):
         t.add(2002, 1, 1, 1, 0, 0)
         t.add(2002, 1, 1, 2, 0, 0)
         from datetime import datetime
@@ -163,7 +163,7 @@ class TestDateTime(TestCase):
         compare(datetime.now(), d(2002, 1, 1, 2, 0, 30))
 
     @replace('datetime.datetime', mock_datetime(strict=True))
-    def test_call(self, t: Type[MockDateTime]):
+    def test_call(self, t: type[MockDateTime]):
         compare(t(2002, 1, 2, 3, 4, 5), d(2002, 1, 2, 3, 4, 5))
         from datetime import datetime
         dt = datetime(2001, 1, 1, 1, 0, 0)
@@ -232,7 +232,7 @@ class TestDateTime(TestCase):
     @replace('datetime.datetime', mock_datetime(None))
     def test_set(self):
         from datetime import datetime
-        datetime = cast(Type[MockDateTime], datetime)
+        datetime = cast(type[MockDateTime], datetime)
         datetime.set(2001, 1, 1, 1, 0, 1)
         compare(datetime.now(), d(2001, 1, 1, 1, 0, 1))
         datetime.set(2002, 1, 1, 1, 0, 0)
@@ -240,7 +240,7 @@ class TestDateTime(TestCase):
         compare(datetime.now(), d(2002, 1, 1, 1, 0, 20))
 
     @replace('datetime.datetime', mock_datetime(None))
-    def test_set_datetime_supplied(self, t: Type[MockDateTime]):
+    def test_set_datetime_supplied(self, t: type[MockDateTime]):
         from datetime import datetime
         t.set(d(2002, 1, 1, 1))
         compare(datetime.now(), d(2002, 1, 1, 1, 0, 0))
@@ -257,44 +257,44 @@ class TestDateTime(TestCase):
     @replace('datetime.datetime', mock_datetime(None, tzinfo=SampleTZInfo()))
     def test_set_tz_setup(self):
         from datetime import datetime
-        datetime = cast(Type[MockDateTime], datetime)
+        datetime = cast(type[MockDateTime], datetime)
         datetime.set(year=2002, month=1, day=1)
         compare(datetime.now(), d(2002, 1, 1))
 
     @replace('datetime.datetime', mock_datetime(None))
     def test_set_kw(self):
         from datetime import datetime
-        datetime = cast(Type[MockDateTime], datetime)
+        datetime = cast(type[MockDateTime], datetime)
         datetime.set(year=2002, month=1, day=1)
         compare(datetime.now(), d(2002, 1, 1))
 
     @replace('datetime.datetime', mock_datetime(None))
     def test_set_tzinfo_kw(self):
         from datetime import datetime
-        datetime = cast(Type[MockDateTime], datetime)
+        datetime = cast(type[MockDateTime], datetime)
         with ShouldRaise(TypeError('Cannot add using tzinfo on MockDateTime')):
             datetime.set(year=2002, month=1, day=1, tzinfo=SampleTZInfo())
 
     @replace('datetime.datetime', mock_datetime(None))
     def test_set_tzinfo_args(self):
         from datetime import datetime
-        datetime = cast(Type[MockDateTime], datetime)
+        datetime = cast(type[MockDateTime], datetime)
         with ShouldRaise(TypeError('Cannot add using tzinfo on MockDateTime')):
             datetime.set(2002, 1, 2, 3, 4, 5, 6, SampleTZInfo())
 
     @replace('datetime.datetime', mock_datetime(None))
-    def test_add_kw(self, t: Type[MockDateTime]):
+    def test_add_kw(self, t: type[MockDateTime]):
         from datetime import datetime
         t.add(year=2002, day=1, month=1)
         compare(datetime.now(), d(2002, 1, 1))
 
     @replace('datetime.datetime', mock_datetime(None))
-    def test_add_tzinfo_kw(self, t: Type[MockDateTime]):
+    def test_add_tzinfo_kw(self, t: type[MockDateTime]):
         with ShouldRaise(TypeError('Cannot add using tzinfo on MockDateTime')):
             t.add(year=2002, month=1, day=1, tzinfo=SampleTZInfo())
 
     @replace('datetime.datetime', mock_datetime(None))
-    def test_add_tzinfo_args(self, t: Type[MockDateTime]):
+    def test_add_tzinfo_args(self, t: type[MockDateTime]):
         with ShouldRaise(TypeError('Cannot add using tzinfo on MockDateTime')):
             t.add(2002, 1, 2, 3, 4, 5, 6, SampleTZInfo())
 
@@ -337,7 +337,7 @@ class TestDateTime(TestCase):
     @replace('datetime.datetime', mock_datetime(strict=True))
     def test_isinstance_strict(self):
         from datetime import datetime
-        datetime = cast(Type[MockDateTime], datetime)
+        datetime = cast(type[MockDateTime], datetime)
         to_check = []
         to_check.append(datetime(1999, 1, 1))
         to_check.append(datetime.now())
@@ -393,7 +393,7 @@ class TestDateTime(TestCase):
     @replace('datetime.datetime', mock_datetime())
     def test_isinstance_default(self):
         from datetime import datetime
-        datetime = cast(Type[MockDateTime], datetime)
+        datetime = cast(type[MockDateTime], datetime)
         to_check = []
         to_check.append(datetime(1999, 1, 1))
         to_check.append(datetime.now())

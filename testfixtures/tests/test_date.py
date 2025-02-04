@@ -1,6 +1,6 @@
 from datetime import date as d, timedelta, date
 from time import strptime
-from typing import cast, Type
+from typing import cast
 
 from testfixtures import ShouldRaise, mock_date, replace, compare
 from testfixtures.datetime import MockDate
@@ -32,7 +32,7 @@ class TestDate(TestCase):
         compare(date.today(), d(2001, 2, 3))
 
     @replace('datetime.date', mock_date(None))
-    def test_today_sequence(self, t: Type[MockDate]):
+    def test_today_sequence(self, t: type[MockDate]):
         t.add(2002, 1, 1)
         t.add(2002, 1, 2)
         t.add(2002, 1, 3)
@@ -42,7 +42,7 @@ class TestDate(TestCase):
         compare(date.today(), d(2002, 1, 3))
 
     @replace('datetime.date', mock_date(None))
-    def test_today_requested_longer_than_supplied(self, t: Type[MockDate]):
+    def test_today_requested_longer_than_supplied(self, t: type[MockDate]):
         t.add(2002, 1, 1)
         t.add(2002, 1, 2)
         from datetime import date
@@ -54,7 +54,7 @@ class TestDate(TestCase):
     @replace('datetime.date', mock_date(None))
     def test_add_date_supplied(self):
         from datetime import date
-        date = cast(Type[MockDate], date)
+        date = cast(type[MockDate], date)
         date.add(d(2001, 1, 2))
         date.add(date(2001, 1, 3))
         compare(date.today(), d(2001, 1, 2))
@@ -66,7 +66,7 @@ class TestDate(TestCase):
         compare(t.today(), d(2002, 1, 1))
 
     @replace('datetime.date', mock_date(strict=True))
-    def test_call(self, t: Type[MockDate]):
+    def test_call(self, t: type[MockDate]):
         compare(t(2002, 1, 2), d(2002, 1, 2))
         from datetime import date
         dt = date(2003, 2, 1)
@@ -169,7 +169,7 @@ class TestDate(TestCase):
     @replace('datetime.date', mock_date(None))
     def test_set(self):
         from datetime import date
-        date = cast(Type[MockDate], date)
+        date = cast(type[MockDate], date)
         date.set(2001, 1, 2)
         compare(date.today(), d(2001, 1, 2))
         date.set(2002, 1, 1)
@@ -179,7 +179,7 @@ class TestDate(TestCase):
     @replace('datetime.date', mock_date(None))
     def test_set_date_supplied(self):
         from datetime import date
-        date = cast(Type[MockDate], date)
+        date = cast(type[MockDate], date)
         date.set(d(2001, 1, 2))
         compare(date.today(), d(2001, 1, 2))
         date.set(date(2001, 1, 3))
@@ -188,12 +188,12 @@ class TestDate(TestCase):
     @replace('datetime.date', mock_date(None))
     def test_set_kw(self):
         from datetime import date
-        date = cast(Type[MockDate], date)
+        date = cast(type[MockDate], date)
         date.set(year=2001, month=1, day=2)
         compare(date.today(), d(2001, 1, 2))
 
     @replace('datetime.date', mock_date(None))
-    def test_add_kw(self, t: Type[MockDate]):
+    def test_add_kw(self, t: type[MockDate]):
         t.add(year=2002, month=1, day=1)
         from datetime import date
         compare(date.today(), d(2002, 1, 1))
@@ -201,7 +201,7 @@ class TestDate(TestCase):
     @replace('datetime.date', mock_date(strict=True))
     def test_isinstance_strict_true(self):
         from datetime import date
-        date = cast(Type[MockDate], date)
+        date = cast(type[MockDate], date)
         to_check = []
         to_check.append(date(1999, 1, 1))
         to_check.append(date.today())
@@ -252,7 +252,7 @@ class TestDate(TestCase):
     @replace('datetime.date', mock_date())
     def test_isinstance_default(self):
         from datetime import date
-        date = cast(Type[MockDate], date)
+        date = cast(type[MockDate], date)
         to_check = []
         to_check.append(date(1999, 1, 1))
         to_check.append(date.today())

@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Type, cast
+from typing import cast
 from unittest import TestCase
 from testfixtures import mock_time, replace, compare, ShouldRaise
 from .test_datetime import SampleTZInfo
@@ -21,7 +21,7 @@ class TestTime(TestCase):
         compare(time(), 1009846923.0)
 
     @replace('time.time', mock_time(None))
-    def test_time_sequence(self, t: Type[MockTime]):
+    def test_time_sequence(self, t: type[MockTime]):
         t.add(2002, 1, 1, 1, 0, 0)
         t.add(2002, 1, 1, 2, 0, 0)
         t.add(2002, 1, 1, 3, 0, 0)
@@ -31,7 +31,7 @@ class TestTime(TestCase):
         compare(time(), 1009854000.0)
 
     @replace('time.time', mock_time(None))
-    def test_add_datetime_supplied(self, t: Type[MockTime]):
+    def test_add_datetime_supplied(self, t: type[MockTime]):
         from datetime import datetime
         from time import time
         t.add(datetime(2002, 1, 1, 2))
@@ -50,7 +50,7 @@ class TestTime(TestCase):
         compare(t(), 1009850400.0)
 
     @replace('time.time', mock_time(None))
-    def test_now_requested_longer_than_supplied(self, t: Type[MockTime]):
+    def test_now_requested_longer_than_supplied(self, t: type[MockTime]):
         t.add(2002, 1, 1, 1, 0, 0)
         t.add(2002, 1, 1, 2, 0, 0)
         from time import time
@@ -60,7 +60,7 @@ class TestTime(TestCase):
         compare(time(), 1009850403.0)
 
     @replace('time.time', mock_time())
-    def test_call(self, t: Type[MockTime]):
+    def test_call(self, t: type[MockTime]):
         compare(t(), 978307200.0)
         from time import time
         compare(time(), 978307201.0)
@@ -87,7 +87,7 @@ class TestTime(TestCase):
     @replace('time.time', mock_time(None))
     def test_set(self):
         from time import time
-        time = cast(Type[MockTime], time)
+        time = cast(type[MockTime], time)
         time.set(2001, 1, 1, 1, 0, 1)
         compare(time(), 978310801.0)
         time.set(2002, 1, 1, 1, 0, 0)
@@ -95,7 +95,7 @@ class TestTime(TestCase):
         compare(time(), 1009846802.0)
 
     @replace('time.time', mock_time(None))
-    def test_set_datetime_supplied(self, t: Type[MockTime]):
+    def test_set_datetime_supplied(self, t: type[MockTime]):
         from datetime import datetime
         from time import time
         t.set(datetime(2001, 1, 1, 1, 0, 1))
@@ -111,42 +111,42 @@ class TestTime(TestCase):
     @replace('time.time', mock_time(None))
     def test_set_kw(self):
         from time import time
-        time = cast(Type[MockTime], time)
+        time = cast(type[MockTime], time)
         time.set(year=2001, month=1, day=1, hour=1, second=1)
         compare(time(), 978310801.0)
 
     @replace('time.time', mock_time(None))
     def test_set_kw_tzinfo(self):
         from time import time
-        time = cast(Type[MockTime], time)
+        time = cast(type[MockTime], time)
         with ShouldRaise(TypeError('Cannot add using tzinfo on MockTime')):
             time.set(year=2001, tzinfo=SampleTZInfo())
 
     @replace('time.time', mock_time(None))
     def test_set_args_tzinfo(self):
         from time import time
-        time = cast(Type[MockTime], time)
+        time = cast(type[MockTime], time)
         with ShouldRaise(TypeError('Cannot add using tzinfo on MockTime')):
             time.set(2002, 1, 2, 3, 4, 5, 6, SampleTZInfo())
 
     @replace('time.time', mock_time(None))
     def test_add_kw(self):
         from time import time
-        time = cast(Type[MockTime], time)
+        time = cast(type[MockTime], time)
         time.add(year=2001, month=1, day=1, hour=1, second=1)
         compare(time(), 978310801.0)
 
     @replace('time.time', mock_time(None))
     def test_add_tzinfo_kw(self):
         from time import time
-        time = cast(Type[MockTime], time)
+        time = cast(type[MockTime], time)
         with ShouldRaise(TypeError('Cannot add using tzinfo on MockTime')):
             time.add(year=2001, tzinfo=SampleTZInfo())
 
     @replace('time.time', mock_time(None))
     def test_add_tzinfo_args(self):
         from time import time
-        time = cast(Type[MockTime], time)
+        time = cast(type[MockTime], time)
         with ShouldRaise(TypeError('Cannot add using tzinfo on MockTime')):
             time.add(2001, 1, 2, 3, 4, 5, 6, SampleTZInfo())
 
