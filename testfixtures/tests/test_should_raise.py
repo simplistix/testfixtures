@@ -37,6 +37,22 @@ class TestShouldAssert:
                 +bar
                 +assert False""")
 
+    def test_show_whitespace(self):
+        try:
+            with ShouldAssert('foo ', show_whitespace=True):
+                assert False, ' foo'
+        except AssertionError as e:
+            assert str(e) == dedent(
+                """\
+                --- expected
+                +++ actual
+                @@ -1 +1,2 @@
+                -'foo '
+                +' foo\\n'
+                +'assert False'"""
+            )
+
+
 
 class TestShouldRaise(TestCase):
 

@@ -1,8 +1,9 @@
 from contextlib import contextmanager
 from functools import wraps
-from typing import Type, Callable, TypeAlias
+from typing import Type, Callable, TypeAlias, Iterator
 
 from testfixtures import diff, compare
+from .comparison import split_repr
 
 ExceptionOrType: TypeAlias = BaseException | Type[BaseException]
 
@@ -93,16 +94,23 @@ class should_raise:
 
 
 @contextmanager
-def ShouldAssert(expected_text: str):
+def ShouldAssert(expected_text: str, show_whitespace: bool = False) -> Iterator[None]:
     """
     A context manager to check that an :class:`AssertionError`
     is raised and its text is as expected.
+
+    :param show_whitespace: If `True`, then whitespace characters in
+                            multi-line strings will be replaced with their
+                            representations.
     """
     try:
         yield
     except AssertionError as e:
         actual_text = str(e)
         if expected_text != actual_text:
+            if show_whitespace:
+                expected_text = split_repr(expected_text)
+                actual_text = split_repr(actual_text)
             raise AssertionError(diff(expected_text, actual_text,
                                       x_label='expected', y_label='actual'))
     else:
