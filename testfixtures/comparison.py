@@ -1089,11 +1089,17 @@ class MappingComparison(StatefulComparison):
 
     name_attrs = ('ordered', 'partial')
 
-    def __init__(self, *expected_mapping, **expected_items):
-        # py2 :-(
-        self.ordered = expected_items.pop('ordered', False)
-        self.partial = expected_items.pop('partial', False)
-        self.recursive = expected_items.pop('recursive', False)
+    def __init__(
+            self,
+            *expected_mapping: tuple[Any, Any] | Mapping[Any, Any],
+            ordered: bool = False,
+            partial: bool = False,
+            recursive: bool = False,
+            **expected_items: Any,
+    ):
+        self.ordered = ordered
+        self.partial = partial
+        self.recursive = recursive
 
         if len(expected_mapping) == 1:
             expected = OrderedDict(*expected_mapping)
