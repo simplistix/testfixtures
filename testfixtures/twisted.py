@@ -6,12 +6,12 @@ from typing import Sequence, Callable, Any, TypeAlias
 from unittest import TestCase
 
 from constantly import NamedConstant
-from twisted.logger import globalLogPublisher, formatEvent, LogLevel
+from twisted.logger import globalLogPublisher, formatEvent, LogLevel, ILogObserver, LogEvent
 
 from . import compare
+import zope.interface
 
-Event: TypeAlias = dict[str, Any]
-
+@zope.interface.implementer(ILogObserver)
 class LogCapture:
     """
     A helper for capturing stuff logged using Twisted's loggers.
@@ -27,10 +27,10 @@ class LogCapture:
 
     def __init__(self, fields: Sequence[str | Callable] = ('log_level', formatEvent,)):
         #: The list of events captured.
-        self.events: list[Event] = []
+        self.events: list[LogEvent] = []
         self.fields = fields
 
-    def __call__(self, event: Event) -> None:
+    def __call__(self, event: LogEvent) -> None:
         self.events.append(event)
 
     def install(self):
@@ -42,7 +42,7 @@ class LogCapture:
         "Stop capturing."
         globalLogPublisher._observers = self.original_observers
 
-    def check(self, *expected, order_matters: bool = True):
+    def check(self, *expected: LogEvent, order_matters: bool = True) -> None:
         """
         Check captured events against those supplied. Please see the ``fields`` parameter
         to the constructor to see how "actual" events are built.
