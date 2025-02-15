@@ -38,6 +38,7 @@ setup(
     extras_require=dict(
         test=['django-stubs',
               'mypy',
+              'mypy-zope',
               'pytest>=7.1',
               'pytest-cov',
               'pytest-django',
