@@ -116,19 +116,14 @@ class TempDirectory:
         for i in tuple(cls.instances):
             i.cleanup()
 
-    def _resolve(self, path: PathStrings | None) -> str:
-        if self.path is None:
-            raise RuntimeError('Instantiated with create=False and .create() not called')
-        return self._join(path) if path else self.path
-
     def actual(
             self,
             path: PathStrings | None = None,
             recursive: bool = False,
             files_only: bool = False,
             followlinks: bool = False,
-    ):
-        path = self._resolve(path)
+    ) -> list[str]:
+        path = self._join(path)
 
         result: list[str] = []
         if recursive:
@@ -237,11 +232,15 @@ class TempDirectory:
                 )),
                 recursive=False)
 
-    def _join(self, name):
+    def _join(self, parts: str | Sequence[str] | None) -> str:
+        if self.path is None:
+            raise RuntimeError('Instantiated with create=False and .create() not called')
         # make things platform independent
-        if isinstance(name, str):
-            name = name.split('/')
-        relative = os.sep.join(name).rstrip(os.sep)
+        if parts is None:
+            return self.path
+        if isinstance(parts, str):
+            parts = parts.split('/')
+        relative = os.sep.join(parts).rstrip(os.sep)
         if relative.startswith(os.sep):
             if relative.startswith(self.path):
                 return relative
@@ -325,7 +324,7 @@ class TempDirectory:
         :returns: A string containing the absolute path.
 
         """
-        return self._resolve(path)
+        return self._join(path)
 
     #: .. deprecated:: 7
     #:
@@ -343,7 +342,7 @@ class TempDirectory:
 
                      * A forward-slash separated string.
         """
-        return Path(self._resolve(path))
+        return Path(self._join(path))
 
     def __truediv__(self, other: str) -> Path:
         return self.as_path() / other
