@@ -1104,7 +1104,7 @@ class MappingComparison(StatefulComparison):
         if len(expected_mapping) == 1:
             expected = OrderedDict(*expected_mapping)
         else:
-            expected = OrderedDict(expected_mapping)
+            expected = OrderedDict(expected_mapping)  # type: ignore[arg-type]
         expected.update(expected_items)
 
         self.expected = expected
