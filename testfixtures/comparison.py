@@ -1110,7 +1110,6 @@ class MappingComparison(StatefulComparison):
         self.expected = expected
 
     def body(self) -> str:
-        # this can all go away and use the super class once py2 is gone :'(
         parts = []
         text_length = 0
         for key, value in self.expected.items():
