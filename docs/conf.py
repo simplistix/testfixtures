@@ -43,12 +43,15 @@ exclude_patterns = ['**/furo.js.LICENSE.txt']
 
 nitpicky = True
 nitpick_ignore = [
-    ('py:class', 'testfixtures.replace.R'),  # type var
-    ('py:class', 'module'),  # ModuleType not documented.
-    ('py:class', 'unittest.mock._Call'),  # No docstring.
-    ('py:class', 'tempfile.TemporaryFile'),  # not documented as a class so type annotation broken
+    ('py:class', 'P'),  # param spec
     ('py:class', 'constantly._constants.NamedConstant'),  # twisted logging constants
-    ('py:class', 'py.path.local'),  # deprecated and hard to reference
-    ('py:class', 'unittest.case.TestCase'),  # no docs, apparently
+    ('py:class', 'django.db.models.base.Model'),  # not documented upstream
+    ('py:class', 'module'),  # ModuleType not documented.
+    ('py:class', 'tempfile.TemporaryFile'),  # not documented as a class so type annotation broken
+    ('py:class', 'testfixtures.replace.R'),  # type var
+    ('py:class', 'testfixtures.utils.T'),  # type var
+    ('py:class', 'testfixtures.utils.U'),  # type var
     ('py:class', 'twisted.trial.unittest.TestCase'),  # twisted doesn't use sphinx
+    ('py:class', 'unittest.case.TestCase'),  # no docs, apparently
+    ('py:class', 'unittest.mock._Call'),  # No docstring.
 ]
