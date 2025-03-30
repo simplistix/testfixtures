@@ -75,7 +75,7 @@ class TestDate(TestCase):
 
     def test_gotcha_import(self):
         # standard `replace` caveat, make sure you
-        # patch all revelent places where date
+        # patch all relevant places where date
         # has been imported:
 
         @replace('datetime.date', mock_date())
