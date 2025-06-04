@@ -43,6 +43,7 @@ class ShouldWarn(warnings.catch_warnings):
     """
 
     _empty_okay = False
+    recorded: list[warnings.WarningMessage]
 
     def __init__(
             self, *expected: WarningOrType, order_matters: bool = True, **filters: Any
@@ -52,8 +53,9 @@ class ShouldWarn(warnings.catch_warnings):
         self.expected = [Comparison(e) for e in expected]
         self.filters = filters
 
-    def __enter__(self) -> None:
-        self.recorded = super(ShouldWarn, self).__enter__()
+    def __enter__(self) -> list[warnings.WarningMessage]:
+        # We pass `record=True` above, so the following will *always* return a list:
+        self.recorded = super(ShouldWarn, self).__enter__()  # type: ignore[assignment]
         warnings.filterwarnings("always", **self.filters)
         return self.recorded
 
