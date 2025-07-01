@@ -22,3 +22,5 @@ pip-selfcheck.json
 .cache
 .pytest*
 /build
+.venv
+/.claude
