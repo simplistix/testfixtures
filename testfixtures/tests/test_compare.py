@@ -1,26 +1,24 @@
 import re
 from abc import ABC
+from collections import namedtuple
 from datetime import date, datetime, time
 from decimal import Decimal
-
 from functools import partial
-
-from collections import namedtuple
-
-from testfixtures.shouldraise import ShouldAssert
-from testfixtures.tests.sample1 import SampleClassA, SampleClassB, Slotted
-from testfixtures.mock import Mock, call
 from re import compile
+from unittest import TestCase
+
 from testfixtures import (
     Comparison as C,
     Replacer,
     ShouldRaise,
     compare,
     generator,
-    singleton, mock_datetime,
+    singleton,
 )
 from testfixtures.comparison import compare_sequence, compare_object
-from unittest import TestCase
+from testfixtures.mock import Mock, call
+from testfixtures.shouldraise import ShouldAssert
+from testfixtures.tests.sample1 import Slotted
 
 hexaddr = compile('0x[0-9A-Fa-f]+')
 
