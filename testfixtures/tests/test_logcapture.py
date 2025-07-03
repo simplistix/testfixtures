@@ -3,7 +3,7 @@ from textwrap import dedent
 from unittest import TestCase
 from warnings import catch_warnings
 
-from testfixtures import Replacer, LogCapture, compare, Replace
+from testfixtures import Replacer, LogCapture, compare, Replace, ShouldWarn
 from testfixtures.mock import Mock
 from testfixtures.shouldraise import ShouldAssert
 
@@ -373,9 +373,11 @@ class LogCaptureTests(TestCase):
 
     def test_shutdown_while_installed(self):
         with LogCapture():
-            with ShouldAssert(
+            with ShouldWarn(
+                UserWarning(
                     'LogCapture instance closed while still installed, loggers captured:\n'
                     '(None,)'
+                )
             ):
                 shutdown()
         # second shutdown should be fine:

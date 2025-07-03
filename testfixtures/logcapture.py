@@ -7,6 +7,7 @@ from logging import LogRecord
 from pprint import pformat
 from types import TracebackType
 from typing import List, Tuple, Sequence, Callable, Any, Self
+from warnings import warn
 
 from .comparison import SequenceComparison, compare
 from .utils import wrap
@@ -311,7 +312,7 @@ class LogCapture(logging.Handler):
     def close(self) -> None:
         super().close()
         if self in self.instances:
-            raise AssertionError(
+            warn(
                 'LogCapture instance closed while still installed, '
                 'loggers captured:\n'
                 '%s' % ('\n'.join((str(i.names) for i in self.instances)))
