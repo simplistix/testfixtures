@@ -21,7 +21,7 @@ If the environment doesn't exist, create it as follows:
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -U pip setuptools
-pip install -U -e .[test,build]
+pip install -U -e .[test,build,docs]
 ```
 
 ### Running Tests
