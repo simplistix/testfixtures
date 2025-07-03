@@ -66,9 +66,6 @@ common: &common
         name: package
         requires:
           - docs
-        filters:
-          branches:
-            only: master
 
     - check-package:
         name: check-package-python
@@ -100,6 +97,9 @@ common: &common
           - check-package-python
           - check-package-python-mock
           - check-package-python-django
+        filters:
+          branches:
+            only: master
 
 workflows:
   push:
