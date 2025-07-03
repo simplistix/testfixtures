@@ -1,6 +1,18 @@
 Changes
 =======
 
+9.0.0 (3 Jul 2025)
+------------------
+
+- Python 3.11 is now the minimum supported version.
+
+- A ``show_whitespace`` parameter has been added to :class:`ShouldAssert`.
+
+- ``testfixtures`` is now fully typed, checked with `mypy`__ and is distributed with
+  a ``py.typed`` marker file.
+
+  __ https://mypy.readthedocs.io/en/stable/
+
 8.3.0 (7 Jun 2024)
 ------------------
 
