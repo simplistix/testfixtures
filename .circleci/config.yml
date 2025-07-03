@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  python: cjw296/python-ci@4.1
+  python: cjw296/python-ci@5
 
 jobs:
   check-package:
@@ -20,6 +20,7 @@ jobs:
       - python/check-package:
           package: "testfixtures"
           extra_packages: <<  parameters.extra_package >>
+          typed: true
           test:
           - run:
               name: "Check Imports"
