@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 from typing import cast
 from unittest import TestCase
 
@@ -227,3 +227,30 @@ class TestTime(TestCase):
     def test_old_import(self) -> None:
         from testfixtures import test_time
         assert test_time is mock_time
+
+    def test_addition_to_no_params_call_indirect(self) -> None:
+        mock = mock_time()
+        # Calling the mock without any parameters definitely gives you a float:
+        value = mock()
+        assert isinstance(value, float)
+        compare(value + 3600, expected=978307200.0 + 3600.0)
+
+    def test_addition_to_no_params_call_direct(self) -> None:
+        mock = mock_time()
+        # ...but if if you do it in one step, mypy gets confused:
+        compare(mock() + 3600, expected=978307200.0 + 3600.0)
+
+    def test_addition_to_params_call_indirect(self) -> None:
+        mock = mock_time()
+        # Calling the mock with parameters definitely gives you a datetime, NOT a MockTime:
+        value = mock(2025, month=7, day=4)
+        assert not isinstance(value, MockTime)
+        assert isinstance(value, datetime)
+        compare(value + timedelta(seconds=3600), expected=datetime(2025, 7, 4, 1))
+
+    def test_addition_to_params_call_direct(self) -> None:
+        mock = mock_time()
+        compare(
+            mock(2025, month=7, day=4)  + timedelta(seconds=3600),
+            expected=datetime(2025, 7, 4, 1)
+        )
