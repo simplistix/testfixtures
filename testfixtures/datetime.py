@@ -770,7 +770,7 @@ class MockTime(MockedCurrent, datetime):
         else:
             instance = cast(datetime, cls._mock_queue.next())
             time: float = timegm(instance.utctimetuple())
-            time += (float(instance.microsecond)/ms)
+            time += (float(instance.microsecond) / ms)
             return time
 
 
