@@ -102,7 +102,7 @@ class TestShouldRaise(TestCase):
             self.fail(('Wrong exception raised'))
 
     def test_no_supplied_or_raised(self):
-        # effectvely we're saying "something should be raised!"
+        # effectively we're saying "something should be raised!"
         # but we want to inspect s.raised rather than making
         # an up-front assertion
         def to_test():
