@@ -31,7 +31,7 @@ setup(
     ],
     packages=find_packages(),
     zip_safe=False,
-    package_data={'testfixtures': ['py.typed']},
+    package_data={'testfixtures': ['py.typed', 'version.txt']},
     include_package_data=True,
     python_requires=">=3.11",
     extras_require=dict(
