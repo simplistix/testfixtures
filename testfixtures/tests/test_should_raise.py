@@ -10,21 +10,21 @@ from ..shouldraise import ShouldAssert
 
 class TestShouldAssert:
 
-    def test_no_exception(self):
+    def test_no_exception(self) -> None:
         try:
             with ShouldAssert('foo'):
                 pass
         except AssertionError as e:
             assert str(e) == "Expected AssertionError('foo'), None raised!"
 
-    def test_wrong_exception(self):
+    def test_wrong_exception(self) -> None:
         try:
             with ShouldAssert('foo'):
                 raise KeyError()
         except KeyError:
             pass
 
-    def test_wrong_text(self):
+    def test_wrong_text(self) -> None:
         try:
             with ShouldAssert('foo'):
                 assert False, 'bar'
@@ -37,7 +37,7 @@ class TestShouldAssert:
                 +bar
                 +assert False""")
 
-    def test_show_whitespace(self):
+    def test_show_whitespace(self) -> None:
         try:
             with ShouldAssert('foo ', show_whitespace=True):
                 assert False, ' foo'
@@ -56,32 +56,32 @@ class TestShouldAssert:
 
 class TestShouldRaise(TestCase):
 
-    def test_no_params(self):
-        def to_test():
+    def test_no_params(self) -> None:
+        def to_test() -> None:
             raise ValueError('wrong value supplied')
         should_raise(ValueError('wrong value supplied'))(to_test)()
 
-    def test_no_exception(self):
-        def to_test():
+    def test_no_exception(self) -> None:
+        def to_test() -> None:
             pass
         with ShouldAssert('ValueError() (expected) != None (raised)'):
             should_raise(ValueError())(to_test)()
 
-    def test_wrong_exception(self):
-        def to_test():
+    def test_wrong_exception(self) -> None:
+        def to_test() -> None:
             raise ValueError('bar')
         expected = "ValueError('foo') (expected) != ValueError('bar') (raised)"
         with ShouldAssert(expected):
             should_raise(ValueError('foo'))(to_test)()
 
-    def test_only_exception_class(self):
-        def to_test():
+    def test_only_exception_class(self) -> None:
+        def to_test() -> None:
             raise ValueError('bar')
         should_raise(ValueError)(to_test)()
 
-    def test_wrong_exception_class(self):
+    def test_wrong_exception_class(self) -> None:
         expected_exception = ValueError('bar')
-        def to_test():
+        def to_test() -> None:
             raise expected_exception
         try:
             should_raise(KeyError)(to_test)()
@@ -90,9 +90,9 @@ class TestShouldRaise(TestCase):
         else:  # pragma: no cover
             self.fail(('Wrong exception raised'))
 
-    def test_wrong_exception_type(self):
+    def test_wrong_exception_type(self) -> None:
         expected_exception = ValueError('bar')
-        def to_test():
+        def to_test() -> None:
             raise expected_exception
         try:
             should_raise(KeyError('foo'))(to_test)()
@@ -101,56 +101,56 @@ class TestShouldRaise(TestCase):
         else:  # pragma: no cover
             self.fail(('Wrong exception raised'))
 
-    def test_no_supplied_or_raised(self):
+    def test_no_supplied_or_raised(self) -> None:
         # effectively we're saying "something should be raised!"
         # but we want to inspect s.raised rather than making
         # an up-front assertion
-        def to_test():
+        def to_test() -> None:
             pass
         with ShouldAssert("No exception raised!"):
             should_raise()(to_test)()
 
-    def test_args(self):
-        def to_test(*args):
+    def test_args(self) -> None:
+        def to_test(*args: object) -> None:
             raise ValueError('%s' % repr(args))
         should_raise(ValueError('(1,)'))(to_test)(1)
 
-    def test_kw_to_args(self):
-        def to_test(x):
+    def test_kw_to_args(self) -> None:
+        def to_test(x: object) -> None:
             raise ValueError('%s' % x)
         should_raise(ValueError('1'))(to_test)(x=1)
 
-    def test_kw(self):
-        def to_test(**kw):
+    def test_kw(self) -> None:
+        def to_test(**kw: object) -> None:
             raise ValueError('%r' % kw)
         should_raise(ValueError("{'x': 1}"))(to_test)(x=1)
 
-    def test_both(self):
-        def to_test(*args, **kw):
+    def test_both(self) -> None:
+        def to_test(*args: object, **kw: object) -> None:
             raise ValueError('%r %r' % (args, kw))
         should_raise(ValueError("(1,) {'x': 2}"))(to_test)(1, x=2)
 
-    def test_method_args(self):
+    def test_method_args(self) -> None:
         class X:
-            def to_test(self, *args):
+            def to_test(self, *args: object) -> None:
                 self.args = args
                 raise ValueError()
         x = X()
         should_raise(ValueError)(x.to_test)(1, 2, 3)
         self.assertEqual(x.args, (1, 2, 3))
 
-    def test_method_kw(self):
+    def test_method_kw(self) -> None:
         class X:
-            def to_test(self, **kw):
+            def to_test(self, **kw: object) -> None:
                 self.kw = kw
                 raise ValueError()
         x = X()
         should_raise(ValueError)(x.to_test)(x=1, y=2)
         self.assertEqual(x.kw, {'x': 1, 'y': 2})
 
-    def test_method_both(self):
+    def test_method_both(self) -> None:
         class X:
-            def to_test(self, *args, **kw):
+            def to_test(self, *args: object, **kw: object) -> None:
                 self.args = args
                 self.kw = kw
                 raise ValueError()
@@ -159,106 +159,106 @@ class TestShouldRaise(TestCase):
         self.assertEqual(x.args, (1, ))
         self.assertEqual(x.kw, {'y': 2})
 
-    def test_class_class(self):
+    def test_class_class(self) -> None:
         class Test:
-            def __init__(self, x):
+            def __init__(self, x: object) -> None:
                 # The TypeError is raised due to the mis-matched parameters
                 # so the pass never gets executed
                 pass  # pragma: no cover
-        should_raise(TypeError)(Test)()
+        should_raise(TypeError)(Test)()  # type: ignore[call-arg]
 
-    def test_raised(self):
+    def test_raised(self) -> None:
         with ShouldRaise() as s:
             raise ValueError('wrong value supplied')
         self.assertEqual(s.raised, C(ValueError('wrong value supplied')))
 
-    def test_catch_baseexception_1(self):
+    def test_catch_baseexception_1(self) -> None:
         with ShouldRaise(SystemExit):
             raise SystemExit()
 
-    def test_catch_baseexception_2(self):
+    def test_catch_baseexception_2(self) -> None:
         with ShouldRaise(KeyboardInterrupt):
             raise KeyboardInterrupt()
 
-    def test_with_exception_class_supplied(self):
+    def test_with_exception_class_supplied(self) -> None:
         with ShouldRaise(ValueError):
             raise ValueError('foo bar')
 
-    def test_with_exception_supplied(self):
+    def test_with_exception_supplied(self) -> None:
         with ShouldRaise(ValueError('foo bar')):
             raise ValueError('foo bar')
 
-    def test_with_exception_supplied_wrong_args(self):
+    def test_with_exception_supplied_wrong_args(self) -> None:
         expected = "ValueError('foo') (expected) != ValueError('bar') (raised)"
         with ShouldAssert(expected):
             with ShouldRaise(ValueError('foo')):
                 raise ValueError('bar')
 
-    def test_neither_supplied(self):
+    def test_neither_supplied(self) -> None:
         with ShouldRaise():
             raise ValueError('foo bar')
 
-    def test_with_no_exception_when_expected(self):
+    def test_with_no_exception_when_expected(self) -> None:
         expected = "ValueError('foo') (expected) != None (raised)"
         with ShouldAssert(expected):
             with ShouldRaise(ValueError('foo')):
                 pass
 
-    def test_with_no_exception_when_expected_by_type(self):
+    def test_with_no_exception_when_expected_by_type(self) -> None:
         with ShouldAssert("<class 'ValueError'> (expected) != None (raised)"):
             with ShouldRaise(ValueError):
                 pass
 
-    def test_with_no_exception_when_neither_expected(self):
+    def test_with_no_exception_when_neither_expected(self) -> None:
         with ShouldAssert("No exception raised!"):
             with ShouldRaise():
                 pass
 
-    def test_with_getting_raised_exception(self):
+    def test_with_getting_raised_exception(self) -> None:
         e = ValueError('foo bar')
         with ShouldRaise() as s:
             raise e
         assert e is s.raised
 
-    def test_import_errors_1(self):
+    def test_import_errors_1(self) -> None:
         with ShouldRaise(ModuleNotFoundError("No module named 'textfixtures'")):
             import textfixtures.foo.bar  # type: ignore[import-not-found]
 
-    def test_import_errors_2(self):
+    def test_import_errors_2(self) -> None:
         with ShouldRaise(ImportError('X')):
             raise ImportError('X')
 
-    def test_custom_exception(self):
+    def test_custom_exception(self) -> None:
 
         class FileTypeError(Exception):
-            def __init__(self, value):
+            def __init__(self, value: object) -> None:
                 self.value = value
 
         with ShouldRaise(FileTypeError('X')):
             raise FileTypeError('X')
 
-    def test_decorator_usage(self):
+    def test_decorator_usage(self) -> None:
 
         @should_raise(ValueError('bad'))
-        def to_test():
+        def to_test() -> None:
             raise ValueError('bad')
 
         to_test()
 
-    def test_unless_false_okay(self):
+    def test_unless_false_okay(self) -> None:
         with ShouldRaise(unless=False):
             raise AttributeError()
 
-    def test_unless_false_bad(self):
+    def test_unless_false_bad(self) -> None:
         with ShouldAssert("No exception raised!"):
             with ShouldRaise(unless=False):
                 pass
 
-    def test_unless_true_okay(self):
+    def test_unless_true_okay(self) -> None:
         with ShouldRaise(unless=True):
             pass
 
-    def test_unless_true_not_okay(self):
+    def test_unless_true_not_okay(self) -> None:
         expected_exception = AttributeError('foo')
         try:
             with ShouldRaise(unless=True):
@@ -268,17 +268,17 @@ class TestShouldRaise(TestCase):
         else:  # pragma: no cover
             self.fail(('Wrong exception raised'))
 
-    def test_unless_decorator_usage(self):
+    def test_unless_decorator_usage(self) -> None:
 
         @should_raise(unless=True)
-        def to_test():
+        def to_test() -> None:
             pass
 
         to_test()
 
-    def test_identical_reprs(self):
+    def test_identical_reprs(self) -> None:
         class AnnoyingException(Exception):
-            def __init__(self, **kw):
+            def __init__(self, **kw: object) -> None:
                 self.other = kw.get('other')
 
         with ShouldAssert(
@@ -292,13 +292,13 @@ class TestShouldRaise(TestCase):
             with ShouldRaise(AnnoyingException(other='bar')):
                 raise AnnoyingException(other='baz')
 
-    def test_identical_reprs_but_args_different(self):
+    def test_identical_reprs_but_args_different(self) -> None:
 
         class MessageError(Exception):
-           def __init__(self, message, type=None):
+           def __init__(self, message: object, type: object = None) -> None:
                self.message = message
                self.type = type
-           def __repr__(self):
+           def __repr__(self) -> str:
                return 'MessageError({!r}, {!r})'.format(self.message, self.type)
 
         with ShouldAssert(
@@ -318,11 +318,11 @@ class TestShouldRaise(TestCase):
             with ShouldRaise(MessageError('foo')):
                 raise MessageError('foo', None)
 
-    def test_exception_group_okay(self):
+    def test_exception_group_okay(self) -> None:
         with ShouldRaise(ExceptionGroup('foo', [Exception('bar')])):
             raise ExceptionGroup('foo', [Exception('bar')])
 
-    def test_exception_group_different(self):
+    def test_exception_group_different(self) -> None:
         with ShouldAssert(
                 "exception group not as expected:\n\n"
                 "While comparing msg: 'fob' (expected) != 'foo' (raised)\n\n"
