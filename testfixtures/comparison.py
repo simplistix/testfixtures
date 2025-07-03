@@ -11,7 +11,7 @@ from pprint import pformat
 from types import GeneratorType
 from typing import (
     Any, Sequence, TypeVar, List, Mapping, Pattern,
-    Callable, Iterable, cast, Type
+    Callable, Iterable, cast
 )
 from unittest.mock import call as unittest_mock_call
 
@@ -522,7 +522,7 @@ def register(type_: type, comparer: Comparer) -> None:
     _registry[type_] = comparer
 
 
-def _shared_mro(x: Any, y: Any) -> Iterable[Type]:
+def _shared_mro(x: Any, y: Any) -> Iterable[type]:
     y_mro = set(type(y).__mro__)
     for class_ in type(x).__mro__:
         if class_ in y_mro:
