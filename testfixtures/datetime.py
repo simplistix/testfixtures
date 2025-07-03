@@ -1,6 +1,6 @@
 from calendar import timegm
 from datetime import datetime, timedelta, date, tzinfo as TZInfo
-from typing import Callable, Tuple, Any, cast, overload
+from typing import Callable, Tuple, Any, cast
 
 
 class Queue(list):
@@ -136,29 +136,6 @@ def mock_factory(
 
 class MockDateTime(MockedCurrent, datetime):
 
-    @overload
-    @classmethod
-    def add(
-            cls,
-            year: int,
-            month: int,
-            day: int,
-            hour: int = ...,
-            minute: int = ...,
-            second: int = ...,
-            microsecond: int = ...,
-            tzinfo: TZInfo = ...,
-    ) -> None:
-        ...
-
-    @overload
-    @classmethod
-    def add(
-            cls,
-            instance: datetime,
-    ) -> None:
-        ...
-
     @classmethod
     def add(cls, *args, **kw):
         """
@@ -169,29 +146,6 @@ class MockDateTime(MockedCurrent, datetime):
         positional argument.
         """
         return super().add(*args, **kw)
-
-    @overload
-    @classmethod
-    def set(
-            cls,
-            year: int,
-            month: int,
-            day: int,
-            hour: int = ...,
-            minute: int = ...,
-            second: int = ...,
-            microsecond: int = ...,
-            tzinfo: TZInfo = ...,
-    ) -> None:
-        ...
-
-    @overload
-    @classmethod
-    def set(
-            cls,
-            instance: datetime,
-    ) -> None:
-        ...
 
     @classmethod
     def set(cls, *args, **kw):
@@ -204,28 +158,6 @@ class MockDateTime(MockedCurrent, datetime):
         positional argument.
         """
         return super().set(*args, **kw)
-
-    @overload
-    @classmethod
-    def tick(
-            cls,
-            days: float = ...,
-            seconds: float = ...,
-            microseconds: float = ...,
-            milliseconds: float = ...,
-            minutes: float = ...,
-            hours: float = ...,
-            weeks: float = ...,
-    ) -> None:
-        ...
-
-    @overload
-    @classmethod
-    def tick(
-            cls,
-            delta: timedelta,  # can become positional-only when Python 3.8 minimum
-    ) -> None:
-        ...
 
     @classmethod
     def tick(cls, *args, **kw) -> None:
@@ -301,59 +233,6 @@ class MockDateTime(MockedCurrent, datetime):
             self.month,
             self.day
             )
-
-
-@overload
-def mock_datetime(
-        tzinfo: TZInfo | None = None,
-        delta: float | None = None,
-        delta_type: str = 'seconds',
-        date_type: type[date] = date,
-        strict: bool = False
-) -> type[MockDateTime]:
-    ...
-
-
-@overload
-def mock_datetime(
-        year: int,
-        month: int,
-        day: int,
-        hour: int = ...,
-        minute: int = ...,
-        second: int = ...,
-        microsecond: int = ...,
-        tzinfo: TZInfo | None = None,
-        delta: float | None = None,
-        delta_type: str = 'seconds',
-        date_type: type[date] = date,
-        strict: bool = False
-) -> type[MockDateTime]:
-    ...
-
-
-@overload
-def mock_datetime(
-        default: datetime,
-        tzinfo: TZInfo | None = None,
-        delta: float | None = None,
-        delta_type: str = 'seconds',
-        date_type: type[date] = date,
-        strict: bool = False
-) -> type[MockDateTime]:
-    ...
-
-
-@overload
-def mock_datetime(
-        default: None,  # explicit None positional
-        tzinfo: TZInfo | None = None,
-        delta: float | None = None,
-        delta_type: str = 'seconds',
-        date_type: type[date] = date,
-        strict: bool = False
-) -> type[MockDateTime]:
-    ...
 
 
 def mock_datetime(
@@ -457,24 +336,6 @@ class MockDate(MockedCurrent, date):
             instance.day,
         )
 
-    @overload
-    @classmethod
-    def add(
-            cls,
-            year: int,
-            month: int,
-            day: int,
-    ) -> None:
-        ...
-
-    @overload
-    @classmethod
-    def add(
-            cls,
-            instance: date,
-    ) -> None:
-        ...
-
     @classmethod
     def add(cls, *args, **kw):
         """
@@ -485,24 +346,6 @@ class MockDate(MockedCurrent, date):
         positional argument.
         """
         return super().add(*args, **kw)
-
-    @overload
-    @classmethod
-    def set(
-            cls,
-            year: int,
-            month: int,
-            day: int,
-    ) -> None:
-        ...
-
-    @overload
-    @classmethod
-    def set(
-            cls,
-            instance: date,
-    ) -> None:
-        ...
 
     @classmethod
     def set(cls, *args, **kw) -> None:
@@ -515,23 +358,6 @@ class MockDate(MockedCurrent, date):
         positional argument.
         """
         return super().set(*args, **kw)
-
-    @overload
-    @classmethod
-    def tick(
-            cls,
-            days: float = ...,
-            weeks: float = ...,
-    ) -> None:
-        ...
-
-    @overload
-    @classmethod
-    def tick(
-            cls,
-            delta: timedelta,  # can become positional-only when Python 3.8 minimum
-    ) -> None:
-        ...
 
     @classmethod
     def tick(cls, *args, **kw) -> None:
@@ -553,48 +379,6 @@ class MockDate(MockedCurrent, date):
 
         """
         return cast(date, cls._mock_queue.next())
-
-
-@overload
-def mock_date(
-        delta: float | None = None,
-        delta_type: str = 'days',
-        date_type: type[date] = date,
-        strict: bool = False
-) -> type[MockDate]:
-    ...
-
-
-@overload
-def mock_date(
-        year: int,
-        month: int,
-        day: int,
-        delta: float | None = None,
-        delta_type: str = 'days',
-        strict: bool = False,
-) -> type[MockDate]:
-    ...
-
-
-@overload
-def mock_date(
-        default: date,
-        delta: float | None = None,
-        delta_type: str = 'days',
-        strict: bool = False,
-) -> type[MockDate]:
-    ...
-
-
-@overload
-def mock_date(
-        default: None,  # explicit None positional
-        delta: float | None = None,
-        delta_type: str = 'days',
-        strict: bool = False,
-) -> type[MockDate]:
-    ...
 
 
 def mock_date(
@@ -658,28 +442,6 @@ ms = 10**6
 
 class MockTime(MockedCurrent, datetime):
 
-    @overload
-    @classmethod
-    def add(
-            cls,
-            year: int,
-            month: int,
-            day: int,
-            hour: int = ...,
-            minute: int = ...,
-            second: int = ...,
-            microsecond: int = ...,
-    ) -> None:
-        ...
-
-    @overload
-    @classmethod
-    def add(
-            cls,
-            instance: datetime,
-    ) -> None:
-        ...
-
     @classmethod
     def add(cls, *args, **kw):
         """
@@ -690,28 +452,6 @@ class MockTime(MockedCurrent, datetime):
         be passed as a single positional argument.
         """
         return super().add(*args, **kw)
-
-    @overload
-    @classmethod
-    def set(
-            cls,
-            year: int,
-            month: int,
-            day: int,
-            hour: int = ...,
-            minute: int = ...,
-            second: int = ...,
-            microsecond: int = ...,
-    ) -> None:
-        ...
-
-    @overload
-    @classmethod
-    def set(
-            cls,
-            instance: datetime,
-    ) -> None:
-        ...
 
     @classmethod
     def set(cls, *args, **kw):
@@ -724,29 +464,6 @@ class MockTime(MockedCurrent, datetime):
         positional argument.
         """
         return super().set(*args, **kw)
-
-    @overload
-    @classmethod
-    def tick(
-            cls,
-            days: float = ...,
-            seconds: float = ...,
-            microseconds: float = ...,
-            milliseconds: float = ...,
-            minutes: float = ...,
-            hours: float = ...,
-            weeks: float = ...,
-    ) -> None:
-        ...
-
-    @overload
-    @classmethod
-    def tick(
-            cls,
-            delta: timedelta,  # can become positional-only when Python 3.8 minimum
-    ) -> None:
-        ...
-
     @classmethod
     def tick(cls, *args, **kw):
         """
@@ -772,47 +489,6 @@ class MockTime(MockedCurrent, datetime):
             time: float = timegm(instance.utctimetuple())
             time += (float(instance.microsecond) / ms)
             return time
-
-
-@overload
-def mock_time(
-        delta: float | None = None,
-        delta_type: str = 'seconds',
-) -> type[MockTime]:
-    ...
-
-
-@overload
-def mock_time(
-        year: int,
-        month: int,
-        day: int,
-        hour: int = ...,
-        minute: int = ...,
-        second: int = ...,
-        microsecond: int = ...,
-        delta: float | None = None,
-        delta_type: str = 'seconds',
-) -> type[MockTime]:
-    ...
-
-
-@overload
-def mock_time(
-        default: datetime,
-        delta: float | None = None,
-        delta_type: str = 'seconds',
-) -> type[MockTime]:
-    ...
-
-
-@overload
-def mock_time(
-        default: None,  # explicit None positional
-        delta: float | None = None,
-        delta_type: str = 'seconds',
-) -> type[MockTime]:
-    ...
 
 
 def mock_time(*args, delta: float | None = None, delta_type: str = 'seconds', **kw) -> type[MockTime]:
