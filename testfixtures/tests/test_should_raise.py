@@ -255,8 +255,11 @@ class TestShouldRaise(TestCase):
                 pass
 
     def test_unless_true_okay(self) -> None:
-        with ShouldRaise(unless=True):
+        with ShouldRaise(unless=True) as s:
             pass
+        # This documents the value of .raised in the rare care where it isn't
+        # the exception raised within the context manager:
+        assert s.raised is None
 
     def test_unless_true_not_okay(self) -> None:
         expected_exception = AttributeError('foo')
