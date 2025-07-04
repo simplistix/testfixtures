@@ -31,6 +31,12 @@ param_docs = """
 """
 
 
+class NoException(AssertionError):
+
+    def __init__(self) -> None:
+        super().__init__('No exception raised!')
+
+
 class ShouldRaise:
     __doc__ = """
     This context manager is used to assert that an exception is raised
@@ -39,7 +45,7 @@ class ShouldRaise:
 
     #: The exception captured by the context manager.
     #: Can be used to inspect specific attributes of the exception.
-    raised = None
+    raised: BaseException = NoException()
 
     def __init__(self, exception: ExceptionOrType | None = None, unless: bool | None = False):
         self.exception = exception
@@ -55,7 +61,7 @@ class ShouldRaise:
             traceback: TracebackType | None,
     ) -> bool:
         __tracebackhide__ = True
-        self.raised = actual
+        self.raised = actual or NoException()
         if self.expected:
             if self.exception:
                 actual_: type[BaseException] | BaseException | None = actual
@@ -72,7 +78,7 @@ class ShouldRaise:
                         x_label='expected',
                         y_label='raised')
             elif not actual:
-                raise AssertionError('No exception raised!')
+                raise NoException()
         elif actual:
             return False
         return True

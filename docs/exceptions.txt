@@ -61,7 +61,7 @@ will raise an :class:`AssertionError` to indicate this:
 ...     the_thrower(throw=False)
 Traceback (most recent call last):
 ...
-AssertionError: No exception raised!
+testfixtures.shouldraise.NoException: No exception raised!
 
 :class:`ShouldRaise` has been implemented such that it can be
 used to test code that raises all exceptions, including :class:`SystemExit` and
