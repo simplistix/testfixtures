@@ -441,10 +441,16 @@ def mock_date(
 ms = 10**6
 
 
-class MockTime(MockedCurrent[datetime], datetime):
+class MockTimeFactory(MockedCurrent[datetime], datetime):
+    pass
 
-    @classmethod
-    def add(cls, *args: int | datetime, **kw: int | TZInfo | None) -> None:
+
+class MockTime:
+
+    def __init__(self, factory: type[MockedCurrent[datetime]]):
+        self.factory = factory
+
+    def add(self, *args: int | datetime, **kw: int | TZInfo | None) -> None:
         """
         This will add the time specified by the supplied parameters to the
         queue of times to be returned by calls to the mock. The
@@ -452,10 +458,9 @@ class MockTime(MockedCurrent[datetime], datetime):
         constructor. An instance of :class:`~datetime.datetime` may also
         be passed as a single positional argument.
         """
-        return super().add(*args, **kw)
+        self.factory.add(*args, **kw)
 
-    @classmethod
-    def set(cls, *args: int | datetime, **kw: int | TZInfo | None) -> None:
+    def set(self, *args: int | datetime, **kw: int | TZInfo | None) -> None:
         """
         This will set the time specified by the supplied parameters as
         the next time to be returned by a call to the mock, regardless of
@@ -464,10 +469,9 @@ class MockTime(MockedCurrent[datetime], datetime):
         :class:`~datetime.datetime` may also be passed as a single
         positional argument.
         """
-        return super().set(*args, **kw)
+        self.factory.set(*args, **kw)
 
-    @classmethod
-    def tick(cls, *args: timedelta, **kw: float) -> None:
+    def tick(self, *args: timedelta, **kw: float) -> None:
         """
         This method should be called either with a :class:`~datetime.timedelta`
         as a positional argument, or with keyword parameters that will be used
@@ -476,28 +480,21 @@ class MockTime(MockedCurrent[datetime], datetime):
         The  :class:`~datetime.timedelta` will be used to advance the next time
         to be returned by a call to the mock.
         """
-        return super().tick(*args, **kw)
+        self.factory.tick(*args, **kw)
 
-    def __new__(cls, *args: int, **kw: int) -> Self | float:  # type: ignore[misc]
-        """
-        Return a :class:`float` representing the mocked current time as would normally
-        be returned by :func:`time.time`.
-        """
-        if args or kw:
-            # Used when adding stuff to the queue
-            return super().__new__(cls, *args, **kw)  # type: ignore[misc]
-        else:
-            instance = cls._mock_queue.next()
-            time: float = timegm(instance.utctimetuple())
-            time += (float(instance.microsecond) / ms)
-            return time
+    def __call__(self) -> float:
+        instance = self.factory._mock_queue.next()
+        time: float = timegm(instance.utctimetuple())
+        time += (float(instance.microsecond) / ms)
+        return time
+
 
 def mock_time(
         *args: int | datetime | None,
         delta: float | None = None,
         delta_type: str = 'seconds',
         **kw: int,
-) -> type[MockTime]:
+) -> MockTime:
     """
     .. currentmodule:: testfixtures.datetime
 
@@ -541,8 +538,13 @@ def mock_time(
     """
     if 'tzinfo' in kw or len(args) > 7 or (args and getattr(args[0], 'tzinfo', None)):
         raise TypeError("You don't want to use tzinfo with test_time")
-    return mock_factory(
-        'MockTime', MockTime, (2001, 1, 1, 0, 0, 0), args, kw,  # type: ignore[arg-type]
+    factory = mock_factory(
+        'MockTime',
+        MockTimeFactory,
+        (2001, 1, 1, 0, 0, 0),
+        args,
+        kw,  # type: ignore[arg-type]
         delta=delta,
         delta_type=delta_type,
-    )  # type: ignore[return-value]
+    )
+    return MockTime(factory)
