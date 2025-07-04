@@ -32,6 +32,14 @@ param_docs = """
 
 
 class NoException(AssertionError):
+    """
+    A marker class indicating no exception has been raised.
+
+    .. currentmodule:: testfixtures
+
+    :attr:`ShouldRaise.raised` is set to an instance of this class unless an
+    exception has otherwise been seen.
+    """
 
     def __init__(self) -> None:
         super().__init__('No exception raised!')

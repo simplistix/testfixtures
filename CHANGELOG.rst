@@ -1,6 +1,18 @@
 Changes
 =======
 
+9.0.1 (4 Jul 2025)
+------------------
+
+- :attr:`ShouldRaise.raised` is now always an exception instance. If no exception has been raised,
+  it will be a :class:`~testfixtures.shouldraise.NoException` instance. The prevents typing
+  complaints around using an attribute that might be ``None``.
+
+- :func:`mock_time` has been reworked to return an instance of :class:`~testfixtures.datetime.MockTime` rather than the
+  class itself. :class:`~testfixtures.datetime.MockTime` has also been reworked such that it can no longer be instantiated
+  with the same parameters as :class:`~datetime.datetime` - this edge case was never supported,
+  but is highlighted here in case folks were using it.
+
 9.0.0 (3 Jul 2025)
 ------------------
 

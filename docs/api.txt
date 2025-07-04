@@ -130,6 +130,8 @@ testfixtures.popen
 Assertions
 ----------
 
+.. autoclass:: testfixtures.shouldraise.NoException
+
 .. autoclass:: ShouldRaise
    :members:
 
