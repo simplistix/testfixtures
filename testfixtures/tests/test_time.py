@@ -1,10 +1,9 @@
-from datetime import timedelta, datetime
-from typing import cast
+from datetime import timedelta
 from unittest import TestCase
 
 from testfixtures import mock_time, replace, compare, ShouldRaise
-from .test_datetime import SampleTZInfo
 from testfixtures.datetime import MockTime
+from .test_datetime import SampleTZInfo
 
 
 class TestTime(TestCase):
@@ -22,7 +21,7 @@ class TestTime(TestCase):
         compare(time(), 1009846923.0)
 
     @replace('time.time', mock_time(None))
-    def test_time_sequence(self, t: type[MockTime]) -> None:
+    def test_time_sequence(self, t: MockTime) -> None:
         t.add(2002, 1, 1, 1, 0, 0)
         t.add(2002, 1, 1, 2, 0, 0)
         t.add(2002, 1, 1, 3, 0, 0)
@@ -32,7 +31,7 @@ class TestTime(TestCase):
         compare(time(), 1009854000.0)
 
     @replace('time.time', mock_time(None))
-    def test_add_datetime_supplied(self, t: type[MockTime]) -> None:
+    def test_add_datetime_supplied(self, t: MockTime) -> None:
         from datetime import datetime
         from time import time
         t.add(datetime(2002, 1, 1, 2))
@@ -51,7 +50,7 @@ class TestTime(TestCase):
         compare(t(), 1009850400.0)
 
     @replace('time.time', mock_time(None))
-    def test_now_requested_longer_than_supplied(self, t: type[MockTime]) -> None:
+    def test_now_requested_longer_than_supplied(self, t: MockTime) -> None:
         t.add(2002, 1, 1, 1, 0, 0)
         t.add(2002, 1, 1, 2, 0, 0)
         from time import time
@@ -61,7 +60,7 @@ class TestTime(TestCase):
         compare(time(), 1009850403.0)
 
     @replace('time.time', mock_time())
-    def test_call(self, t: type[MockTime]) -> None:
+    def test_call(self, t: MockTime) -> None:
         compare(t(), 978307200.0)
         from time import time
         compare(time(), 978307201.0)
@@ -69,7 +68,7 @@ class TestTime(TestCase):
     @replace('time.time', mock_time())
     def test_repr_time(self) -> None:
         from time import time
-        compare(repr(time), "<class 'testfixtures.datetime.MockTime'>")
+        assert repr(time).startswith('<testfixtures.datetime.MockTime object at ')
 
     @replace('time.time', mock_time(delta=10))
     def test_delta(self) -> None:
@@ -86,9 +85,8 @@ class TestTime(TestCase):
         compare(time(), 978307380.0)
 
     @replace('time.time', mock_time(None))
-    def test_set(self) -> None:
+    def test_set(self, time_mock: MockTime) -> None:
         from time import time
-        time_mock = cast(type[MockTime], time)
         time_mock.set(2001, 1, 1, 1, 0, 1)
         compare(time(), 978310801.0)
         time_mock.set(2002, 1, 1, 1, 0, 0)
@@ -96,7 +94,7 @@ class TestTime(TestCase):
         compare(time(), 1009846802.0)
 
     @replace('time.time', mock_time(None))
-    def test_set_datetime_supplied(self, t: type[MockTime]) -> None:
+    def test_set_datetime_supplied(self, t: MockTime) -> None:
         from datetime import datetime
         from time import time
         t.set(datetime(2001, 1, 1, 1, 0, 1))
@@ -110,44 +108,34 @@ class TestTime(TestCase):
             t.set(datetime(2001, 1, 1, tzinfo=tzinfo))
 
     @replace('time.time', mock_time(None))
-    def test_set_kw(self) -> None:
+    def test_set_kw(self, time_mock: MockTime) -> None:
         from time import time
-        time_mock = cast(type[MockTime], time)
         time_mock.set(year=2001, month=1, day=1, hour=1, second=1)
         compare(time(), 978310801.0)
 
     @replace('time.time', mock_time(None))
-    def test_set_kw_tzinfo(self) -> None:
-        from time import time
-        time_mock = cast(type[MockTime], time)
+    def test_set_kw_tzinfo(self, time_mock: MockTime) -> None:
         with ShouldRaise(TypeError('Cannot add using tzinfo on MockTime')):
             time_mock.set(year=2001, tzinfo=SampleTZInfo())
 
     @replace('time.time', mock_time(None))
-    def test_set_args_tzinfo(self) -> None:
-        from time import time
-        time_mock = cast(type[MockTime], time)
+    def test_set_args_tzinfo(self, time_mock: MockTime) -> None:
         with ShouldRaise(TypeError('Cannot add using tzinfo on MockTime')):
             time_mock.set(2002, 1, 2, 3, 4, 5, 6, SampleTZInfo())  # type: ignore[arg-type]
 
     @replace('time.time', mock_time(None))
-    def test_add_kw(self) -> None:
+    def test_add_kw(self, time_mock: MockTime) -> None:
         from time import time
-        time_mock = cast(type[MockTime], time)
         time_mock.add(year=2001, month=1, day=1, hour=1, second=1)
         compare(time(), 978310801.0)
 
     @replace('time.time', mock_time(None))
-    def test_add_tzinfo_kw(self) -> None:
-        from time import time
-        time_mock = cast(type[MockTime], time)
+    def test_add_tzinfo_kw(self, time_mock: MockTime) -> None:
         with ShouldRaise(TypeError('Cannot add using tzinfo on MockTime')):
             time_mock.add(year=2001, tzinfo=SampleTZInfo())
 
     @replace('time.time', mock_time(None))
-    def test_add_tzinfo_args(self) -> None:
-        from time import time
-        time_mock = cast(type[MockTime], time)
+    def test_add_tzinfo_args(self, time_mock: MockTime) -> None:
         with ShouldRaise(TypeError('Cannot add using tzinfo on MockTime')):
             time_mock.add(2001, 1, 2, 3, 4, 5, 6, SampleTZInfo())  # type: ignore[arg-type]
 
@@ -239,18 +227,3 @@ class TestTime(TestCase):
         mock = mock_time()
         # ...but if if you do it in one step, mypy gets confused:
         compare(mock() + 3600, expected=978307200.0 + 3600.0)
-
-    def test_addition_to_params_call_indirect(self) -> None:
-        mock = mock_time()
-        # Calling the mock with parameters definitely gives you a datetime, NOT a MockTime:
-        value = mock(2025, month=7, day=4)
-        assert not isinstance(value, MockTime)
-        assert isinstance(value, datetime)
-        compare(value + timedelta(seconds=3600), expected=datetime(2025, 7, 4, 1))
-
-    def test_addition_to_params_call_direct(self) -> None:
-        mock = mock_time()
-        compare(
-            mock(2025, month=7, day=4)  + timedelta(seconds=3600),
-            expected=datetime(2025, 7, 4, 1)
-        )
