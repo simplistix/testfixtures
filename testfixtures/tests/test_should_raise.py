@@ -5,7 +5,7 @@ import pytest
 from testfixtures import Comparison as C, ShouldRaise, should_raise
 from unittest import TestCase
 
-from ..shouldraise import ShouldAssert
+from ..shouldraise import ShouldAssert, NoException
 
 
 class TestShouldAssert:
@@ -259,7 +259,7 @@ class TestShouldRaise(TestCase):
             pass
         # This documents the value of .raised in the rare care where it isn't
         # the exception raised within the context manager:
-        assert s.raised is None
+        assert isinstance(s.raised, NoException)
 
     def test_unless_true_not_okay(self) -> None:
         expected_exception = AttributeError('foo')
@@ -342,3 +342,9 @@ class TestShouldRaise(TestCase):
             with ShouldRaise(ExceptionGroup('fob', [Exception('baz')])):
                 raise ExceptionGroup('foo', [Exception('bar')])
 
+    def test_check_notes_on_raised_exception(self) -> None:
+        exception = ValueError('foo')
+        exception.add_note('bar')
+        with ShouldRaise(ValueError) as s:
+            raise exception
+        assert s.raised.__notes__ == ['bar']
