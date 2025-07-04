@@ -1,6 +1,6 @@
 from calendar import timegm
 from datetime import datetime, timedelta, date, tzinfo as TZInfo
-from typing import Callable, Self, Tuple, TypeVar, Generic
+from typing import Callable, Self, Tuple, TypeVar, Generic, Mapping
 
 T = TypeVar('T', bound=datetime | date)
 
@@ -99,9 +99,9 @@ class MockedCurrent(Generic[T]):
 
     def __new__(cls, *args: int, **kw: int | TZInfo | None) -> Self:
         if cls is cls._mock_class:
-            return super().__new__(cls, *args, **kw)  # type: ignore[misc]
+            return super().__new__(cls, *args, **kw)
         else:
-            return cls._mock_class(*args, **kw)  # type: ignore[misc]
+            return cls._mock_class(*args, **kw)
 
 
 def mock_factory(
@@ -109,7 +109,7 @@ def mock_factory(
         mock_class: type[MockedCurrent[T]],
         default: Tuple[int, ...],
         args: tuple[int | T | None | TZInfo, ...],
-        kw: dict[str, int | TZInfo | None],
+        kw: Mapping[str, int | TZInfo | None],
         delta: float | None,
         delta_type: str,
         delta_delta: float = 1,
@@ -431,7 +431,7 @@ def mock_date(
     as well as being a subclass of :class:`~testfixtures.datetime.MockDate`.
     """
     return mock_factory(
-        'MockDate', MockDate, (2001, 1, 1), args, kw,  # type: ignore[arg-type]
+        'MockDate', MockDate, (2001, 1, 1), args, kw,
         delta=delta,
         delta_type=delta_type,
         strict=strict,
@@ -543,7 +543,7 @@ def mock_time(
         MockTimeFactory,
         (2001, 1, 1, 0, 0, 0),
         args,
-        kw,  # type: ignore[arg-type]
+        kw,
         delta=delta,
         delta_type=delta_type,
     )
