@@ -266,7 +266,7 @@ class TestShouldRaise(TestCase):
         except AttributeError as actual_exception:
             assert actual_exception is expected_exception
         else:  # pragma: no cover
-            self.fail(('Wrong exception raised'))
+            self.fail('Wrong exception raised')
 
     def test_unless_decorator_usage(self) -> None:
 
