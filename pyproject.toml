@@ -1,0 +1,56 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "testfixtures"
+dynamic = ["version"]
+description = "A collection of helpers and mock objects for unit tests and doc tests."
+readme = "README.rst"
+license = "MIT"
+requires-python = ">=3.11"
+authors = [
+    { name = "Chris Withers", email = "chris@simplistix.co.uk" },
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+]
+
+[project.optional-dependencies]
+build = [
+    "setuptools-git",
+    "twine",
+    "wheel",
+]
+docs = [
+    "django",
+    "furo",
+    "sphinx",
+    "sybil>=6",
+    "twisted",
+]
+test = [
+    "django",
+    "django-stubs",
+    "mypy",
+    "mypy-zope",
+    "pytest-cov",
+    "pytest-django",
+    "pytest>=7.1",
+    "sybil>=6",
+    "twisted",
+    "types-mock",
+]
+
+[project.urls]
+Homepage = "https://github.com/Simplistix/testfixtures"
+
+[tool.hatch.version]
+path = "testfixtures/__init__.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/testfixtures",
+]
