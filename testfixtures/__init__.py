@@ -1,3 +1,5 @@
+__version__ = "9.0.2dev"
+
 class singleton:
 
     def __init__(self, name: str) -> None:
