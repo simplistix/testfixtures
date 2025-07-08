@@ -4,7 +4,7 @@ from io import StringIO
 from tempfile import TemporaryFile
 from typing import Self, Any, IO
 
-from testfixtures.comparison import compare
+from .comparison import StringComparison, compare
 
 
 class OutputCapture:
@@ -106,7 +106,12 @@ class OutputCapture:
         "A property containing any output that has been captured so far."
         return self._read(self.output)
 
-    def compare(self, expected: str = '', stdout: str = '', stderr: str = '') -> None:
+    def compare(
+            self,
+            expected: str | StringComparison = '',
+            stdout: str | StringComparison = '',
+            stderr: str | StringComparison = ''
+    ) -> None:
         """
         Compare the captured output to that expected. If the output is
         not the same, an :class:`AssertionError` will be raised.
@@ -126,7 +131,8 @@ class OutputCapture:
                 ('stderr', stderr, self._read(self.stderr)),
         ):
             if self.strip_whitespace:
-                _expected = _expected.strip()
+                if isinstance(_expected, str):
+                    _expected = _expected.strip()
                 captured = captured.strip()
             if _expected != captured:
                 expected_mapping[prefix] = _expected
