@@ -19,29 +19,22 @@ class Tests(TestCase):
         self.assertTrue('on xxx' != S(r'on \d+'))
 
     def test_comp_in_sequence(self):
-        self.assertTrue((
-            1, 2, 'on 40220'
-            ) == (
-            1, 2, S(r'on \d+')
-            ))
+        self.assertTrue((1, 2, 'on 40220') == (1, 2, S(r'on \d+')))
 
     def test_not_string(self):
         self.assertFalse(40220 == S(r'on \d+'))
 
     def test_repr(self):
-        compare('<S:on \\d+>',
-                repr(S(r'on \d+')))
+        compare('<S:on \\d+>', repr(S(r'on \d+')))
 
     def test_str(self):
-        compare('<S:on \\d+>',
-                str(S(r'on \d+')))
+        compare('<S:on \\d+>', str(S(r'on \d+')))
 
     def test_sort(self):
         a = S('a')
         b = S('b')
         c = S('c')
-        compare(sorted(('d', c, 'e', a, 'a1', b)),
-                [a, 'a1', b, c, 'd', 'e'])
+        compare(sorted(('d', c, 'e', a, 'a1', b)), expected=[a, 'a1', b, c, 'd', 'e'])
 
     def test_flags_argument(self):
         compare(S(".*bar", re.DOTALL), actual="foo\nbar")
