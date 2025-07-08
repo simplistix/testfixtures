@@ -2,18 +2,19 @@ import sys
 from subprocess import call
 from unittest import TestCase
 
+from _pytest.capture import CaptureFixture
 from testfixtures import OutputCapture, compare
 from .test_compare import CompareHelper
 
 
 class TestOutputCapture(CompareHelper, TestCase):
 
-    def test_compare_strips(self):
+    def test_compare_strips(self) -> None:
         with OutputCapture() as o:
             print(' Bar! ')
         o.compare('Bar!')
 
-    def test_compare_doesnt_strip(self):
+    def test_compare_doesnt_strip(self) -> None:
         with OutputCapture(strip_whitespace=False) as o:
             print(' Bar! ')
         self.check_raises(
@@ -22,7 +23,7 @@ class TestOutputCapture(CompareHelper, TestCase):
             message="'\\tBar!' (expected) != ' Bar! \\n' (actual)",
         )
 
-    def test_stdout_and_stderr(self):
+    def test_stdout_and_stderr(self) -> None:
         with OutputCapture() as o:
             print('hello', file=sys.stdout)
             print('out', file=sys.stderr)
@@ -30,12 +31,12 @@ class TestOutputCapture(CompareHelper, TestCase):
             print('now', file=sys.stderr)
         o.compare("hello\nout\nthere\nnow\n")
 
-    def test_unicode(self):
+    def test_unicode(self) -> None:
         with OutputCapture() as o:
             print(u'\u65e5', file=sys.stdout)
         o.compare(u'\u65e5\n')
 
-    def test_separate_capture(self):
+    def test_separate_capture(self) -> None:
         with OutputCapture(separate=True) as o:
             print('hello', file=sys.stdout)
             print('out', file=sys.stderr)
@@ -44,7 +45,7 @@ class TestOutputCapture(CompareHelper, TestCase):
         o.compare(stdout="hello\nthere\n",
                   stderr="out\nnow\n")
 
-    def test_compare_both_at_once(self):
+    def test_compare_both_at_once(self) -> None:
         with OutputCapture(separate=True) as o:
             print('hello', file=sys.stdout)
             print('out', file=sys.stderr)
@@ -65,7 +66,7 @@ class TestOutputCapture(CompareHelper, TestCase):
             ),
         )
 
-    def test_original_restore(self):
+    def test_original_restore(self) -> None:
         o_out, o_err = sys.stdout, sys.stderr
         with OutputCapture() as o:
             self.assertFalse(sys.stdout is o_out)
@@ -73,7 +74,7 @@ class TestOutputCapture(CompareHelper, TestCase):
         self.assertTrue(sys.stdout is o_out)
         self.assertTrue(sys.stderr is o_err)
 
-    def test_double_disable(self):
+    def test_double_disable(self) -> None:
         o_out, o_err = sys.stdout, sys.stderr
         with OutputCapture() as o:
             self.assertFalse(sys.stdout is o_out)
@@ -87,7 +88,7 @@ class TestOutputCapture(CompareHelper, TestCase):
         self.assertTrue(sys.stdout is o_out)
         self.assertTrue(sys.stderr is o_err)
 
-    def test_double_enable(self):
+    def test_double_enable(self) -> None:
         o_out, o_err = sys.stdout, sys.stderr
         with OutputCapture() as o:
             o.disable()
@@ -105,14 +106,14 @@ class TestOutputCapture(CompareHelper, TestCase):
 
 class TestOutputCaptureWithDescriptors:
 
-    def test_fd(self, capfd):
+    def test_fd(self, capfd: CaptureFixture) -> None:
         with capfd.disabled(), OutputCapture(fd=True) as o:
             call([sys.executable, '-c', "import sys; sys.stdout.write('out')"])
             call([sys.executable, '-c', "import sys; sys.stderr.write('err')"])
         compare(o.captured, expected='outerr')
         o.compare(expected='outerr')
 
-    def test_fd_separate(self, capfd):
+    def test_fd_separate(self, capfd: CaptureFixture) -> None:
         with capfd.disabled(), OutputCapture(fd=True, separate=True) as o:
             call([sys.executable, '-c', "import sys; sys.stdout.write('out')"])
             call([sys.executable, '-c', "import sys; sys.stderr.write('err')"])
