@@ -1,6 +1,12 @@
 Changes
 =======
 
+9.1.0 (8 Jul 2025)
+------------------
+
+- Add support for passing :class:`StringComparison` instances as parameters to
+  :meth:`OutputCapture.compare`.
+
 9.0.1 (4 Jul 2025)
 ------------------
 
