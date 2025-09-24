@@ -31,7 +31,7 @@ from testfixtures.replace import (
 )
 from testfixtures.shouldraise import ShouldRaise, should_raise, ShouldAssert
 from testfixtures.shouldwarn import ShouldWarn, ShouldNotWarn
-from testfixtures.tempdirectory import TempDirectory, tempdir
+from testfixtures.tempdirectory import TempDir, TempDirectory, tempdir
 from testfixtures.utils import wrap, generator
 
 
@@ -61,6 +61,7 @@ __all__ = [
     'Subset',
     'StringComparison',
     'TempDirectory',
+    'TempDir',
     'compare',
     'contains',
     'diff',

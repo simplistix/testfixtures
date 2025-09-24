@@ -156,8 +156,13 @@ Assertions
 Resources
 ---------
 
+.. autoclass:: TempDir
+   :members:
+   :inherited-members:
+
 .. autoclass:: TempDirectory
    :members:
+   :inherited-members:
 
 .. autofunction:: tempdir
 
