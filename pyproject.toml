@@ -89,6 +89,7 @@ module = [
     "tests.test_datetime",
     "tests.test_outputcapture",
     "tests.test_should_raise",
+    "tests.test_tempdirectory",
     "tests.test_time",
 ]
 enable_error_code = ["no-untyped-call", "no-untyped-def"]
