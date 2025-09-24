@@ -1,13 +1,16 @@
 import os
 from pathlib import Path
 from tempfile import mkdtemp
+from typing import Iterator
 from unittest import TestCase
 from warnings import catch_warnings
+
+import pytest
 
 from testfixtures.mock import Mock
 
 from testfixtures import (
-    TempDirectory, Replacer, ShouldRaise, compare, OutputCapture
+    TempDirectory, TempDir, Replacer, ShouldRaise, compare, OutputCapture
 )
 from testfixtures.rmtree import rmtree
 
@@ -233,7 +236,7 @@ class TempDirectoryTests(TestCase):
 
             d.cleanup()
 
-            compare(set(), TempDirectory.instances)
+            compare(TempDirectory.instances, expected=set())
 
             # check re-running has no ill effects
             d.atexit()
@@ -358,3 +361,23 @@ def test_wrap_path(tmp_path: Path) -> None:
     with TempDirectory(tmp_path) as d:
         assert d.path == str(tmp_path)
     assert tmp_path.exists()
+
+
+class TestTempDir:
+
+    @pytest.fixture()
+    def tempdir(self) -> Iterator[TempDir]:
+        with TempDir() as d:
+            yield d
+
+    def test_makedir(self, tempdir: TempDir) -> None:
+        path = tempdir.makedir('foo')
+        assert isinstance(path, Path)
+
+    def test_write(self, tempdir: TempDir) -> None:
+        path = tempdir.write('foo', '')
+        assert isinstance(path, Path)
+
+    def test_path(self, tempdir: TempDir) -> None:
+        assert isinstance(tempdir.path, Path)
+        assert tempdir.path.exists()

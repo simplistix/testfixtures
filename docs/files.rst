@@ -10,8 +10,13 @@ should or code processes test files correctly, and the sandbox is
 cleared up at the end of the tests.
 
 To help with this, testfixtures provides the
-:class:`TempDirectory` class that hides most of the
+:class:`TempDir` class that hides most of the
 boilerplate code you would need to write.
+
+.. note::
+   :class:`TempDirectory` is still available for backward compatibility but is
+   deprecated as of version 11. New code should use :class:`TempDir`, which returns
+   :class:`~pathlib.Path` objects instead of strings.
 
 Methods of use
 --------------
@@ -34,10 +39,10 @@ writing:
 The context manager
 ~~~~~~~~~~~~~~~~~~~
 
-A :class:`TempDirectory` can be used as a context manager:
+A :class:`TempDir` can be used as a context manager:
 
->>> from testfixtures import TempDirectory
->>> with TempDirectory() as d:
+>>> from testfixtures import TempDir
+>>> with TempDir() as d:
 ...   test_txt = (d / 'test.txt')
 ...   bytes_written = test_txt.write_text('some foo thing')
 ...   foo2bar(d.path, 'test.txt')
@@ -45,57 +50,22 @@ A :class:`TempDirectory` can be used as a context manager:
 b'some bar thing'
 
 
-The decorator
-~~~~~~~~~~~~~
-
-If you only want to work with files or directories in a particular test function, you
-may find the decorator suits your needs better:
-
-.. code-block:: python
-
-  from testfixtures import tempdir, compare
-  
-  @tempdir()
-  def test_function(root: TempDirectory):
-      test_txt = root / 'test.txt'
-      test_txt.write_bytes(b'some foo thing')
-      foo2bar(root.path, 'test.txt')
-      compare(test_txt.read_bytes(), expected=b'some bar thing')
-
-.. check the above raises no assertion error:
-
-  >>> test_function()
-
-.. note::
-    This method is not compatible with pytest's fixture discovery stuff.
-    Instead, put a fixture such as the following in your ``conftest.py``:
-
-    .. code-block:: python
-
-      from testfixtures import TempDirectory
-      import pytest
-
-      @pytest.fixture()
-      def root():
-          with TempDirectory() as root:
-              yield root
-
 Manual usage
 ~~~~~~~~~~~~
 
 If you want to work with files or directories for the duration of a
 doctest or in every test in a :class:`~unittest.TestCase`, then you
-can use the :class:`TempDirectory` manually.
+can use the :class:`TempDir` manually.
 
 The instantiation is done in the set-up step of the :class:`~unittest.TestCase` or equivalent:
 
->>> from testfixtures import TempDirectory
->>> d = TempDirectory()
+>>> from testfixtures import TempDir
+>>> d = TempDir()
 
 You can then use the temporary directory for your testing:
 
 >>> d.write('test.txt', 'some foo thing')
-'...'
+PosixPath('...')
 >>> foo2bar(d.path, 'test.txt')
 >>> d.read('test.txt') == b'some bar thing'
 True
@@ -105,14 +75,14 @@ you should make sure the temporary directory is cleaned up:
 
 >>> d.cleanup()
 
-The :meth:`~testfixtures.TempDirectory.cleanup` method can also be added as an
+The :meth:`~testfixtures.TempDir.cleanup` method can also be added as an
 :meth:`~unittest.TestCase.addCleanup` if that is easier or more compact in your test
 suite.
 
-If you have multiple :class:`TempDirectory` objects in use,
+If you have multiple :class:`TempDir` objects in use,
 you can easily clean them all up:
 
->>> TempDirectory.cleanup_all()
+>>> TempDir.cleanup_all()
 
 
 Working with other interfaces
@@ -120,23 +90,23 @@ Working with other interfaces
 
 If you're using a testing framework that already provides a temporary directory,
 such as pytest's :ref:`tmp_path <tmp_path>` or :ref:`tmpdir <tmpdir>`, but wish to make use of
-the :class:`TempDirectory` API for creating content or making assertions, then you can wrap the
+the :class:`TempDir` API for creating content or making assertions, then you can wrap the
 existing object as follows:
 
->>> with TempDirectory(tmp_path) as d:
+>>> with TempDir(tmp_path) as d:
 ...     d.write('some/path.txt', 'some text')
 ...     d.compare(expected=('some/', 'some/path.txt'))
-'...'
+PosixPath('...')
 
-When doing this, :class:`TempDirectory` will not remove the directory it is wrapping:
+When doing this, :class:`TempDir` will not remove the directory it is wrapping:
 
 >>> tmp_path.exists()
 True
 
-Inversely, if you have an existing :class:`TempDirectory` but would like to interact with it
+Inversely, if you have an existing :class:`TempDir` but would like to interact with it
 using :class:`pathlib.Path` objects, you can get them as follows:
 
->>> with TempDirectory(tmp_path) as d:
+>>> with TempDir(tmp_path) as d:
 ...     bytes_written = d.as_path('myfile.txt').write_text('some text')
 ...     d.compare(expected=['myfile.txt'])
 ...     d.read('myfile.txt')
@@ -146,7 +116,7 @@ Features of a temporary directory
 ---------------------------------
 
 No matter which usage pattern you pick, you will always end up with a
-:class:`TempDirectory` object. These have an array of
+:class:`TempDir` object. These have an array of
 methods that let you perform common file and directory related tasks
 without all the manual boiler plate. The following sections show you
 how to perform the various tasks you're likely to bump into in the
@@ -154,21 +124,21 @@ course of testing.
 
 .. create a tempdir for the examples:
 
-  >>> tempdir = TempDirectory()
+  >>> tempdir = TempDir()
 
 Computing paths
 ~~~~~~~~~~~~~~~
 
 If you need to know the real path of the temporary directory, the
-:class:`TempDirectory` object has a :attr:`~TempDirectory.path`
+:class:`TempDir` object has a :attr:`~TempDir.path`
 attribute:
 
 >>> tempdir.path
-'...tmp...'
+PosixPath('...tmp...')
 
 A common use case is to want to compute a path within the temporary
 directory to pass to code under test. This can be done with the
-:meth:`~TempDirectory.as_string` method:
+:meth:`~TempDir.as_string` method:
 
 >>> import os
 >>> tempdir.as_string('foo').rsplit(os.sep,1)[-1]
@@ -195,7 +165,7 @@ To write to a file in the root of the temporary directory, you pass
 the name of the file and the content you want to write:
 
 >>> tempdir.write('myfile.txt', 'some text')
-'...'
+PosixPath('...')
 >>> with open(os.path.join(tempdir.path, 'myfile.txt')) as f:
 ...     print(f.read())
 some text
@@ -236,10 +206,10 @@ you can do so as follows:
 
 .. new tempdir:
 
-  >>> tempdir = TempDirectory()
+  >>> tempdir = TempDir()
 
 >>> tempdir.makedir('output')
-'...'
+PosixPath('...')
 >>> (tempdir / 'output').is_dir()
 True
 
@@ -278,13 +248,13 @@ Checking the contents of files
 
 Once a file has been written into the temporary directory, you will
 often want to check its contents. This is done with the
-:meth:`TempDirectory.read` method.
+:meth:`TempDir.read` method.
 
 Suppose the code you are testing creates some files:
 
 .. new tempdir:
 
-  >>> tempdir = TempDirectory()
+  >>> tempdir = TempDir()
 
 .. code-block:: python
 
@@ -295,7 +265,7 @@ Suppose the code you are testing creates some files:
       (root / 'subdir' / 'logs').mkdir()
 
 We can test this function by passing it the temporary directory's path
-and then using the :meth:`TempDirectory.read` method to
+and then using the :meth:`TempDir.read` method to
 check the files were created with the correct content:
 
 >>> spew(tempdir.as_path())
@@ -305,7 +275,7 @@ b'root output'
 b'subdir output'
 
 The second part of the above test shows how to use the
-:meth:`TempDirectory.read` method to check the contents
+:meth:`TempDir.read` method to check the contents
 of files that are in sub-directories of the temporary directory. This
 can also be done by specifying the path relative to the root of 
 the temporary directory as a forward-slash separated string:
@@ -323,7 +293,7 @@ Checking the contents of directories
 
 It's good practice to test that your code is only writing files you expect it
 to and to check they are being written to the path you expect.
-:meth:`TempDirectory.compare` is the method to use to do this.
+:meth:`TempDir.compare` is the method to use to do this.
 
 As an example, we could check that the ``spew()`` function above created no
 extraneous files as follows:
@@ -358,7 +328,7 @@ turn off the recursive comparison as follows:
 ...     'subdir',
 ... ], recursive=False)
 
-The :meth:`~testfixtures.TempDirectory.compare` method can also be used to
+The :meth:`~testfixtures.TempDir.compare` method can also be used to
 check whether a directory contains nothing, for example:
 
 >>> tempdir.compare(path=('subdir', 'logs'), expected=())
@@ -388,7 +358,7 @@ actual:
 
 In some circumstances, you may want to ignore certain files or
 sub-directories when checking contents. To make this easy, the
-:class:`~testfixtures.TempDirectory` constructor takes an optional
+:class:`~testfixtures.TempDir` constructor takes an optional
 `ignore` parameter which, if provided, should contain a sequence of
 regular expressions. If any of the regular expressions return a match
 when used to search through the results of any of the the methods
@@ -412,33 +382,17 @@ To test this, we can use any of the previously described methods.
 
 When used manually or as a context manager, this would be as follows:
 
->>> with TempDirectory(ignore=['.git']) as d:
+>>> with TempDir(ignore=['.git']) as d:
 ...    git_ish(d.path, 'test.txt')
 ...    d.compare(['test.txt'])
 
-The decorator would be as follows:
-
-.. code-block:: python
-
-  from testfixtures import tempdir, compare
-
-  @tempdir(ignore=['.git'])
-  def test_function(d):
-      git_ish(d.path, 'test.txt')
-      d.compare(['test.txt'])
-
-.. check the above raises no assertion error:
-
-  >>> test_function()
-
-
 .. set things up again:
 
-  >>> tempdir = TempDirectory()
+  >>> tempdir = TempDir()
   >>> spew(tempdir.as_path())
 
 If you are working with doctests, the
-:meth:`~testfixtures.TempDirectory.listdir` method can be used instead:
+:meth:`~testfixtures.TempDir.listdir` method can be used instead:
 
 >>> tempdir.listdir()
 root.txt
@@ -452,7 +406,7 @@ No files or directories found.
 The above example also shows how to check the contents of sub-directories of
 the temporary directory and also shows what is printed when a
 directory contains nothing. The
-:meth:`~testfixtures.TempDirectory.listdir` method can also take a 
+:meth:`~testfixtures.TempDir.listdir` method can also take a
 path separated by forward slashes, which can make doctests a little
 more readable. The above test could be written as follows:
 
@@ -462,7 +416,7 @@ No files or directories found.
 However, if you have a nested folder structure, such as that created by
 our ``spew()`` function, it can be easier to just inspect the whole
 tree of files and folders created. You can do this by using the
-`recursive` parameter to :meth:`~testfixtures.TempDirectory.listdir`:
+`recursive` parameter to :meth:`~testfixtures.TempDir.listdir`:
 
 >>> tempdir.listdir(recursive=True)
 root.txt
@@ -475,10 +429,10 @@ Bytes versus Strings
 
 .. new tempdir:
 
-  >>> tempdir = TempDirectory()
+  >>> tempdir = TempDir()
 
 You'll notice that all of the examples so far have only used bytes.
-To work with strings, :class:`TempDirectory` provides explicit parameters
+To work with strings, :class:`TempDir` provides explicit parameters
 for providing the character set to use for decoding and encoding.
 Using these as example, which all contain the British Pound symbol:
 
@@ -521,9 +475,9 @@ True
 If you're always using a common character encoding, you can instead
 specify it to the constructor:
 
->>> tempdir = TempDirectory(encoding='utf-8')
+>>> tempdir = TempDir(encoding='utf-8')
 >>> tempdir.write('more-currencies.txt', some_text)
-'...'
+PosixPath('...')
 
 >>> Path(path).read_bytes().decode('utf-8') == some_text
 True
@@ -536,23 +490,23 @@ Working with an existing sandbox
 
 Some testing infrastructure already provides a sandbox temporary
 directory, however that infrastructure might not provide the same
-level of functionality that :class:`~testfixtures.TempDirectory`
+level of functionality that :class:`~testfixtures.TempDir`
 provides.
 
 For this reason, it is possible to wrap an existing directory such as
-the following with a :class:`~testfixtures.TempDirectory`:
+the following with a :class:`~testfixtures.TempDir`:
 
 >>> from tempfile import mkdtemp
 >>> thedir = mkdtemp()
 
 When working with the context manager, this is done as follows:
 
->>> with TempDirectory(path=thedir) as d:
+>>> with TempDir(path=thedir) as d:
 ...   d.write('file', b'data')
 ...   d.makedir('directory')
 ...   sorted(os.listdir(thedir))
-'...'
-'...'
+PosixPath('...')
+PosixPath('...')
 ['directory', 'file']
 
 .. check thedir still exists and reset
@@ -563,27 +517,8 @@ When working with the context manager, this is done as follows:
   >>> rmtree(thedir)
   >>> thedir = mkdtemp()
 
-For the decorator, usage would be as follows:
-
-.. code-block:: python
-
-  from testfixtures import tempdir, compare
-  
-  @tempdir(path=thedir)
-  def test_function(d):
-      d.write('file', b'data')
-      d.makedir('directory')
-      assert sorted(os.listdir(thedir)) == ['directory', 'file']
-
-.. check the above raises no assertion error and that thedir still
-   exits:
-
-  >>> test_function()
-  >>> os.path.exists(thedir)
-  True
-
 It is important to note that if an existing directory is used, it will
-not be deleted by either the decorator or the context manager. You
+not be deleted by the context manager. You
 will need to make sure that the directory is cleaned up as required.
 
 .. check the above statement is true:
@@ -606,51 +541,13 @@ If you'd like the current working directory to be set to the temporary directory
 duration of a managed context, you can do it like this:
 
 >>> import os
->>> with TempDirectory(cwd=True) as d:
+>>> with TempDir(cwd=True) as d:
 ...     os.getcwd() == str(d.as_path().resolve())
 True
 
-If you'd like the current working directory to be set to the temporary directory for the
-duration of a decorated function or context, you can do it like this:
-
-.. code-block:: python
-
-  from testfixtures import tempdir
-
-  @tempdir(cwd=True)
-  def test_function(d):
-      assert os.getcwd() == str(d.as_path().resolve())
-
-.. check the above raises no assertion error and that thedir still
-   exits:
-
-  >>> test_function()
-
-However, it's better practice to only change the current working directory for the smalled
+It's better practice to only change the current working directory for the smallest
 context possible, and in this case it's better to use the :func:`~contextlib.chdir` context manager
-from the standard library, available on Python 3.11 or newer:
-
-
-.. invisible-code-block: python
-
-.. code-block:: python
-
-  from contextlib import chdir
-  from testfixtures import tempdir
-
-  @tempdir()
-  def test_function(d):
-      assert os.getcwd() != str(d.as_path().resolve())
-      ...
-      with chdir(d.path):
-          assert os.getcwd() == str(d.as_path().resolve())
-      ...
-      assert os.getcwd() != str(d.as_path().resolve())
-
-.. check the above raises no assertion error and that thedir still
-   exits:
-
-  >>> test_function()
+from the standard library, available on Python 3.11 or newer.
 
 .. _sybil:
 
@@ -669,7 +566,7 @@ doctests are that it is possible to plug in different types of parser,
 not just the "python console session" one, and so it is possible to
 test different types of examples. Testfixtures provides one these
 parsers to aid working with
-:class:`~testfixtures.TempDirectory` objects. This parser makes use of
+:class:`~testfixtures.TempDir` objects. This parser makes use of
 `topic`__ directives with specific classes set to perform
 different actions. 
 
@@ -687,7 +584,7 @@ Setting up
 ~~~~~~~~~~
 
 To use the Sybil parser, you need to make sure a
-:class:`TempDirectory` instance is available under a particular name
+:class:`TempDir` instance is available under a particular name
 in the sybil test namespace. This name is then passed to the parser's
 constructor and the parser is passed to the
 :class:`~sybil.Sybil` constructor.
@@ -738,7 +635,7 @@ While :class:`~testfixtures.sybil.FileParser` itself does not offer any
 facility for checking the contents of directories, Sybil's
 :class:`~sybil.parsers.rest.CaptureParser`
 can be used in conjunction with the existing features of a
-:class:`TempDirectory` to illustrate the contents expected
+:class:`TempDir` to illustrate the contents expected
 in a directory seamlessly within the documentation.
 
 Here's a complete reStructuredText document that illustrates this
@@ -749,7 +646,7 @@ technique:
 
 .. clean up all tempdirs:
 
-  >>> TempDirectory.cleanup_all()
+  >>> TempDir.cleanup_all()
 
 A note on line endings
 ~~~~~~~~~~~~~~~~~~~~~~

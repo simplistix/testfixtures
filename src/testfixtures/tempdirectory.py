@@ -1,11 +1,12 @@
 import atexit
 import os
 import warnings
+from abc import ABC, abstractmethod, abstractproperty
 from pathlib import Path
 from re import compile
 from tempfile import mkdtemp
 from types import TracebackType
-from typing import Sequence, Callable, TypeAlias, Self
+from typing import Sequence, Callable, TypeAlias, Self, TypeVar, Generic, cast, ClassVar
 
 from testfixtures.comparison import compare
 from testfixtures.utils import wrap
@@ -13,8 +14,12 @@ from .rmtree import rmtree
 
 PathStrings: TypeAlias = str | Sequence[str]
 
+P = TypeVar('P', bound=str | Path)
 
-class TempDirectory:
+# When Python 3.13+ becomes the minimum version, we can use PEP 696 (type parameter defaults)
+# to collapse TempDirectory and TempDir into a single class with backward-compatible
+# aliases. Use PEP 695 syntax: class TempDir[P: str | Path = str]: ...
+class _TempDir(ABC, Generic[P]):
     """
     A class representing a temporary directory on disk.
 
@@ -39,25 +44,30 @@ class TempDirectory:
                 when used as a decorator or context manager.
     """
 
-    instances = set['TempDirectory']()
+    instances: ClassVar[set['_TempDir']] = set()
     atexit_setup = False
+    _path: str | None = None
 
-    #: The absolute path of the :class:`TempDirectory` on disk
-    path = None
+    @property
+    @abstractmethod
+    def path(self) -> P:
+        """
+        The absolute path where data will be stored
+        """
 
     def __init__(
-            self,
-            path: str | Path | None = None,
-            *,
-            ignore: Sequence[str] = (),
-            create: bool | None = None,
-            encoding: str | None = None,
-            cwd: bool = False,
+        self,
+        path: str | Path | None = None,
+        *,
+        ignore: Sequence[str] = (),
+        create: bool | None = None,
+        encoding: str | None = None,
+        cwd: bool = False,
     ):
         self.ignore = []
         for regex in ignore:
             self.ignore.append(compile(regex))
-        self.path = str(path) if path else None
+        self._path = str(path) if path else None
         self.encoding = encoding
         self.cwd = cwd
         self.original_cwd: str | None = None
@@ -70,24 +80,24 @@ class TempDirectory:
         if cls.instances:
             warnings.warn(
                 'TempDirectory instances not cleaned up by shutdown:\n'
-                '%s' % ('\n'.join(i.path for i in cls.instances if i.path))
+                '%s' % ('\n'.join(i._path for i in cls.instances if i._path))
                 )
 
-    def create(self) -> 'TempDirectory':
+    def create(self) -> Self:
         """
         Create a temporary directory for this instance to use if one
         has not already been created.
         """
-        if self.path:
+        if self._path:
             return self
-        self.path = mkdtemp()
+        self._path = mkdtemp()
         self.instances.add(self)
         if not self.__class__.atexit_setup:
             atexit.register(self.atexit)
             self.__class__.atexit_setup = True
         if self.cwd:
             self.original_cwd = os.getcwd()
-            os.chdir(self.path)
+            os.chdir(self._path)
         return self
 
     def cleanup(self) -> None:
@@ -99,9 +109,9 @@ class TempDirectory:
         if self.cwd and self.original_cwd:
             os.chdir(self.original_cwd)
             self.original_cwd = None
-        if self.path and os.path.exists(self.path) and not self.dont_remove:
-            rmtree(self.path)
-            del self.path
+        if self._path and os.path.exists(self._path) and not self.dont_remove:
+            rmtree(self._path)
+            del self._path
         if self in self.instances:
             self.instances.remove(self)
 
@@ -231,23 +241,29 @@ class TempDirectory:
                 recursive=False)
 
     def _join(self, parts: str | Sequence[str] | None) -> str:
-        if self.path is None:
+        if self._path is None:
             raise RuntimeError('Instantiated with create=False and .create() not called')
         # make things platform independent
         if parts is None:
-            return self.path
+            return self._path
         if isinstance(parts, str):
             parts = parts.split('/')
         relative = os.sep.join(parts).rstrip(os.sep)
         if relative.startswith(os.sep):
-            if relative.startswith(self.path):
+            if relative.startswith(self._path):
                 return relative
             raise ValueError(
                 'Attempt to read or write outside the temporary Directory'
                 )
-        return os.path.join(self.path, relative)
+        return os.path.join(self._path, relative)
 
-    def makedir(self, dirpath: PathStrings) -> str:
+    def _makedir(self, dirpath: PathStrings) -> str:
+        thepath = self._join(dirpath)
+        os.makedirs(thepath)
+        return thepath
+
+    @abstractmethod
+    def makedir(self, dirpath: PathStrings) -> P:
         """
         Make an empty directory at the specified path within the
         temporary directory. Any intermediate subdirectories that do
@@ -261,11 +277,31 @@ class TempDirectory:
 
         :returns: The absolute path of the created directory.
         """
-        thepath = self._join(dirpath)
-        os.makedirs(thepath)
+
+    def _write(
+        self, filepath: PathStrings, data: str | bytes, encoding: str | None = None
+    ) -> str:
+        filepath_parts = filepath.split('/') if isinstance(filepath, str) else filepath
+        if len(filepath_parts) > 1:
+            dirpath = self._join(filepath_parts[:-1])
+            if not os.path.exists(dirpath):
+                os.makedirs(dirpath)
+        thepath = self._join(filepath_parts)
+        encoding = encoding or self.encoding
+        if encoding is not None:
+            if isinstance(data, bytes):
+                raise TypeError('Cannot specify encoding when data is bytes')
+            data = data.encode(encoding)
+        elif isinstance(data, str):
+            data = data.encode()
+        with open(thepath, 'wb') as f:
+            f.write(data)
         return thepath
 
-    def write(self, filepath: PathStrings, data: str | bytes, encoding: str | None = None) -> str:
+    @abstractmethod
+    def write(
+        self, filepath: PathStrings, data: str | bytes, encoding: str | None = None
+    ) -> P:
         """
         Write the supplied data to a file at the specified path within
         the temporary directory. Any subdirectories specified that do
@@ -291,22 +327,6 @@ class TempDirectory:
 
         :returns: The absolute path of the file written.
         """
-        filepath_parts = filepath.split('/') if isinstance(filepath, str) else filepath
-        if len(filepath_parts) > 1:
-            dirpath = self._join(filepath_parts[:-1])
-            if not os.path.exists(dirpath):
-                os.makedirs(dirpath)
-        thepath = self._join(filepath_parts)
-        encoding = encoding or self.encoding
-        if encoding is not None:
-            if isinstance(data, bytes):
-                raise TypeError('Cannot specify encoding when data is bytes')
-            data = data.encode(encoding)
-        elif isinstance(data, str):
-            data = data.encode()
-        with open(thepath, 'wb') as f:
-            f.write(data)
-        return thepath
 
     def as_string(self, path: str | Sequence[str] | None = None) -> str:
         """
@@ -386,6 +406,37 @@ class TempDirectory:
         self.cleanup()
 
 
+class TempDirectory(_TempDir[str]):
+
+    @property
+    def path(self) -> str:
+        return self._path  # type: ignore[return-value]
+
+    def makedir(self, dirpath: PathStrings) -> str:
+        return self._makedir(dirpath)
+
+    def write(self, filepath: PathStrings, data: str | bytes, encoding: str | None = None) -> str:
+        return self._write(filepath, data, encoding)
+
+
+TempDirectory.__doc__ = (
+      " .. deprecated:: 11\n    Use :class:`TempDir` instead.\n\n" + (_TempDir.__doc__ or "")
+  )
+
+
+class TempDir(_TempDir[Path]):
+
+    @property
+    def path(self) -> Path:
+        return Path(self._path)  # type: ignore[arg-type]
+
+    def makedir(self, dirpath: PathStrings) -> Path:
+        return Path(self._makedir(dirpath))
+
+    def write(self, filepath: PathStrings, data: str | bytes, encoding: str | None = None) -> Path:
+        return Path(self._write(filepath, data, encoding))
+
+
 def tempdir(
         path: str | Path | None = None,
         *,
@@ -394,6 +445,9 @@ def tempdir(
         cwd: bool = False,
 ) -> Callable[[Callable], Callable]:
     """
+    .. deprecated:: 11
+       Use :class:`TempDir` as a context manager, or create a `pytest fixture <https://docs.pytest.org/en/stable/how-to/fixtures.html>`_.
+
     A decorator for making a :class:`TempDirectory` available for the
     duration of a test function.
 
