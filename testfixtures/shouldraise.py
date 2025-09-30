@@ -1,12 +1,10 @@
 from contextlib import contextmanager
 from functools import wraps
 from types import TracebackType
-from typing import Callable, TypeAlias, Iterator, Self, ParamSpec, TypeVar
+from typing import Callable, TypeAlias, Iterator, Self, ParamSpec, TypeVar, Generic
 
 from testfixtures import diff, compare
 from .comparison import split_repr
-
-ExceptionOrType: TypeAlias = BaseException | type[BaseException]
 
 
 param_docs = """
@@ -45,7 +43,10 @@ class NoException(AssertionError):
         super().__init__('No exception raised!')
 
 
-class ShouldRaise:
+E = TypeVar("E", bound=BaseException)
+
+
+class ShouldRaise(Generic[E]):
     __doc__ = """
     This context manager is used to assert that an exception is raised
     within the context it is managing.
@@ -53,9 +54,9 @@ class ShouldRaise:
 
     #: The exception captured by the context manager.
     #: Can be used to inspect specific attributes of the exception.
-    raised: BaseException = NoException()
+    raised: E = NoException()  # type: ignore[assignment]
 
-    def __init__(self, exception: ExceptionOrType | None = None, unless: bool | None = False):
+    def __init__(self, exception: E | type[E] | None = None, unless: bool | None = False):
         self.exception = exception
         self.expected = not unless
 
@@ -69,7 +70,7 @@ class ShouldRaise:
             traceback: TracebackType | None,
     ) -> bool:
         __tracebackhide__ = True
-        self.raised = actual or NoException()
+        self.raised = actual or NoException()  # type: ignore[assignment]
         if self.expected:
             if self.exception:
                 actual_: type[BaseException] | BaseException | None = actual
@@ -96,7 +97,7 @@ P = ParamSpec("P")
 T = TypeVar("T")
 
 
-class should_raise:
+class should_raise(Generic[E]):
     __doc__ = """
     A decorator to assert that the decorated function will raised
     an exception. An exception class or exception instance may be
@@ -104,7 +105,7 @@ class should_raise:
     raised.
     """ + param_docs
 
-    def __init__(self, exception: ExceptionOrType | None = None, unless: bool | None = None):
+    def __init__(self, exception: E | type[E] | None = None, unless: bool | None = None):
         self.exception = exception
         self.unless = unless
 
