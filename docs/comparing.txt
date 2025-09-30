@@ -799,6 +799,53 @@ attributes in Comparison but not actual:
 'partial': 3
 </C:...SomeClass> != <...SomeClass...>
 
+Type-safe partial comparisons
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When working with type checkers like `mypy`__, using :class:`~testfixtures.Comparison`
+objects can cause type errors because the :class:`~testfixtures.Comparison` object
+doesn't match the type you're comparing against.
+
+__ https://mypy-lang.org/
+
+For example, this code would cause type errors:
+
+.. invisible-code-block: python
+
+  from dataclasses import dataclass
+  from testfixtures import Comparison, compare, like
+
+.. code-block:: python
+
+  @dataclass
+  class SampleClass:
+      x: int
+      y: str
+
+  # This causes a type error:
+  expected: list[SampleClass] = [Comparison(SampleClass, x=1, partial=True)]
+
+To solve this, testfixtures provides the :func:`~testfixtures.comparison.like` helper function.
+It creates a partial :class:`~testfixtures.Comparison` but is typed to return the type you're
+comparing against, making type checkers happy:
+
+>>> expected: list[SampleClass] = [like(SampleClass, x=1)]
+>>> compare(expected, actual=[SampleClass(1, '2')])
+
+These two approaches are equivalent, but :func:`~testfixtures.comparison.like` is type-safe:
+
+.. code-block:: python
+
+  Comparison(SampleClass, x=1, partial=True)
+  like(SampleClass, x=1)
+
+You can use :func:`~testfixtures.comparison.like` anywhere you would use a
+:class:`~testfixtures.Comparison`, including in assertions:
+
+>>> expected: SampleClass = like(SampleClass)
+>>> assert expected == SampleClass(1, '2')
+>>> assert expected == SampleClass(3, '4')
+
 Gotchas
 ~~~~~~~
 

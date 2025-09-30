@@ -14,7 +14,7 @@ not_there: singleton = singleton('not_there')
 
 from testfixtures.comparison import (
     Comparison, StringComparison, RoundComparison, compare, diff, RangeComparison,
-    SequenceComparison, Subset, Permutation, MappingComparison
+    SequenceComparison, Subset, Permutation, MappingComparison, like
 )
 from testfixtures.datetime import mock_datetime, mock_date, mock_time
 from testfixtures.logcapture import LogCapture, log_capture
@@ -63,6 +63,7 @@ __all__ = [
     'compare',
     'diff',
     'generator',
+    'like',
     'log_capture',
     'mock_date',
     'mock_datetime',

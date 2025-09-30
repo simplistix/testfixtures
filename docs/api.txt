@@ -11,6 +11,8 @@ Comparisons
 
 .. autoclass:: Comparison
 
+.. autofunction:: testfixtures.comparison.like
+
 .. autoclass:: MappingComparison
    :members:
 
