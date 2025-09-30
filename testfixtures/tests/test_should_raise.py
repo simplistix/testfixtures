@@ -2,7 +2,7 @@ from textwrap import dedent
 
 import pytest
 
-from testfixtures import Comparison as C, ShouldRaise, should_raise
+from testfixtures import Comparison as C, ShouldRaise, should_raise, compare
 from unittest import TestCase
 
 from ..shouldraise import ShouldAssert, NoException
@@ -168,7 +168,9 @@ class TestShouldRaise(TestCase):
         should_raise(TypeError)(Test)()  # type: ignore[call-arg]
 
     def test_raised(self) -> None:
-        with ShouldRaise() as s:
+        # If you're strict on typing, then if you want this pattern, you'll
+        # need to specify the type, so might as well use ShouldRaise(ValueError)!
+        with ShouldRaise[ValueError]() as s:
             raise ValueError('wrong value supplied')
         self.assertEqual(s.raised, C(ValueError('wrong value supplied')))
 
@@ -216,7 +218,9 @@ class TestShouldRaise(TestCase):
 
     def test_with_getting_raised_exception(self) -> None:
         e = ValueError('foo bar')
-        with ShouldRaise() as s:
+        # If you're not strictly type checking, then you don't need to specify a type.
+        # Using type ignore here just to check this works:
+        with ShouldRaise() as s:  # type: ignore[var-annotated]
             raise e
         assert e is s.raised
 
@@ -255,6 +259,10 @@ class TestShouldRaise(TestCase):
                 pass
 
     def test_unless_true_okay(self) -> None:
+        # I don't know why anyone would do this, but it's what mypy recommends:
+        s: ShouldRaise[NoException]
+        # If you're strict typing, and this is intended rather than a test failre,
+        # then you should probably do `with ShouldRaise[NoException](unless=True):` instead.
         with ShouldRaise(unless=True) as s:
             pass
         # This documents the value of .raised in the rare care where it isn't
@@ -348,3 +356,13 @@ class TestShouldRaise(TestCase):
         with ShouldRaise(ValueError) as s:
             raise exception
         assert s.raised.__notes__ == ['bar']
+
+    def test_typing_on_attributes(self) -> None:
+        class MyException(Exception):
+            def __init__(self, x: int) -> None:
+                self.x = x
+
+        with ShouldRaise(MyException(1)) as r:
+            raise MyException(1)
+
+        compare(r.raised.x, expected= 1)
