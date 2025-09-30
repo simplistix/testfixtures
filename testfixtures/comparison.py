@@ -1278,3 +1278,19 @@ class RangeComparison:
 
     def __repr__(self) -> str:
         return '<Range: [%s, %s]>' % (self.lower_bound, self.upper_bound)
+
+T = TypeVar('T')
+
+def like(t: type[T], **attributes: Any) -> T:
+    """
+    Create a type-safe partial comparison for use in strictly typed code.
+
+    This is a convenience function that creates a :class:`Comparison` with
+    ``partial=True`` but is typed to return the type being compared, making it
+    compatible with strict type checkers like mypy.
+
+    :param t: The type to compare against.
+    :param attributes: Keyword arguments specifying the attributes to check.
+    :return: A :class:`Comparison` object typed as the input type.
+    """
+    return Comparison(t, attribute_dict=attributes, partial=True)  # type: ignore[return-value]
