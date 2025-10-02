@@ -108,20 +108,17 @@ Mocking
 
 .. autoclass:: testfixtures.datetime.MockDate
     :members:
-    :member-order: bysource
 
 .. autofunction:: mock_datetime
 
 .. autoclass:: testfixtures.datetime.MockDateTime
     :members:
-    :member-order: bysource
 
 .. autofunction:: mock_time
 
 .. autoclass:: testfixtures.datetime.MockTime
     :members:
     :special-members: __new__
-    :member-order: bysource
 
 testfixtures.mock
 ~~~~~~~~~~~~~~~~~

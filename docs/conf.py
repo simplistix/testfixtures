@@ -31,6 +31,8 @@ htmlhelp_basename = project+'doc'
 
 exclude_patterns = ['**/furo.js.LICENSE.txt']
 
+autodoc_member_order = 'bysource'
+
 nitpicky = True
 nitpick_ignore = [
     ('py:class', 'P'),  # param spec
