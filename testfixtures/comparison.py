@@ -10,8 +10,16 @@ from pathlib import Path
 from pprint import pformat
 from types import GeneratorType
 from typing import (
-    Any, Sequence, TypeVar, List, Mapping, Pattern,
-    Callable, Iterable, cast
+    Any,
+    Sequence,
+    TypeVar,
+    List,
+    Mapping,
+    Pattern,
+    Callable,
+    Iterable,
+    cast,
+    overload,
 )
 from unittest.mock import call as unittest_mock_call
 
@@ -1294,3 +1302,40 @@ def like(t: type[T], **attributes: Any) -> T:
     :return: A :class:`Comparison` object typed as the input type.
     """
     return Comparison(t, attribute_dict=attributes, partial=True)  # type: ignore[return-value]
+
+
+S = TypeVar("S", bound=Sequence[Any])
+S_ = TypeVar("S_", bound=Sequence[Any])
+
+
+@overload
+def sequence(
+    partial: bool = False,
+    ordered: bool = True,
+    recursive: bool = True,
+) -> Callable[[S], S]: ...
+
+
+@overload
+def sequence(
+    partial: bool = False,
+    ordered: bool = True,
+    recursive: bool = True,
+    *,
+    returns: type[S_],
+) -> Callable[[S], S_]: ...
+
+
+def sequence(
+    partial: bool = False,
+    ordered: bool = True,
+    recursive: bool = True,
+    *,
+    returns: type[S_] | None = None,
+) -> Callable[[S], S | S_]:
+    def maker(items: S) -> S | S_:
+        return SequenceComparison(  # type: ignore[return-value]
+            *items, partial=partial, ordered=ordered, recursive=recursive
+        )
+
+    return maker
