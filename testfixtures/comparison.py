@@ -1339,3 +1339,27 @@ def sequence(
         )
 
     return maker
+
+
+@overload
+def contains(
+    items: S,
+) -> S: ...
+
+
+@overload
+def contains(
+    items: S,
+    *,
+    returns: type[S_],
+) -> S_: ...
+
+
+def contains(
+    items: S,
+    *,
+    returns: type[S_] | None = None,
+) -> S | S_:
+    return SequenceComparison(  # type: ignore[return-value]
+        *items, ordered=False, partial=True, recursive=True
+    )
