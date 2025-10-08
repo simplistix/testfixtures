@@ -1,9 +1,8 @@
 # Tests that ensure compare and Comparison work correctly in strictly type checked environments
 from dataclasses import dataclass
-from typing import Sequence
 
 from testfixtures import compare, Comparison
-from testfixtures.comparison import like, sequence
+from testfixtures.comparison import like, sequence, contains
 
 
 @dataclass
@@ -102,5 +101,20 @@ class TestSequence:
                         SampleClass(2, 'x'),
                     ]
                 )
+            ),
+        )
+
+
+class TestContains:
+    def test_it(self) -> None:
+        actual = ListCollection([SampleClass(1, "2"), SampleClass(3, "4")])
+        compare(actual, expected=ListCollection(contains([SampleClass(1, "2")])))
+
+    def test_type_override(self) -> None:
+        actual = TupleCollection((SampleClass(1, "2"), SampleClass(3, "4")))
+        compare(
+            actual,
+            expected=TupleCollection(
+                contains([SampleClass(1, "2")], returns=tuple[SampleClass, ...])
             ),
         )
