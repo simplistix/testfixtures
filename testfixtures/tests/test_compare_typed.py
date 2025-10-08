@@ -2,7 +2,7 @@
 from dataclasses import dataclass
 
 from testfixtures import compare, Comparison
-from testfixtures.comparison import like, sequence, contains
+from testfixtures.comparison import like, sequence, contains, unordered
 
 
 @dataclass
@@ -116,5 +116,28 @@ class TestContains:
             actual,
             expected=TupleCollection(
                 contains([SampleClass(1, "2")], returns=tuple[SampleClass, ...])
+            ),
+        )
+
+
+class TestUnordered:
+    def test_it(self) -> None:
+        actual = ListCollection([SampleClass(2, "x"), SampleClass(1, "x")])
+        compare(
+            actual,
+            expected=ListCollection(
+                unordered([SampleClass(1, "x"), SampleClass(2, "x")])
+            ),
+        )
+
+    def test_type_override(self) -> None:
+        actual = TupleCollection((SampleClass(2, "x"), SampleClass(1, "x")))
+        compare(
+            actual,
+            expected=TupleCollection(
+                unordered(
+                    [SampleClass(1, "x"), SampleClass(2, "x")],
+                    returns=tuple[SampleClass, ...],
+                )
             ),
         )

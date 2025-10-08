@@ -1363,3 +1363,27 @@ def contains(
     return SequenceComparison(  # type: ignore[return-value]
         *items, ordered=False, partial=True, recursive=True
     )
+
+
+@overload
+def unordered(
+    items: S,
+) -> S: ...
+
+
+@overload
+def unordered(
+    items: S,
+    *,
+    returns: type[S_],
+) -> S_: ...
+
+
+def unordered(
+    items: S,
+    *,
+    returns: type[S_] | None = None,
+) -> S | S_:
+    return SequenceComparison(  # type: ignore[return-value]
+        *items, ordered=False, partial=False, recursive=True
+    )
