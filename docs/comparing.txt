@@ -799,53 +799,6 @@ attributes in Comparison but not actual:
 'partial': 3
 </C:...SomeClass> != <...SomeClass...>
 
-Type-safe partial comparisons
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-When working with type checkers like `mypy`__, using :class:`~testfixtures.Comparison`
-objects can cause type errors because the :class:`~testfixtures.Comparison` object
-doesn't match the type you're comparing against.
-
-__ https://mypy-lang.org/
-
-For example, this code would cause type errors:
-
-.. invisible-code-block: python
-
-  from dataclasses import dataclass
-  from testfixtures import Comparison, compare, like
-
-.. code-block:: python
-
-  @dataclass
-  class SampleClass:
-      x: int
-      y: str
-
-  # This causes a type error:
-  expected: list[SampleClass] = [Comparison(SampleClass, x=1, partial=True)]
-
-To solve this, testfixtures provides the :func:`~testfixtures.comparison.like` helper function.
-It creates a partial :class:`~testfixtures.Comparison` but is typed to return the type you're
-comparing against, making type checkers happy:
-
->>> expected: list[SampleClass] = [like(SampleClass, x=1)]
->>> compare(expected, actual=[SampleClass(1, '2')])
-
-These two approaches are equivalent, but :func:`~testfixtures.comparison.like` is type-safe:
-
-.. code-block:: python
-
-  Comparison(SampleClass, x=1, partial=True)
-  like(SampleClass, x=1)
-
-You can use :func:`~testfixtures.comparison.like` anywhere you would use a
-:class:`~testfixtures.Comparison`, including in assertions:
-
->>> expected: SampleClass = like(SampleClass)
->>> assert expected == SampleClass(1, '2')
->>> assert expected == SampleClass(3, '4')
-
 Gotchas
 ~~~~~~~
 
@@ -1122,6 +1075,132 @@ If you need to specify flags, this can be done in one of three ways:
   .. code-block:: python
 
     compare(expected=S("(?s:.*bar)"), actual="foo\nbar")
+
+Type-safe comparisons
+---------------------
+
+When working with type checkers like `mypy`__, helpers such as :class:`Comparison` and
+:class:`SequenceComparison` can cause type errors because they don't match the types you're
+comparing against. Several helper functions are provided that create comparisons while keeping type
+checkers happy.
+
+__ https://mypy-lang.org/
+
+The examples below use these dataclasses:
+
+.. code-block:: python
+
+  from dataclasses import dataclass
+
+  @dataclass
+  class SampleClass:
+      x: int
+      y: str
+
+  @dataclass
+  class Container:
+      items: list[SampleClass]
+
+  @dataclass
+  class TupleContainer:
+      items: tuple[SampleClass, ...]
+
+Partial object comparisons with ``like()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :func:`~testfixtures.comparison.like` function creates partial object comparisons
+that are typed to match the class being compared:
+
+>>> from testfixtures import compare, like
+>>> expected: list[SampleClass] = [like(SampleClass, x=1)]
+>>> compare(expected, actual=[SampleClass(1, '2')])
+
+You can use :func:`~testfixtures.comparison.like` anywhere you need a partial comparison,
+including in assertions:
+
+>>> expected: SampleClass = like(SampleClass)
+>>> assert expected == SampleClass(1, '2')
+>>> assert expected == SampleClass(3, '4')
+
+Configurable sequence comparisons with ``sequence()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :func:`~testfixtures.comparison.sequence` function provides flexible sequence
+comparisons with control over ordering and partial matching:
+
+>>> from testfixtures import sequence
+>>> actual = Container([SampleClass(1, 'x'), SampleClass(2, 'x'), SampleClass(3, 'x')])
+>>> compare(
+...     actual,
+...     expected=Container(
+...         sequence(partial=True, ordered=False)([
+...             SampleClass(3, 'x'),
+...             SampleClass(2, 'x'),
+...         ])
+...     ),
+... )
+
+When comparing sequences of different types, use the ``returns`` parameter:
+
+>>> actual = TupleContainer((SampleClass(1, 'x'), SampleClass(2, 'x')))
+>>> compare(
+...     actual,
+...     expected=TupleContainer(
+...         sequence(returns=tuple[SampleClass, ...])([
+...             SampleClass(1, 'x'),
+...             SampleClass(2, 'x'),
+...         ])
+...     ),
+... )
+
+Checking for item presence with ``contains()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :func:`~testfixtures.comparison.contains` function checks that specified items
+are present, regardless of order or additional items:
+
+>>> from testfixtures import contains
+>>> actual = Container([SampleClass(1, '2'), SampleClass(3, '4'), SampleClass(5, '6')])
+>>> compare(
+...     actual,
+...     expected=Container(contains([SampleClass(1, '2'), SampleClass(3, '4')]))
+... )
+
+Use the ``returns`` parameter when needed for type compatibility:
+
+>>> actual = TupleContainer((SampleClass(1, '2'), SampleClass(3, '4'), SampleClass(5, '6')))
+>>> compare(
+...     actual,
+...     expected=TupleContainer(
+...         contains([SampleClass(1, '2')], returns=tuple[SampleClass, ...])
+...     ),
+... )
+
+Order-independent full matches with ``unordered()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :func:`~testfixtures.comparison.unordered` function checks that sequences contain
+exactly the same items, but in any order:
+
+>>> from testfixtures import unordered
+>>> actual = Container([SampleClass(2, 'x'), SampleClass(1, 'x')])
+>>> compare(
+...     actual,
+...     expected=Container(
+...         unordered([SampleClass(1, 'x'), SampleClass(2, 'x')])
+...     ),
+... )
+
+Use the ``returns`` parameter for type compatibility:
+
+>>> actual = TupleContainer((SampleClass(2, 'x'), SampleClass(1, 'x')))
+>>> compare(
+...     actual,
+...     expected=TupleContainer(
+...         unordered([SampleClass(1, 'x'), SampleClass(2, 'x')], returns=tuple[SampleClass, ...])
+...     ),
+... )
+
 
 Differentiating chunks of text
 ------------------------------
