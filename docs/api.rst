@@ -166,13 +166,20 @@ Resources
 
 .. autofunction:: tempdir
 
-.. autofunction:: generator
+Serialization Formats
+~~~~~~~~~~~~~~~~~~~~~
 
+.. automodule:: testfixtures.formats
+  :members:
 
 Helpers and Constants
 ---------------------
 
+.. currentmodule:: testfixtures
+
 .. autofunction:: diff
+
+.. autofunction:: generator
 
 .. autofunction:: wrap
 
