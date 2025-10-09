@@ -1333,6 +1333,23 @@ def sequence(
     *,
     returns: type[S_] | None = None,
 ) -> Callable[[S], S | S_]:
+    """
+    Create a type-safe sequence comparison with configurable partial matching
+    and ordering requirements.
+
+    This function returns a callable that wraps a sequence in a comparison object,
+    making it compatible with strict type checkers.
+
+    :param partial: If ``True``, only items in the expected sequence need to be present
+                    in the actual sequence. Defaults to ``False``.
+    :param ordered: If ``True``, items must appear in the same order. Defaults to ``True``.
+    :param recursive: If ``True``, provide detailed recursive comparison when differences
+                      are found. Defaults to ``True``.
+    :param returns: Optional type hint for the return type, used to satisfy type checkers
+                    when the comparison needs to appear as a different sequence type.
+    :return: A callable that takes a sequence and returns a comparison object typed
+             as a sequence.
+    """
     def maker(items: S) -> S | S_:
         return SequenceComparison(  # type: ignore[return-value]
             *items, partial=partial, ordered=ordered, recursive=recursive
@@ -1360,6 +1377,18 @@ def contains(
     *,
     returns: type[S_] | None = None,
 ) -> S | S_:
+    """
+    Create a type-safe partial sequence comparison that ignores order.
+
+    Checks that the specified items are present in the actual sequence, regardless
+    of their order or what other items are present. This is useful when you only
+    care that certain elements exist in a collection.
+
+    :param items: The sequence of items that must be present.
+    :param returns: Optional type hint for the return type, used to satisfy type checkers
+                    when the comparison needs to appear as a different sequence type.
+    :return: A comparison object typed as a sequence.
+    """
     return SequenceComparison(  # type: ignore[return-value]
         *items, ordered=False, partial=True, recursive=True
     )
@@ -1384,6 +1413,19 @@ def unordered(
     *,
     returns: type[S_] | None = None,
 ) -> S | S_:
+    """
+    Create a type-safe sequence comparison that ignores order but requires all
+    items to match.
+
+    Checks that the actual sequence contains exactly the same items as specified,
+    but in any order. This is useful when order doesn't matter but you want to
+    ensure no extra or missing items.
+
+    :param items: The sequence of items that must match exactly.
+    :param returns: Optional type hint for the return type, used to satisfy type checkers
+                    when the comparison needs to appear as a different sequence type.
+    :return: A comparison object typed as a sequence.
+    """
     return SequenceComparison(  # type: ignore[return-value]
         *items, ordered=False, partial=False, recursive=True
     )

@@ -28,6 +28,12 @@ Comparisons
 .. autoclass:: SequenceComparison
    :members:
 
+.. autofunction:: testfixtures.comparison.sequence
+
+.. autofunction:: testfixtures.comparison.contains
+
+.. autofunction:: testfixtures.comparison.unordered
+
 .. autoclass:: Subset
    :members:
 

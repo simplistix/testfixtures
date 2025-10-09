@@ -48,6 +48,8 @@ nitpick_ignore = [
     ('py:class', 'django.db.models.base.Model'),  # not documented upstream
     ('py:class', 'module'),  # ModuleType not documented.
     ('py:class', 'tempfile.TemporaryFile'),  # not documented as a class so type annotation broken
+    ('py:class', 'testfixtures.comparison.S'),  # type var
+    ('py:class', 'testfixtures.comparison.S_'),  # type var
     ('py:class', 'testfixtures.comparison.T'),  # type var
     ('py:class', 'testfixtures.datetime.MockedCurrent'),  # internal class that shouldn't be doc'ed
     ('py:class', 'testfixtures.replace.R'),  # type var
