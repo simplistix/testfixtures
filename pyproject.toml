@@ -30,6 +30,8 @@ django = [
 sybil = ["sybil>=6.0.3"]
 mock-backport = ["mock>=4.0.3"]
 twisted = ["twisted>=22.1"]
+yaml = ["pyyaml>=6.0.3"]
+toml = ["tomlkit>=0.10.0"]
 
 [dependency-groups]
 dev = [
@@ -87,6 +89,7 @@ disable_error_code = ["no-untyped-call", "no-untyped-def"]
 module = [
     "tests.test_date",
     "tests.test_datetime",
+    "tests.test_formats",
     "tests.test_outputcapture",
     "tests.test_should_raise",
     "tests.test_time",
