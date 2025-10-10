@@ -6,9 +6,10 @@ from pathlib import Path
 from re import compile
 from tempfile import mkdtemp
 from types import TracebackType
-from typing import Sequence, Callable, TypeAlias, Self, TypeVar, Generic, cast, ClassVar
+from typing import Sequence, Callable, TypeAlias, Self, TypeVar, Generic, cast, ClassVar, Any
 
 from testfixtures.comparison import compare
+from testfixtures.formats import Format
 from testfixtures.utils import wrap
 from .rmtree import rmtree
 
@@ -279,7 +280,11 @@ class _TempDir(ABC, Generic[P]):
         """
 
     def _write(
-        self, filepath: PathStrings, data: str | bytes, encoding: str | None = None
+        self,
+        filepath: PathStrings,
+        data: str | bytes | Any,
+        encoding: str | None = None,
+        format: Format | None = None
     ) -> str:
         filepath_parts = filepath.split('/') if isinstance(filepath, str) else filepath
         if len(filepath_parts) > 1:
@@ -287,6 +292,10 @@ class _TempDir(ABC, Generic[P]):
             if not os.path.exists(dirpath):
                 os.makedirs(dirpath)
         thepath = self._join(filepath_parts)
+
+        if format is not None:
+            data = format.render(data)
+
         encoding = encoding or self.encoding
         if encoding is not None:
             if isinstance(data, bytes):
@@ -294,13 +303,18 @@ class _TempDir(ABC, Generic[P]):
             data = data.encode(encoding)
         elif isinstance(data, str):
             data = data.encode()
+
         with open(thepath, 'wb') as f:
             f.write(data)
         return thepath
 
     @abstractmethod
     def write(
-        self, filepath: PathStrings, data: str | bytes, encoding: str | None = None
+        self,
+        filepath: PathStrings,
+        data: str | bytes | Any,
+        encoding: str | None = None,
+        format: Format | None = None
     ) -> P:
         """
         Write the supplied data to a file at the specified path within
@@ -309,7 +323,7 @@ class _TempDir(ABC, Generic[P]):
 
         The file will always be written in binary mode. The data supplied must
         either be bytes or an encoding must be supplied to convert the string
-        into bytes.
+        into bytes, or a format must be supplied to serialize the data.
 
         :param filepath: The path to the file to create, which can be:
 
@@ -319,11 +333,19 @@ class _TempDir(ABC, Generic[P]):
 
         :param data:
 
-          :class:`bytes` containing the data to be written, or a :class:`str`
-          if ``encoding`` has been supplied.
+          :class:`bytes` containing the data to be written, a :class:`str`
+          if ``encoding`` has been supplied, or any Python object if ``format``
+          has been supplied.
 
-        :param encoding: The encoding to be used if data is not bytes. Should
-                         not be passed if data is already bytes.
+        :param encoding: The encoding to be used for converting strings to bytes.
+                         Should not be passed if data is already bytes.
+                         When used with ``format``, this controls the encoding of the
+                         formatted string before writing to disk.
+
+        :param format: A :class:`~testfixtures.formats.Format` instance to use for
+                       serializing the data. When used with ``encoding``, the format
+                       first renders the data to a string, then that string is encoded
+                       with the specified encoding.
 
         :returns: The absolute path of the file written.
         """
@@ -365,14 +387,20 @@ class _TempDir(ABC, Generic[P]):
     def __truediv__(self, other: str) -> Path:
         return self.as_path() / other
 
-    def read(self, filepath: PathStrings, encoding: str | None = None) -> str | bytes:
+    def read(
+        self,
+        filepath: PathStrings,
+        encoding: str | None = None,
+        format: Format | None = None
+    ) -> str | bytes | Any:
         """
         Reads the file at the specified path within the temporary
         directory.
 
         The file is always read in binary mode. Bytes will be returned unless
         an encoding is supplied, in which case a unicode string of the decoded
-        data will be returned.
+        data will be returned, or a format is supplied, in which case the
+        deserialized Python object will be returned.
 
         :param filepath: The path to the file to read, which can be:
 
@@ -380,18 +408,33 @@ class _TempDir(ABC, Generic[P]):
 
                          * A forward-slash separated string.
 
-        :param encoding: The encoding used to decode the data in the file.
+        :param encoding: The encoding used to decode bytes from the file into a string.
+                         When used with ``format``, this controls the decoding of bytes
+                         from the file before parsing.
+
+        :param format: A :class:`~testfixtures.formats.Format` instance to use for
+                       deserializing the data. When used with ``encoding``, the file bytes
+                       are first decoded with the specified encoding, then parsed by the format.
 
         :returns:
 
-          The contents of the file as a :class:`str` or :class:`bytes`, if ``encoding``
-          is not specified.
+          The contents of the file as a :class:`str`, :class:`bytes`, or deserialized
+          Python object depending on the parameters provided.
         """
         with open(self._join(filepath), 'rb') as f:
             data = f.read()
+
         encoding = encoding or self.encoding
         if encoding is not None:
-            return data.decode(encoding)
+            text = data.decode(encoding)
+            if format is None:
+                return text
+            else:
+                return format.parse(text)
+
+        if format is not None:
+            return format.parse(data.decode('utf-8'))
+
         return data
 
     def __enter__(self) -> Self:
@@ -415,8 +458,14 @@ class TempDirectory(_TempDir[str]):
     def makedir(self, dirpath: PathStrings) -> str:
         return self._makedir(dirpath)
 
-    def write(self, filepath: PathStrings, data: str | bytes, encoding: str | None = None) -> str:
-        return self._write(filepath, data, encoding)
+    def write(
+        self,
+        filepath: PathStrings,
+        data: str | bytes | Any,
+        encoding: str | None = None,
+        format: Format | None = None
+    ) -> str:
+        return self._write(filepath, data, encoding, format)
 
 
 TempDirectory.__doc__ = (
@@ -433,8 +482,14 @@ class TempDir(_TempDir[Path]):
     def makedir(self, dirpath: PathStrings) -> Path:
         return Path(self._makedir(dirpath))
 
-    def write(self, filepath: PathStrings, data: str | bytes, encoding: str | None = None) -> Path:
-        return Path(self._write(filepath, data, encoding))
+    def write(
+        self,
+        filepath: PathStrings,
+        data: str | bytes | Any,
+        encoding: str | None = None,
+        format: Format | None = None
+    ) -> Path:
+        return Path(self._write(filepath, data, encoding, format))
 
 
 def tempdir(

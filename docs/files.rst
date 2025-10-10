@@ -485,6 +485,121 @@ True
 >>> tempdir.read('more-currencies.txt') == some_text
 True
 
+Serialization Formats
+~~~~~~~~~~~~~~~~~~~~~
+
+.. new tempdir:
+
+  >>> tempdir = TempDir()
+
+:class:`TempDir` also supports working with common serialization formats
+like JSON, YAML, and TOML through the ``format`` parameter of the
+:meth:`~TempDir.read` and :meth:`~TempDir.write` methods.
+
+When a format is provided, objects are automatically serialized when writing
+and deserialized when reading:
+
+>>> from testfixtures.formats import JSON
+>>> config = {'database': {'host': 'localhost', 'port': 5432}, 'debug': True}
+>>> tempdir.write('config.json', config, format=JSON)
+PosixPath('...')
+>>> loaded = tempdir.read('config.json', format=JSON)
+>>> loaded
+{'database': {'host': 'localhost', 'port': 5432}, 'debug': True}
+
+The ``format`` and ``encoding`` parameters can be used together.
+When both are provided, the ``format`` parameter handles the serialization between
+objects and strings while the ``encoding`` parameter controls how the serialized strings are
+converted to and from bytes.
+
+When writing, the format first renders the object to a string, then that string
+is encoded with the specified encoding:
+
+>>> data = {'price': 'test'}
+>>> path = tempdir.write('data.json', data, format=JSON, encoding='latin-1')
+>>> path.read_bytes()
+b'{"price": "test"}'
+
+When reading, bytes are first decoded with the specified encoding, then parsed
+by the format:
+
+>>> loaded = tempdir.read('data.json', format=JSON, encoding='latin-1')
+>>> loaded
+{'price': 'test'}
+
+Built-in formats
+^^^^^^^^^^^^^^^^
+
+Three built-in format handlers are provided:
+
+**JSON** - Always available, uses the standard library :mod:`json` module:
+
+>>> from testfixtures.formats import JSON
+>>> tempdir.write('data.json', [1, 2, {'key': 'value'}], format=JSON)
+PosixPath('...')
+>>> tempdir.read('data.json', format=JSON)
+[1, 2, {'key': 'value'}]
+
+**YAML** - YAML format support.
+
+.. note::
+
+   To use YAML format, install with the ``testfixtures[yaml]`` extra.
+
+>>> from testfixtures.formats import YAML
+>>> tempdir.write('config.yaml', {'app': {'name': 'test'}}, format=YAML)
+PosixPath('...')
+
+**TOML** - TOML format support. Reading uses the standard library :mod:`tomllib`
+module (Python 3.11+) or ``tomlkit`` if available. Writing requires ``tomlkit``.
+
+.. note::
+
+   To use TOML format for writing, install with the ``testfixtures[toml]`` extra.
+
+>>> from testfixtures.formats import TOML
+>>> tempdir.write('config.toml', {'tool': {'name': 'example'}}, format=TOML)
+PosixPath('...')
+>>> tempdir.read('config.toml', format=TOML)
+{'tool': {'name': 'example'}}
+
+Implementing custom formats
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You can add support for additional formats by implementing the
+:class:`~testfixtures.formats.Format` protocol. The protocol requires two methods:
+
+- ``parse(data: str) -> Any`` - Deserialize a string into a Python object
+- ``render(obj: Any) -> str`` - Serialize a Python object into a string
+
+For example, here's a simple CSV format handler:
+
+.. code-block:: python
+
+    import csv
+    from io import StringIO
+    from testfixtures.formats import Format
+
+    class CSVFormat:
+        def parse(self, data: str) -> list[list[str]]:
+            reader = csv.reader(StringIO(data))
+            return list(reader)
+
+        def render(self, obj: list[list[str]]) -> str:
+            output = StringIO()
+            writer = csv.writer(output)
+            writer.writerows(obj)
+            return output.getvalue()
+
+Here's how it could be used
+
+>>> with TempDir() as d:
+...     d.write('data.csv', [['name', 'age'], ['Alice', '30']], format=CSVFormat())
+...     rows = d.read('data.csv', format=CSVFormat())
+PosixPath('...')
+>>> rows
+[['name', 'age'], ['Alice', '30']]
+
 Working with an existing sandbox
 --------------------------------
 

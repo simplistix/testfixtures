@@ -3,14 +3,6 @@ Format handlers for serialization and deserialization of common data formats.
 
 This module provides a consistent interface for working with JSON, YAML, and TOML formats.
 Each format handler implements the Format protocol with parse() and render() methods.
-
-Usage:
-    from testfixtures.formats import JSON, YAML, TOML
-
-    data = JSON.parse('{"key": "value"}')
-    output = JSON.render({"key": "value"})
-
-Note: YAML requires pyyaml to be installed, TOML writing requires tomlkit.
 """
 
 import json
@@ -32,14 +24,30 @@ except ImportError:
 
 
 class Format(Protocol):
-    """Protocol for format handlers that can parse and render data."""
+    """
+    Protocol for format handlers that can parse and render data.
+
+    This protocol defines the interface for serialization formats used with
+    :class:`~testfixtures.TempDirectory`. Implement this protocol to add support
+    for additional formats.
+    """
 
     def parse(self, data: str) -> Any:
-        """Parse a string into a Python object."""
+        """
+        Parse a string into a Python object.
+
+        :param data: The string to parse.
+        :returns: The deserialized Python object.
+        """
         ...
 
     def render(self, obj: Any) -> str:
-        """Render a Python object into a string."""
+        """
+        Render a Python object into a string.
+
+        :param obj: The Python object to serialize.
+        :returns: The serialized string.
+        """
         ...
 
 
