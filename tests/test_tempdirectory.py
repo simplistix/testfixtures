@@ -12,6 +12,7 @@ from testfixtures.mock import Mock, call
 from testfixtures import (
     TempDirectory, TempDir, Replacer, ShouldRaise, compare, OutputCapture
 )
+from testfixtures.formats import JSON
 from testfixtures.rmtree import rmtree
 
 some_bytes = '\xa3'.encode('utf-8')
@@ -378,3 +379,63 @@ class TestTempDir:
     def test_path(self, tempdir: TempDir) -> None:
         assert isinstance(tempdir.path, Path)
         assert tempdir.path.exists()
+
+
+class TestFormats(TestCase):
+
+    def test_write_format(self):
+        with TempDirectory() as d:
+            data = {'key': 'value', 'number': 42}
+            d.write('config.json', data, format=JSON)
+            with open(os.path.join(d.path, 'config.json'), 'rb') as f:
+                compare(f.read(), b'{"key": "value", "number": 42}')
+
+    def test_read_format(self):
+        with TempDirectory() as d:
+            with open(os.path.join(d.path, 'config.json'), 'wb') as f:
+                f.write(b'{"key": "value", "number": 42}')
+            result = d.read('config.json', format=JSON)
+            compare(result, expected={'key': 'value', 'number': 42})
+
+    def test_roundtrip_format(self):
+        with TempDirectory() as d:
+            original = {'nested': {'data': [1, 2, 3]}, 'flag': True}
+            d.write('data.json', original, format=JSON)
+            result = d.read('data.json', format=JSON)
+            compare(result, expected=original)
+
+    def test_write_format_with_encoding(self):
+        with TempDirectory() as d:
+            # Test that latin-1 encoding is used with ASCII-safe JSON
+            # JSON module escapes non-ASCII as \uXXXX by default
+            data = {'message': 'test'}
+            d.write('config.json', data, encoding='latin-1', format=JSON)
+            with open(os.path.join(d.path, 'config.json'), 'rb') as f:
+                # JSON string encoded as latin-1 (ASCII compatible)
+                content = f.read()
+                compare(content, expected=b'{"message": "test"}')
+
+    def test_read_format_with_encoding(self):
+        with TempDirectory() as d:
+            # Write latin-1 encoded JSON with non-ASCII character
+            # £ is 0xa3 in latin-1
+            with open(os.path.join(d.path, 'config.json'), 'wb') as f:
+                f.write(b'{"message": "\xa3100"}')
+            result = d.read('config.json', encoding='latin-1', format=JSON)
+            compare(result, expected={'message': '£100'})
+
+    def test_roundtrip_format_with_encoding(self):
+        with TempDirectory() as d:
+            # Roundtrip with latin-1 encoding
+            # Use ASCII-safe data since JSON escapes non-ASCII by default
+            original = {'name': 'test', 'value': 123}
+            d.write('data.json', original, encoding='latin-1', format=JSON)
+            result = d.read('data.json', encoding='latin-1', format=JSON)
+            compare(result, expected=original)
+
+    def test_format_with_default_encoding(self):
+        with TempDirectory(encoding='utf-8') as d:
+            data = {'test': 'data'}
+            d.write('config.json', data, format=JSON)
+            result = d.read('config.json', format=JSON)
+            compare(result, expected=data)
