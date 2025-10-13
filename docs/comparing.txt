@@ -1108,14 +1108,14 @@ The examples below use these dataclasses:
 Partial object comparisons with ``like()``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :func:`~testfixtures.comparison.like` function creates partial object comparisons
+The :func:`~testfixtures.like` function creates partial object comparisons
 that are typed to match the class being compared:
 
 >>> from testfixtures import compare, like
 >>> expected: list[SampleClass] = [like(SampleClass, x=1)]
 >>> compare(expected, actual=[SampleClass(1, '2')])
 
-You can use :func:`~testfixtures.comparison.like` anywhere you need a partial comparison,
+You can use :func:`~testfixtures.like` anywhere you need a partial comparison,
 including in assertions:
 
 >>> expected: SampleClass = like(SampleClass)
@@ -1125,7 +1125,7 @@ including in assertions:
 Configurable sequence comparisons with ``sequence()``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :func:`~testfixtures.comparison.sequence` function provides flexible sequence
+The :func:`~testfixtures.sequence` function provides flexible sequence
 comparisons with control over ordering and partial matching:
 
 >>> from testfixtures import sequence
@@ -1156,7 +1156,7 @@ When comparing sequences of different types, use the ``returns`` parameter:
 Checking for item presence with ``contains()``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :func:`~testfixtures.comparison.contains` function checks that specified items
+The :func:`~testfixtures.contains` function checks that specified items
 are present, regardless of order or additional items:
 
 >>> from testfixtures import contains
@@ -1179,7 +1179,7 @@ Use the ``returns`` parameter when needed for type compatibility:
 Order-independent full matches with ``unordered()``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :func:`~testfixtures.comparison.unordered` function checks that sequences contain
+The :func:`~testfixtures.unordered` function checks that sequences contain
 exactly the same items, but in any order:
 
 >>> from testfixtures import unordered

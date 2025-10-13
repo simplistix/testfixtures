@@ -11,7 +11,7 @@ Comparisons
 
 .. autoclass:: Comparison
 
-.. autofunction:: testfixtures.comparison.like
+.. autofunction:: testfixtures.like
 
 .. autoclass:: MappingComparison
    :members:
@@ -28,11 +28,11 @@ Comparisons
 .. autoclass:: SequenceComparison
    :members:
 
-.. autofunction:: testfixtures.comparison.sequence
+.. autofunction:: testfixtures.sequence
 
-.. autofunction:: testfixtures.comparison.contains
+.. autofunction:: testfixtures.contains
 
-.. autofunction:: testfixtures.comparison.unordered
+.. autofunction:: testfixtures.unordered
 
 .. autoclass:: Subset
    :members:
