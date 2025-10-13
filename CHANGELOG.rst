@@ -1,5 +1,15 @@
+.. py:currentmodule:: testfixtures
+
 Changes
 =======
+
+9.2.0 (13 Oct 2025)
+-------------------
+
+- Implement :func:`like`, :func:`sequence`, :func:`contains`, :func:`unordered` for
+  strictly typed :ref:`comparisons <comparison-objects>`.
+
+- Correctly type :attr:`ShouldRaise.raised`.
 
 9.1.0 (8 Jul 2025)
 ------------------
