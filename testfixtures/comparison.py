@@ -19,9 +19,11 @@ from typing import (
     Callable,
     Iterable,
     cast,
-    overload,
+    overload, Self,
 )
 from unittest.mock import call as unittest_mock_call
+
+from mypy.nodes import TypeAlias
 
 from testfixtures import not_there, singleton
 from testfixtures.mock import parent_name, mock_call, _Call
@@ -479,9 +481,54 @@ def _short_repr(obj: Any) -> str:
 
 
 Comparer = Callable[[Any, Any, 'CompareContext'], str | None]
-Registry = dict[type, Comparer]
+Comparers = dict[type, Comparer]
 
-_registry: Registry = {
+_UNSAFE_ITERABLES = str, bytes, dict
+
+
+class Registry:
+    def __init__(self, comparers: Comparers) -> None:
+        self.registries = [comparers]
+
+    @staticmethod
+    def _shared_mro(x: Any, y: Any) -> Iterable[type]:
+        y_mro = set(type(y).__mro__)
+        for class_ in type(x).__mro__:
+            if class_ in y_mro:
+                yield class_
+
+    def lookup(self, x: Any, y: Any, strict: bool) -> Comparer:
+        if strict and type(x) is not type(y):
+            return compare_with_type
+
+        for class_ in self._shared_mro(x, y):
+            for registry in self.registries:
+                comparer = registry.get(class_)
+                if comparer:
+                    return comparer
+
+        # fallback for iterables
+        if ((isinstance(x, IterableABC) and isinstance(y, IterableABC)) and not
+            (isinstance(x, _UNSAFE_ITERABLES) or
+             isinstance(y, _UNSAFE_ITERABLES))):
+            return compare_generator
+
+        # special handling for Comparisons:
+        if isinstance(x, Comparison) or isinstance(y, Comparison):
+            return compare_simple
+
+        return compare_object
+
+    def __setitem__(self, key: type, value: Comparer) -> None:
+        self.registries[0][key] = value
+
+    def overlay_with(self, comparers: Comparers) -> Self:
+        copy = type(self)(self.registries[0])
+        copy.registries.insert(0, comparers)
+        return copy
+
+
+_registry = Registry({
     dict: compare_dict,
     set: compare_set,
     list: compare_sequence,
@@ -499,7 +546,7 @@ _registry: Registry = {
     Path: compare_path,
     datetime: compare_with_fold,
     time: compare_with_fold,
-}
+})
 
 
 def compare_exception_group(
@@ -528,16 +575,6 @@ def register(type_: type, comparer: Comparer) -> None:
     this function is called until the end of the current process.
     """
     _registry[type_] = comparer
-
-
-def _shared_mro(x: Any, y: Any) -> Iterable[type]:
-    y_mro = set(type(y).__mro__)
-    for class_ in type(x).__mro__:
-        if class_ in y_mro:
-            yield class_
-
-
-_unsafe_iterables = str, bytes, dict
 
 
 class AlreadySeen:
@@ -570,14 +607,10 @@ class CompareContext:
             recursive: bool = True,
             strict: bool = False,
             ignore_eq: bool = False,
-            comparers: Registry | None = None,
+            comparers: Comparers | None = None,
             options: dict[str, Any] | None = None,
     ):
-        self.registries = []
-        if comparers:
-            self.registries.append(comparers)
-        self.registries.append(_registry)
-
+        self._registry = _registry.overlay_with(comparers) if comparers else _registry
         self.x_label = x_label
         self.y_label = y_label
         self.recursive: bool = recursive
@@ -622,28 +655,6 @@ class CompareContext:
             r += ' ('+label+')'
         return r
 
-    def _lookup(self, x: Any, y: Any) -> Comparer:
-        if self.strict and type(x) is not type(y):
-            return compare_with_type
-
-        for class_ in _shared_mro(x, y):
-            for registry in self.registries:
-                comparer = registry.get(class_)
-                if comparer:
-                    return comparer
-
-        # fallback for iterables
-        if ((isinstance(x, IterableABC) and isinstance(y, IterableABC)) and not
-            (isinstance(x, _unsafe_iterables) or
-             isinstance(y, _unsafe_iterables))):
-            return compare_generator
-
-        # special handling for Comparisons:
-        if isinstance(x, Comparison) or isinstance(y, Comparison):
-            return compare_simple
-
-        return compare_object
-
     def _separator(self) -> str:
         return '\n\nWhile comparing %s: ' % ''.join(self.breadcrumbs[1:])
 
@@ -682,7 +693,7 @@ class CompareContext:
                 except RecursionError:
                     pass
 
-            comparer: Comparer = self._lookup(x, y)
+            comparer: Comparer = self._registry.lookup(x, y, self.strict)
 
             result = comparer(x, y, self)
             specific_comparer = comparer is not compare_simple
@@ -726,7 +737,7 @@ def compare(
         recursive: bool = True,
         strict: bool = False,
         ignore_eq: bool = False,
-        comparers: Registry | None = None,
+        comparers: Comparers | None = None,
         **options: Any
 ) -> str | None:
     """

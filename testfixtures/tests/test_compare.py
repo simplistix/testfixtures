@@ -15,7 +15,7 @@ from testfixtures import (
     generator,
     singleton,
 )
-from testfixtures.comparison import compare_sequence, compare_object
+from testfixtures.comparison import compare_sequence, compare_object, Registry
 from testfixtures.mock import Mock, call
 from testfixtures.shouldraise import ShouldAssert
 from testfixtures.tests.sample1 import Slotted
@@ -956,9 +956,9 @@ b
         def compare_my_object(x, y, context):
             return '%s != %s' % (x.name, y.name)
         with Replacer() as r:
-            r.replace('testfixtures.comparison._registry', {
+            r.replace('testfixtures.comparison._registry', Registry({
                 list: compare_sequence,
-                })
+                }))
             self.check_raises(
                 [1, MyObject('foo')], [1, MyObject('bar')],
                 "sequence not as expected:\n"

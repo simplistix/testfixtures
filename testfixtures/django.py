@@ -3,7 +3,7 @@ from typing import Any, Sequence, Iterable
 from django.db.models import Model, Field
 
 from . import compare as base_compare
-from .comparison import _compare_mapping, register, CompareContext, unspecified, Registry
+from .comparison import _compare_mapping, register, CompareContext, unspecified, Comparers
 
 
 def instance_fields(instance: Model) -> Iterable[Field]:
@@ -75,7 +75,7 @@ def compare(
         recursive: bool = True,
         strict: bool = False,
         ignore_eq: bool = True,
-        comparers: Registry | None = None,
+        comparers: Comparers | None = None,
         **options: Any
 ) -> str | None:
     """
