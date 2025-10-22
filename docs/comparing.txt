@@ -412,12 +412,12 @@ don't compare as equal.
 
 .. invisible-code-block: python
 
-  from testfixtures.comparison import _registry, compare_sequence
+  from testfixtures.comparison import _registry, Registry, compare_sequence
   from testfixtures import Replacer
   r = Replacer()
-  r.replace('testfixtures.comparison._registry', {
+  r.replace('testfixtures.comparison._registry', Registry({
       list: compare_sequence
-      })
+  }))
 
 As an example, suppose you have a class whose instances have a
 timestamp and a name as attributes, but you'd like to ignore the
@@ -450,13 +450,6 @@ Then you'd register that comparer for your type:
 
   from testfixtures.comparison import register
   register(MyObject, compare_my_object)
-
-.. invisible-code-block: python
-
-  import testfixtures.comparison
-  assert testfixtures.comparison._registry == {
-      MyObject: compare_my_object, list: compare_sequence,
-      }
 
 Now, it'll get used when comparing objects of that type,
 even if they're contained within other objects:
@@ -494,14 +487,6 @@ Traceback (most recent call last):
  ...
 AssertionError: MyObject named 'foo' (expected) != MyObject named 'bar' (actual)
 
-.. invisible-code-block: python
-
-  r.restore()
-
-  # set up for the next test
-  r = Replacer()
-  r.replace('testfixtures.comparison._registry', {})
-
 It may be that you only want to use a comparer or set of
 comparers for a particular test. If that's the case, you can pass
 :func:`compare` a ``comparers`` parameter consisting of a
@@ -516,8 +501,6 @@ AssertionError: MyObject named 'foo' != MyObject named 'bar'
 
 .. invisible-code-block: python
 
-  import testfixtures.comparison
-  assert testfixtures.comparison._registry == {}
   r.restore()
 
 A full list of the available comparers included can be found below the
@@ -598,7 +581,7 @@ comparer could be implemented and registered as follows:
 
   from testfixtures.comparison import _registry
   r = Replacer()
-  r.replace('testfixtures.comparison._registry', dict(_registry))
+  r.replace('testfixtures.comparison._registry', _registry.overlay_with({}))
 
 .. code-block:: python
 
