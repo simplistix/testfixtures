@@ -15,7 +15,13 @@ from testfixtures import (
     generator,
     singleton,
 )
-from testfixtures.comparison import compare_sequence, compare_object, Registry
+from testfixtures.comparison import (
+    compare_sequence,
+    compare_object,
+    Registry,
+    compare_text,
+    options,
+)
 from testfixtures.mock import Mock, call
 from testfixtures.shouldraise import ShouldAssert
 from testfixtures.tests.sample1 import Slotted
@@ -926,11 +932,14 @@ b
             )
 
     def test_supply_comparer(self):
+
+        @options('foo')
         def compare_dict(x, y, context):
             self.assertEqual(x, {1: 1})
             self.assertEqual(y, {2: 2})
             self.assertEqual(context.get_option('foo'), 'bar')
             return 'not equal'
+
         with ShouldAssert('not equal'):
             compare({1: 1}, {2: 2},
                     foo='bar',
@@ -957,7 +966,7 @@ b
             return '%s != %s' % (x.name, y.name)
 
         with Replacer() as r:
-            registry = Registry({list: compare_sequence})
+            registry = Registry({list: compare_sequence, str: compare_text})
             r.replace('testfixtures.comparison._registry', registry)
             self.check_raises(
                 [1, MyObject('foo')], [1, MyObject('bar')],
@@ -1497,9 +1506,7 @@ b
             compare('x', 'y', 'z')
 
     def test_invalid_because_of_typo(self):
-        with ShouldRaise(TypeError(
-                "Exactly two objects needed, you supplied: ['x'] {'expceted': 'z'}"
-        )):
+        with ShouldRaise(TypeError("The following options are not valid: expceted")):
             compare('x', expceted='z')
 
     def test_dont_raise(self):

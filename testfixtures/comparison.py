@@ -1,6 +1,7 @@
 import re
 from collections import OrderedDict
 from collections.abc import Iterable as IterableABC
+from dataclasses import dataclass
 from datetime import datetime, time
 from decimal import Decimal
 from difflib import unified_diff
@@ -19,7 +20,7 @@ from typing import (
     Callable,
     Iterable,
     cast,
-    overload, Self,
+    overload, Self, Protocol,
 )
 from unittest.mock import call as unittest_mock_call
 
@@ -32,6 +33,26 @@ from testfixtures.utils import indent
 
 # Some common types that are immutable, for optimisation purposes within CompareContext
 IMMUTABLE_TYPEs = str, bytes, int, float, tuple, type(None)
+
+
+class Comparer(Protocol):
+
+    def __call__(self, x: Any, y: Any, context: 'CompareContext') -> str | None: ...
+
+
+@dataclass
+class ComparerWithOptions:
+    comparer: Comparer
+    option_names: set[str]
+
+    def __call__(self, x: Any, y: Any, context: 'CompareContext') -> str | None:
+        return self.comparer(x, y, context)
+
+
+def options(*names: str) -> Callable[[Comparer], ComparerWithOptions]:
+    def decorator(comparer: Comparer) -> ComparerWithOptions:
+        return ComparerWithOptions(comparer, set(names))
+    return decorator
 
 
 def diff(x: str, y: str, x_label: str | None = '', y_label: str | None = '') -> str:
@@ -365,6 +386,7 @@ def split_repr(text: str) -> str:
     return '\n'.join(parts)
 
 
+@options('blanklines', 'trailing_whitespace', 'show_whitespace')
 def compare_text(x: str, y: str, context: 'CompareContext') -> str | None:
     """
     Returns an informative string describing the differences between the two
@@ -480,15 +502,17 @@ def _short_repr(obj: Any) -> str:
     return repr_
 
 
-Comparer = Callable[[Any, Any, 'CompareContext'], str | None]
-Comparers = dict[type, Comparer]
+Comparers = dict[type, Comparer | ComparerWithOptions]
 
 _UNSAFE_ITERABLES = str, bytes, dict
 
 
 class Registry:
     def __init__(self, comparers: Comparers) -> None:
-        self.comparers = comparers
+        self.option_names = {'ignore_attributes'}
+        self.comparers = dict[type, Comparer]()
+        for name, value in comparers.items():
+            self[name] = value
 
     @staticmethod
     def _shared_mro(x: Any, y: Any) -> Iterable[type]:
@@ -518,13 +542,26 @@ class Registry:
 
         return compare_object
 
-    def __setitem__(self, key: type, value: Comparer) -> None:
+    def __setitem__(self, key: type, value: Comparer | ComparerWithOptions) -> None:
+        if isinstance(value, ComparerWithOptions):
+            self.option_names |= value.option_names
+            value = value.comparer
         self.comparers[key] = value
 
     def overlay_with(self, comparers: Comparers) -> Self:
         _comparers = self.comparers.copy()
         _comparers.update(comparers)
-        return type(self)(_comparers)
+        registry = type(self)(_comparers)
+        registry.option_names |= self.option_names
+        return registry
+
+    def check(self, options_: dict[str, Any] | None) -> None:
+        if options_:
+            invalid = set(options_) - self.option_names
+            if invalid:
+                raise TypeError(
+                    'The following options are not valid: ' + ', '.join(invalid)
+                )
 
 
 _registry = Registry({
@@ -610,6 +647,7 @@ class CompareContext:
             options: dict[str, Any] | None = None,
     ):
         self._registry = _registry.overlay_with(comparers) if comparers else _registry
+        self._registry.check(options)
         self.x_label = x_label
         self.y_label = y_label
         self.recursive: bool = recursive
@@ -638,8 +676,6 @@ class CompareContext:
             message = 'Exactly two objects needed, you supplied:'
             if possible:
                 message += ' {}'.format(possible)
-            if self.options:
-                message += ' {}'.format(self.options)
             raise TypeError(message)
 
         return possible

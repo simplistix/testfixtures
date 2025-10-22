@@ -586,8 +586,9 @@ comparer could be implemented and registered as follows:
 .. code-block:: python
 
   from decimal import Decimal
-  from testfixtures.comparison import register
+  from testfixtures.comparison import register, options
 
+  @options('precision')
   def compare_decimal(x, y, context):
        precision = context.get_option('precision', 2)
        if round(x, precision) != round(y, precision):

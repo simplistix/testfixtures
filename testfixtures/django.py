@@ -3,7 +3,14 @@ from typing import Any, Sequence, Iterable
 from django.db.models import Model, Field
 
 from . import compare as base_compare
-from .comparison import _compare_mapping, register, CompareContext, unspecified, Comparers
+from .comparison import (
+    _compare_mapping,
+    register,
+    CompareContext,
+    unspecified,
+    Comparers,
+    options,
+)
 
 
 def instance_fields(instance: Model) -> Iterable[Field]:
@@ -34,6 +41,7 @@ def model_to_dict(
     return data
 
 
+@options('ignore_fields', 'non_editable_fields')
 def compare_model(x: Model, y: Model, context: CompareContext) -> str | None:
     """
     Returns an informative string describing the differences between the two
