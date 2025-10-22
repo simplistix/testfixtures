@@ -488,7 +488,7 @@ _UNSAFE_ITERABLES = str, bytes, dict
 
 class Registry:
     def __init__(self, comparers: Comparers) -> None:
-        self.registries = [comparers]
+        self.comparers = comparers
 
     @staticmethod
     def _shared_mro(x: Any, y: Any) -> Iterable[type]:
@@ -502,10 +502,9 @@ class Registry:
             return compare_with_type
 
         for class_ in self._shared_mro(x, y):
-            for registry in self.registries:
-                comparer = registry.get(class_)
-                if comparer:
-                    return comparer
+            comparer = self.comparers.get(class_)
+            if comparer:
+                return comparer
 
         # fallback for iterables
         if ((isinstance(x, IterableABC) and isinstance(y, IterableABC)) and not
@@ -520,12 +519,12 @@ class Registry:
         return compare_object
 
     def __setitem__(self, key: type, value: Comparer) -> None:
-        self.registries[0][key] = value
+        self.comparers[key] = value
 
     def overlay_with(self, comparers: Comparers) -> Self:
-        copy = type(self)(self.registries[0])
-        copy.registries.insert(0, comparers)
-        return copy
+        _comparers = self.comparers.copy()
+        _comparers.update(comparers)
+        return type(self)(_comparers)
 
 
 _registry = Registry({
