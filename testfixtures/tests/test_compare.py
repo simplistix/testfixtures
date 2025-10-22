@@ -955,10 +955,10 @@ b
 
         def compare_my_object(x, y, context):
             return '%s != %s' % (x.name, y.name)
+
         with Replacer() as r:
-            r.replace('testfixtures.comparison._registry', Registry({
-                list: compare_sequence,
-                }))
+            registry = Registry({list: compare_sequence})
+            r.replace('testfixtures.comparison._registry', registry)
             self.check_raises(
                 [1, MyObject('foo')], [1, MyObject('bar')],
                 "sequence not as expected:\n"
@@ -974,7 +974,28 @@ b
                 "\n"
                 "While comparing [1]: foo != bar",
                 comparers={MyObject: compare_my_object}
-                )
+            )
+
+            # check the compare call did not mutate the global registry:
+            self.check_raises(
+                [MyObject('foo')], [MyObject('bar')],
+                "sequence not as expected:\n"
+                "\n"
+                "same:\n[]\n"
+                "\n"
+                "first:\n"
+                "[MyObject instance]\n"
+                "\n"
+                "second:\n"
+                "[MyObject instance]\n"
+                "\n"
+                "While comparing [0]: MyObject not as expected:\n"
+                "\n"
+                "attributes differ:\n"
+                "'name': 'foo' != 'bar'\n"
+                "\n"
+                "While comparing [0].name: 'foo' != 'bar'",
+            )
 
     def test_list_subclass(self):
         class  MyList(list): pass
