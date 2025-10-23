@@ -1,11 +1,12 @@
 import re
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from collections.abc import Iterable as IterableABC
 from dataclasses import dataclass
 from datetime import datetime, time
 from decimal import Decimal
 from difflib import unified_diff
 from functools import partial as partial_type, reduce
+from inspect import signature
 from operator import __or__
 from pathlib import Path
 from pprint import pformat
@@ -20,11 +21,12 @@ from typing import (
     Callable,
     Iterable,
     cast,
-    overload, Self, Protocol,
+    overload,
+    Self,
+    Protocol,
+    TypeAlias,
 )
 from unittest.mock import call as unittest_mock_call
-
-from mypy.nodes import TypeAlias
 
 from testfixtures import not_there, singleton
 from testfixtures.mock import parent_name, mock_call, _Call
@@ -33,26 +35,6 @@ from testfixtures.utils import indent
 
 # Some common types that are immutable, for optimisation purposes within CompareContext
 IMMUTABLE_TYPEs = str, bytes, int, float, tuple, type(None)
-
-
-class Comparer(Protocol):
-
-    def __call__(self, x: Any, y: Any, context: 'CompareContext') -> str | None: ...
-
-
-@dataclass
-class ComparerWithOptions:
-    comparer: Comparer
-    option_names: set[str]
-
-    def __call__(self, x: Any, y: Any, context: 'CompareContext') -> str | None:
-        return self.comparer(x, y, context)
-
-
-def options(*names: str) -> Callable[[Comparer], ComparerWithOptions]:
-    def decorator(comparer: Comparer) -> ComparerWithOptions:
-        return ComparerWithOptions(comparer, set(names))
-    return decorator
 
 
 def diff(x: str, y: str, x_label: str | None = '', y_label: str | None = '') -> str:
@@ -128,19 +110,38 @@ def _extract_attrs(obj: Any, ignore: Iterable[str] | None = None) -> dict[str, A
     return attrs
 
 
+def merge_ignored_attributes(
+    *ignored: Iterable[str] | dict[type, Iterable[str]] | str | None
+) -> dict[type, set[str]]:
+    final = defaultdict[type, set[str]](set)
+    for i in ignored:
+        if i is None:
+            pass
+        elif isinstance(i, dict):
+            for type_, values in i.items():
+                final[type_].update(values)
+        else:
+            final[Any].update(i)
+    return final
+
+
 def _attrs_to_ignore(
-        context: 'CompareContext', ignore_attributes: Iterable[str], obj: Any
-) -> Iterable[str]:
-    ignore = context.get_option('ignore_attributes', ())
-    if isinstance(ignore, dict):
-        ignore = ignore.get(type(obj), ())
-    ignore = set(ignore)
-    ignore.update(ignore_attributes)
-    return ignore
+        ignore_attributes: Iterable[str] | dict[type, Iterable[str]], obj: Any
+) -> set[str]:
+    ignored = set()
+    if isinstance(ignore_attributes, dict):
+        ignored |= set(ignore_attributes.get(type(obj), ()))
+        ignored |= set(ignore_attributes.get(Any, ()))
+    else:
+        ignored.update(ignore_attributes)
+    return ignored
 
 
 def compare_object(
-        x: object, y: object, context: 'CompareContext', ignore_attributes: Iterable[str] = ()
+        x: object,
+        y: object,
+        context: 'CompareContext',
+        ignore_attributes: Iterable[str] | dict[type, Iterable[str]] = ()
 ) -> str | None:
     """
     Compare the two supplied objects based on their type and attributes.
@@ -159,8 +160,8 @@ def compare_object(
     """
     if type(x) is not type(y) or isinstance(x, type):
         return compare_simple(x, y, context)
-    x_attrs = _extract_attrs(x, _attrs_to_ignore(context, ignore_attributes, x))
-    y_attrs = _extract_attrs(y, _attrs_to_ignore(context, ignore_attributes, y))
+    x_attrs = _extract_attrs(x, _attrs_to_ignore(ignore_attributes, x))
+    y_attrs = _extract_attrs(y, _attrs_to_ignore(ignore_attributes, y))
     if x_attrs is None or y_attrs is None or not (x_attrs and y_attrs):
         return compare_simple(x, y, context)
     if not context.simple_equals(x_attrs, y_attrs):
@@ -178,7 +179,7 @@ def compare_exception(
     """
     if x.args != y.args:
         return compare_simple(x, y, context)
-    return compare_object(x, y, context)
+    return context.call(compare_object, x, y)
 
 
 def compare_with_type(x: Any, y: Any, context: 'CompareContext') -> str:
@@ -386,8 +387,14 @@ def split_repr(text: str) -> str:
     return '\n'.join(parts)
 
 
-@options('blanklines', 'trailing_whitespace', 'show_whitespace')
-def compare_text(x: str, y: str, context: 'CompareContext') -> str | None:
+def compare_text(
+        x: str,
+        y: str,
+        context: 'CompareContext',
+        blanklines: bool = True,
+        trailing_whitespace: bool = True,
+        show_whitespace: bool = False,
+) -> str | None:
     """
     Returns an informative string describing the differences between the two
     supplied strings. The way in which this comparison is performed
@@ -405,10 +412,6 @@ def compare_text(x: str, y: str, context: 'CompareContext') -> str | None:
                             multi-line strings will be replaced with their
                             representations.
     """
-    blanklines = context.get_option('blanklines', True)
-    trailing_whitespace = context.get_option('trailing_whitespace', True)
-    show_whitespace = context.get_option('show_whitespace', False)
-
     if not trailing_whitespace:
         x = trailing_whitespace_re.sub('', x)
         y = trailing_whitespace_re.sub('', y)
@@ -502,17 +505,17 @@ def _short_repr(obj: Any) -> str:
     return repr_
 
 
-Comparers = dict[type, Comparer | ComparerWithOptions]
+Comparer = Callable[[Any, Any, 'CompareContext'], str | None]
+Comparers: TypeAlias = dict[type, Comparer]
 
 _UNSAFE_ITERABLES = str, bytes, dict
 
 
+@dataclass
 class Registry:
-    def __init__(self, comparers: Comparers) -> None:
-        self.option_names = {'ignore_attributes'}
-        self.comparers = dict[type, Comparer]()
-        for name, value in comparers.items():
-            self[name] = value
+    comparers: dict[type, Comparer]
+    all_option_names: set[str]
+    options_for: dict[Comparer, set[str]]
 
     @staticmethod
     def _shared_mro(x: Any, y: Any) -> Iterable[type]:
@@ -542,29 +545,35 @@ class Registry:
 
         return compare_object
 
-    def __setitem__(self, key: type, value: Comparer | ComparerWithOptions) -> None:
-        if isinstance(value, ComparerWithOptions):
-            self.option_names |= value.option_names
-            value = value.comparer
+    def __setitem__(self, key: type, value: Comparer) -> None:
+        options = set(tuple(signature(value).parameters)[3:])
+        self.options_for[value] = options
+        self.all_option_names |= options
         self.comparers[key] = value
 
-    def overlay_with(self, comparers: Comparers) -> Self:
-        _comparers = self.comparers.copy()
-        _comparers.update(comparers)
-        registry = type(self)(_comparers)
-        registry.option_names |= self.option_names
+    @classmethod
+    def initial(cls, comparers: Comparers) -> Self:
+        registry = cls(
+            comparers={},
+            all_option_names = {'ignore_attributes'},
+            options_for = {compare_object: {'ignore_attributes'}}
+        )
+        for name, value in comparers.items():
+            registry[name] = value
         return registry
 
-    def check(self, options_: dict[str, Any] | None) -> None:
-        if options_:
-            invalid = set(options_) - self.option_names
-            if invalid:
-                raise TypeError(
-                    'The following options are not valid: ' + ', '.join(invalid)
-                )
+    def overlay_with(self, comparers: Comparers) -> Self:
+        registry = type(self)(
+            comparers=self.comparers.copy(),
+            all_option_names = self.all_option_names.copy(),
+            options_for = self.options_for.copy()
+        )
+        for name, value in comparers.items():
+            registry[name] = value
+        return registry
 
 
-_registry = Registry({
+_registry = Registry.initial({
     dict: compare_dict,
     set: compare_set,
     list: compare_sequence,
@@ -647,7 +656,12 @@ class CompareContext:
             options: dict[str, Any] | None = None,
     ):
         self._registry = _registry.overlay_with(comparers) if comparers else _registry
-        self._registry.check(options)
+        if options:
+            invalid = set(options) - self._registry.all_option_names
+            if invalid:
+                raise TypeError(
+                    'The following options are not valid: ' + ', '.join(invalid)
+                )
         self.x_label = x_label
         self.y_label = y_label
         self.recursive: bool = recursive
@@ -680,9 +694,6 @@ class CompareContext:
 
         return possible
 
-    def get_option(self, name: str, default: Any = None) -> Any:
-        return self.options.get(name, default)
-
     def label(self, side: str, value: Any) -> str:
         r = str(value)
         label = getattr(self, side+'_label')
@@ -709,6 +720,16 @@ class CompareContext:
     def simple_equals(self, x: Any, y: Any) -> bool:
         return not (self.strict or self.ignore_eq) and x == y
 
+    def call(self, comparer: Comparer, x: Any, y: Any) -> str | None:
+        kw = {}
+        option_names = self._registry.options_for.get(comparer)
+        if option_names:
+            for name in option_names:
+                value = self.options.get(name, not_there)
+                if value is not not_there:
+                    kw[name] = value
+        return comparer(x, y, self, **kw)
+
     def different(self, x: Any, y: Any, breadcrumb: str) -> bool | str | None:
 
         x = self._break_loops(x, breadcrumb)
@@ -730,7 +751,7 @@ class CompareContext:
 
             comparer: Comparer = self._registry.lookup(x, y, self.strict)
 
-            result = comparer(x, y, self)
+            result = self.call(comparer, x, y)
             specific_comparer = comparer is not compare_simple
 
             if result:
