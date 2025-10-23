@@ -20,7 +20,7 @@ from testfixtures.comparison import (
     compare_object,
     Registry,
     compare_text,
-    options,
+    merge_ignored_attributes,
 )
 from testfixtures.mock import Mock, call
 from testfixtures.shouldraise import ShouldAssert
@@ -933,11 +933,10 @@ b
 
     def test_supply_comparer(self):
 
-        @options('foo')
-        def compare_dict(x, y, context):
+        def compare_dict(x, y, context, foo='bar'):
             self.assertEqual(x, {1: 1})
             self.assertEqual(y, {2: 2})
-            self.assertEqual(context.get_option('foo'), 'bar')
+            self.assertEqual(foo, 'bar')
             return 'not equal'
 
         with ShouldAssert('not equal'):
@@ -966,7 +965,7 @@ b
             return '%s != %s' % (x.name, y.name)
 
         with Replacer() as r:
-            registry = Registry({list: compare_sequence, str: compare_text})
+            registry = Registry.initial({list: compare_sequence, str: compare_text})
             r.replace('testfixtures.comparison._registry', registry)
             self.check_raises(
                 [1, MyObject('foo')], [1, MyObject('bar')],
@@ -2165,24 +2164,24 @@ class TestCompareObject:
             for k, v in kw.items():
                 setattr(self, k, v)
 
-    def test_ignore(self):
-        def compare_thing(x, y, context):
-            return compare_object(x, y, context, ignore_attributes=['y'])
-        compare(self.Thing(x=1, y=2), self.Thing(x=1, y=3),
-                comparers={self.Thing: compare_thing})
+    @staticmethod
+    def compare_thing(x, y, context):
+        context_ignored = context.options.get('ignore_attributes')
+        ignored = merge_ignored_attributes('y', context_ignored)
+        return compare_object(x, y, context, ignore_attributes=ignored)
 
-    def test_ignore_dict_context_list_param(self):
-        def compare_thing(x, y, context):
-            return compare_object(x, y, context, ignore_attributes=['y'])
+    def test_ignore(self):
+        compare(self.Thing(x=1, y=2), self.Thing(x=1, y=3),
+                comparers={self.Thing: self.compare_thing})
+
+    def test_ignore_dict_context_param(self):
         compare(self.Thing(x=1, y=2, z=3), self.Thing(x=1, y=4, z=5),
-                comparers={self.Thing: compare_thing},
+                comparers={self.Thing: self.compare_thing},
                 ignore_attributes={self.Thing: ['z']})
 
-    def test_ignore_list_context_list_param(self):
-        def compare_thing(x, y, context):
-            return compare_object(x, y, context, ignore_attributes=['y'])
+    def test_ignore_list_context_param(self):
         compare(self.Thing(x=1, y=2, z=3), self.Thing(x=1, y=4, z=5),
-                comparers={self.Thing: compare_thing},
+                comparers={self.Thing: self.compare_thing},
                 ignore_attributes=['z'])
 
     def test_strict_respected_when_nested(self):

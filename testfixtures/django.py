@@ -9,7 +9,6 @@ from .comparison import (
     CompareContext,
     unspecified,
     Comparers,
-    options,
 )
 
 
@@ -41,8 +40,13 @@ def model_to_dict(
     return data
 
 
-@options('ignore_fields', 'non_editable_fields')
-def compare_model(x: Model, y: Model, context: CompareContext) -> str | None:
+def compare_model(
+        x: Model,
+        y: Model,
+        context: CompareContext,
+        ignore_fields: Sequence[str] = (),
+        non_editable_fields: bool = False,
+) -> str | None:
     """
     Returns an informative string describing the differences between the two
     supplied Django model instances. The way in which this comparison is
@@ -56,8 +60,6 @@ def compare_model(x: Model, y: Model, context: CompareContext) -> str | None:
       If `True`, then fields with ``editable=False`` will be included in the
       comparison. By default, these fields are ignored.
     """
-    ignore_fields = context.get_option('ignore_fields', set())
-    non_editable_fields= context.get_option('non_editable_fields', False)
     args: Any = []
     for obj in x, y:
         args.append(model_to_dict(obj, ignore_fields, non_editable_fields))

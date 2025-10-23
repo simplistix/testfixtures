@@ -415,7 +415,7 @@ don't compare as equal.
   from testfixtures.comparison import _registry, Registry, compare_sequence
   from testfixtures import Replacer
   r = Replacer()
-  r.replace('testfixtures.comparison._registry', Registry({
+  r.replace('testfixtures.comparison._registry', Registry.initial({
       list: compare_sequence
   }))
 
@@ -586,11 +586,9 @@ comparer could be implemented and registered as follows:
 .. code-block:: python
 
   from decimal import Decimal
-  from testfixtures.comparison import register, options
+  from testfixtures.comparison import register
 
-  @options('precision')
-  def compare_decimal(x, y, context):
-       precision = context.get_option('precision', 2)
+  def compare_decimal(x, y, context, precision: int = 2):
        if round(x, precision) != round(y, precision):
            return '%r != %r when rounded to %i places' % (
                x, y, precision
