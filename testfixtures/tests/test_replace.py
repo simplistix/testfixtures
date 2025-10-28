@@ -391,7 +391,7 @@ class TestReplace(TestCase):
             del r
 
     def test_replacer_del_env_replaced(self):
-        # with replace_in_environ('TEST_ENV_VAR', not_there):
+        with replace_in_environ('TEST_ENV_VAR', not_there):
             r = Replacer()
             r.in_environ('TEST_ENV_VAR', 'test_value')
             with ShouldWarn(
