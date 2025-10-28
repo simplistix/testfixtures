@@ -384,11 +384,23 @@ class TestReplace(TestCase):
                   object(), strict=False)
         with ShouldWarn(
             UserWarning(
-                "Replacer deleted without being restored, originals left:"
-                " {'testfixtures.tests.sample1.left_behind': <Resolved: <not_there>>}"
+                "Replacer deleted without being restored, originals not restored: "
+                "'testfixtures.tests.sample1.left_behind': original = <not_there>"
             )
         ):
             del r
+
+    def test_replacer_del_env_replaced(self):
+        # with replace_in_environ('TEST_ENV_VAR', not_there):
+            r = Replacer()
+            r.in_environ('TEST_ENV_VAR', 'test_value')
+            with ShouldWarn(
+                UserWarning(
+                    "Replacer deleted without being restored, originals not restored: "
+                    "<class 'os._Environ'> ('TEST_ENV_VAR'): original = <not_there>"
+                )
+            ):
+                del r
 
     def test_multiple_replaces(self):
         orig = os.path.sep

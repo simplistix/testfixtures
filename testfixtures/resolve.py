@@ -18,9 +18,6 @@ class Resolved:
     def key(self) -> Key:
         return id(self.container), self.setter, self.name
 
-    def __repr__(self) -> str:
-        return f'<Resolved: {self.found}>'
-
 
 def resolve(dotted_name: str, container: Any | None = None, sep: str = '.') -> Resolved:
     names = dotted_name.split(sep)
