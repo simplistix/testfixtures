@@ -111,13 +111,30 @@ def _extract_attrs(obj: Any, ignore: Iterable[str] | None = None) -> dict[str, A
 
 
 def merge_ignored_attributes(
-    *ignored: Iterable[str] | dict[type, Iterable[str]] | str | None
-) -> dict[type, set[str]]:
+    *ignored: Iterable[str] | Mapping[type, Iterable[str]] | str | None
+) -> Mapping[type, set[str]]:
+    """
+    Merge multiple specifications of attributes to ignore into a single mapping.
+
+    This is particularly useful when implementing custom comparers that need to
+    combine their own attribute ignores with those passed via the context.
+
+    Each argument can be:
+
+    - ``None``: ignored
+    - A :class:`~typing.Mapping` of type to iterable of attribute names:
+      attributes for specific types
+    - An iterable of attribute names: applies to all types
+    - A single attribute name string: applies to all types
+
+    Returns a mapping of types to sets of attribute names to ignore, where
+    :data:`~typing.Any` is used as the key for attributes that apply to all types.
+    """
     final = defaultdict[type, set[str]](set)
     for i in ignored:
         if i is None:
             pass
-        elif isinstance(i, dict):
+        elif isinstance(i, Mapping):
             for type_, values in i.items():
                 final[type_].update(values)
         else:
@@ -126,7 +143,7 @@ def merge_ignored_attributes(
 
 
 def _attrs_to_ignore(
-        ignore_attributes: Iterable[str] | dict[type, Iterable[str]], obj: Any
+        ignore_attributes: Iterable[str] | Mapping[type, Iterable[str]], obj: Any
 ) -> set[str]:
     ignored = set()
     if isinstance(ignore_attributes, dict):
@@ -141,7 +158,7 @@ def compare_object(
         x: object,
         y: object,
         context: 'CompareContext',
-        ignore_attributes: Iterable[str] | dict[type, Iterable[str]] = ()
+        ignore_attributes: Iterable[str] | Mapping[type, Iterable[str]] = ()
 ) -> str | None:
     """
     Compare the two supplied objects based on their type and attributes.
@@ -149,14 +166,12 @@ def compare_object(
     :param ignore_attributes:
 
        Either a sequence of strings containing attribute names to be ignored
-       when comparing or a mapping of type to sequence of strings containing
-       attribute names to be ignored when comparing that type.
+       when comparing, or a :class:`~typing.Mapping` of type to sequence of
+       strings containing attribute names to be ignored when comparing that type.
 
-       This may be specified as either a parameter to this function or in the
-       ``context``. If specified in both, they will both apply with precedence
-       given to whatever is specified is specified as a parameter.
-       If specified as a parameter to this function, it may only be a list of
-       strings.
+       When specified as a mapping, you can use :data:`~typing.Any` as a key to
+       specify attributes that should be ignored for all types.
+
     """
     if type(x) is not type(y) or isinstance(x, type):
         return compare_simple(x, y, context)
@@ -785,8 +800,8 @@ def compare(
         y: Any = unspecified,
         expected: Any = unspecified,
         actual: Any = unspecified,
-        prefix: str | None = None,
-        suffix: str | None = None,
+        prefix: str | Callable[[], str] | None = None,
+        suffix: str | Callable[[], str] | None = None,
         x_label: str | None = None,
         y_label: str | None = None,
         raises: bool = True,
