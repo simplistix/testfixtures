@@ -16,7 +16,12 @@ The compare function
 --------------------
 
 The :func:`compare` function can be used as a replacement for
-:meth:`~unittest.TestCase.assertEqual` or pytest-style assert statements.
+:meth:`~unittest.TestCase.assertEqual` or pytest-style assert statements but offers much more
+:ref:`flexible <compare-strings>` and :ref:`configurable <comparer-register>` comparison,
+and better feedback if a comparison fails, particularly where nested objects and those that don't
+:ref:`natively support equality checking <comparer-objects>` are involved, or if those objects
+do :ref:`silly things <ignore-eq>` when you compare them.
+
 It raises an :class:`AssertionError` when its parameters are not equal, which will be
 reported as a test failure:
 
@@ -26,33 +31,58 @@ Traceback (most recent call last):
  ...
 AssertionError: 1 != 2
 
-It allows you to specify a prefix for the message to be used
-in the event of failure:
-
->>> compare(1, 2, prefix='wrong number of orders')
-Traceback (most recent call last):
- ...
-AssertionError: wrong number of orders: 1 != 2
-
-You can also optionally specify a suffix, which will be appended to the
-message on a new line:
-
->>> compare(1, 2, suffix='(Except for very large values of 1)')
-Traceback (most recent call last):
- ...
-AssertionError: 1 != 2
-(Except for very large values of 1)
-
-The expected and actual value can also be explicitly supplied, making it
-clearer as to what has gone wrong:
+The expected and actual value can also be explicitly supplied, making it clearer as to what has gone
+wrong:
 
 >>> compare(expected=1, actual=2)
 Traceback (most recent call last):
  ...
 AssertionError: 1 (expected) != 2 (actual)
 
+Only one of these needs to be specified, the other will then be inferred:
+
+>>> actual = '123' + '456'
+>>> compare(actual, expected='123457')
+Traceback (most recent call last):
+ ...
+AssertionError: '123457' (expected) != '123456' (actual)
+
+However, if there are more specific labels that would be more useful, they can be supplied:
+
+>>> compare(1001, 1002, x_label='realised', y_label='unrealised')
+Traceback (most recent call last):
+ ...
+AssertionError: 1001 (realised) != 1002 (unrealised)
+
+A prefix can also be specified for the message to be used
+in the event of failure:
+
+>>> compare(expected=1, actual=2, prefix='wrong number of orders')
+Traceback (most recent call last):
+ ...
+AssertionError: wrong number of orders: 1 (expected) != 2 (actual)
+
+You can also optionally specify a suffix, which will be appended to the
+message on a new line:
+
+>>> compare(expected=1, actual=2, suffix='(Except for very large values of 1)')
+Traceback (most recent call last):
+ ...
+AssertionError: 1 (expected) != 2 (actual)
+(Except for very large values of 1)
+
+Sometimes the feedback you wish to provide can be expensive to compute, and so you will only
+want to do this in event the comparison fails. This can be done by providing a callable to either
+``prefix`` or ``suffix``:
+
+>>> compare(expected=1, actual=2, suffix=lambda: 'This is very expensive to compute...')
+Traceback (most recent call last):
+ ...
+AssertionError: 1 (expected) != 2 (actual)
+This is very expensive to compute...
+
 The real strengths of this function come when comparing more complex
-data types. A number of common python data types will give more
+and nested data types. A number of common python data types will give more
 detailed output when a comparison fails as described below:
 
 sets
@@ -61,15 +91,15 @@ sets
 Comparing sets that aren't the same will attempt to
 highlight where the differences lie:
 
->>> compare(set([1, 2]), set([2, 3]))
+>>> compare(expected={1, 2}, actual={2, 3})
 Traceback (most recent call last):
  ...
 AssertionError: set not as expected:
 <BLANKLINE>
-in first but not second:
+in expected but not actual:
 [1]
 <BLANKLINE>
-in second but not first:
+in actual but not expected:
 [3]
 <BLANKLINE>
 <BLANKLINE>
@@ -80,7 +110,7 @@ dicts
 Comparing dictionaries that aren't the same will attempt to
 highlight where the differences lie:
 
->>> compare(dict(x=1, y=2, a=4), dict(x=1, z=3, a=5))
+>>> compare(expected=dict(x=1, y=2, a=4), actual=dict(x=1, z=3, a=5))
 Traceback (most recent call last):
  ...
 AssertionError: dict not as expected:
@@ -88,14 +118,14 @@ AssertionError: dict not as expected:
 same:
 ['x']
 <BLANKLINE>
-in first but not second:
+in expected but not actual:
 'y': 2
 <BLANKLINE>
-in second but not first:
+in actual but not expected:
 'z': 3
 <BLANKLINE>
 values differ:
-'a': 4 != 5
+'a': 4 (expected) != 5 (actual)
 
 lists and tuples
 ~~~~~~~~~~~~~~~~
@@ -103,7 +133,7 @@ lists and tuples
 Comparing lists or tuples that aren't the same will attempt to highlight
 where the differences lie:
 
->>> compare([1, 2, 3], [1, 2, 4])
+>>> compare(expected=[1, 2, 3], actual=[1, 2, 4])
 Traceback (most recent call last):
  ...
 AssertionError: sequence not as expected:
@@ -111,10 +141,10 @@ AssertionError: sequence not as expected:
 same:
 [1, 2]
 <BLANKLINE>
-first:
+expected:
 [3]
 <BLANKLINE>
-second:
+actual:
 [4]
 
 namedtuples
@@ -126,7 +156,7 @@ elements were the same and which were different:
 
 >>> from collections import namedtuple
 >>> TestTuple = namedtuple('TestTuple', 'x y z')
->>> compare(TestTuple(1, 2, 3), TestTuple(1, 4, 3))
+>>> compare(expected=TestTuple(1, 2, 3), actual=TestTuple(1, 4, 3))
 Traceback (most recent call last):
  ...
 AssertionError: TestTuple not as expected:
@@ -135,7 +165,7 @@ same:
 ['x', 'z']
 <BLANKLINE>
 values differ:
-'y': 2 != 4
+'y': 2 (expected) != 4 (actual)
 
 generators
 ~~~~~~~~~~
@@ -152,7 +182,7 @@ generator to represent the expected results:
 ...     while i<t:
 ...         i += 1
 ...         yield i
->>> compare(generator(1, 2, 3), my_gen(2))
+>>> compare(expected=generator(1, 2, 3), actual=my_gen(2))
 Traceback (most recent call last):
  ...
 AssertionError: sequence not as expected:
@@ -160,10 +190,10 @@ AssertionError: sequence not as expected:
 same:
 (1, 2)
 <BLANKLINE>
-first:
+expected:
 (3,)
 <BLANKLINE>
-second:
+actual:
 ()
 
 .. warning::
@@ -172,6 +202,8 @@ second:
   performance reasons, then you should use 
   :ref:`strict comparison <strict-comparison>`.
   
+.. _compare-strings:
+
 strings
 ~~~~~~~
 
@@ -182,32 +214,34 @@ and actual values can be hard.
 To help with this, long strings give a more helpful representation
 when comparison fails:
 
->>> compare("1234567891011", "1234567789")
+>>> compare(expected="1234567891011", actual="1234567789")
 Traceback (most recent call last):
  ...
 AssertionError: 
-'1234567891011'
+'1234567891011' (expected)
 !=
-'1234567789'
+'1234567789' (actual)
 
 Likewise, multi-line strings give unified diffs when their comparison
 fails:
 
->>> compare("""
+>>> compare(
+...     expected="""
 ...         This is line 1
 ...         This is line 2
 ...         This is line 3
 ...         """,
-...         """
+...     actual="""
 ...         This is line 1
 ...         This is another line
 ...         This is line 3
-...         """)
+...         """
+... )
 Traceback (most recent call last):
  ...
 AssertionError: 
---- first
-+++ second
+--- expected
++++ actual
 @@ -1,5 +1,5 @@
 <BLANKLINE>
          This is line 1
@@ -241,8 +275,11 @@ the content, you can use the following:
 
 .. code-block:: python
 
-  compare('line1\nline2', 'line1\n \nline2\n\n',
-          blanklines=False)
+  compare(
+      expected='line1\nline2',
+      actual='line1\n \nline2\n\n',
+      blanklines=False
+  )
 
 If you wish to compare two strings made up of lines that may have
 trailing whitespace that you don't care about, you can do so with the
@@ -250,9 +287,11 @@ following:
 
 .. code-block:: python
 
-  compare('line1\nline2', 'line1 \t\nline2   \n',
-          trailing_whitespace=False)
-
+  compare(
+      expected='line1\nline2',
+      actual='line1 \t\nline2   \n',
+      trailing_whitespace=False
+  )
 
 .. _compare-datetime:
 
@@ -331,21 +370,55 @@ attributes. Take instances of this class as an example:
 
 If the attributes and type of instances are the same, they will be considered equal:
 
->>> compare(MyObject('foo'), MyObject('foo'))
+>>> compare(MyObject('foo'), expected=MyObject('foo'))
 
 However, if their attributes differ, you will get an informative error:
 
->>> compare(MyObject('foo'), MyObject('bar'))
+>>> compare(MyObject('foo'), expected=MyObject('bar'))
 Traceback (most recent call last):
  ...
 AssertionError: MyObject not as expected:
 <BLANKLINE>
 attributes differ:
-'name': 'foo' != 'bar'
+'name': 'bar' (expected) != 'foo' (actual)
 <BLANKLINE>
-While comparing .name: 'foo' != 'bar'
+While comparing .name: 'bar' (expected) != 'foo' (actual)
 
 This type of comparison is also used on objects that make use of ``__slots__``.
+
+ignoring attributes
+^^^^^^^^^^^^^^^^^^^
+
+When comparing objects, there may be attributes that you don't care about or cannot easily
+control, such as timestamps or auto-generated IDs. For example, consider this class:
+
+.. code-block:: python
+
+  from datetime import datetime
+
+  class MyObject:
+      def __init__(self, name):
+          self.timestamp = datetime.now()
+          self.name = name
+
+You can use the ``ignore_attributes`` parameter as follows:
+
+>>> obj1 = MyObject('foo')
+>>> obj2 = MyObject('foo')
+>>> compare(expected=obj1, actual=obj2, ignore_attributes=['timestamp'])
+
+You can also specify which attributes to ignore on a per-type basis by passing a dictionary
+mapping types to sets of attribute names:
+
+>>> class OtherObject:
+...     def __init__(self, id, value):
+...         self.id = id
+...         self.value = value
+>>> compare(
+...     expected=[MyObject('x'), OtherObject(1, 'y')],
+...     actual=[MyObject('x'), OtherObject(2, 'y')],
+...     ignore_attributes={MyObject: {'timestamp'}, OtherObject: {'id'}}
+... )
 
 Recursive comparison
 ~~~~~~~~~~~~~~~~~~~~
@@ -454,7 +527,7 @@ Then you'd register that comparer for your type:
 Now, it'll get used when comparing objects of that type,
 even if they're contained within other objects:
 
->>> compare([1, MyObject('foo')], [1, MyObject('bar')])
+>>> compare(expected=[1, MyObject('foo')], actual=[1, MyObject('bar')])
 Traceback (most recent call last):
  ...
 AssertionError: sequence not as expected:
@@ -462,13 +535,13 @@ AssertionError: sequence not as expected:
 same:
 [1]
 <BLANKLINE>
-first:
+expected:
 [<MyObject ...>]
 <BLANKLINE>
-second:
+actual:
 [<MyObject ...>]
 <BLANKLINE>
-While comparing [1]: MyObject named 'foo' != MyObject named 'bar'
+While comparing [1]: MyObject named 'foo' (expected) != MyObject named 'bar' (actual)
 
 From this example, you can also see that a comparer can indicate that
 two objects are equal, for :func:`compare`'s purposes, by returning
@@ -482,16 +555,15 @@ You can also see that you can, and should, use the context object passed in
 to add labels to the representations of the objects being compared if the
 comparison fails:
 
->>> compare(expected=MyObject('foo'), actual=MyObject('bar'))
+>>> compare(MyObject('foo'), MyObject('bar'), x_label='stored', y_label='supplied')
 Traceback (most recent call last):
  ...
-AssertionError: MyObject named 'foo' (expected) != MyObject named 'bar' (actual)
+AssertionError: MyObject named 'foo' (stored) != MyObject named 'bar' (supplied)
 
 It may be that you only want to use a comparer or set of
 comparers for a particular test. If that's the case, you can pass
 :func:`compare` a ``comparers`` parameter consisting of a
-dictionary that maps types to comparers. These will be added to the
-global registry for the duration of the call:
+dictionary that maps types to comparers:
 
 >>> compare(MyObject('foo'), MyObject('bar'),
 ...         comparers={MyObject: compare_my_object})
@@ -509,11 +581,18 @@ registering for your own classes, if they provide the necessary
 behaviour, and their source is also good to read when wondering how to
 implement your own comparers.
 
+.. note::
+
+  A comparer should always return some text when it considers
+  the two objects it is comparing to be different.
+
+Handing off comparison
+^^^^^^^^^^^^^^^^^^^^^^
+
 You may be wondering what the ``context`` object passed to the
-comparer is for; it allows you to hand off comparison of parts of the
+comparer is for: it allows you to hand off comparison of parts of the
 two objects currently being compared back to the :func:`compare`
-machinery, it also allows you to pass options to your comparison
-function. 
+machinery.
 
 For example, you may have an object that has a couple of dictionaries
 as attributes:
@@ -538,18 +617,9 @@ follows:
        headers_different = context.different(x.headers, y.headers, '.headers')
        body_different = context.different(x.body, y.body, '.body')
        if uri_different or headers_different or body_different:
-           return 'Request for %r != Request for %r' % (
-               x.uri, y.uri
-           )
+           return f'Request for {x.uri!r} != Request for {y.uri!r}'
 
-.. note:: 
-
-  A comparer should always return some text when it considers
-  the two objects it is comparing to be different.
-
-This comparer can either be registered globally or passed to each
-:func:`compare` call and will give detailed feedback about how the
-requests were different:
+Here's this custom request comparer in action:
 
 >>> compare(Request('/foo', {'method': 'POST'}, {'my_field': 'value_1'}),
 ...         Request('/foo', {'method': 'GET'}, {'my_field': 'value_2'}),
@@ -572,6 +642,14 @@ values differ:
 <BLANKLINE>
 While comparing .body['my_field']: 'value_1' != 'value_2'
 
+.. note::
+
+  A comparer should always return some text when it considers
+  the two objects it is comparing to be different.
+
+Options for custom comparers
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 As an example of passing options through to a comparer, suppose you
 wanted to compare all decimals in a nested data structure by rounding
 them to a number of decimal places that varies from test to test. The
@@ -590,9 +668,7 @@ comparer could be implemented and registered as follows:
 
   def compare_decimal(x, y, context, precision: int = 2):
        if round(x, precision) != round(y, precision):
-           return '%r != %r when rounded to %i places' % (
-               x, y, precision
-           )
+           return f'{x!r} != {y!r} when rounded to {precision} places'
 
   register(Decimal, compare_decimal)
 
@@ -623,16 +699,51 @@ Traceback (most recent call last):
  ...
 AssertionError: Decimal('2.001') != Decimal('2.009') when rounded to 2 places
 
+Ignoring attributes in custom comparers
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When writing custom comparers that delegate to :func:`~testfixtures.comparison.compare_object`,
+you may want to always ignore certain attributes while still allowing users to pass additional
+attributes to ignore via the ``ignore_attributes`` parameter to :func:`compare`.
+
+The :func:`~testfixtures.comparison.merge_ignored_attributes` function makes this easy by
+combining multiple ignore specifications:
+
+.. code-block:: python
+
+  from testfixtures.comparison import compare_object, merge_ignored_attributes
+
+  class Thing:
+      def __init__(self, **kw):
+          for k, v in kw.items():
+              setattr(self, k, v)
+
+  def compare_thing(x, y, context):
+      # Always ignore 'y' attribute, plus any user-specified ignores
+      context_ignored = context.options.get('ignore_attributes')
+      ignored = merge_ignored_attributes('y', context_ignored)
+      return compare_object(x, y, context, ignore_attributes=ignored)
+
+Now the ``y`` attribute will always be ignored, but users can still specify additional
+attributes to ignore:
+
+>>> compare(Thing(x=1, y=2), Thing(x=1, y=3),
+...         comparers={Thing: compare_thing})
+
+>>> compare(Thing(x=1, y=2, z=3), Thing(x=1, y=4, z=5),
+...         comparers={Thing: compare_thing},
+...         ignore_attributes=['z'])
+
 .. invisible-code-block: python
 
   r.restore()
 
-.. _strict-comparison:
+.. _ignore-eq:
 
 Ignoring ``__eq__``
 ~~~~~~~~~~~~~~~~~~~
 
-Some objects, such as those from the Django ORM, have pretty broken
+Some objects, such as those from the :doc:`Django ORM <django>`, have pretty broken
 implementations of ``__eq__``. Since :func:`compare` normally relies on this,
 it can result in objects appearing to be equal when they are not.
 
@@ -666,6 +777,8 @@ as described above, and use the ``ignore_eq`` parameter:
 Traceback (most recent call last):
 ...
 AssertionError: OrmObj: 2 != 1
+
+.. _strict-comparison:
 
 Strict comparison
 ~~~~~~~~~~~~~~~~~

@@ -52,6 +52,8 @@ testfixtures.comparison
 
 .. autofunction:: testfixtures.comparison.compare_object
 
+.. autofunction:: testfixtures.comparison.merge_ignored_attributes
+
 .. autofunction:: testfixtures.comparison.compare_exception
 
 .. autofunction:: testfixtures.comparison.compare_exception_group
