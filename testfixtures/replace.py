@@ -238,12 +238,19 @@ class Replacer:
 
     def __del__(self) -> None:
         if self.originals:
+            parts = []
+            for target, resolved in self.originals.values():
+                if isinstance(target, str):
+                    prefix = repr(target)
+                else:
+                    prefix = f"{type(target)} ({resolved.name!r})"
+                parts.append(f'{prefix}: original = {resolved.found!r}')
+            originals_text = ', '.join(parts)
             # no idea why coverage misses the following statement
             # it's covered by test_replace.TestReplace.test_replacer_del
             warnings.warn(  # pragma: no cover
-                'Replacer deleted without being restored, '
-                'originals left: %r' % {k:v for (k, v) in self.originals.values()}
-                )
+                'Replacer deleted without being restored, originals not restored: ' + originals_text
+            )
 
 
 def replace(
