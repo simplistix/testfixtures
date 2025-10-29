@@ -647,6 +647,8 @@ While comparing .body['my_field']: 'value_1' != 'value_2'
   A comparer should always return some text when it considers
   the two objects it is comparing to be different.
 
+.. _custom-comparer-options:
+
 Options for custom comparers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

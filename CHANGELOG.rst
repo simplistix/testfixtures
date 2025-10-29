@@ -3,6 +3,19 @@
 Changes
 =======
 
+10.0.0 (29 Oct 2025)
+--------------------
+
+- Fixed a bug in the warning issued when a :class:`Replacer` is deleted with replacements still
+  in place.
+
+- Reworked :func:`compare` options so that typos and the like will now result
+  in an exception being raised. This ended up being a breaking change if you use custom comparers
+  that take options as this now has a :ref:`different API <custom-comparer-options>`.
+
+- Reworked the :doc:`compare documentation <comparing>` to explain why you should be using it
+  as well as updating the examples and explaining more fully how to configure and customise it.
+
 9.2.0 (13 Oct 2025)
 -------------------
 
