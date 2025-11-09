@@ -1,3 +1,7 @@
+import pytest
+
+pytest.importorskip("twisted")
+
 from twisted.logger import Logger, formatEvent
 from twisted.python.failure import Failure
 from twisted.trial.unittest import TestCase
