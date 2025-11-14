@@ -38,7 +38,7 @@ setup(
         test=['django-stubs',
               'mypy',
               'mypy-zope',
-              'pytest>=7.1,<9',  # https://github.com/pytest-dev/pytest/issues/13895
+              'pytest>=7.1',
               'pytest-cov',
               'pytest-django',
               'types-mock',
