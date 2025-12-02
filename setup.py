@@ -36,7 +36,7 @@ setup(
     python_requires=">=3.11",
     extras_require=dict(
         test=['django-stubs',
-              'mypy',
+              'mypy>=1.19',
               'mypy-zope',
               'pytest>=7.1',
               'pytest-cov',
