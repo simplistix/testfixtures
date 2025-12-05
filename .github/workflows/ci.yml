@@ -1,0 +1,49 @@
+name: "Continuous Integration"
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 1 * * *"
+
+jobs:
+  ci:
+    uses: cjw296/python-workflow/.github/workflows/uv-ci.yml@v2
+    with:
+      package: testfixtures
+      python-versions: '["3.11", "3.12", "3.13"]'
+
+  # Additional check: Verify each optional extra can be installed and imported
+  # This matches CircleCI's check-package-python-{django,mock} pattern
+  check-extras:
+    needs: ci
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+        extra: ["django", "sybil", "twisted"]
+    steps:
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          name: Packages
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package with ${{ matrix.extra }} extra
+        run: pip install testfixtures-*.whl[${{ matrix.extra }}]
+
+      - name: Test import
+        run: |
+          python -c "import testfixtures"
+          # Test specific modules for each extra
+          if [ "${{ matrix.extra }}" = "django" ]; then
+            python -c "import testfixtures.django"
+          elif [ "${{ matrix.extra }}" = "twisted" ]; then
+            python -c "import testfixtures.twisted"
+          elif [ "${{ matrix.extra }}" = "sybil" ]; then
+            python -c "import testfixtures.sybil"
+          fi

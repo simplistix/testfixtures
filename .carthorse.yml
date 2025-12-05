@@ -1,9 +1,7 @@
 carthorse:
-  version-from: setup.py
+  version-from: pyproject.toml
   tag-format: "{version}"
   when:
     - version-not-tagged
   actions:
-    - run: "pip install -e .[build]"
-    - run: "twine upload -u __token__ -p $PYPI_TOKEN dist/*"
     - create-tag
