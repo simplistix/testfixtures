@@ -9,48 +9,47 @@ Testfixtures is a Python testing utilities library that provides helpers and moc
 
 ### Environment
 
-Always work in a virtualenv contained in `.venv` in the checkout:
+Always work in a virtualenv managed by uv:
 
 ```bash
-source .venv/bin/activate
+# First time setup or after pulling changes
+uv sync --all-extras
 ```
 
-If the environment doesn't exist, create it as follows:
+If you need to recreate the environment:
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -U pip setuptools
-pip install -U -e .[test,build,docs]
+rm -rf .venv
+uv sync --all-extras
 ```
 
 ### Running Tests
 ```bash
-pytest                    # Run all tests
-pytest testfixtures/tests/test_comparison.py  # Run specific test file
+uv run pytest                                  # Run all tests
+uv run pytest tests/test_comparison.py         # Run specific test file
+uv run pytest --cov                            # Run with coverage
 ```
 
 ### Type Checking
 ```bash
-mypy testfixtures/        # Run type checking with mypy
+uv run mypy src/testfixtures                   # Run type checking
 ```
 **CRITICAL**: Always run mypy after code changes. All type checks must pass.
 
 ### Coverage
 ```bash
-pytest --cov=testfixtures --cov-report=term-missing  # Run with coverage
+uv run pytest --cov=testfixtures --cov-report=term-missing
 ```
 **CRITICAL**: Always run coverage after code changes. Coverage must not drop below baseline.
 
 ### Documentation
 ```bash
-cd docs && make html      # Build HTML documentation
-cd docs && make clean     # Clean documentation build
+cd docs && uv run sphinx-build -b html . _build
 ```
 
-### Package Installation
+### Package Building
 ```bash
-pip install -e .[test,build]  # Install in development mode with test dependencies
+uv build                                       # Build sdist and wheel
 ```
 
 ## Architecture
