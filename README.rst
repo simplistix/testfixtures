@@ -1,7 +1,7 @@
 Testfixtures
 ============
 
-|Docs|_ |PyPI|_  |Git|_ |CircleCI|_
+|Docs|_ |PyPI|_  |Git|_ |Build|_
 
 .. |Docs| image:: https://readthedocs.org/projects/testfixtures/badge/?version=latest
 .. _Docs: http://testfixtures.readthedocs.org/en/latest/
@@ -9,11 +9,8 @@ Testfixtures
 .. |PyPI| image:: https://badge.fury.io/py/testfixtures.svg
 .. _PyPI: https://pypi.org/project/testfixtures/
 
-.. |Git| image:: https://badge.fury.io/gh/simplistix%2Ftestfixtures.svg
+.. |Git| image:: https://github.com/simplistix/testfixtures/actions/workflows/ci.yml/badge.svg
 .. _Git: https://github.com/simplistix/testfixtures
-
-.. |CircleCI| image:: https://circleci.com/gh/simplistix/testfixtures/tree/master.svg?style=shield
-.. _CircleCI: https://circleci.com/gh/simplistix/testfixtures/tree/master
 
 Testfixtures is a collection of helpers and mock objects that are useful when
 writing automated tests in Python.

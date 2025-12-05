@@ -1,0 +1,81 @@
+name: "Continuous Integration"
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 1 * * *"
+
+jobs:
+  tests:
+    name: "tests / python ${{ matrix.python-version }} / ${{ matrix.uv-resolution }} ${{ matrix.extra}}"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.13"
+        uv-resolution:
+          - "lowest-direct"
+          - "highest"
+        extra:
+          - ""
+          - "--extra django"
+          - "--extra sybil"
+          - "--extra twisted"
+    steps:
+      - uses: cjw296/python-action/run-tests@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+          uv-params: "--dev ${{ matrix.extra }} --resolution ${{ matrix.uv-resolution }}"
+
+  coverage:
+    needs: tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: cjw296/python-action/check-coverage@v3
+
+  typing:
+    name: type checking / python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.13"
+    steps:
+      - uses: cjw296/python-action/check-typing@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+          uv-params: "--all-groups --all-extras"
+
+  build-and-inspect-package:
+    needs:
+      - coverage
+      - tests
+      - typing
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hynek/build-and-inspect-python-package@v2
+
+  check-package:
+    needs:
+      - build-and-inspect-package
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        extra:
+          - ""
+          - "django"
+          - "sybil"
+          - "mock"
+          - "twisted"
+    steps:
+      - uses: cjw296/python-action/check-distributions@v3
+        with:
+          package: "testfixtures"
+          python-version: "3.13"
+          extras: ${{ matrix.extra == 'mock' && '[mock-backport]' || (matrix.extra && format('[{0}]', matrix.extra) || '') }}
+          checks: ${{ matrix.extra && format('python -c "import testfixtures.{0}"', matrix.extra) || 'python -c "import testfixtures"' }}
