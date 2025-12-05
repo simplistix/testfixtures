@@ -18,11 +18,11 @@ from unittest import TestCase
 import os
 
 from testfixtures.mock import Mock
-from testfixtures.tests import sample1, sample3
-from testfixtures.tests import sample2
+from tests import sample1, sample3
+from tests import sample2
 from .sample1 import z, X
 from .sample3 import SOME_CONSTANT
-from ..compat import PY_313_PLUS
+from testfixtures.compat import PY_313_PLUS
 
 from warnings import catch_warnings
 
@@ -36,7 +36,7 @@ class TestReplace(TestCase):
 
         compare(sample1.z(), 'original z')
 
-        @replace('testfixtures.tests.sample1.z', test_z)
+        @replace('tests.sample1.z', test_z)
         def test_something():
             compare(sample1.z(), 'replacement z')
 
@@ -56,7 +56,7 @@ class TestReplace(TestCase):
         self.assertFalse(OriginalX is ReplacementX)
         self.assertTrue(isinstance(sample1.X(), OriginalX))
 
-        @replace('testfixtures.tests.sample1.X', ReplacementX)
+        @replace('tests.sample1.X', ReplacementX)
         def test_something():
             self.assertFalse(OriginalX is ReplacementX)
             self.assertTrue(isinstance(sample1.X(), ReplacementX))
@@ -76,7 +76,7 @@ class TestReplace(TestCase):
 
         compare(sample1.X().y(), 'original y')
 
-        @replace('testfixtures.tests.sample1.X.y', test_y)
+        @replace('tests.sample1.X.y', test_y)
         def test_something():
             self.assertTrue(isinstance(sample1.X().y(), sample1.X))
 
@@ -93,7 +93,7 @@ class TestReplace(TestCase):
 
         compare(sample1.X().aMethod(), sample1.X)
 
-        @replace('testfixtures.tests.sample1.X.aMethod', rMethod)
+        @replace('tests.sample1.X.aMethod', rMethod)
         def test_something(r):
             compare(r, rMethod)
             compare(sample1.X().aMethod(), (sample1.X, 1))
@@ -115,8 +115,8 @@ class TestReplace(TestCase):
         compare(sample1.z(), 'original z')
         compare(sample1.X().y(), 'original y')
 
-        @replace('testfixtures.tests.sample1.z', test_z)
-        @replace('testfixtures.tests.sample1.X.y', test_y)
+        @replace('tests.sample1.z', test_z)
+        @replace('tests.sample1.X.y', test_y)
         def test_something(passed_test_y, passed_test_z):
             compare(test_z, passed_test_z)
             compare(test_y, passed_test_y)
@@ -141,7 +141,7 @@ class TestReplace(TestCase):
         compare(sample1.z(), 'original z')
         compare(sample2.z(), 'original z')
 
-        @replace('testfixtures.tests.sample1.z', test_z)
+        @replace('tests.sample1.z', test_z)
         def test_something():
             compare(sample1.z(), 'test z')
             compare(sample2.z(), 'original z')
@@ -161,7 +161,7 @@ class TestReplace(TestCase):
 
         compare(sample1.z(), 'original z')
 
-        @replace('testfixtures.tests.sample1.z', test_z)
+        @replace('tests.sample1.z', test_z)
         def test_something():
             compare(sample1.z(), 'replacement z')
             raise Exception()
@@ -177,7 +177,7 @@ class TestReplace(TestCase):
 
         o = object()
 
-        @replace('testfixtures.tests.sample1.z', o)
+        @replace('tests.sample1.z', o)
         def test_something(r):
             self.assertTrue(r is o)
             self.assertTrue(sample1.z is o)
@@ -188,7 +188,7 @@ class TestReplace(TestCase):
 
         o = object()
 
-        @replace('testfixtures.tests.sample1.bad', o)
+        @replace('tests.sample1.bad', o)
         def test_something(r):
             pass  # pragma: no cover
 
@@ -199,7 +199,7 @@ class TestReplace(TestCase):
 
         o = object()
 
-        @replace('testfixtures.tests.sample1.bad', o, strict=False)
+        @replace('tests.sample1.bad', o, strict=False)
         def test_something(r):
             self.assertTrue(r is o)
             self.assertTrue(sample1.bad is o)
@@ -208,12 +208,12 @@ class TestReplace(TestCase):
 
     def test_replace_dict(self):
 
-        from testfixtures.tests.sample1 import some_dict
+        from tests.sample1 import some_dict
 
         original = some_dict['key']
         replacement = object()
 
-        @replace('testfixtures.tests.sample1.some_dict.key', replacement)
+        @replace('tests.sample1.some_dict.key', replacement)
         def test_something(obj):
             self.assertTrue(obj is replacement)
             self.assertTrue(some_dict['key'] is replacement)
@@ -224,9 +224,9 @@ class TestReplace(TestCase):
 
     def test_replace_delattr(self):
 
-        from testfixtures.tests import sample1
+        from tests import sample1
 
-        @replace('testfixtures.tests.sample1.some_dict', not_there)
+        @replace('tests.sample1.some_dict', not_there)
         def test_something(obj):
             self.assertFalse(hasattr(sample1, 'some_dict'))
 
@@ -237,7 +237,7 @@ class TestReplace(TestCase):
 
     def test_replace_delattr_not_there(self):
 
-        @replace('testfixtures.tests.sample1.foo', not_there)
+        @replace('tests.sample1.foo', not_there)
         def test_something(obj):
             pass  # pragma: no cover
 
@@ -246,9 +246,9 @@ class TestReplace(TestCase):
 
     def test_replace_delattr_not_there_not_strict(self):
 
-        from testfixtures.tests import sample1
+        from tests import sample1
 
-        @replace('testfixtures.tests.sample1.foo',
+        @replace('tests.sample1.foo',
                  not_there, strict=False)
         def test_something(obj):
             self.assertFalse(hasattr(sample1, 'foo'))
@@ -257,9 +257,9 @@ class TestReplace(TestCase):
 
     def test_replace_delattr_not_there_restored(self):
 
-        from testfixtures.tests import sample1
+        from tests import sample1
 
-        @replace('testfixtures.tests.sample1.foo',
+        @replace('tests.sample1.foo',
                  not_there, strict=False)
         def test_something(obj):
             sample1.foo = 'bar'
@@ -281,9 +281,9 @@ class TestReplace(TestCase):
 
     def test_replace_dict_remove_key(self):
 
-        from testfixtures.tests.sample1 import some_dict
+        from tests.sample1 import some_dict
 
-        @replace('testfixtures.tests.sample1.some_dict.key', not_there)
+        @replace('tests.sample1.some_dict.key', not_there)
         def test_something(obj):
             self.assertFalse('key' in some_dict)
 
@@ -293,9 +293,9 @@ class TestReplace(TestCase):
 
     def test_replace_dict_remove_key_not_there(self):
 
-        from testfixtures.tests.sample1 import some_dict
+        from tests.sample1 import some_dict
 
-        @replace('testfixtures.tests.sample1.some_dict.badkey', not_there)
+        @replace('tests.sample1.some_dict.badkey', not_there)
         def test_something(obj):
             self.assertFalse('badkey' in some_dict)  # pragma: no cover
 
@@ -306,9 +306,9 @@ class TestReplace(TestCase):
 
     def test_replace_dict_remove_key_not_there_not_strict(self):
 
-        from testfixtures.tests.sample1 import some_dict
+        from tests.sample1 import some_dict
 
-        @replace('testfixtures.tests.sample1.some_dict.badkey',
+        @replace('tests.sample1.some_dict.badkey',
                  not_there, strict=False)
         def test_something(obj):
             self.assertFalse('badkey' in some_dict)
@@ -319,9 +319,9 @@ class TestReplace(TestCase):
 
     def test_replace_dict_ensure_key_not_there_restored(self):
 
-        from testfixtures.tests.sample1 import some_dict
+        from tests.sample1 import some_dict
 
-        @replace('testfixtures.tests.sample1.some_dict.badkey',
+        @replace('tests.sample1.some_dict.badkey',
                  not_there, strict=False)
         def test_something(obj):
             some_dict['badkey'] = 'some test value'
@@ -332,11 +332,11 @@ class TestReplace(TestCase):
 
     def test_replace_dict_not_there(self):
 
-        from testfixtures.tests.sample1 import some_dict
+        from tests.sample1 import some_dict
 
         replacement = object()
 
-        @replace('testfixtures.tests.sample1.some_dict.key2',
+        @replace('tests.sample1.some_dict.key2',
                  replacement,
                  strict=False)
         def test_something(obj):
@@ -349,9 +349,9 @@ class TestReplace(TestCase):
 
     def test_replace_dict_not_there_empty_string(self):
 
-        from testfixtures.tests.sample1 import some_dict
+        from tests.sample1 import some_dict
 
-        @replace('testfixtures.tests.sample1.some_dict.key2', '', strict=False)
+        @replace('tests.sample1.some_dict.key2', '', strict=False)
         def test_something():
             self.assertEqual(some_dict['key2'], '')
 
@@ -361,12 +361,12 @@ class TestReplace(TestCase):
 
     def test_replace_complex(self):
 
-        from testfixtures.tests.sample1 import some_dict
+        from tests.sample1 import some_dict
 
         original = some_dict['complex_key'][1]
         replacement = object()
 
-        @replace('testfixtures.tests.sample1.some_dict.complex_key.1',
+        @replace('tests.sample1.some_dict.complex_key.1',
                  replacement)
         def test_something(obj):
             self.assertTrue(obj is replacement)
@@ -380,12 +380,12 @@ class TestReplace(TestCase):
 
     def test_replacer_del(self):
         r = Replacer()
-        r.replace('testfixtures.tests.sample1.left_behind',
+        r.replace('tests.sample1.left_behind',
                   object(), strict=False)
         with ShouldWarn(
             UserWarning(
                 "Replacer deleted without being restored, originals not restored: "
-                "'testfixtures.tests.sample1.left_behind': original = <not_there>"
+                "'tests.sample1.left_behind': original = <not_there>"
             )
         ):
             del r
@@ -431,7 +431,7 @@ class TestReplace(TestCase):
     def test_staticmethod(self):
         compare(sample1.X.bMethod(), 2)
         with Replacer() as r:
-            r.replace('testfixtures.tests.sample1.X.bMethod', lambda: 1)
+            r.replace('tests.sample1.X.bMethod', lambda: 1)
             compare(sample1.X.bMethod(), 1)
         compare(sample1.X.bMethod(), 2)
 
@@ -442,7 +442,7 @@ class TestReplace(TestCase):
         compare(sample1.z(), 'original z')
         replace = Replacer()
         compare(sample1.z(), 'original z')
-        replace('testfixtures.tests.sample1.z', test_z)
+        replace('tests.sample1.z', test_z)
         cleanup = replace.restore
         try:
             compare(sample1.z(), 'replacement z')
@@ -456,7 +456,7 @@ class TestReplace(TestCase):
 
         compare(sample1.z(), 'original z')
 
-        with Replace('testfixtures.tests.sample1.z', test_z) as z:
+        with Replace('tests.sample1.z', test_z) as z:
             compare(z(), 'replacement z')
             compare(sample1.z(), 'replacement z')
 
@@ -474,8 +474,8 @@ class TestReplace(TestCase):
         compare(sample1.X().y(), 'original y')
 
         with Replacer() as replace:
-            z = replace('testfixtures.tests.sample1.z', test_z)
-            y = replace('testfixtures.tests.sample1.X.y', test_y)
+            z = replace('tests.sample1.z', test_z)
+            y = replace('tests.sample1.X.y', test_y)
             compare(z(), 'test z')
             compare(y, sample1.X.y)
             compare(sample1.X().y(), 'test y')
@@ -489,7 +489,7 @@ class TestReplace(TestCase):
         def test_z():
             return 'replacement z'
 
-        with Replace('testfixtures.tests.sample1.foo', test_z, strict=False):
+        with Replace('tests.sample1.foo', test_z, strict=False):
             compare(sample1.foo(), 'replacement z')
 
     def test_context_manager_full_spec(self):
@@ -977,9 +977,9 @@ class TestOnClass:
         original_y = X.y
         original_a_result = X.aMethod()
         with Replacer() as replace:
-            # y = replace('testfixtures.tests.sample1.X.y', Mock())
+            # y = replace('tests.sample1.X.y', Mock())
             # y.return_value = 'mock y'
-            # aMethod = replace('testfixtures.tests.sample1.X.aMethod', Mock())
+            # aMethod = replace('tests.sample1.X.aMethod', Mock())
             # aMethod.return_value = 'mock method'
             replace.on_class(X.y, lambda self: 'mock y')
             replace.on_class(X.aMethod, lambda cls: 'mock method')

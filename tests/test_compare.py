@@ -24,7 +24,7 @@ from testfixtures.comparison import (
 )
 from testfixtures.mock import Mock, call
 from testfixtures.shouldraise import ShouldAssert
-from testfixtures.tests.sample1 import Slotted
+from tests.sample1 import Slotted
 
 hexaddr = compile('0x[0-9A-Fa-f]+')
 
@@ -807,10 +807,10 @@ class TestCompare(CompareHelper, TestCase):
 
     def test_default_style_classes_different(self):
         expected = (
-            "<class 'testfixtures.tests.test_compare.TestCompare."
+            "<class 'tests.test_compare.TestCompare."
             "test_default_style_classes_different.<locals>.X'>"
             " != "
-            "<class 'testfixtures.tests.test_compare.TestCompare."
+            "<class 'tests.test_compare.TestCompare."
             "test_default_style_classes_different.<locals>.Y'>"
             )
 
@@ -828,10 +828,10 @@ class TestCompare(CompareHelper, TestCase):
 
     def test_new_style_classes_different(self):
         expected = (
-            "<class 'testfixtures.tests.test_compare.TestCompare."
+            "<class 'tests.test_compare.TestCompare."
             "test_new_style_classes_different.<locals>.X'>"
             " != "
-            "<class 'testfixtures.tests.test_compare.TestCompare."
+            "<class 'tests.test_compare.TestCompare."
             "test_new_style_classes_different.<locals>.Y'>"
             )
 
@@ -1441,9 +1441,9 @@ b
         class_b = namedtuple('Bar', 'x y z')
         self.check_raises(
             class_a(1, 2), class_b(1, 2, 3),
-            "Foo(x=1, y=2) (<class 'testfixtures.tests.test_compare.Foo'>) != "
+            "Foo(x=1, y=2) (<class 'tests.test_compare.Foo'>) != "
             "Bar(x=1, y=2, z=3) "
-            "(<class 'testfixtures.tests.test_compare.Bar'>)"
+            "(<class 'tests.test_compare.Bar'>)"
             )
 
     def test_dict_with_list(self):

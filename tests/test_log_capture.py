@@ -216,12 +216,12 @@ class TestLog_Capture(TestCase):
             log.check(('root', 'INFO', 'oh noez'))
 
     @log_capture()
-    @patch('testfixtures.tests.sample1.SampleClassA')
+    @patch('tests.sample1.SampleClassA')
     def test_patch_then_log(self, a1, a2):
         actual = [type(c).__name__ for c in (a1, a2)]
         compare(actual, expected=['MagicMock', 'LogCaptureForDecorator'])
 
-    @patch('testfixtures.tests.sample1.SampleClassA')
+    @patch('tests.sample1.SampleClassA')
     @log_capture()
     def test_log_then_patch(self, a1, a2):
         actual = [type(c).__name__ for c in (a1, a2)]

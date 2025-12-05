@@ -9,7 +9,7 @@ from testfixtures.mock import Mock
 from testfixtures import (
     TempDirectory, Replacer, ShouldRaise, compare, OutputCapture
 )
-from ..rmtree import rmtree
+from testfixtures.rmtree import rmtree
 
 some_bytes = '\xa3'.encode('utf-8')
 some_text = '\xa3'

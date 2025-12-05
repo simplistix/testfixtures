@@ -684,7 +684,7 @@ class IntegrationTests(TestCase):
     def setUp(self):
         self.popen = MockPopen()
         replacer = Replacer()
-        replacer.replace('testfixtures.tests.test_popen.subprocess.Popen', self.popen)
+        replacer.replace('tests.test_popen.subprocess.Popen', self.popen)
         self.addCleanup(replacer.restore)
 
     def test_command_called_with_check_call_check_returncode(self):

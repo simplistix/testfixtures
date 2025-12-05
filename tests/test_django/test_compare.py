@@ -4,11 +4,11 @@ import pytest
 from django.contrib.auth.models import User
 from testfixtures import OutputCapture, Replacer
 from .models import SampleModel
-from testfixtures.tests.test_django.manage import main
+from tests.test_django.manage import main
 
-from ..test_compare import CompareHelper
-from ... import compare
-from ...django import compare as django_compare
+from tests.test_compare import CompareHelper
+from testfixtures import compare
+from testfixtures.django import compare as django_compare
 
 
 class CompareTests(CompareHelper, TestCase):
