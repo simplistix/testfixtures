@@ -1,0 +1,120 @@
+[project]
+name = "testfixtures"
+version = "10.0.0"
+description = "A collection of helpers and mock objects for unit tests and doc tests."
+readme = "README.rst"
+authors = [
+    { name = "Chris Withers", email = "chris@simplistix.co.uk" }
+]
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = []
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+]
+
+[project.urls]
+Homepage = "https://github.com/Simplistix/testfixtures"
+Documentation = "http://testfixtures.readthedocs.org/en/latest/"
+Repository = "https://github.com/Simplistix/testfixtures"
+Changelog = "https://testfixtures.readthedocs.io/en/latest/changes.html"
+
+[project.optional-dependencies]
+django = ["django"]
+sybil = ["sybil>=6"]
+twisted = ["twisted"]
+
+[dependency-groups]
+dev = [
+    "django-stubs",
+    "mock",
+    "mypy>=1.19",
+    "mypy-zope",
+    "pytest>=7.1",
+    "pytest-cov",
+    "pytest-django",
+    "types-mock",
+]
+docs = [
+    "sphinx",
+    "furo",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+addopts = "-p no:doctest"
+norecursedirs = "_build"
+testpaths = ["tests", "docs"]
+DJANGO_SETTINGS_MODULE = "tests.test_django.settings"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+    "error::SyntaxWarning",
+]
+
+[tool.mypy]
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+plugins = [
+    "mypy_django_plugin.main",
+    "mypy_zope:plugin",
+]
+
+# "nice to have" stuff to fix:
+[[tool.mypy.overrides]]
+module = "tests.*"
+disable_error_code = ["no-untyped-call", "no-untyped-def"]
+
+# Be more picky with some test files:
+[[tool.mypy.overrides]]
+module = [
+    "tests.test_compare_types",
+    "tests.test_date",
+    "tests.test_datetime",
+    "tests.test_outputcapture",
+    "tests.test_should_raise",
+    "tests.test_time",
+]
+enable_error_code = ["no-untyped-call", "no-untyped-def"]
+
+[[tool.mypy.overrides]]
+# Be very picky with compare tests of typing:
+module = "tests.test_compare_types"
+warn_unused_ignores = true
+check_untyped_defs = true
+no_implicit_reexport = true
+warn_return_any = true
+no_implicit_optional = true
+
+[[tool.mypy.overrides]]
+module = [
+    # permanent exclusions and workaround:
+    "constantly.*",
+    # guppy isn't actually ever installed:
+    "guppy"
+]
+ignore_missing_imports = true
+
+[tool.django-stubs]
+django_settings_module = "tests.test_django.settings"
+
+[tool.coverage.run]
+source = ["testfixtures"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "'No exception raised!'",
+    "self\\.fail\\('Expected",
+    "guppy =",
+    "if TYPE_CHECKING:",
+    "\\.\\.\\.",
+]
