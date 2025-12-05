@@ -13,7 +13,7 @@ from testfixtures import (
     replace,
 )
 from testfixtures.datetime import MockDateTime
-from testfixtures.tests import sample1
+from tests import sample1
 from unittest import TestCase
 
 
@@ -209,7 +209,7 @@ class TestDateTime(TestCase):
 
         from testfixtures import Replacer
         r = Replacer()
-        r.replace('testfixtures.tests.sample1.now', t.now)
+        r.replace('tests.sample1.now', t.now)
         try:
             compare(sample1.str_now_2(), '2002-01-01 01:00:00')
             compare(sample1.str_now_2(), '2002-01-01 02:00:00')

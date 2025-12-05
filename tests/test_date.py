@@ -4,7 +4,7 @@ from typing import cast
 
 from testfixtures import ShouldRaise, mock_date, replace, compare
 from testfixtures.datetime import MockDate
-from testfixtures.tests import sample1, sample2
+from tests import sample1, sample2
 from unittest import TestCase
 
 
@@ -97,7 +97,7 @@ class TestDate(TestCase):
         compare(dt2, '2001-01-02')
 
         # What you need to do is replace the imported type:
-        @replace('testfixtures.tests.sample1.date', mock_date())
+        @replace('tests.sample1.date', mock_date())
         def test_something_fixed() -> None:
             compare(sample1.str_today_1(), '2001-01-01')
 
@@ -108,7 +108,7 @@ class TestDate(TestCase):
         # a class attributes, where the normal patching doesn't
         # work:
 
-        @replace('testfixtures.tests.sample1.date', mock_date())
+        @replace('tests.sample1.date', mock_date())
         def test_something() -> None:
             compare(sample1.str_today_2(), '2001-01-01')
 
@@ -125,7 +125,7 @@ class TestDate(TestCase):
         compare(dt2, '2001-01-01')
 
         # What you need to do is replace the imported name:
-        @replace('testfixtures.tests.sample1.today', mock_date().today)
+        @replace('tests.sample1.today', mock_date().today)
         def test_something_fixed() -> None:
             compare(sample1.str_today_2(), '2001-01-01')
 
@@ -142,7 +142,7 @@ class TestDate(TestCase):
 
         from testfixtures import Replacer
         r = Replacer()
-        r.replace('testfixtures.tests.sample1.today', t.today)
+        r.replace('tests.sample1.today', t.today)
         try:
             compare(sample1.str_today_2(), '2002-01-01')
             compare(sample1.str_today_2(), '2002-01-02')

@@ -30,5 +30,5 @@ pytest_collect_file = Sybil(
     patterns=['*.txt', '*.py'],
     setup=sybil_setup, teardown=sybil_teardown,
     fixtures=['tmp_path'],
-    exclude='testfixtures/tests/*.py'
+    exclude='tests/*.py'
 ).pytest()

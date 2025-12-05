@@ -2,7 +2,7 @@ import sys
 from unittest import TestCase
 
 from testfixtures import Comparison as C, TempDirectory, diff, Comparison
-from testfixtures.tests.sample1 import SampleClassA, a_function
+from tests.sample1 import SampleClassA, a_function
 
 
 class AClass:
@@ -57,9 +57,9 @@ class TestC(TestCase):
         # of the correct type and order.
         r = a_function()
         self.assertEqual(r, (
-            C('testfixtures.tests.sample1.SampleClassA'),
-            C('testfixtures.tests.sample1.SampleClassB'),
-            C('testfixtures.tests.sample1.SampleClassA'),
+            C('tests.sample1.SampleClassA'),
+            C('tests.sample1.SampleClassB'),
+            C('tests.sample1.SampleClassA'),
             ))
         # We also want to check specific parts of some
         # of the returned objects' attributes
@@ -86,7 +86,7 @@ class TestC(TestCase):
         # Here we use a Comparison to make sure both the
         # type and attributes of an object are correct.
         self.assertEqual(
-            C('testfixtures.tests.test_comparison.AClass',
+            C('tests.test_comparison.AClass',
               x=1, y=2),
             AClass(1, 2),
             )
@@ -96,14 +96,14 @@ class TestC(TestCase):
         # Comparison constructor, they can be specified in a
         # dict:
         self.assertEqual(
-            C('testfixtures.tests.test_comparison.AClass',
+            C('tests.test_comparison.AClass',
               {'x': 1, 'y': 2}),
             AClass(1, 2),
             )
 
     def test_example_partial(self):
         self.assertEqual(
-            C('testfixtures.tests.test_comparison.AClass',
+            C('tests.test_comparison.AClass',
               x=1,
               partial=True),
             AClass(1, 2),
@@ -121,16 +121,16 @@ class TestC(TestCase):
         compare_repr(C('datetime'), '<C:datetime>')
 
     def test_repr_class(self):
-        compare_repr(C('testfixtures.tests.sample1.SampleClassA'),
-                     '<C:testfixtures.tests.sample1.SampleClassA>')
+        compare_repr(C('tests.sample1.SampleClassA'),
+                     '<C:tests.sample1.SampleClassA>')
 
     def test_repr_function(self):
-        compare_repr(C('testfixtures.tests.sample1.z'),
-                     '<C:testfixtures.tests.sample1.z>')
+        compare_repr(C('tests.sample1.z'),
+                     '<C:tests.sample1.z>')
 
     def test_repr_instance(self):
         compare_repr(C(SampleClassA('something')),
-                     "<C:testfixtures.tests.sample1.SampleClassA>"
+                     "<C:tests.sample1.SampleClassA>"
                      "args: ('something',)"
                      "</>"
                      )
@@ -141,108 +141,108 @@ class TestC(TestCase):
     def test_repr_exception_not_args(self):
         compare_repr(
             C(WeirdException(1, 2)),
-            "\n<C:testfixtures.tests.test_comparison.WeirdException>\n"
+            "\n<C:tests.test_comparison.WeirdException>\n"
             "args: (1, 2)\n"
             "x: 1\n"
             "y: 2\n"
-            "</C:testfixtures.tests.test_comparison.WeirdException>"
+            "</C:tests.test_comparison.WeirdException>"
         )
 
     def test_repr_class_and_vars(self):
         compare_repr(
             C(SampleClassA, {'args': (1,)}),
-            "<C:testfixtures.tests.sample1.SampleClassA>args: (1,)</>"
+            "<C:tests.sample1.SampleClassA>args: (1,)</>"
         )
 
     def test_repr_nested(self):
         compare_repr(
             C(SampleClassA, y=C(AClass), z=C(BClass(1, 2))),
             "\n"
-            "<C:testfixtures.tests.sample1.SampleClassA>\n"
-            "y: <C:testfixtures.tests.test_comparison.AClass>\n"
+            "<C:tests.sample1.SampleClassA>\n"
+            "y: <C:tests.test_comparison.AClass>\n"
             "z: \n"
-            "  <C:testfixtures.tests.test_comparison.BClass>\n"
+            "  <C:tests.test_comparison.BClass>\n"
             "  x: 1\n"
             "  y: 2\n"
-            "  </C:testfixtures.tests.test_comparison.BClass>\n"
-            "</C:testfixtures.tests.sample1.SampleClassA>"
+            "  </C:tests.test_comparison.BClass>\n"
+            "</C:tests.sample1.SampleClassA>"
             )
 
     def test_repr_failed_wrong_class(self):
-        c = C('testfixtures.tests.test_comparison.AClass', x=1, y=2)
+        c = C('tests.test_comparison.AClass', x=1, y=2)
         assert c != BClass(1, 2)
         compare_repr(c,
-                     "<C:testfixtures.tests.test_comparison.AClass(failed)>"
+                     "<C:tests.test_comparison.AClass(failed)>"
                      "wrong type</>"
                      )
 
     def test_repr_failed_all_reasons_in_one(self):
-        c = C('testfixtures.tests.test_comparison.AClass',
+        c = C('tests.test_comparison.AClass',
               y=5, z='missing')
         assert c != AClass(1, 2)
         compare_repr(c,
                      "\n"
-                     "<C:testfixtures.tests.test_comparison.AClass(failed)>\n"
+                     "<C:tests.test_comparison.AClass(failed)>\n"
                      "attributes in Comparison but not actual:\n"
                      "'z': 'missing'\n\n"
                      "attributes in actual but not Comparison:\n"
                      "'x': 1\n\n"
                      "attributes differ:\n"
                      "'y': 5 (Comparison) != 2 (actual)\n"
-                     "</C:testfixtures.tests.test_comparison.AClass>",
+                     "</C:tests.test_comparison.AClass>",
                      )
 
     def test_repr_failed_not_in_other(self):
-        c = C('testfixtures.tests.test_comparison.AClass',
+        c = C('tests.test_comparison.AClass',
               x=1, y=2, z=(3, ))
         assert c != AClass(1, 2)
         compare_repr(c ,
                      "\n"
-                     "<C:testfixtures.tests.test_comparison.AClass(failed)>\n"
+                     "<C:tests.test_comparison.AClass(failed)>\n"
                      "attributes same:\n"
                      "['x', 'y']\n\n"
                      "attributes in Comparison but not actual:\n"
                      "'z': (3,)\n"
-                     "</C:testfixtures.tests.test_comparison.AClass>",
+                     "</C:tests.test_comparison.AClass>",
                      )
 
     def test_repr_failed_not_in_self(self):
-        c = C('testfixtures.tests.test_comparison.AClass', y=2)
+        c = C('tests.test_comparison.AClass', y=2)
         assert c != AClass(x=(1, ), y=2)
         compare_repr(c,
                      "\n"
-                     "<C:testfixtures.tests.test_comparison.AClass(failed)>\n"
+                     "<C:tests.test_comparison.AClass(failed)>\n"
                      "attributes same:\n"
                      "['y']\n\n"
                      "attributes in actual but not Comparison:\n"
                      "'x': (1,)\n"
-                     "</C:testfixtures.tests.test_comparison.AClass>",
+                     "</C:tests.test_comparison.AClass>",
                      )
 
     def test_repr_failed_not_in_self_partial(self):
-        c = C('testfixtures.tests.test_comparison.AClass', x=1, y=2, z=(3, ), partial=True)
+        c = C('tests.test_comparison.AClass', x=1, y=2, z=(3, ), partial=True)
         assert c != AClass(x=1, y=2)
         compare_repr(c,
                      "\n"
-                     "<C:testfixtures.tests.test_comparison.AClass(failed)>\n"
+                     "<C:tests.test_comparison.AClass(failed)>\n"
                      "attributes same:\n"
                      "['x', 'y']\n\n"
                      "attributes in Comparison but not actual:\n"
                      "'z': (3,)\n"
-                     "</C:testfixtures.tests.test_comparison.AClass>",
+                     "</C:tests.test_comparison.AClass>",
                      )
 
     def test_repr_failed_one_attribute_not_equal(self):
-        c = C('testfixtures.tests.test_comparison.AClass', x=1, y=(2, ))
+        c = C('tests.test_comparison.AClass', x=1, y=(2, ))
         assert c != AClass(1, (3, ))
         compare_repr(c,
                      "\n"
-                     "<C:testfixtures.tests.test_comparison.AClass(failed)>\n"
+                     "<C:tests.test_comparison.AClass(failed)>\n"
                      "attributes same:\n"
                      "['x']\n\n"
                      "attributes differ:\n"
                      "'y': (2,) (Comparison) != (3,) (actual)\n"
-                     "</C:testfixtures.tests.test_comparison.AClass>",
+                     "</C:tests.test_comparison.AClass>",
                      )
 
     def test_repr_failed_nested(self):
@@ -256,20 +256,20 @@ class TestC(TestCase):
         compare_repr(
             left_side,
             "[\n"
-            "<C:testfixtures.tests.test_comparison.AClass(failed)>\n"
+            "<C:tests.test_comparison.AClass(failed)>\n"
             "attributes same:\n"
             "['x']\n\n"
             "attributes differ:\n"
             "'y': 2 (Comparison) != 3 (actual)\n"
-            "</C:testfixtures.tests.test_comparison.AClass>, \n"
-            "<C:testfixtures.tests.test_comparison.BClass>\n"
+            "</C:tests.test_comparison.AClass>, \n"
+            "<C:tests.test_comparison.BClass>\n"
             "x: \n"
-            "  <C:testfixtures.tests.test_comparison.AClass>\n"
+            "  <C:tests.test_comparison.AClass>\n"
             "  x: 1\n"
             "  y: 2\n"
-            "  </C:testfixtures.tests.test_comparison.AClass>\n"
-            "y: <C:testfixtures.tests.test_comparison.AClass>\n"
-            "</C:testfixtures.tests.test_comparison.BClass>]"
+            "  </C:tests.test_comparison.AClass>\n"
+            "y: <C:tests.test_comparison.AClass>\n"
+            "</C:tests.test_comparison.BClass>]"
         )
 
         compare_repr(right_side, "[<AClass>, <AClass>]")
@@ -288,38 +288,38 @@ class TestC(TestCase):
         compare_repr(
             left_side,
             "[\n"
-            "<C:testfixtures.tests.test_comparison.AClass>\n"
+            "<C:tests.test_comparison.AClass>\n"
             "x: 1\n"
             "y: 2\n"
-            "</C:testfixtures.tests.test_comparison.AClass>, \n"
-            "<C:testfixtures.tests.test_comparison.BClass(failed)>\n"
+            "</C:tests.test_comparison.AClass>, \n"
+            "<C:tests.test_comparison.BClass(failed)>\n"
             "attributes same:\n"
             "['x']\n\n"
             "attributes differ:\n"
             "'y': \n"
-            "<C:testfixtures.tests.test_comparison.AClass(failed)>\n"
+            "<C:tests.test_comparison.AClass(failed)>\n"
             "attributes in Comparison but not actual:\n"
             "'z': 2\n\n"
             "attributes in actual but not Comparison:\n"
             "'x': 1\n"
             "'y': 2\n"
-            "</C:testfixtures.tests.test_comparison.AClass> (Comparison) != <AClass> (actual)\n"
-            "</C:testfixtures.tests.test_comparison.BClass>]",
+            "</C:tests.test_comparison.AClass> (Comparison) != <AClass> (actual)\n"
+            "</C:tests.test_comparison.BClass>]",
         )
 
         compare_repr(right_side, '[<AClass>, <BClass>]')
 
     def test_repr_failed_passed_failed(self):
-        c = C('testfixtures.tests.test_comparison.AClass', x=1, y=2)
+        c = C('tests.test_comparison.AClass', x=1, y=2)
         assert c != AClass(1, 3)
         compare_repr(c,
                      "\n"
-                     "<C:testfixtures.tests.test_comparison.AClass(failed)>\n"
+                     "<C:tests.test_comparison.AClass(failed)>\n"
                      "attributes same:\n"
                      "['x']\n\n"
                      "attributes differ:\n"
                      "'y': 2 (Comparison) != 3 (actual)\n"
-                     "</C:testfixtures.tests.test_comparison.AClass>",
+                     "</C:tests.test_comparison.AClass>",
                      )
 
         assert c == AClass(1, 2)
@@ -327,24 +327,24 @@ class TestC(TestCase):
         assert c != AClass(3, 2)
         compare_repr(c,
                      "\n"
-                     "<C:testfixtures.tests.test_comparison.AClass(failed)>\n"
+                     "<C:tests.test_comparison.AClass(failed)>\n"
                      "attributes same:\n"
                      "['y']\n\n"
                      "attributes differ:\n"
                      "'x': 1 (Comparison) != 3 (actual)\n"
-                     "</C:testfixtures.tests.test_comparison.AClass>",
+                     "</C:tests.test_comparison.AClass>",
                      )
 
     def test_first(self):
         self.assertEqual(
-            C('testfixtures.tests.sample1.SampleClassA'),
+            C('tests.sample1.SampleClassA'),
             SampleClassA()
             )
 
     def test_second(self):
         self.assertEqual(
             SampleClassA(),
-            C('testfixtures.tests.sample1.SampleClassA'),
+            C('tests.sample1.SampleClassA'),
             )
 
     def test_not_same_first(self):
@@ -433,10 +433,10 @@ class TestC(TestCase):
         compare_repr(
             c,
             "\n"
-            "<C:testfixtures.tests.test_comparison.SomeClass(failed)>\n"
+            "<C:tests.test_comparison.SomeClass(failed)>\n"
             "attributes differ:\n"
             "'prop': 2 (Comparison) != 1 (actual)\n"
-            "</C:testfixtures.tests.test_comparison.SomeClass>")
+            "</C:tests.test_comparison.SomeClass>")
 
     def test_property_not_equal(self):
         self.run_property_not_equal_test(partial=False)
@@ -471,11 +471,11 @@ class TestC(TestCase):
         compare_repr(
             c,
             "\n"
-            "<C:testfixtures.tests.test_comparison.SomeClass(failed)>\n"
+            "<C:tests.test_comparison.SomeClass(failed)>\n"
             "attributes differ:\n"
             "'method': <built-in function max> (Comparison)"
             " != <built-in function min> (actual)\n"
-            "</C:testfixtures.tests.test_comparison.SomeClass>"
+            "</C:tests.test_comparison.SomeClass>"
         )
 
     def test_method_not_equal(self):
@@ -553,10 +553,10 @@ class TestC(TestCase):
         c = C(X, x=1)
         assert c != X()
         compare_repr(c, "\n"
-                        "<C:testfixtures.tests.test_comparison.X(failed)>\n"
+                        "<C:tests.test_comparison.X(failed)>\n"
                         "attributes in Comparison but not actual:\n"
                         "'x': 1\n"
-                        "</C:testfixtures.tests.test_comparison.X>")
+                        "</C:tests.test_comparison.X>")
 
     def test_no___dict___partial_same(self):
         x = X()
@@ -568,10 +568,10 @@ class TestC(TestCase):
         assert c != X()
         compare_repr(c,
                      "\n"
-                     "<C:testfixtures.tests.test_comparison.X(failed)>\n"
+                     "<C:tests.test_comparison.X(failed)>\n"
                      "attributes in Comparison but not actual:\n"
                      "'x': 1\n"
-                     "</C:testfixtures.tests.test_comparison.X>",
+                     "</C:tests.test_comparison.X>",
                      )
 
     def test_no___dict___partial_different(self):
@@ -581,12 +581,12 @@ class TestC(TestCase):
         assert c != x
         compare_repr(c,
                      "\n"
-                     "<C:testfixtures.tests.test_comparison.X(failed)>\n"
+                     "<C:tests.test_comparison.X(failed)>\n"
                      "attributes in Comparison but not actual:\n"
                      "'y': 2\n\n"
                      "attributes differ:\n"
                      "'x': 1 (Comparison) != 2 (actual)\n"
-                     "</C:testfixtures.tests.test_comparison.X>",
+                     "</C:tests.test_comparison.X>",
                      )
 
     def test_compared_object_defines_eq(self):
@@ -622,10 +622,10 @@ class TestC(TestCase):
         c == Annoying()
         compare_repr(
             c,
-            '\n<C:testfixtures.tests.test_comparison.Annoying(failed)>\n'
+            '\n<C:tests.test_comparison.Annoying(failed)>\n'
             'attributes differ:\n'
             "'eq_called': 1 (Comparison) != 0 (actual)\n"
-            '</C:testfixtures.tests.test_comparison.Annoying>'
+            '</C:tests.test_comparison.Annoying>'
         )
 
     def test_importerror(self):
@@ -633,7 +633,7 @@ class TestC(TestCase):
 
     def test_class_defines_comparison_strictly(self):
         self.assertEqual(
-            C('testfixtures.tests.test_comparison.FussyDefineComparison',
+            C('tests.test_comparison.FussyDefineComparison',
               attr=1),
             FussyDefineComparison(1)
             )

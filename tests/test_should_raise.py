@@ -5,7 +5,7 @@ import pytest
 from testfixtures import Comparison as C, ShouldRaise, should_raise, compare
 from unittest import TestCase
 
-from ..shouldraise import ShouldAssert, NoException
+from testfixtures.shouldraise import ShouldAssert, NoException
 
 
 class TestShouldAssert:

@@ -7,7 +7,7 @@ from tempfile import mkdtemp
 from testfixtures import Replacer, TempDirectory, compare, tempdir
 from unittest import TestCase
 
-from ..rmtree import rmtree
+from testfixtures.rmtree import rmtree
 
 
 class TestTempDir(TestCase):

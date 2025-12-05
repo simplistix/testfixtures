@@ -23,7 +23,7 @@ class TestLogCapture(TestCase):
         capture = LogCapture.make(self)
         log.info('er, {greeting}', greeting='hi')
         assert len(capture.events) == 1
-        compare(capture.events[0]['log_namespace'], expected='testfixtures.tests.test_twisted')
+        compare(capture.events[0]['log_namespace'], expected='tests.test_twisted')
 
     def test_fields(self):
         capture = LogCapture.make(self, fields=('a', 'b'))

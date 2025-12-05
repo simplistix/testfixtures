@@ -11,7 +11,7 @@ def my_func():
         raise RuntimeError('something bad happened')
     return out
 
-dotted_path = 'testfixtures.tests.test_popen_docs.Popen'
+dotted_path = 'tests.test_popen_docs.Popen'
 
 from unittest import TestCase
 

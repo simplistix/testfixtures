@@ -235,10 +235,10 @@ class TestWrap(TestCase):
 
     def test_our_wrap_dealing_with_mock_patch(self):
 
-        @patch.multiple('testfixtures.tests.sample1', X=DEFAULT)
+        @patch.multiple('tests.sample1', X=DEFAULT)
         @log_capture()
         def patched(log, X):
-            from testfixtures.tests.sample1 import X as imported_X
+            from tests.sample1 import X as imported_X
             assert isinstance(log, LogCapture)
             assert isinstance(X, MagicMock)
             assert imported_X is X
@@ -246,11 +246,11 @@ class TestWrap(TestCase):
         patched()
 
     def test_patch_with_dict(self):
-        @patch('testfixtures.tests.sample1.X', {'x': 1})
+        @patch('tests.sample1.X', {'x': 1})
         @log_capture()
         def patched(log):
             assert isinstance(log, LogCapture)
-            from testfixtures.tests.sample1 import X
+            from tests.sample1 import X
             assert X == {'x': 1}
 
         patched()

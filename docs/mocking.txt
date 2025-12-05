@@ -45,7 +45,7 @@ When using the tools provided by Testfixtures, there are three different methods
 mocking out functionality that can be used to replace functions, classes
 or even individual methods on a class. Consider the following module:
 
-.. topic:: testfixtures.tests.sample1
+.. topic:: tests.sample1
    :class: module
 
    .. literalinclude:: ../testfixtures/tests/sample1.py
@@ -53,7 +53,7 @@ or even individual methods on a class. Consider the following module:
 
 .. do the import quietly
 
-  >>> from testfixtures.tests.sample1 import X
+  >>> from tests.sample1 import X
 
 We want to mock out the ``y`` method of the ``X`` class, with,
 for example, the following function:
@@ -74,7 +74,7 @@ For replacement of a single thing, it's easiest to use the
   from testfixtures import Replace
 
   def test_function():
-      with Replace('testfixtures.tests.sample1.X.y', mock_y):
+      with Replace('tests.sample1.X.y', mock_y):
           print(X().y())
 
 For the duration of the ``with`` block, the replacement is used:
@@ -93,7 +93,7 @@ manager can be used instead:
 
   def test_function():
       with Replacer() as replace:
-          mock_y = replace('testfixtures.tests.sample1.X.y', Mock())
+          mock_y = replace('tests.sample1.X.y', Mock())
           mock_y.return_value = 'mock y'
           print(X().y())
 
@@ -108,7 +108,7 @@ analysis tools such as IDEs:
 .. code-block:: python
 
   from testfixtures import Replace
-  from testfixtures.tests.sample1 import X
+  from tests.sample1 import X
 
   def test_function():
       with Replace(container=X, target='.y', replacement=mock_y):
@@ -174,11 +174,11 @@ context managers are provided:
   .. code-block:: python
 
       from testfixtures import replace_in_module
-      from testfixtures.tests.sample1 import z as original_z
+      from tests.sample1 import z as original_z
 
       def test_function():
           with replace_in_module(original_z, lambda: 'replacement z'):
-              from testfixtures.tests.sample1 import z
+              from tests.sample1 import z
               print(z())
 
   For the duration of the ``with`` block, the replacement is used:
@@ -199,7 +199,7 @@ find the decorator suits your needs better:
 
   from testfixtures import replace
 
-  @replace('testfixtures.tests.sample1.X.y', mock_y)
+  @replace('tests.sample1.X.y', mock_y)
   def test_function():
       print(X().y())
 
@@ -218,7 +218,7 @@ decorator will see this and pass the replacement in it's place:
   from testfixtures.mock import Mock, call
   from testfixtures import compare, replace
 
-  @replace('testfixtures.tests.sample1.X.y', Mock())
+  @replace('tests.sample1.X.y', Mock())
   def test_function(mocked_y):
       mocked_y.return_value = 'mock y'
       print(X().y())
@@ -241,7 +241,7 @@ mock y
       @pytest.fixture()
       def mocked_y():
           m = Mock()
-          with Replace('testfixtures.tests.sample1.X.y', m):
+          with Replace('tests.sample1.X.y', m):
               yield m
 
 Manual usage
@@ -257,7 +257,7 @@ of the :class:`~unittest.TestCase` or equivalent:
 
 >>> from testfixtures import Replacer
 >>> replacer = Replacer()
->>> replacer.replace('testfixtures.tests.sample1.X.y', mock_y)
+>>> replacer.replace('tests.sample1.X.y', mock_y)
 
 The replacement then stays in place until removed:
 
@@ -284,7 +284,7 @@ than one thing at a time. For the former, this is fairly obvious:
 
 .. code-block:: python
 
-  from testfixtures.tests.sample1 import X
+  from tests.sample1 import X
 
   def test_function():
       with Replacer() as replace:
@@ -304,8 +304,8 @@ For the decorator, it's less obvious but still pretty easy:
 
   from testfixtures import replace
 
-  @replace('testfixtures.tests.sample1.X.y', lambda self: 'mock y')
-  @replace('testfixtures.tests.sample1.X.aMethod', lambda cls: 'mock method')
+  @replace('tests.sample1.X.y', lambda self: 'mock y')
+  @replace('tests.sample1.X.aMethod', lambda cls: 'mock method')
   def test_function(aMethod, y):
       print(aMethod, y)
       x = X()
@@ -322,7 +322,7 @@ present depending on whether the ``guppy`` package is installed or
 not.
 
 
-.. topic:: testfixtures.tests.sample2
+.. topic:: tests.sample2
    :class: module
 
    .. literalinclude:: ../testfixtures/tests/sample2.py
@@ -341,14 +341,14 @@ shown in the following :class:`~unittest.TestCase`:
 
 .. code-block:: python
 
-    from testfixtures.tests.sample2 import dump
+    from tests.sample2 import dump
     from testfixtures import replace
     from testfixtures.mock import Mock, call
 
     class Tests(unittest.TestCase):
 
-        @replace('testfixtures.tests.sample2.guppy', True)
-        @replace('testfixtures.tests.sample2.hpy', Mock(), strict=False)
+        @replace('tests.sample2.guppy', True)
+        @replace('tests.sample2.hpy', Mock(), strict=False)
         def test_method(self, hpy):
 
             dump('somepath')
@@ -359,8 +359,8 @@ shown in the following :class:`~unittest.TestCase`:
                      call().heap().stat.dump('somepath')
                    ], hpy.mock_calls)
 
-        @replace('testfixtures.tests.sample2.guppy', False)
-        @replace('testfixtures.tests.sample2.hpy', Mock(), strict=False)
+        @replace('tests.sample2.guppy', False)
+        @replace('tests.sample2.hpy', Mock(), strict=False)
         def test_method_no_heapy(self,hpy):
 
             dump('somepath')
@@ -448,7 +448,7 @@ attributes from objects and remove items from dictionaries.
 
 For example, suppose you have a data structure like the following:
 
-.. topic:: testfixtures.tests.sample1
+.. topic:: tests.sample1
    :class: module
 
    .. literalinclude:: ../testfixtures/tests/sample1.py
@@ -460,7 +460,7 @@ do so as follows:
 .. code-block:: python
 
   from testfixtures import Replace, not_there
-  from testfixtures.tests.sample1 import some_dict
+  from tests.sample1 import some_dict
 
   def test_function():
       with Replace(container=some_dict, target='.key', replacement=not_there):
@@ -482,7 +482,7 @@ duration of a test, you would do so as follows:
 .. code-block:: python
 
   from testfixtures import Replace, not_there
-  from testfixtures.tests import sample1
+  from tests import sample1
 
   def test_function():
       with Replace(container=sample1, target='.some_dict', replacement=not_there):
@@ -626,10 +626,10 @@ Replacing items in modules
 
 To replace functions in modules use :meth:`~Replacer.in_module`:
 
->>> from testfixtures.tests.sample1 import z as original_z
+>>> from tests.sample1 import z as original_z
 >>> replace = Replacer()
 >>> replace.in_module(original_z, lambda: 'replacement z')
->>> from testfixtures.tests.sample1 import z
+>>> from tests.sample1 import z
 >>> z()
 'replacement z'
 
@@ -640,8 +640,8 @@ To replace functions in modules use :meth:`~Replacer.in_module`:
 If you need to replace usage in a module other than the one where the function is defined,
 it can be done as follows
 
->>> from testfixtures.tests.sample1 import z
->>> from testfixtures.tests import sample3
+>>> from tests.sample1 import z
+>>> from tests import sample3
 >>> replace = Replacer()
 >>> replace.in_module(z, lambda: 'replacement z', module=sample3)
 >>> sample3.z()
@@ -653,11 +653,11 @@ it can be done as follows
 
 If you need to replace a module global, then you can use :class:`Replace` as follows:
 
->>> from testfixtures.tests import sample3
+>>> from tests import sample3
 >>> replacer = Replacer()
 >>> replacer.replace(sample3.SOME_CONSTANT, 43,
 ...                  container=sample3, name='SOME_CONSTANT')
->>> from testfixtures.tests.sample3 import SOME_CONSTANT
+>>> from tests.sample3 import SOME_CONSTANT
 >>> SOME_CONSTANT
 43
 
@@ -670,7 +670,7 @@ Gotchas
 
 - Make sure you replace the object where it's used and not where it's
   defined. For example, with the following code from the
-  ``testfixtures.tests.sample1`` package:
+  ``tests.sample1`` package:
 
   .. literalinclude:: ../testfixtures/tests/sample1.py
      :lines: 30-34
@@ -683,14 +683,14 @@ Gotchas
 
   But this won't work:
 
-  >>> from testfixtures.tests.sample1 import str_time
+  >>> from tests.sample1 import str_time
   >>> type(float(str_time()))
   <... 'float'>
 
   You need to replace :func:`~time.time` where it's used, not where
   it's defined:
 
-  >>> replace('testfixtures.tests.sample1.time', Mock())
+  >>> replace('tests.sample1.time', Mock())
   <...>
   >>> str_time()
   "<...Mock...>"

@@ -5,7 +5,7 @@ Django's ORM has an unfortunate implementation choice of considering
 :class:`~django.db.models.Model` instances to be identical as long as their
 primary keys are the same:
 
->>> from testfixtures.tests.test_django.models import SampleModel
+>>> from tests.test_django.models import SampleModel
 >>> SampleModel(id=1, value=1) == SampleModel(id=1, value=2)
 True
 

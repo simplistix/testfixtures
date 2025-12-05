@@ -5,7 +5,7 @@ A sample module containing the kind of code that
 testfixtures helps with testing
 """
 
-from testfixtures.tests.sample1 import X, z
+from tests.sample1 import X, z
 
 try:
     from guppy import hpy
