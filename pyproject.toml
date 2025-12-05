@@ -71,8 +71,9 @@ filterwarnings = [
 [tool.mypy]
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
+# Django plugin disabled - tests are separate from main package
 plugins = [
-    "mypy_django_plugin.main",
+    # "mypy_django_plugin.main",
     "mypy_zope:plugin",
 ]
 
@@ -105,6 +106,9 @@ ignore_missing_imports = true
 
 [tool.django-stubs]
 django_settings_module = "tests.test_django.settings"
+
+[tool.uv]
+default-groups = ["test", "docs"]
 
 [tool.coverage.run]
 source = ["testfixtures"]
