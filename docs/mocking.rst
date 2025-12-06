@@ -48,7 +48,7 @@ or even individual methods on a class. Consider the following module:
 .. topic:: tests.sample1
    :class: module
 
-   .. literalinclude:: ../testfixtures/tests/sample1.py
+   .. literalinclude:: ../tests/sample1.py
       :pyobject: X
 
 .. do the import quietly
@@ -325,7 +325,7 @@ not.
 .. topic:: tests.sample2
    :class: module
 
-   .. literalinclude:: ../testfixtures/tests/sample2.py
+   .. literalinclude:: ../tests/sample2.py
       :lines: 10-19
 
 To test the behaviour of the code that uses ``hpy`` in both of
@@ -451,7 +451,7 @@ For example, suppose you have a data structure like the following:
 .. topic:: tests.sample1
    :class: module
 
-   .. literalinclude:: ../testfixtures/tests/sample1.py
+   .. literalinclude:: ../tests/sample1.py
       :lines: 67-70
 
 If you want to remove the ``key`` for the duration of a test, you can
@@ -672,7 +672,7 @@ Gotchas
   defined. For example, with the following code from the
   ``tests.sample1`` package:
 
-  .. literalinclude:: ../testfixtures/tests/sample1.py
+  .. literalinclude:: ../tests/sample1.py
      :lines: 30-34
 
   You might be tempted to mock things as follows:

@@ -1,12 +1,7 @@
-# -*- coding: utf-8 -*-
+from importlib import metadata
 import datetime
 import os
 import time
-
-import pkg_resources
-
-on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-build_date = datetime.datetime.utcfromtimestamp(int(os.environ.get('SOURCE_DATE_EPOCH', time.time())))
 
 extensions = [
     'sphinx.ext.autodoc',
@@ -21,11 +16,11 @@ intersphinx_mapping = {
 }
 
 # General
-source_suffix = '.txt'
+source_suffix = '.rst'
 master_doc = 'index'
 project = 'testfixtures'
-copyright = '2008-2015 Simplistix Ltd, 2016-%s Chris Withers' % build_date.year
-version = release = pkg_resources.get_distribution(project).version
+copyright = '2008-2015 Simplistix Ltd, 2016 onwards Chris Withers'
+release = metadata.version(project)
 exclude_trees = ['_build']
 pygments_style = 'sphinx'
 

@@ -709,7 +709,7 @@ that is then used by a later example:
 
 __ https://docutils.sourceforge.io/docs/ref/rst/directives.html#topic
 
-.. literalinclude:: ../testfixtures/tests/configparser-read.txt
+.. literalinclude:: ../tests/configparser-read.txt
    :language: rest
 
 Checking the contents of files
@@ -723,7 +723,7 @@ part of the documentation:
 
 __ https://docutils.sourceforge.io/docs/ref/rst/directives.html#topic
 
-.. literalinclude:: ../testfixtures/tests/configparser-write.txt
+.. literalinclude:: ../tests/configparser-write.txt
    :language: rest
 
 Checking the contents of directories
@@ -739,7 +739,7 @@ in a directory seamlessly within the documentation.
 Here's a complete reStructuredText document that illustrates this
 technique: 
 
-.. literalinclude:: ../testfixtures/tests/directory-contents.txt
+.. literalinclude:: ../tests/directory-contents.txt
    :language: rest
 
 .. clean up all tempdirs:

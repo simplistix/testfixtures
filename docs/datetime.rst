@@ -20,7 +20,7 @@ consistent sequence of dates each time it is called.
 This enables you to write tests for code such as the following, from
 the ``tests.sample1`` package:
 
-.. literalinclude:: ../testfixtures/tests/sample1.py
+.. literalinclude:: ../tests/sample1.py
    :lines: 8-9,21-22
 
 :class:`~testfixtures.Replace` can be used to apply the mock as
@@ -107,7 +107,7 @@ it is called.
 This enables you to write tests for code such as the following, from
 the ``tests.sample1`` package:
 
-.. literalinclude:: ../testfixtures/tests/sample1.py
+.. literalinclude:: ../tests/sample1.py
    :lines: 8-10,11-12
 
 :class:`~testfixtures.Replace` can be used to apply the mock as shown in the following example:
@@ -281,7 +281,7 @@ function that, when called, returns a replacement for the
 This enables you to write tests for code such as the following, from
 the ``tests.sample1`` package:
 
-.. literalinclude:: ../testfixtures/tests/sample1.py
+.. literalinclude:: ../tests/sample1.py
    :lines: 30-34
 
 :class:`~testfixtures.Replace` can be used to apply the mock as shown in the following example:
@@ -373,7 +373,7 @@ reference to the :meth:`~datetime.date.today` or
 :meth:`~datetime.datetime.now` methods, such 
 as the following code from the ``tests.sample1`` package:
 
-.. literalinclude:: ../testfixtures/tests/sample1.py
+.. literalinclude:: ../tests/sample1.py
    :lines: 8-10,14-18,24-28
 
 In these cases, you need to be careful with the replacement:

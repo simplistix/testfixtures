@@ -27,7 +27,7 @@ pytest_collect_file = Sybil(
         FileParser('tempdir'),
         skip,
     ],
-    patterns=['*.txt', '*.py'],
+    patterns=['*.rst', '*.py'],
     setup=sybil_setup, teardown=sybil_teardown,
     fixtures=['tmp_path'],
     exclude='tests/*.py'

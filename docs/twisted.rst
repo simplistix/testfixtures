@@ -8,4 +8,4 @@ A :class:`testfixtures.twisted.LogCapture` helper is provided, but given the fra
 relatively niche use now, the documentation is provided by way of the test suite:
 
 
-.. literalinclude:: ../testfixtures/tests/test_twisted.py
+.. literalinclude:: ../tests/test_twisted.py

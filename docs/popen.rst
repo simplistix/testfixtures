@@ -35,13 +35,13 @@ Example usage
 As an example, suppose you have code such as the following that you need to
 test:
 
-.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+.. literalinclude:: ../tests/test_popen_docs.py
    :lines: 4-12
 
 Tests that exercise this code using :class:`~testfixtures.popen.MockPopen`
 could be written as follows:
 
-.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+.. literalinclude:: ../tests/test_popen_docs.py
    :lines: 16-52
 
 
@@ -52,7 +52,7 @@ If your testing requires passing input to the subprocess, you can do so by
 checking for the input passed to :meth:`~subprocess.Popen.communicate` method
 when you check the calls on the mock as shown in this example:
 
-.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+.. literalinclude:: ../tests/test_popen_docs.py
    :pyobject: TestMyFunc.test_communicate_with_input
    :dedent: 4
 
@@ -67,7 +67,7 @@ attributes of the mock returned by
 :class:`~testfixtures.popen.MockPopen` will be file-like objects as with
 the real :class:`~subprocess.Popen` and can be read as shown in this example:
 
-.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+.. literalinclude:: ../tests/test_popen_docs.py
    :pyobject: TestMyFunc.test_read_from_stdout_and_stderr
    :dedent: 4
 
@@ -89,7 +89,7 @@ attribute of the mock returned by :class:`~testfixtures.popen.MockPopen`
 will be a mock and you can then examine the write calls to it as shown
 in this example:
 
-.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+.. literalinclude:: ../tests/test_popen_docs.py
    :pyobject: TestMyFunc.test_write_to_stdin
    :dedent: 4
 
@@ -102,7 +102,7 @@ launched process. Specifying a simulated response code, along with testing for
 the correct usage of :meth:`~subprocess.Popen.wait`, can be seen in the
 following example:
 
-.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+.. literalinclude:: ../tests/test_popen_docs.py
    :pyobject: TestMyFunc.test_wait_and_return_code
    :dedent: 4
 
@@ -116,7 +116,7 @@ However, other than being recorded, these calls do nothing.
 The following example doesn't make sense for a real test of sub-process usage but
 does show how the mock behaves:
 
-.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+.. literalinclude:: ../tests/test_popen_docs.py
    :pyobject: TestMyFunc.test_send_signal
    :dedent: 4
 
@@ -132,7 +132,7 @@ the :attr:`~MockPopenInstance.returncode` is set using the
 ``poll_count`` parameter as shown in
 the following example:
 
-.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+.. literalinclude:: ../tests/test_popen_docs.py
    :pyobject: TestMyFunc.test_poll_until_result
    :dedent: 4
 
@@ -142,7 +142,7 @@ Different behaviour on sequential processes
 If your code needs to call the same command but have different behaviour
 on each call, then you can pass a callable behaviour like this:
 
-.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+.. literalinclude:: ../tests/test_popen_docs.py
    :pyobject: TestMyFunc.test_multiple_responses
    :dedent: 4
 
@@ -151,12 +151,12 @@ If you need to keep state across calls, such as accumulating
 failing for a configurable number of calls, then wrap that behaviour up
 into a class:
 
-.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+.. literalinclude:: ../tests/test_popen_docs.py
    :pyobject: CustomBehaviour
 
 This can then be used like this:
 
-.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+.. literalinclude:: ../tests/test_popen_docs.py
    :pyobject: TestMyFunc.test_count_down
    :dedent: 4
 
@@ -172,7 +172,7 @@ behaviour of any command that has not been specified with
 :class:`~MockPopen.set_command` as shown in the
 following example:
 
-.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+.. literalinclude:: ../tests/test_popen_docs.py
    :pyobject: TestMyFunc.test_default_behaviour
    :dedent: 4
 
@@ -187,12 +187,12 @@ assertions about each process using :attr:`~MockPopen.all_calls`.
 
 For example, suppose we wanted to test this function:
 
-.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+.. literalinclude:: ../tests/test_popen_docs.py
    :pyobject: process_in_batches
 
 Then you could test it as follows:
 
-.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+.. literalinclude:: ../tests/test_popen_docs.py
    :pyobject: TestMyFunc.test_multiple_processes
    :dedent: 4
 
@@ -200,6 +200,6 @@ Note that the order of all calls is explicitly recorded. If the order of these c
 is non-deterministic due to your method of process management, you may wish to use a
 :class:`~testfixtures.SequenceComparison`:
 
-.. literalinclude:: ../testfixtures/tests/test_popen_docs.py
+.. literalinclude:: ../tests/test_popen_docs.py
    :pyobject: TestMyFunc.test_multiple_processes_unordered
    :dedent: 4
