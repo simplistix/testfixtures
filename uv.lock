@@ -881,6 +881,7 @@ twisted = [
 docs = [
     { name = "furo" },
     { name = "sphinx" },
+    { name = "sybil" },
 ]
 test = [
     { name = "django-stubs" },
@@ -890,6 +891,7 @@ test = [
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "pytest-django" },
+    { name = "sybil" },
     { name = "types-mock" },
 ]
 
@@ -905,6 +907,7 @@ provides-extras = ["django", "sybil", "twisted"]
 docs = [
     { name = "furo" },
     { name = "sphinx" },
+    { name = "sybil", specifier = ">=6" },
 ]
 test = [
     { name = "django-stubs" },
@@ -914,6 +917,7 @@ test = [
     { name = "pytest", specifier = ">=7.1" },
     { name = "pytest-cov" },
     { name = "pytest-django" },
+    { name = "sybil", specifier = ">=6" },
     { name = "types-mock" },
 ]
 
