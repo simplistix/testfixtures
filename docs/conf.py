@@ -21,7 +21,7 @@ intersphinx_mapping = {
 }
 
 # General
-source_suffix = '.txt'
+source_suffix = '.rst'
 master_doc = 'index'
 project = 'testfixtures'
 copyright = '2008-2015 Simplistix Ltd, 2016-%s Chris Withers' % build_date.year

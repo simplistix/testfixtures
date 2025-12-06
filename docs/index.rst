@@ -5,18 +5,18 @@ The sections below describe the use of the various tools included:
 .. toctree::
    :maxdepth: 1
 
-   comparing.txt
-   mocking.txt
-   datetime.txt
-   logging.txt
-   streams.txt
-   files.txt
-   exceptions.txt
-   warnings.txt
-   popen.txt
-   django.txt
-   twisted.txt
-   utilities.txt
+   comparing.rst
+   mocking.rst
+   datetime.rst
+   logging.rst
+   streams.rst
+   files.rst
+   exceptions.rst
+   warnings.rst
+   popen.rst
+   django.rst
+   twisted.rst
+   utilities.rst
 
 If you're looking for a description of a particular tool, please see
 the API reference:
@@ -24,7 +24,7 @@ the API reference:
 .. toctree::
    :maxdepth: 1
 
-   api.txt
+   api.rst
 
 For details of how to install the package or get involved in its
 development, please see the sections below:
@@ -32,10 +32,10 @@ development, please see the sections below:
 .. toctree::
    :maxdepth: 1
 
-   installation.txt
-   development.txt
-   changes.txt
-   license.txt
+   installation.rst
+   development.rst
+   changes.rst
+   license.rst
 
 Indices and tables
 ==================
