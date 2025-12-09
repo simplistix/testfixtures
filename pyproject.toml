@@ -28,7 +28,7 @@ Changelog = "https://testfixtures.readthedocs.io/en/latest/changes.html"
 [project.optional-dependencies]
 django = ["django"]
 sybil = ["sybil>=6"]
-twisted = ["twisted"]
+twisted = ["twisted>=22.1"]
 
 [dependency-groups]
 test = [
