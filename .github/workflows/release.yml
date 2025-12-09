@@ -16,6 +16,7 @@ jobs:
       - uses: cjw296/python-action/carthorse@v1
         id: carthorse
         with:
+          tag-format: '{version}'
           check: "true"
 
   release:
@@ -41,3 +42,5 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
 
       - uses: cjw296/python-action/carthorse@v1
+        with:
+          tag-format: '{version}'

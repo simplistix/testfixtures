@@ -1,7 +1,0 @@
-carthorse:
-  version-from: pyproject.toml
-  tag-format: "{version}"
-  when:
-    - version-not-tagged
-  actions:
-    - create-tag
