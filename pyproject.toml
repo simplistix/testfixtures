@@ -35,11 +35,13 @@ dev = [
     "django-stubs",
     "mock",
     "mypy>=1.19",
-    "mypy-zope",
     "pytest>=8.0",
     "pytest-cov>=5",
     "pytest-django>=4",
     "types-mock",
+]
+twisted-dev = [
+    "mypy-zope",
 ]
 docs = [
     "sphinx",
