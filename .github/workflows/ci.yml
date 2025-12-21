@@ -23,7 +23,10 @@ jobs:
           - ""
           - "--extra django"
           - "--extra sybil"
-          - "--extra twisted"
+        include:
+          - python-version: "3.13"
+            uv-resolution: "highest"
+            extra: "--extra twisted --group twisted-dev"
     steps:
       - uses: cjw296/python-action/run-tests@v3
         with:
