@@ -1,6 +1,15 @@
 Testing with Django
 ===================
 
+.. invisible-code-block: python
+
+  try:
+      import django
+  except ImportError:
+      django = None
+
+.. skip: start if(django is None, reason="No django installed")
+
 Django's ORM has an unfortunate implementation choice of considering
 :class:`~django.db.models.Model` instances to be identical as long as their
 primary keys are the same:
