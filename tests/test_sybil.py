@@ -1,3 +1,6 @@
+import pytest
+pytest.importorskip("sybil")
+
 from textwrap import dedent
 from unittest import TestCase
 
