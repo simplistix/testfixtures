@@ -1,7 +1,7 @@
 Testfixtures
 ============
 
-|Docs|_ |PyPI|_  |Git|_ |Build|_
+|Docs|_ |PyPI|_  |Git|_
 
 .. |Docs| image:: https://readthedocs.org/projects/testfixtures/badge/?version=latest
 .. _Docs: http://testfixtures.readthedocs.org/en/latest/

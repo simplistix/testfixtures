@@ -77,19 +77,9 @@ uv build                                       # Build sdist and wheel
 
 - Main API exports are in `__init__.py`
 - Each major feature has its own module (comparison, replace, logcapture, etc.)
-- Tests are in `testfixtures/tests/` with comprehensive coverage
 - Django-specific functionality in `django.py`
 - Twisted-specific functionality in `twisted.py`
 
 ## Configuration
 
-- **pytest.ini**: Test configuration with Django settings module
-- **mypy.ini**: Type checking configuration with Django and Zope plugins
-- **setup.py**: Package configuration with optional dependencies for Django, Sybil, and Twisted
-
-## Testing Notes
-
-- Tests use pytest framework
-- Django tests require `DJANGO_SETTINGS_MODULE=testfixtures.tests.test_django.settings`
-- Type checking excludes some modules (`testfixtures.datetime`, test modules)
-- Supports Python 3.11+
+- **pyproject.toml**: Package configuration with optional dependencies for Django, Sybil, and Twisted

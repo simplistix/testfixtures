@@ -1,8 +1,6 @@
 Development
 ===========
 
-.. highlight:: bash
-
 If you wish to contribute to this project, then you should fork the
 repository found here:
 
@@ -14,34 +12,33 @@ you can follow the instructions below to perform various development tasks.
 For detailed development guidelines, code style requirements, and additional commands,
 see ``AGENTS.md`` in the repository root.
 
-Setting up a virtualenv
------------------------
+Setting up a development environment
+------------------------------------
 
-The recommended way to set up a development environment is to create
-a virtualenv and then install the package in editable form as follows:
+The recommended way to set up a development environment is to use `uv`__
+to install all groups and extras:
+
+__ https://docs.astral.sh/uv/
 
 .. code-block:: bash
 
-    python3 -m venv .venv
-    source .venv/bin/activate
-    pip install -U pip setuptools
-    pip install -U -e .[test,build]
+    uv sync --all-groups --all-extras
 
 Running the tests
 -----------------
 
-Once you've set up a virtualenv, the tests can be run in the activated
-virtualenv and from the root of a source checkout as follows:
+Once you've set up the environment, the tests can be run from the root of a
+source checkout as follows:
 
 .. code-block:: bash
 
-  pytest
+  uv run pytest
 
 Building the documentation
 --------------------------
 
 The Sphinx documentation is built by doing the following from the
-directory containing ``setup.py``:
+repository root:
 
 .. code-block:: bash
 
@@ -53,13 +50,13 @@ do the following:
 
 .. code-block:: bash
 
-  python setup.py --long-description | rst2html.py > desc.html
+  uv run python -c "from docutils.core import publish_file; publish_file(source_path='README.rst', destination_path='desc.html', writer_name='html')"
 
 The resulting ``desc.html`` should be checked by opening in a browser.
 
 Making a release
 ----------------
 
-To make a release, just update ``version.txt``, update the change log
-and push to https://github.com/simplistix/testfixtures.
+To make a release, just update the version in ``pyproject.toml``, update the change log in
+``CHANGELOG.rst`` and push to https://github.com/simplistix/testfixtures.
 Carthorse should take care of the rest.
