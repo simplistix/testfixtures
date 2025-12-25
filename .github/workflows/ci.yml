@@ -21,7 +21,9 @@ jobs:
           - "highest"
         extra:
           - ""
+          - "--all-extras --all-groups"
         include:
+          # Now test each of the extras individually
           - python-version: "3.13"
             uv-resolution: "highest"
             extra: "--extra django --group django-dev"
