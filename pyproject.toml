@@ -32,13 +32,15 @@ twisted = ["twisted>=22.1"]
 
 [dependency-groups]
 dev = [
-    "django-stubs",
     "mock",
     "mypy>=1.19",
     "pytest>=8.0",
     "pytest-cov>=5",
-    "pytest-django>=4",
     "types-mock",
+]
+django-dev = [
+    "django-stubs",
+    "pytest-django>=4",
 ]
 twisted-dev = [
     "mypy-zope",
