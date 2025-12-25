@@ -21,11 +21,13 @@ jobs:
           - "highest"
         extra:
           - ""
-          - "--extra sybil"
         include:
           - python-version: "3.13"
             uv-resolution: "highest"
             extra: "--extra django --group django-dev"
+          - python-version: "3.13"
+            uv-resolution: "highest"
+            extra: "--extra sybil"
           - python-version: "3.13"
             uv-resolution: "highest"
             extra: "--extra twisted --group twisted-dev"
