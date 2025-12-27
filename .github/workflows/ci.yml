@@ -37,7 +37,7 @@ jobs:
             uv-resolution: "highest"
             extra: "--extra twisted --group twisted-dev"
     steps:
-      - uses: cjw296/python-action/run-tests@v2
+      - uses: cjw296/python-action/run-tests@main
         with:
           python-version: ${{ matrix.python-version }}
           uv-params: "--dev ${{ matrix.extra }} --resolution ${{ matrix.uv-resolution }}"
@@ -57,7 +57,7 @@ jobs:
           - "3.11"
           - "3.13"
     steps:
-      - uses: cjw296/python-action/check-typing@v2
+      - uses: cjw296/python-action/check-typing@main
         with:
           python-version: ${{ matrix.python-version }}
           uv-params: "--all-groups --all-extras"
