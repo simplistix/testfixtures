@@ -23,7 +23,7 @@ __ https://mock.readthedocs.io
 
 For convenience, testfixtures provides a facade over both of these in the form
 of :mod:`testfixtures.mock`. The contents are identical and preference is given
-to the rolling backport if it is present. The facade also contains any bugfixes
+to the rolling backport if it is installed. The facade also contains any bugfixes
 that are critical to the operation of functionality provided by testfixtures.
 
 Testfixtures also provides specialised mocks for dealing with
