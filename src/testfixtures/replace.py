@@ -7,8 +7,9 @@ from operator import setitem, getitem
 from types import ModuleType, MethodType, TracebackType
 from typing import Any, TypeVar, Callable, Tuple, Generic, Self, Iterator
 
+from testfixtures import not_there
 from testfixtures.utils import wrap, extend_docstring
-from .resolve import resolve, not_there, Resolved, classmethod_type, class_type, Key
+from .resolve import resolve, Resolved, classmethod_type, class_type, Key
 
 Accessor = Callable[[Any, str], Any]
 

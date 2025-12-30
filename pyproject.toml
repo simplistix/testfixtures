@@ -70,6 +70,7 @@ filterwarnings = [
 [tool.mypy]
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
+no_implicit_reexport = true
 plugins = [
     "mypy_django_plugin.main",
     "mypy_zope:plugin",
@@ -97,7 +98,6 @@ enable_error_code = ["no-untyped-call", "no-untyped-def"]
 module = "tests.test_compare_types"
 warn_unused_ignores = true
 check_untyped_defs = true
-no_implicit_reexport = true
 warn_return_any = true
 no_implicit_optional = true
 

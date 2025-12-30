@@ -28,6 +28,14 @@ except ImportError:
 
 has_backport = backport_version is not None
 
+# Explicit re-export list for mypy's no_implicit_reexport
+__all__ = [
+    'Mock', 'MagicMock', 'patch', 'sentinel', 'DEFAULT', 'ANY', 'call',
+    'create_autospec', 'AsyncMock', 'ThreadingMock', 'FILTER_DIR',
+    'NonCallableMock', 'NonCallableMagicMock', 'mock_open', 'PropertyMock', 'seal',
+    '_Call', '_Sentinel', 'mock_call', 'backport_version', 'has_backport', 'parent_name',
+]
+
 if not (
         (has_backport and backport_version[:3] > (2, 0, 0)) or  # type: ignore[index]
         (sys.version_info < (3, 0, 0) and not has_backport) or
