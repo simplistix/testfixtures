@@ -652,6 +652,8 @@ from the standard library, available on Python 3.11 or newer:
 
   >>> test_function()
 
+.. _sybil:
+
 Using with Sybil
 -----------------
 
@@ -676,7 +678,10 @@ __ https://docutils.sourceforge.io/docs/ref/rst/directives.html#topic
 The following sections describe how to use this parser to help with
 writing temporary files and checking their contents.
 
-.. note:: You must be using Sybil version 6 or newer to use this parser.
+.. note::
+
+   To ensure you are using a compatible version of Sybil, install with the
+   ``testfixtures[sybil]`` extra.
 
 Setting up
 ~~~~~~~~~~

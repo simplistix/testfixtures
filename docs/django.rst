@@ -1,6 +1,10 @@
 Testing with Django
 ===================
 
+.. note::
+
+   To ensure you are using compatible versions, install with the ``testfixtures[django]`` extra.
+
 .. invisible-code-block: python
 
   try:

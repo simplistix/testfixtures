@@ -1,6 +1,10 @@
 Testing with Twisted
 ====================
 
+.. note::
+
+   To ensure you are using compatible versions, install with the ``testfixtures[twisted]`` extra.
+
 Due to its longevity, Twisted has many of its own patterns for things that have since become
 standard in Python. One of these is logging, where it has its own logging framework.
 

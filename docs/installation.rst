@@ -49,3 +49,20 @@ you should do one of the following:
             test=['testfixtures'],
         )
     )
+
+Optional Dependencies
+---------------------
+
+Several optional extras are provided for specific frameworks and tools.
+While you don't have to specify these extras, doing so will ensure compatibility
+with the version of these packages that your project is using:
+
+- ``[django]``: Django ORM integration and comparison helpers. See :doc:`django`.
+
+- ``[twisted]``: Twisted framework logging support. See :doc:`twisted`.
+
+- ``[sybil]``: Sybil documentation testing framework. See :ref:`sybil`.
+
+- ``[mock-backport]``: See documentation on :ref:`which mock to use <what-mock>`.
+
+Multiple extras can be installed together, for example: ``testfixtures[django,twisted]``.

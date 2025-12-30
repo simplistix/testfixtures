@@ -12,6 +12,8 @@ It may also mean replacing chunks of complex functionality
 that aren't the subject of the test with mock objects that allow you
 to check that the mocked out functionality is being used as expected.
 
+  .. _what-mock:
+
 What to mock with
 -----------------
 
@@ -25,6 +27,11 @@ For convenience, testfixtures provides a facade over both of these in the form
 of :mod:`testfixtures.mock`. The contents are identical and preference is given
 to the rolling backport if it is installed. The facade also contains any bugfixes
 that are critical to the operation of functionality provided by testfixtures.
+
+.. note::
+
+   If using :mod:`testfixtures.mock`, you can install with the ``testfixtures[mock-backport]`` extra
+   to ensure a compatible version of the mock backport is used.
 
 Testfixtures also provides specialised mocks for dealing with
 :doc:`dates and times <datetime>` and :doc:`subprocesses <popen>`.
