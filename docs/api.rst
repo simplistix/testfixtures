@@ -104,19 +104,19 @@ Mocking
 
 .. autofunction:: replace
 
-.. autofunction:: mock_date(year=2001, month=1, day=1, delta=None, delta_type='days', strict=False)
+.. autofunction:: mock_date
 
 .. autoclass:: testfixtures.datetime.MockDate
     :members:
     :member-order: bysource
 
-.. autofunction:: mock_datetime(year=2001, month=1, day=1, hour=0, minute=0, second=0, microsecond=0, tzinfo=None, delta=None, delta_type='seconds', date_type=datetime.date, strict=False)
+.. autofunction:: mock_datetime
 
 .. autoclass:: testfixtures.datetime.MockDateTime
     :members:
     :member-order: bysource
 
-.. autofunction:: mock_time(year=2001, month=1, day=1, hour=0, minute=0, second=0, microsecond=0, tzinfo=None, delta=None, delta_type='seconds')
+.. autofunction:: mock_time
 
 .. autoclass:: testfixtures.datetime.MockTime
     :members:
