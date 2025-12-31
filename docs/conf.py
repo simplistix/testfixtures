@@ -23,6 +23,7 @@ copyright = '2008-2015 Simplistix Ltd, 2016 onwards Chris Withers'
 release = metadata.version(project)
 exclude_trees = ['_build']
 pygments_style = 'sphinx'
+autodoc_typehints = 'description'
 
 # Options for HTML output
 html_theme = 'furo'
@@ -33,6 +34,7 @@ exclude_patterns = ['**/furo.js.LICENSE.txt']
 nitpicky = True
 nitpick_ignore = [
     ('py:class', 'P'),  # param spec
+    ('py:class', '~P'),  # param spec
     ('py:class', 'constantly._constants.NamedConstant'),  # twisted logging constants
     ('py:class', 'django.db.models.base.Model'),  # not documented upstream
     ('py:class', 'module'),  # ModuleType not documented.
