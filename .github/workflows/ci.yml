@@ -15,7 +15,7 @@ jobs:
       matrix:
         python-version:
           - "3.11"
-          - "3.13"
+          - "3.14"
         uv-resolution:
           - "lowest-direct"
           - "highest"
@@ -24,16 +24,16 @@ jobs:
           - "--all-extras --all-groups"
         include:
           # Now test each of the extras individually
-          - python-version: "3.13"
+          - python-version: "3.14"
             uv-resolution: "highest"
             extra: "--extra django --group django-dev"
-          - python-version: "3.13"
+          - python-version: "3.14"
             uv-resolution: "highest"
             extra: "--extra mock-backport"
-          - python-version: "3.13"
+          - python-version: "3.14"
             uv-resolution: "highest"
             extra: "--extra sybil"
-          - python-version: "3.13"
+          - python-version: "3.14"
             uv-resolution: "highest"
             extra: "--extra twisted --group twisted-dev"
     steps:
@@ -55,7 +55,7 @@ jobs:
       matrix:
         python-version:
           - "3.11"
-          - "3.13"
+          - "3.14"
     steps:
       - uses: cjw296/python-action/check-typing@v3
         with:
@@ -88,6 +88,6 @@ jobs:
       - uses: cjw296/python-action/check-distributions@v3
         with:
           package: "testfixtures"
-          python-version: "3.13"
+          python-version: "3.14"
           extras: ${{ matrix.extra == 'mock' && '[mock-backport]' || (matrix.extra && format('[{0}]', matrix.extra) || '') }}
           checks: ${{ matrix.extra && format('python -c "import testfixtures.{0}"', matrix.extra) || 'python -c "import testfixtures"' }}
