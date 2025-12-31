@@ -28,12 +28,6 @@ pygments_style = 'sphinx'
 html_theme = 'furo'
 htmlhelp_basename = project+'doc'
 
-# Options for LaTeX output
-latex_documents = [
-    ('index', project+'.tex', project+u' Documentation',
-     'Simplistix Ltd', 'manual'),
-]
-
 exclude_patterns = ['**/furo.js.LICENSE.txt']
 
 nitpicky = True
