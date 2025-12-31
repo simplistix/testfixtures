@@ -91,3 +91,13 @@ jobs:
           python-version: "3.14"
           extras: ${{ matrix.extra == 'mock' && '[mock-backport]' || (matrix.extra && format('[{0}]', matrix.extra) || '') }}
           checks: ${{ matrix.extra && format('python -c "import testfixtures.{0}"', matrix.extra) || 'python -c "import testfixtures"' }}
+
+  all-green:
+    if: always()
+    needs:
+      - check-package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: re-actors/alls-green@release/v1
+        with:
+          jobs: ${{ toJSON(needs) }}
