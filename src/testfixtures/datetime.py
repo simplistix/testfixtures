@@ -1,6 +1,7 @@
 from calendar import timegm
 from datetime import datetime, timedelta, date, tzinfo as TZInfo
 from typing import Callable, Self, Tuple, TypeVar, Generic, Mapping
+import datetime as datetime_module
 
 T = TypeVar('T', bound=datetime | date)
 
@@ -224,7 +225,7 @@ class MockDateTime(MockedCurrent[datetime], datetime):
         instance = cls._mock_queue.next()
         return cls._adjust_instance_using_tzinfo(instance)
 
-    def date(self) -> date:
+    def date(self) -> datetime_module.date:
         """
         This will return the date component of the current mock instance,
         but using the date type supplied when the mock class was created.
