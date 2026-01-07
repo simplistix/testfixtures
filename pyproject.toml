@@ -113,6 +113,12 @@ ignore_missing_imports = true
 [tool.django-stubs]
 django_settings_module = "tests.test_django.settings"
 
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.format]
+quote-style = "preserve"
+
 [tool.coverage.run]
 source = ["testfixtures"]
 
