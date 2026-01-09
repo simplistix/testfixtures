@@ -53,3 +53,16 @@ nitpick_ignore = [
     ('py:class', 'unittest.case.TestCase'),  # no docs, apparently
     ('py:class', 'unittest.mock._Call'),  # No docstring.
 ]
+
+try:
+    import mock
+except ImportError:
+    pass
+else:
+    # If the mock backport is installed when docs are built, don't warn.
+    # This is common for development: if you see broken refs to Mock or _Call,
+    # then `uv sync --all-groups --all-extras --no-extra mock-backport`.
+    nitpick_ignore.extend([
+        # ('py:class', 'mock.mock._Call'),
+        # ('py:class', 'mock.mock.Mock'),
+    ])
