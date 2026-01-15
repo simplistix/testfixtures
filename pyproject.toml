@@ -85,19 +85,21 @@ disable_error_code = ["no-untyped-call", "no-untyped-def"]
 # Be more picky with some test files:
 [[tool.mypy.overrides]]
 module = [
-    "tests.test_compare_types",
     "tests.test_date",
     "tests.test_datetime",
     "tests.test_outputcapture",
     "tests.test_should_raise",
-    "tests.test_tempdirectory",
     "tests.test_time",
 ]
 enable_error_code = ["no-untyped-call", "no-untyped-def"]
 
+# Be very picky with these test files:
 [[tool.mypy.overrides]]
-# Be very picky with compare tests of typing:
-module = "tests.test_compare_types"
+module = [
+    "tests.test_compare_types",
+    "tests.test_formats",
+    "tests.test_tempdirectory",
+]
 check_untyped_defs = true
 warn_return_any = true
 no_implicit_optional = true
