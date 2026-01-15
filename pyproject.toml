@@ -71,6 +71,7 @@ filterwarnings = [
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
 no_implicit_reexport = true
+warn_unused_ignores = true
 plugins = [
     "mypy_django_plugin.main",
     "mypy_zope:plugin",

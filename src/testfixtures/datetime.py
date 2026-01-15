@@ -64,7 +64,7 @@ class MockedCurrent(Generic[T]):
         if 'tzinfo' in kw or len(args) > 7:
             raise TypeError('Cannot add using tzinfo on %s' % cls.__name__)
         if args and isinstance(args[0], cls._mock_base_class):
-            instance = args[0]  # type: ignore[assignment]
+            instance = args[0]
             instance_tzinfo = getattr(instance, 'tzinfo', None)
             if instance_tzinfo:
                 if instance_tzinfo != cls._mock_tzinfo:
@@ -72,11 +72,11 @@ class MockedCurrent(Generic[T]):
                         'Cannot add %s with tzinfo of %s as configured to use %s' % (
                             instance.__class__.__name__, instance_tzinfo, cls._mock_tzinfo
                         ))
-                instance = instance.replace(tzinfo=None)  # type: ignore[assignment,attr-defined,call-arg]
+                instance = instance.replace(tzinfo=None)  # type: ignore[attr-defined]
             if cls._correct_mock_type:
-                instance = cls._correct_mock_type(instance)  # type: ignore[arg-type,assignment]
+                instance = cls._correct_mock_type(instance)  # type: ignore[arg-type]
         else:
-            instance = cls(*args, **kw)  # type: ignore[arg-type,assignment]
+            instance = cls(*args, **kw)  # type: ignore[arg-type]
         cls._mock_queue.append(instance)  # type: ignore[arg-type]
 
     @classmethod
