@@ -6,7 +6,10 @@ from pathlib import Path
 from re import compile
 from tempfile import mkdtemp
 from types import TracebackType
-from typing import Sequence, Callable, TypeAlias, Self, TypeVar, Generic, cast, ClassVar, Any
+from typing import (
+    Sequence, Callable, TypeAlias, Self, TypeVar, Generic, cast, ClassVar, Any,
+    overload
+)
 
 from testfixtures.comparison import compare
 from testfixtures.formats import Format
@@ -308,6 +311,22 @@ class _TempDir(ABC, Generic[P]):
             f.write(data)
         return thepath
 
+    @overload
+    def write(self, filepath: PathStrings, data: bytes) -> P:
+        ...
+
+    @overload
+    def write(self, filepath: PathStrings, data: str, encoding: str | None = None) -> P:
+        ...
+
+    @overload
+    def write(self, filepath: PathStrings, data: Any, encoding: str, format: Format) -> P:
+        ...
+
+    @overload
+    def write(self, filepath: PathStrings, data: Any, * , format: Format) -> P:
+        ...
+
     @abstractmethod
     def write(
         self,
@@ -458,6 +477,22 @@ class TempDirectory(_TempDir[str]):
     def makedir(self, dirpath: PathStrings) -> str:
         return self._makedir(dirpath)
 
+    @overload
+    def write(self, filepath: PathStrings, data: bytes) -> str:
+        ...
+
+    @overload
+    def write(self, filepath: PathStrings, data: str, encoding: str | None = None) -> str:
+        ...
+
+    @overload
+    def write(self, filepath: PathStrings, data: Any, encoding: str, format: Format) -> str:
+        ...
+
+    @overload
+    def write(self, filepath: PathStrings, data: Any, * , format: Format) -> str:
+        ...
+
     def write(
         self,
         filepath: PathStrings,
@@ -481,6 +516,22 @@ class TempDir(_TempDir[Path]):
 
     def makedir(self, dirpath: PathStrings) -> Path:
         return Path(self._makedir(dirpath))
+
+    @overload
+    def write(self, filepath: PathStrings, data: bytes) -> Path:
+        ...
+
+    @overload
+    def write(self, filepath: PathStrings, data: str, encoding: str | None = None) -> Path:
+        ...
+
+    @overload
+    def write(self, filepath: PathStrings, data: Any, encoding: str, format: Format) -> Path:
+        ...
+
+    @overload
+    def write(self, filepath: PathStrings, data: Any, * , format: Format) -> Path:
+        ...
 
     def write(
         self,

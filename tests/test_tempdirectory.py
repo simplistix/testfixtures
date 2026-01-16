@@ -321,7 +321,7 @@ class TempDirectoryTests(TestCase):
     def test_attempt_to_encode_bytes(self) -> None:
         with TempDirectory() as d:
             with ShouldRaise(TypeError("Cannot specify encoding when data is bytes")):
-                d.write('test.txt', b'\xc2\xa3', encoding='utf-8')
+                d.write('test.txt', b'\xc2\xa3', encoding='utf-8')  # type: ignore[call-overload]
 
     def test_as_path_minimal(self) -> None:
         with TempDirectory(encoding='ascii') as d:
@@ -380,32 +380,37 @@ class TestTempDir:
         assert isinstance(tempdir.path, Path)
         assert tempdir.path.exists()
 
+    def test_attempt_to_encode_bytes(self, tempdir: TempDir) -> None:
+        with ShouldRaise(TypeError("Cannot specify encoding when data is bytes")):
+            tempdir.write('test.txt', b'\xc2\xa3', encoding='utf-8')  # type: ignore[call-overload]
 
-class TestFormats(TestCase):
 
-    def test_write_format(self):
-        with TempDirectory() as d:
+@pytest.mark.parametrize('class_', [TempDir, TempDirectory])
+class TestFormats:
+
+    def test_write_format(self, class_: type[TempDir | TempDirectory]) -> None:
+        with class_() as d:
             data = {'key': 'value', 'number': 42}
             d.write('config.json', data, format=JSON)
             with open(os.path.join(d.path, 'config.json'), 'rb') as f:
                 compare(f.read(), b'{"key": "value", "number": 42}')
 
-    def test_read_format(self):
-        with TempDirectory() as d:
+    def test_read_format(self, class_: type[TempDir | TempDirectory]):
+        with class_() as d:
             with open(os.path.join(d.path, 'config.json'), 'wb') as f:
                 f.write(b'{"key": "value", "number": 42}')
             result = d.read('config.json', format=JSON)
             compare(result, expected={'key': 'value', 'number': 42})
 
-    def test_roundtrip_format(self):
-        with TempDirectory() as d:
+    def test_roundtrip_format(self, class_: type[TempDir | TempDirectory]):
+        with class_() as d:
             original = {'nested': {'data': [1, 2, 3]}, 'flag': True}
             d.write('data.json', original, format=JSON)
             result = d.read('data.json', format=JSON)
             compare(result, expected=original)
 
-    def test_write_format_with_encoding(self):
-        with TempDirectory() as d:
+    def test_write_format_with_encoding(self, class_: type[TempDir | TempDirectory]):
+        with class_() as d:
             # Test that latin-1 encoding is used with ASCII-safe JSON
             # JSON module escapes non-ASCII as \uXXXX by default
             data = {'message': 'test'}
@@ -415,8 +420,8 @@ class TestFormats(TestCase):
                 content = f.read()
                 compare(content, expected=b'{"message": "test"}')
 
-    def test_read_format_with_encoding(self):
-        with TempDirectory() as d:
+    def test_read_format_with_encoding(self, class_: type[TempDir | TempDirectory]):
+        with class_() as d:
             # Write latin-1 encoded JSON with non-ASCII character
             # £ is 0xa3 in latin-1
             with open(os.path.join(d.path, 'config.json'), 'wb') as f:
@@ -424,8 +429,8 @@ class TestFormats(TestCase):
             result = d.read('config.json', encoding='latin-1', format=JSON)
             compare(result, expected={'message': '£100'})
 
-    def test_roundtrip_format_with_encoding(self):
-        with TempDirectory() as d:
+    def test_roundtrip_format_with_encoding(self, class_: type[TempDir | TempDirectory]):
+        with class_() as d:
             # Roundtrip with latin-1 encoding
             # Use ASCII-safe data since JSON escapes non-ASCII by default
             original = {'name': 'test', 'value': 123}
@@ -433,9 +438,14 @@ class TestFormats(TestCase):
             result = d.read('data.json', encoding='latin-1', format=JSON)
             compare(result, expected=original)
 
-    def test_format_with_default_encoding(self):
-        with TempDirectory(encoding='utf-8') as d:
+    def test_format_with_default_encoding(self, class_: type[TempDir | TempDirectory]):
+        with class_(encoding='utf-8') as d:
             data = {'test': 'data'}
             d.write('config.json', data, format=JSON)
             result = d.read('config.json', format=JSON)
             compare(result, expected=data)
+
+    def test_write_no_format_but_data_provided(self, class_: type[TempDir | TempDirectory]):
+        with class_() as d:
+            with ShouldRaise(TypeError("a bytes-like object is required, not 'dict'")):
+                d.write('config.json', {'test': 'data'})  # type: ignore[call-overload]
