@@ -7,7 +7,7 @@ from warnings import catch_warnings
 
 import pytest
 
-from testfixtures.mock import Mock
+from testfixtures.mock import Mock, call
 
 from testfixtures import (
     TempDirectory, TempDir, Replacer, ShouldRaise, compare, OutputCapture
@@ -209,9 +209,6 @@ class TempDirectoryTests(TestCase):
         compare(expected2, actual=actual2)
 
     def test_atexit(self) -> None:
-        # http://bugs.python.org/issue25532
-        from testfixtures.mock import call
-
         m = Mock()
         with Replacer() as r:
             # make sure the marker is false, other tests will
