@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from tempfile import mkdtemp
-from typing import Iterator
+from typing import Iterator, Sequence
 from unittest import TestCase
 from warnings import catch_warnings
 
@@ -12,7 +12,7 @@ from testfixtures.mock import Mock, call
 from testfixtures import (
     TempDirectory, TempDir, Replacer, ShouldRaise, compare, OutputCapture
 )
-from testfixtures.formats import JSON
+from testfixtures.formats import JSON, Format, YAML
 from testfixtures.rmtree import rmtree
 
 some_bytes = '\xa3'.encode('utf-8')
@@ -512,3 +512,187 @@ class TestReadBytes:
             d.write('file.bin', b'data')
             result: bytes = d.read_bytes('file.bin')
             assert isinstance(result, bytes)
+
+@pytest.mark.parametrize('class_', [TempDir, TempDirectory])
+class TestParseDump:
+
+    def test_dump_return_type(self, class_: type[TempDir | TempDirectory]):
+        with class_() as d:
+            data = {'key': 'value'}
+            path = d.dump('config.json', data)
+            if class_ is TempDir:
+                assert isinstance(path, Path)
+            else:
+                assert isinstance(path, str)
+
+    def test_dump_json(self, class_: type[TempDir | TempDirectory]):
+        with class_() as d:
+            data = {'key': 'value', 'number': 42}
+            path = d.dump('config.json', data)
+            with open(path, 'rb') as f:
+                compare(f.read(), b'{"key": "value", "number": 42}')
+
+    def test_parse_json(self, class_: type[TempDir | TempDirectory]):
+        with class_() as d:
+            d.write('config.json', b'{"key": "value", "number": 42}')
+            result = d.parse('config.json')
+            compare(result, expected={'key': 'value', 'number': 42})
+
+    def test_roundtrip_json(self, class_: type[TempDir | TempDirectory]):
+        with class_() as d:
+            original = {'nested': {'data': [1, 2, 3]}, 'flag': True}
+            d.dump('data.json', original)
+            result = d.parse('data.json')
+            compare(result, expected=original)
+
+    def test_dump_yaml(self, class_: type[TempDir | TempDirectory]):
+        pytest.importorskip('yaml')
+        with class_() as d:
+            data = {'app': {'name': 'test'}}
+            path = d.dump('config.yaml', data)
+            with open(path, 'rb') as f:
+                content = f.read()
+                assert b'app:' in content
+                assert b'name: test' in content
+
+    def test_parse_yaml(self, class_: type[TempDir | TempDirectory]):
+        pytest.importorskip('yaml')
+        with class_() as d:
+            d.write('config.yaml', b'app:\n  name: test\n')
+            result = d.parse('config.yaml')
+            compare(result, expected={'app': {'name': 'test'}})
+
+    def test_dump_toml(self, class_: type[TempDir | TempDirectory]):
+        with class_() as d:
+            # TOML reading works with stdlib tomllib, no import needed
+            data = {'key': 'value', 'num': 42}
+            # But writing requires tomlkit
+            pytest.importorskip('tomlkit')
+            path = d.dump('config.toml', data)
+            with open(path, 'rb') as f:
+                content = f.read()
+                assert b'key = "value"' in content
+                assert b'num = 42' in content
+
+    def test_parse_toml(self, class_: type[TempDir | TempDirectory]):
+        with class_() as d:
+            d.write('config.toml', b'key = "value"\nnum = 42\n')
+            result = d.parse('config.toml')
+            compare(result, expected={'key': 'value', 'num': 42})
+
+    def test_case_insensitive(self, class_: type[TempDir | TempDirectory]):
+        with class_() as d:
+            data = {'test': 'data'}
+            path = d.dump('config.JSON', data)
+            result = d.parse(path)
+            compare(result, expected=data)
+
+    def test_yml_extension(self, class_: type[TempDir | TempDirectory]):
+        pytest.importorskip('yaml')
+        with class_() as d:
+            data = {'test': 'data'}
+            path = d.dump('config.yml', data)
+            result = d.parse(path)
+            compare(result, expected=data)
+
+    def test_unknown_extension(self, class_: type[TempDir | TempDirectory]):
+        with class_() as d:
+            with ShouldRaise(ValueError(
+                "No format registered for extension '.txt'. "
+                "Supported extensions: ['.json', '.toml', '.yaml', '.yml']"
+            )):
+                d.parse('data.txt')
+
+    def test_no_extension(self, class_: type[TempDir | TempDirectory]):
+        with class_() as d:
+            with ShouldRaise(ValueError(
+                "No format registered for extension ''. "
+                "Supported extensions: ['.json', '.toml', '.yaml', '.yml']"
+            )):
+                d.parse('filename')
+
+    def test_multiple_dots_json(self, class_: type[TempDir | TempDirectory]):
+        with class_() as d:
+            data = {'backup': 'config'}
+            d.dump('backup.config.json', data)
+            result = d.parse('backup.config.json')
+            compare(result, expected=data)
+
+    def test_multiple_dots_toml(self, class_: type[TempDir | TempDirectory]):
+        pytest.importorskip('tomlkit')
+        with class_() as d:
+            data = {'backup': 'config'}
+            d.dump('backup.config.toml', data)
+            result = d.parse('backup.config.toml')
+            compare(result, expected=data)
+
+    def test_custom_formats(self, class_: type[TempDir | TempDirectory]):
+        with class_(formats=[JSON]) as d:
+            data = {'test': 'data'}
+            d.dump('config.json', data)
+            result = d.parse('config.json')
+            compare(result, expected=data)
+
+    def test_duplicate_suffix(self, class_: type[TempDir | TempDirectory]):
+        class CustomFormat:
+            suffixes: Sequence[str] = ('.json',)
+            def parse(self, data: str):
+                return {'custom': data}
+            def render(self, obj):
+                return str(obj)
+
+        custom_fmt = CustomFormat()
+        with ShouldRaise(ValueError("Multiple formats registered for extension '.json'")):
+            class_(formats=[JSON, custom_fmt])
+
+    def test_parse_with_instance_encoding(self, class_: type[TempDir | TempDirectory]):
+        with class_(encoding='utf-8') as d:
+            data = {'message': 'test'}
+            d.dump('config.json', data)
+            result = d.parse('config.json')
+            compare(result, expected=data)
+
+    def test_dump_with_instance_encoding(self, class_: type[TempDir | TempDirectory]):
+        with class_(encoding='utf-8') as d:
+            data = {'message': 'test'}
+            path = d.dump('config.json', data)
+            with open(path, 'rb') as f:
+                content = f.read()
+                # Verify it's properly encoded as UTF-8
+                assert b'{"message": "test"}' in content
+
+    def test_parse_no_extension_with_format(self, class_: type[TempDir | TempDirectory]):
+        with class_() as d:
+            d.write('config', b'{"key": "value"}')
+            result = d.parse('config', format=JSON)
+            compare(result, expected={'key': 'value'})
+
+    def test_dump_no_extension_with_format(self, class_: type[TempDir | TempDirectory]):
+        with class_() as d:
+            data = {'key': 'value'}
+            path = d.dump('config', data, format=JSON)
+            with open(path, 'rb') as f:
+                compare(f.read(), expected=b'{"key": "value"}')
+
+    def test_roundtrip_no_extension(self, class_: type[TempDir | TempDirectory]):
+        with class_() as d:
+            original = {'nested': {'data': [1, 2, 3]}, 'flag': True}
+            d.dump('config', original, format=JSON)
+            result = d.parse('config', format=JSON)
+            compare(result, expected=original)
+
+    def test_parse_format_overrides_extension(self, class_: type[TempDir | TempDirectory]):
+        pytest.importorskip('yaml')
+        with class_() as d:
+            d.write('data.json', b'key: value\n')
+            result = d.parse('data.json', format=YAML)
+            compare(result, expected={'key': 'value'})
+
+    def test_dump_format_overrides_extension(self, class_: type[TempDir | TempDirectory]):
+        pytest.importorskip('yaml')
+        with class_() as d:
+            data = {'key': 'value'}
+            path = d.dump('data.json', data, format=YAML)
+            with open(path, 'rb') as f:
+                content = f.read()
+                assert b'key: value' in content

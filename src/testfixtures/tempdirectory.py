@@ -12,7 +12,7 @@ from typing import (
 )
 
 from testfixtures.comparison import compare
-from testfixtures.formats import Format
+from testfixtures.formats import Format, JSON, YAML, TOML
 from testfixtures.utils import wrap
 from .rmtree import rmtree
 
@@ -67,6 +67,7 @@ class _TempDir(ABC, Generic[P]):
         create: bool | None = None,
         encoding: str | None = None,
         cwd: bool = False,
+        formats: Sequence[Format] = (JSON, YAML, TOML),
     ):
         self.ignore = []
         for regex in ignore:
@@ -76,6 +77,17 @@ class _TempDir(ABC, Generic[P]):
         self.cwd = cwd
         self.original_cwd: str | None = None
         self.dont_remove = bool(path)
+
+        # Build extension-to-format lookup
+        self.formats: dict[str, Format] = {}
+        for fmt in formats:
+            for suffix in fmt.suffixes:
+                if suffix in self.formats:
+                    raise ValueError(
+                        f"Multiple formats registered for extension '{suffix}'"
+                    )
+                self.formats[suffix.lower()] = fmt
+
         if create or (path is None and create is None):
             self.create()
 
@@ -369,6 +381,27 @@ class _TempDir(ABC, Generic[P]):
         :returns: The absolute path of the file written.
         """
 
+    def _find_format(self, filepath: PathStrings) -> Format:
+        suffix = Path(filepath if isinstance(filepath, str) else '/'.join(filepath)).suffix.lower()
+        if suffix not in self.formats:
+            raise ValueError(
+                f"No format registered for extension '{suffix}'. "
+                f"Supported extensions: {sorted(self.formats.keys())}"
+            )
+        return self.formats[suffix]
+
+    @abstractmethod
+    def dump(self, filepath: PathStrings, data: Any, format: Format | None = None) -> P:
+        """
+        Serialize and write data to a file, auto-detecting format from file extension.
+
+        :param filepath: The path to write, relative to the temporary directory.
+        :param data: The Python object to serialize.
+        :param format: Optional format handler. If provided, uses this format instead
+                       of auto-detecting from file extension.
+        :returns: The full path of the file that was written.
+        """
+
     def as_string(self, path: str | Sequence[str] | None = None) -> str:
         """
         Return the full path on disk that corresponds to the path
@@ -500,6 +533,17 @@ class _TempDir(ABC, Generic[P]):
         """
         return Path(self._join(filepath)).read_bytes()
 
+    def parse(self, filepath: PathStrings, format: Format | None = None) -> Any:
+        """
+        Read and deserialize a file, auto-detecting format from file extension.
+
+        :param filepath: The path to read, relative to the temporary directory.
+        :param format: Optional format handler. If provided, uses this format instead
+                       of auto-detecting from file extension.
+        :returns: The deserialized Python object.
+        """
+        return self.read(filepath, format=format or self._find_format(filepath))
+
     def __enter__(self) -> Self:
         return self
 
@@ -546,6 +590,11 @@ class TempDirectory(_TempDir[str]):
     ) -> str:
         return self._write(filepath, data, encoding, format)
 
+    def dump(self, filepath: PathStrings, data: Any, format: Format | None = None) -> str:
+        if format is None:
+            format = self._find_format(filepath)
+        return self._write(filepath, data, format=format)
+
 
 TempDirectory.__doc__ = (
       " .. deprecated:: 11\n    Use :class:`TempDir` instead.\n\n" + (_TempDir.__doc__ or "")
@@ -585,6 +634,9 @@ class TempDir(_TempDir[Path]):
         format: Format | None = None
     ) -> Path:
         return Path(self._write(filepath, data, encoding, format))
+
+    def dump(self, filepath: PathStrings, data: Any, format: Format | None = None) -> Path:
+        return Path(self._write(filepath, data, format=format or self._find_format(filepath)))
 
 
 def tempdir(
