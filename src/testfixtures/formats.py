@@ -8,7 +8,7 @@ Each format handler implements the Format protocol with parse() and render() met
 import json
 import tomllib
 from types import ModuleType
-from typing import Protocol, Any
+from typing import Protocol, Any, Sequence
 
 tomlkit: ModuleType | None
 try:
@@ -32,6 +32,9 @@ class Format(Protocol):
     for additional formats.
     """
 
+    #: File extensions supported by this format (with leading dot, e.g. ('.json',))
+    suffixes: Sequence[str]
+
     def parse(self, data: str) -> Any:
         """
         Parse a string into a Python object.
@@ -54,6 +57,8 @@ class Format(Protocol):
 class JSONFormat:
     """JSON format handler using the standard library json module."""
 
+    suffixes: Sequence[str] = ('.json',)
+
     def parse(self, data: str) -> Any:
         """Parse JSON string into a Python object."""
         return json.loads(data)
@@ -65,6 +70,8 @@ class JSONFormat:
 
 class YAMLFormat:
     """YAML format handler. Requires pyyaml to be installed."""
+
+    suffixes: Sequence[str] = ('.yaml', '.yml')
 
     def parse(self, data: str) -> Any:
         """Parse YAML string into a Python object."""
@@ -81,6 +88,8 @@ class YAMLFormat:
 
 class TOMLFormat:
     """TOML format handler. Read uses stdlib tomllib (3.11+) or tomlkit if available. Write requires tomlkit."""
+
+    suffixes: Sequence[str] = ('.toml',)
 
     def parse(self, data: str) -> Any:
         """Parse TOML string into a Python dict."""
