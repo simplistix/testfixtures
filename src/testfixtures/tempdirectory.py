@@ -406,6 +406,22 @@ class _TempDir(ABC, Generic[P]):
     def __truediv__(self, other: str) -> Path:
         return self.as_path() / other
 
+    @overload
+    def read(self, filepath: PathStrings) -> str | bytes:
+        ...
+
+    @overload
+    def read(self, filepath: PathStrings, encoding: str | None) -> str | bytes:
+        ...
+
+    @overload
+    def read(self, filepath: PathStrings, *, format: Format) -> Any:
+        ...
+
+    @overload
+    def read(self, filepath: PathStrings, encoding: str | None, format: Format) -> Any:
+        ...
+
     def read(
         self,
         filepath: PathStrings,
@@ -455,6 +471,34 @@ class _TempDir(ABC, Generic[P]):
             return format.parse(data.decode('utf-8'))
 
         return data
+
+    def read_text(
+        self,
+        filepath: PathStrings,
+        encoding: str | None = None,
+        errors: str | None = None,
+        newline: str | None = None
+    ) -> str:
+        """
+        Read file as text, mirroring pathlib.Path.read_text() behavior.
+
+        :param filepath: The path to the file to read.
+        :param encoding: Text encoding. Uses instance default encoding if None,
+                         then falls back to platform default (locale encoding).
+        :param errors: Error handling strategy (e.g., 'strict', 'ignore', 'replace').
+        :param newline: Newline mode (e.g., None, '', '\\n', '\\r', '\\r\\n').
+        :returns: The file contents as a string.
+        """
+        return Path(self._join(filepath)).read_text(encoding or self.encoding, errors, newline)
+
+    def read_bytes(self, filepath: PathStrings) -> bytes:
+        """
+        Read file as bytes, mirroring pathlib.Path.read_bytes() behavior.
+
+        :param filepath: The path to the file to read.
+        :returns: The file contents as bytes.
+        """
+        return Path(self._join(filepath)).read_bytes()
 
     def __enter__(self) -> Self:
         return self
