@@ -64,6 +64,6 @@ else:
     # This is common for development: if you see broken refs to Mock or _Call,
     # then `uv sync --all-groups --all-extras --no-extra mock-backport`.
     nitpick_ignore.extend([
-        # ('py:class', 'mock.mock._Call'),
-        # ('py:class', 'mock.mock.Mock'),
+        ('py:class', 'mock.mock._Call'),
+        ('py:class', 'mock.mock.Mock'),
     ])
