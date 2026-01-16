@@ -449,3 +449,66 @@ class TestFormats:
         with class_() as d:
             with ShouldRaise(TypeError("a bytes-like object is required, not 'dict'")):
                 d.write('config.json', {'test': 'data'})  # type: ignore[call-overload]
+
+
+@pytest.mark.parametrize('class_', [TempDir, TempDirectory])
+class TestReadText:
+
+    def test_basic_text_reading(self, class_: type[TempDir | TempDirectory]):
+        with class_() as d:
+            d.write('file.txt', 'hello world', encoding='utf-8')
+            result = d.read_text('file.txt', encoding='utf-8')
+            compare(result, expected='hello world')
+
+    def test_instance_default_encoding(self, class_: type[TempDir | TempDirectory]):
+        with class_(encoding='utf-8') as d:
+            d.write('file.txt', 'test content', encoding='utf-8')
+            result = d.read_text('file.txt')
+            compare(result, expected='test content')
+
+    def test_explicit_encoding_overrides_instance(self, class_: type[TempDir | TempDirectory]):
+        with class_(encoding='latin-1') as d:
+            d.write('file.txt', 'café', encoding='utf-8')
+            result = d.read_text('file.txt', encoding='utf-8')
+            compare(result, expected='café')
+
+    def test_errors_parameter(self, class_: type[TempDir | TempDirectory]):
+        with class_() as d:
+            d.write('file.txt', b'\xff\xfe')
+            result = d.read_text('file.txt', encoding='utf-8', errors='ignore')
+            assert isinstance(result, str)
+
+    def test_newline_parameter(self, class_: type[TempDir | TempDirectory]):
+        with class_() as d:
+            d.write('file.txt', 'line1\r\nline2\r\n', encoding='utf-8')
+            result = d.read_text('file.txt', encoding='utf-8', newline='')
+            compare(result, expected='line1\r\nline2\r\n')
+
+    def test_type_annotation(self, class_: type[TempDir | TempDirectory]):
+        with class_() as d:
+            d.write('file.txt', 'text', encoding='utf-8')
+            result: str = d.read_text('file.txt')
+            assert isinstance(result, str)
+
+
+@pytest.mark.parametrize('class_', [TempDir, TempDirectory])
+class TestReadBytes:
+
+    def test_basic_bytes_reading(self, class_: type[TempDir | TempDirectory]):
+        with class_() as d:
+            d.write('file.bin', b'\x00\x01\x02\x03')
+            result = d.read_bytes('file.bin')
+            compare(result, expected=b'\x00\x01\x02\x03')
+
+    def test_binary_data(self, class_: type[TempDir | TempDirectory]):
+        with class_() as d:
+            binary_data = bytes(range(256))
+            d.write('file.bin', binary_data)
+            result = d.read_bytes('file.bin')
+            compare(result, expected=binary_data)
+
+    def test_type_annotation(self, class_: type[TempDir | TempDirectory]):
+        with class_() as d:
+            d.write('file.bin', b'data')
+            result: bytes = d.read_bytes('file.bin')
+            assert isinstance(result, bytes)
