@@ -1,5 +1,6 @@
 import atexit
 import os
+import shutil
 import warnings
 from abc import ABC, abstractmethod, abstractproperty
 from pathlib import Path
@@ -408,6 +409,49 @@ class _TempDir(ABC, Generic[P]):
         :returns: The full path of the file that was written.
         """
 
+    def _clone(
+        self,
+        source: str | Path,
+        filepath: PathStrings | None = None,
+    ) -> str:
+        source_path = Path(source)
+        into_dir = (
+            (isinstance(filepath, str) and filepath.endswith('/')) or
+            (isinstance(filepath, Sequence) and not isinstance(filepath, str) and filepath[-1] == '')
+        )
+
+        if into_dir:
+            # Clone INTO directory
+            dest_path = self._join(filepath)
+            if source_path.is_dir():
+                shutil.copytree(source_path, dest_path, dirs_exist_ok=True)
+                return dest_path
+            os.makedirs(dest_path, exist_ok=True)
+            shutil.copy2(source_path, dest_path)
+            return os.path.join(dest_path, source_path.name)
+
+        # Clone AS path
+        dest_path = self._join(source_path.name if filepath is None else filepath)
+        if source_path.is_dir():
+            shutil.copytree(source_path, dest_path)
+            return dest_path
+        if parent := os.path.dirname(dest_path):
+            os.makedirs(parent, exist_ok=True)
+        shutil.copy2(source_path, dest_path)
+        return dest_path
+
+    @abstractmethod
+    def clone(self, source: str | Path, filepath: PathStrings | None = None) -> P:
+        """
+        Clone a file or directory from outside the TempDir into it.
+
+        :param source: Path to the source file or directory.
+        :param filepath: Destination within TempDir. If None, uses source's name at root.
+                         If ends with '/' or is a sequence ending with '', clones into
+                         that directory rather than as that path.
+        :returns: Absolute path of the cloned content.
+        """
+
     def as_string(self, path: str | Sequence[str] | None = None) -> str:
         """
         Return the full path on disk that corresponds to the path
@@ -601,6 +645,9 @@ class TempDirectory(_TempDir[str]):
             format = self._find_format(filepath)
         return self._write(filepath, data, format=format)
 
+    def clone(self, source: str | Path, filepath: PathStrings | None = None) -> str:
+        return self._clone(source, filepath)
+
 
 TempDirectory.__doc__ = (
       " .. deprecated:: 11\n    Use :class:`TempDir` instead.\n\n" + (_TempDir.__doc__ or "")
@@ -643,6 +690,9 @@ class TempDir(_TempDir[Path]):
 
     def dump(self, filepath: PathStrings, data: Any, format: Format | None = None) -> Path:
         return Path(self._write(filepath, data, format=format or self._find_format(filepath)))
+
+    def clone(self, source: str | Path, filepath: PathStrings | None = None) -> Path:
+        return Path(self._clone(source, filepath))
 
 
 def tempdir(
