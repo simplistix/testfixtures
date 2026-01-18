@@ -716,3 +716,90 @@ class TestParseDump:
             with open(path, 'rb') as f:
                 content = f.read()
                 assert b'key: value' in content
+
+
+@pytest.mark.parametrize('class_', [TempDir, TempDirectory])
+class TestClone:
+
+    def test_clone_file_to_root(self, tmp_path: Path, class_: type[TempDir | TempDirectory]):
+        source_file = tmp_path / 'sample.txt'
+        source_file.write_text('sample content')
+        with class_() as d:
+            result = d.clone(source_file)
+            compare(Path(result).name, expected='sample.txt')
+            compare(Path(result).read_text(), expected='sample content')
+            d.compare(['sample.txt'])
+
+    def test_clone_file_to_specific_dest(self, tmp_path: Path, class_: type[TempDir | TempDirectory]):
+        source_file = tmp_path / 'original.txt'
+        source_file.write_text('hello')
+        with class_() as d:
+            result = d.clone(source_file, 'renamed.txt')
+            compare(Path(result).name, expected='renamed.txt')
+            compare(Path(result).read_text(), expected='hello')
+            d.compare(['renamed.txt'])
+
+    def test_clone_file_into_directory(self, tmp_path: Path, class_: type[TempDir | TempDirectory]):
+        source_file = tmp_path / 'data.txt'
+        source_file.write_text('file content')
+        with class_() as d:
+            result = d.clone(source_file, 'subdir/')
+            compare(Path(result).name, expected='data.txt')
+            compare('subdir' in str(result), expected=True)
+            compare(Path(result).read_text(), expected='file content')
+            d.compare(['subdir/', 'subdir/data.txt'])
+
+    def test_clone_file_into_directory_sequence(self, tmp_path: Path, class_: type[TempDir | TempDirectory]):
+        source_file = tmp_path / 'data.txt'
+        source_file.write_text('file content')
+        with class_() as d:
+            result = d.clone(source_file, ['subdir', ''])
+            compare(Path(result).name, expected='data.txt')
+            compare('subdir' in str(result), expected=True)
+            compare(Path(result).read_text(), expected='file content')
+            d.compare(['subdir/', 'subdir/data.txt'])
+
+    def test_clone_directory_as_new_name(self, tmp_path: Path, class_: type[TempDir | TempDirectory]):
+        source_dir = tmp_path / 'mydir'
+        source_dir.mkdir()
+        (source_dir / 'file1.txt').write_text('one')
+        (source_dir / 'file2.txt').write_text('two')
+        with class_() as d:
+            result = d.clone(source_dir, 'newname')
+            compare(Path(result).name, expected='newname')
+            compare((Path(result) / 'file1.txt').read_text(), expected='one')
+            compare((Path(result) / 'file2.txt').read_text(), expected='two')
+            d.compare(['newname/', 'newname/file1.txt', 'newname/file2.txt'])
+
+    def test_clone_directory_contents_into_dest(self, tmp_path: Path, class_: type[TempDir | TempDirectory]):
+        source_dir = tmp_path / 'src'
+        source_dir.mkdir()
+        (source_dir / 'a.txt').write_text('a')
+        (source_dir / 'b.txt').write_text('b')
+        with class_() as d:
+            result = d.clone(source_dir, 'dest/')
+            compare(Path(result).name, expected='dest')
+            compare((Path(result) / 'a.txt').read_text(), expected='a')
+            compare((Path(result) / 'b.txt').read_text(), expected='b')
+            d.compare(['dest/', 'dest/a.txt', 'dest/b.txt'])
+
+    def test_clone_to_nested_destination(self, tmp_path: Path, class_: type[TempDir | TempDirectory]):
+        source_file = tmp_path / 'deep.txt'
+        source_file.write_text('deep content')
+        with class_() as d:
+            result = d.clone(source_file, 'a/b/c/deep.txt')
+            compare(Path(result).read_text(), expected='deep content')
+            d.compare(['a/', 'a/b/', 'a/b/c/', 'a/b/c/deep.txt'])
+
+    def test_clone_nonexistent_source_raises(self, tmp_path: Path, class_: type[TempDir | TempDirectory]):
+        nonexistent = tmp_path / 'does_not_exist.txt'
+        with class_() as d:
+            with ShouldRaise(FileNotFoundError(2, 'No such file or directory')):
+                d.clone(nonexistent)
+
+    def test_clone_returns_correct_type(self, tmp_path: Path, class_: type[TempDir | TempDirectory]):
+        source_file = tmp_path / 'type_test.txt'
+        source_file.write_text('test')
+        with class_() as d:
+            result = d.clone(source_file)
+            assert isinstance(result, Path if class_ is TempDir else str)
