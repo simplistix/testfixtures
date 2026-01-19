@@ -354,6 +354,17 @@ class TempDirectoryTests(TestCase):
         finally:
             os.chdir(original)
 
+    def test_write_read_roundtrip(self):
+        with TempDirectory(cwd=True) as d:
+            path = d.write('file', 'stuff')
+            result = d.read(path)
+        compare(result, expected=b'stuff')
+
+    def test_write_path(self):
+        with TempDirectory(cwd=True) as d:
+            path = d.write(d / 'file', 'stuff')
+            compare(Path(path).read_text(), expected='stuff')
+
 
 def test_wrap_path(tmp_path: Path) -> None:
     with TempDirectory(tmp_path) as d:
@@ -383,6 +394,15 @@ class TestTempDir:
     def test_attempt_to_encode_bytes(self, tempdir: TempDir) -> None:
         with ShouldRaise(TypeError("Cannot specify encoding when data is bytes")):
             tempdir.write('test.txt', b'\xc2\xa3', encoding='utf-8')  # type: ignore[call-overload]
+
+    def test_write_read_roundtrip(self, tempdir: TempDir):
+        path = tempdir.write('file', 'stuff')
+        result = tempdir.read(path)
+        compare(result, expected=b'stuff')
+
+    def test_write_path(self, tempdir: TempDir):
+        path = tempdir.write(tempdir / 'file', 'stuff')
+        compare(path.read_text(), expected='stuff')
 
 
 @pytest.mark.parametrize('class_', [TempDir, TempDirectory])
@@ -447,7 +467,7 @@ class TestFormats:
 
     def test_write_no_format_but_data_provided(self, class_: type[TempDir | TempDirectory]):
         with class_() as d:
-            with ShouldRaise(TypeError("a bytes-like object is required, not 'dict'")):
+            with ShouldRaise(TypeError("memoryview: a bytes-like object is required, not 'dict'")):
                 d.write('config.json', {'test': 'data'})  # type: ignore[call-overload]
 
 
