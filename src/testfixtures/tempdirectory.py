@@ -16,7 +16,7 @@ from testfixtures.formats import Format, JSON, YAML, TOML
 from testfixtures.utils import wrap
 from .rmtree import rmtree
 
-PathStrings: TypeAlias = str | Sequence[str]
+PathStrings: TypeAlias = str | Sequence[str] | Path
 
 P = TypeVar('P', bound=str | Path)
 
@@ -256,14 +256,18 @@ class _TempDir(ABC, Generic[P]):
                 )),
                 recursive=False)
 
-    def _join(self, parts: str | Sequence[str] | None) -> str:
+    def _join(self, parts: PathStrings | None) -> str:
         if self._path is None:
             raise RuntimeError('Instantiated with create=False and .create() not called')
-        # make things platform independent
-        if parts is None:
-            return self._path
-        if isinstance(parts, str):
-            parts = parts.split('/')
+
+        match parts:
+            case None:
+                return self._path
+            case str():
+                parts = parts.split('/')
+            case Path():
+                parts = parts.relative_to(self._path).parts
+
         relative = os.sep.join(parts).rstrip(os.sep)
         if relative.startswith(os.sep):
             if relative.startswith(self._path):
@@ -301,12 +305,8 @@ class _TempDir(ABC, Generic[P]):
         encoding: str | None = None,
         format: Format | None = None
     ) -> str:
-        filepath_parts = filepath.split('/') if isinstance(filepath, str) else filepath
-        if len(filepath_parts) > 1:
-            dirpath = self._join(filepath_parts[:-1])
-            if not os.path.exists(dirpath):
-                os.makedirs(dirpath)
-        thepath = self._join(filepath_parts)
+        path = Path(self._join(filepath))
+        path.parent.mkdir(parents=True, exist_ok=True)
 
         if format is not None:
             data = format.render(data)
@@ -319,9 +319,8 @@ class _TempDir(ABC, Generic[P]):
         elif isinstance(data, str):
             data = data.encode()
 
-        with open(thepath, 'wb') as f:
-            f.write(data)
-        return thepath
+        path.write_bytes(data)
+        return str(path)
 
     @overload
     def write(self, filepath: PathStrings, data: bytes) -> P:
@@ -382,7 +381,14 @@ class _TempDir(ABC, Generic[P]):
         """
 
     def _find_format(self, filepath: PathStrings) -> Format:
-        suffix = Path(filepath if isinstance(filepath, str) else '/'.join(filepath)).suffix.lower()
+        match filepath:
+            case str():
+                filename = filepath
+            case Path():
+                filename = filepath.name
+            case _:
+                filename = filepath[-1]
+        suffix = os.path.splitext(filename)[-1].lower()
         if suffix not in self.formats:
             raise ValueError(
                 f"No format registered for extension '{suffix}'. "
