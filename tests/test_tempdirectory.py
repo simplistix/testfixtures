@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from tempfile import mkdtemp
-from typing import Iterator, Sequence
+from typing import Iterator, Sequence, TypeAlias
 from unittest import TestCase
 from warnings import catch_warnings
 
@@ -14,6 +14,8 @@ from testfixtures import (
 )
 from testfixtures.formats import JSON, Format, YAML
 from testfixtures.rmtree import rmtree
+
+TempDirClasses: TypeAlias = type[TempDir | TempDirectory]
 
 some_bytes = '\xa3'.encode('utf-8')
 some_text = '\xa3'
@@ -408,28 +410,28 @@ class TestTempDir:
 @pytest.mark.parametrize('class_', [TempDir, TempDirectory])
 class TestFormats:
 
-    def test_write_format(self, class_: type[TempDir | TempDirectory]) -> None:
+    def test_write_format(self, class_: TempDirClasses) -> None:
         with class_() as d:
             data = {'key': 'value', 'number': 42}
             d.write('config.json', data, format=JSON)
             with open(os.path.join(d.path, 'config.json'), 'rb') as f:
                 compare(f.read(), b'{"key": "value", "number": 42}')
 
-    def test_read_format(self, class_: type[TempDir | TempDirectory]):
+    def test_read_format(self, class_: TempDirClasses):
         with class_() as d:
             with open(os.path.join(d.path, 'config.json'), 'wb') as f:
                 f.write(b'{"key": "value", "number": 42}')
             result = d.read('config.json', format=JSON)
             compare(result, expected={'key': 'value', 'number': 42})
 
-    def test_roundtrip_format(self, class_: type[TempDir | TempDirectory]):
+    def test_roundtrip_format(self, class_: TempDirClasses):
         with class_() as d:
             original = {'nested': {'data': [1, 2, 3]}, 'flag': True}
             d.write('data.json', original, format=JSON)
             result = d.read('data.json', format=JSON)
             compare(result, expected=original)
 
-    def test_write_format_with_encoding(self, class_: type[TempDir | TempDirectory]):
+    def test_write_format_with_encoding(self, class_: TempDirClasses):
         with class_() as d:
             # Test that latin-1 encoding is used with ASCII-safe JSON
             # JSON module escapes non-ASCII as \uXXXX by default
@@ -440,7 +442,7 @@ class TestFormats:
                 content = f.read()
                 compare(content, expected=b'{"message": "test"}')
 
-    def test_read_format_with_encoding(self, class_: type[TempDir | TempDirectory]):
+    def test_read_format_with_encoding(self, class_: TempDirClasses):
         with class_() as d:
             # Write latin-1 encoded JSON with non-ASCII character
             # £ is 0xa3 in latin-1
@@ -449,7 +451,7 @@ class TestFormats:
             result = d.read('config.json', encoding='latin-1', format=JSON)
             compare(result, expected={'message': '£100'})
 
-    def test_roundtrip_format_with_encoding(self, class_: type[TempDir | TempDirectory]):
+    def test_roundtrip_format_with_encoding(self, class_: TempDirClasses):
         with class_() as d:
             # Roundtrip with latin-1 encoding
             # Use ASCII-safe data since JSON escapes non-ASCII by default
@@ -458,14 +460,14 @@ class TestFormats:
             result = d.read('data.json', encoding='latin-1', format=JSON)
             compare(result, expected=original)
 
-    def test_format_with_default_encoding(self, class_: type[TempDir | TempDirectory]):
+    def test_format_with_default_encoding(self, class_: TempDirClasses):
         with class_(encoding='utf-8') as d:
             data = {'test': 'data'}
             d.write('config.json', data, format=JSON)
             result = d.read('config.json', format=JSON)
             compare(result, expected=data)
 
-    def test_write_no_format_but_data_provided(self, class_: type[TempDir | TempDirectory]):
+    def test_write_no_format_but_data_provided(self, class_: TempDirClasses):
         with class_() as d:
             with ShouldRaise(TypeError("memoryview: a bytes-like object is required, not 'dict'")):
                 d.write('config.json', {'test': 'data'})  # type: ignore[call-overload]
@@ -474,37 +476,37 @@ class TestFormats:
 @pytest.mark.parametrize('class_', [TempDir, TempDirectory])
 class TestReadText:
 
-    def test_basic_text_reading(self, class_: type[TempDir | TempDirectory]):
+    def test_basic_text_reading(self, class_: TempDirClasses):
         with class_() as d:
             d.write('file.txt', 'hello world', encoding='utf-8')
             result = d.read_text('file.txt', encoding='utf-8')
             compare(result, expected='hello world')
 
-    def test_instance_default_encoding(self, class_: type[TempDir | TempDirectory]):
+    def test_instance_default_encoding(self, class_: TempDirClasses):
         with class_(encoding='utf-8') as d:
             d.write('file.txt', 'test content', encoding='utf-8')
             result = d.read_text('file.txt')
             compare(result, expected='test content')
 
-    def test_explicit_encoding_overrides_instance(self, class_: type[TempDir | TempDirectory]):
+    def test_explicit_encoding_overrides_instance(self, class_: TempDirClasses):
         with class_(encoding='latin-1') as d:
             d.write('file.txt', 'café', encoding='utf-8')
             result = d.read_text('file.txt', encoding='utf-8')
             compare(result, expected='café')
 
-    def test_errors_parameter(self, class_: type[TempDir | TempDirectory]):
+    def test_errors_parameter(self, class_: TempDirClasses):
         with class_() as d:
             d.write('file.txt', b'\xff\xfe')
             result = d.read_text('file.txt', encoding='utf-8', errors='ignore')
             assert isinstance(result, str)
 
-    def test_newline_parameter(self, class_: type[TempDir | TempDirectory]):
+    def test_newline_parameter(self, class_: TempDirClasses):
         with class_() as d:
             d.write('file.txt', 'line1\r\nline2\r\n', encoding='utf-8')
             result = d.read_text('file.txt', encoding='utf-8', newline='')
             compare(result, expected='line1\r\nline2\r\n')
 
-    def test_type_annotation(self, class_: type[TempDir | TempDirectory]):
+    def test_type_annotation(self, class_: TempDirClasses):
         with class_() as d:
             d.write('file.txt', 'text', encoding='utf-8')
             result: str = d.read_text('file.txt')
@@ -514,20 +516,20 @@ class TestReadText:
 @pytest.mark.parametrize('class_', [TempDir, TempDirectory])
 class TestReadBytes:
 
-    def test_basic_bytes_reading(self, class_: type[TempDir | TempDirectory]):
+    def test_basic_bytes_reading(self, class_: TempDirClasses):
         with class_() as d:
             d.write('file.bin', b'\x00\x01\x02\x03')
             result = d.read_bytes('file.bin')
             compare(result, expected=b'\x00\x01\x02\x03')
 
-    def test_binary_data(self, class_: type[TempDir | TempDirectory]):
+    def test_binary_data(self, class_: TempDirClasses):
         with class_() as d:
             binary_data = bytes(range(256))
             d.write('file.bin', binary_data)
             result = d.read_bytes('file.bin')
             compare(result, expected=binary_data)
 
-    def test_type_annotation(self, class_: type[TempDir | TempDirectory]):
+    def test_type_annotation(self, class_: TempDirClasses):
         with class_() as d:
             d.write('file.bin', b'data')
             result: bytes = d.read_bytes('file.bin')
@@ -536,7 +538,7 @@ class TestReadBytes:
 @pytest.mark.parametrize('class_', [TempDir, TempDirectory])
 class TestParseDump:
 
-    def test_dump_return_type(self, class_: type[TempDir | TempDirectory]):
+    def test_dump_return_type(self, class_: TempDirClasses):
         with class_() as d:
             data = {'key': 'value'}
             path = d.dump('config.json', data)
@@ -545,27 +547,27 @@ class TestParseDump:
             else:
                 assert isinstance(path, str)
 
-    def test_dump_json(self, class_: type[TempDir | TempDirectory]):
+    def test_dump_json(self, class_: TempDirClasses):
         with class_() as d:
             data = {'key': 'value', 'number': 42}
             path = d.dump('config.json', data)
             with open(path, 'rb') as f:
                 compare(f.read(), b'{"key": "value", "number": 42}')
 
-    def test_parse_json(self, class_: type[TempDir | TempDirectory]):
+    def test_parse_json(self, class_: TempDirClasses):
         with class_() as d:
             d.write('config.json', b'{"key": "value", "number": 42}')
             result = d.parse('config.json')
             compare(result, expected={'key': 'value', 'number': 42})
 
-    def test_roundtrip_json(self, class_: type[TempDir | TempDirectory]):
+    def test_roundtrip_json(self, class_: TempDirClasses):
         with class_() as d:
             original = {'nested': {'data': [1, 2, 3]}, 'flag': True}
             d.dump('data.json', original)
             result = d.parse('data.json')
             compare(result, expected=original)
 
-    def test_dump_yaml(self, class_: type[TempDir | TempDirectory]):
+    def test_dump_yaml(self, class_: TempDirClasses):
         pytest.importorskip('yaml')
         with class_() as d:
             data = {'app': {'name': 'test'}}
@@ -575,14 +577,14 @@ class TestParseDump:
                 assert b'app:' in content
                 assert b'name: test' in content
 
-    def test_parse_yaml(self, class_: type[TempDir | TempDirectory]):
+    def test_parse_yaml(self, class_: TempDirClasses):
         pytest.importorskip('yaml')
         with class_() as d:
             d.write('config.yaml', b'app:\n  name: test\n')
             result = d.parse('config.yaml')
             compare(result, expected={'app': {'name': 'test'}})
 
-    def test_dump_toml(self, class_: type[TempDir | TempDirectory]):
+    def test_dump_toml(self, class_: TempDirClasses):
         with class_() as d:
             # TOML reading works with stdlib tomllib, no import needed
             data = {'key': 'value', 'num': 42}
@@ -594,20 +596,20 @@ class TestParseDump:
                 assert b'key = "value"' in content
                 assert b'num = 42' in content
 
-    def test_parse_toml(self, class_: type[TempDir | TempDirectory]):
+    def test_parse_toml(self, class_: TempDirClasses):
         with class_() as d:
             d.write('config.toml', b'key = "value"\nnum = 42\n')
             result = d.parse('config.toml')
             compare(result, expected={'key': 'value', 'num': 42})
 
-    def test_case_insensitive(self, class_: type[TempDir | TempDirectory]):
+    def test_case_insensitive(self, class_: TempDirClasses):
         with class_() as d:
             data = {'test': 'data'}
             path = d.dump('config.JSON', data)
             result = d.parse(path)
             compare(result, expected=data)
 
-    def test_yml_extension(self, class_: type[TempDir | TempDirectory]):
+    def test_yml_extension(self, class_: TempDirClasses):
         pytest.importorskip('yaml')
         with class_() as d:
             data = {'test': 'data'}
@@ -615,7 +617,7 @@ class TestParseDump:
             result = d.parse(path)
             compare(result, expected=data)
 
-    def test_unknown_extension(self, class_: type[TempDir | TempDirectory]):
+    def test_unknown_extension(self, class_: TempDirClasses):
         with class_() as d:
             with ShouldRaise(ValueError(
                 "No format registered for extension '.txt'. "
@@ -623,7 +625,7 @@ class TestParseDump:
             )):
                 d.parse('data.txt')
 
-    def test_no_extension(self, class_: type[TempDir | TempDirectory]):
+    def test_no_extension(self, class_: TempDirClasses):
         with class_() as d:
             with ShouldRaise(ValueError(
                 "No format registered for extension ''. "
@@ -631,14 +633,14 @@ class TestParseDump:
             )):
                 d.parse('filename')
 
-    def test_multiple_dots_json(self, class_: type[TempDir | TempDirectory]):
+    def test_multiple_dots_json(self, class_: TempDirClasses):
         with class_() as d:
             data = {'backup': 'config'}
             d.dump('backup.config.json', data)
             result = d.parse('backup.config.json')
             compare(result, expected=data)
 
-    def test_multiple_dots_toml(self, class_: type[TempDir | TempDirectory]):
+    def test_multiple_dots_toml(self, class_: TempDirClasses):
         pytest.importorskip('tomlkit')
         with class_() as d:
             data = {'backup': 'config'}
@@ -646,14 +648,14 @@ class TestParseDump:
             result = d.parse('backup.config.toml')
             compare(result, expected=data)
 
-    def test_custom_formats(self, class_: type[TempDir | TempDirectory]):
+    def test_custom_formats(self, class_: TempDirClasses):
         with class_(formats=[JSON]) as d:
             data = {'test': 'data'}
             d.dump('config.json', data)
             result = d.parse('config.json')
             compare(result, expected=data)
 
-    def test_duplicate_suffix(self, class_: type[TempDir | TempDirectory]):
+    def test_duplicate_suffix(self, class_: TempDirClasses):
         class CustomFormat:
             suffixes: Sequence[str] = ('.json',)
             def parse(self, data: str):
@@ -665,14 +667,14 @@ class TestParseDump:
         with ShouldRaise(ValueError("Multiple formats registered for extension '.json'")):
             class_(formats=[JSON, custom_fmt])
 
-    def test_parse_with_instance_encoding(self, class_: type[TempDir | TempDirectory]):
+    def test_parse_with_instance_encoding(self, class_: TempDirClasses):
         with class_(encoding='utf-8') as d:
             data = {'message': 'test'}
             d.dump('config.json', data)
             result = d.parse('config.json')
             compare(result, expected=data)
 
-    def test_dump_with_instance_encoding(self, class_: type[TempDir | TempDirectory]):
+    def test_dump_with_instance_encoding(self, class_: TempDirClasses):
         with class_(encoding='utf-8') as d:
             data = {'message': 'test'}
             path = d.dump('config.json', data)
@@ -681,34 +683,34 @@ class TestParseDump:
                 # Verify it's properly encoded as UTF-8
                 assert b'{"message": "test"}' in content
 
-    def test_parse_no_extension_with_format(self, class_: type[TempDir | TempDirectory]):
+    def test_parse_no_extension_with_format(self, class_: TempDirClasses):
         with class_() as d:
             d.write('config', b'{"key": "value"}')
             result = d.parse('config', format=JSON)
             compare(result, expected={'key': 'value'})
 
-    def test_dump_no_extension_with_format(self, class_: type[TempDir | TempDirectory]):
+    def test_dump_no_extension_with_format(self, class_: TempDirClasses):
         with class_() as d:
             data = {'key': 'value'}
             path = d.dump('config', data, format=JSON)
             with open(path, 'rb') as f:
                 compare(f.read(), expected=b'{"key": "value"}')
 
-    def test_roundtrip_no_extension(self, class_: type[TempDir | TempDirectory]):
+    def test_roundtrip_no_extension(self, class_: TempDirClasses):
         with class_() as d:
             original = {'nested': {'data': [1, 2, 3]}, 'flag': True}
             d.dump('config', original, format=JSON)
             result = d.parse('config', format=JSON)
             compare(result, expected=original)
 
-    def test_parse_format_overrides_extension(self, class_: type[TempDir | TempDirectory]):
+    def test_parse_format_overrides_extension(self, class_: TempDirClasses):
         pytest.importorskip('yaml')
         with class_() as d:
             d.write('data.json', b'key: value\n')
             result = d.parse('data.json', format=YAML)
             compare(result, expected={'key': 'value'})
 
-    def test_dump_format_overrides_extension(self, class_: type[TempDir | TempDirectory]):
+    def test_dump_format_overrides_extension(self, class_: TempDirClasses):
         pytest.importorskip('yaml')
         with class_() as d:
             data = {'key': 'value'}
@@ -721,7 +723,7 @@ class TestParseDump:
 @pytest.mark.parametrize('class_', [TempDir, TempDirectory])
 class TestClone:
 
-    def test_clone_file_to_root(self, tmp_path: Path, class_: type[TempDir | TempDirectory]):
+    def test_clone_file_to_root(self, tmp_path: Path, class_: TempDirClasses):
         source_file = tmp_path / 'sample.txt'
         source_file.write_text('sample content')
         with class_() as d:
@@ -730,7 +732,7 @@ class TestClone:
             compare(Path(result).read_text(), expected='sample content')
             d.compare(['sample.txt'])
 
-    def test_clone_file_to_specific_dest(self, tmp_path: Path, class_: type[TempDir | TempDirectory]):
+    def test_clone_file_to_specific_dest(self, tmp_path: Path, class_: TempDirClasses):
         source_file = tmp_path / 'original.txt'
         source_file.write_text('hello')
         with class_() as d:
@@ -739,7 +741,7 @@ class TestClone:
             compare(Path(result).read_text(), expected='hello')
             d.compare(['renamed.txt'])
 
-    def test_clone_file_into_directory(self, tmp_path: Path, class_: type[TempDir | TempDirectory]):
+    def test_clone_file_into_directory(self, tmp_path: Path, class_: TempDirClasses):
         source_file = tmp_path / 'data.txt'
         source_file.write_text('file content')
         with class_() as d:
@@ -749,7 +751,7 @@ class TestClone:
             compare(Path(result).read_text(), expected='file content')
             d.compare(['subdir/', 'subdir/data.txt'])
 
-    def test_clone_file_into_directory_sequence(self, tmp_path: Path, class_: type[TempDir | TempDirectory]):
+    def test_clone_file_into_directory_sequence(self, tmp_path: Path, class_: TempDirClasses):
         source_file = tmp_path / 'data.txt'
         source_file.write_text('file content')
         with class_() as d:
@@ -759,7 +761,7 @@ class TestClone:
             compare(Path(result).read_text(), expected='file content')
             d.compare(['subdir/', 'subdir/data.txt'])
 
-    def test_clone_directory_as_new_name(self, tmp_path: Path, class_: type[TempDir | TempDirectory]):
+    def test_clone_directory_as_new_name(self, tmp_path: Path, class_: TempDirClasses):
         source_dir = tmp_path / 'mydir'
         source_dir.mkdir()
         (source_dir / 'file1.txt').write_text('one')
@@ -771,7 +773,7 @@ class TestClone:
             compare((Path(result) / 'file2.txt').read_text(), expected='two')
             d.compare(['newname/', 'newname/file1.txt', 'newname/file2.txt'])
 
-    def test_clone_directory_contents_into_dest(self, tmp_path: Path, class_: type[TempDir | TempDirectory]):
+    def test_clone_directory_contents_into_dest(self, tmp_path: Path, class_: TempDirClasses):
         source_dir = tmp_path / 'src'
         source_dir.mkdir()
         (source_dir / 'a.txt').write_text('a')
@@ -783,7 +785,7 @@ class TestClone:
             compare((Path(result) / 'b.txt').read_text(), expected='b')
             d.compare(['dest/', 'dest/a.txt', 'dest/b.txt'])
 
-    def test_clone_to_nested_destination(self, tmp_path: Path, class_: type[TempDir | TempDirectory]):
+    def test_clone_to_nested_destination(self, tmp_path: Path, class_: TempDirClasses):
         source_file = tmp_path / 'deep.txt'
         source_file.write_text('deep content')
         with class_() as d:
@@ -791,13 +793,13 @@ class TestClone:
             compare(Path(result).read_text(), expected='deep content')
             d.compare(['a/', 'a/b/', 'a/b/c/', 'a/b/c/deep.txt'])
 
-    def test_clone_nonexistent_source_raises(self, tmp_path: Path, class_: type[TempDir | TempDirectory]):
+    def test_clone_nonexistent_source_raises(self, tmp_path: Path, class_: TempDirClasses):
         nonexistent = tmp_path / 'does_not_exist.txt'
         with class_() as d:
             with ShouldRaise(FileNotFoundError(2, 'No such file or directory')):
                 d.clone(nonexistent)
 
-    def test_clone_returns_correct_type(self, tmp_path: Path, class_: type[TempDir | TempDirectory]):
+    def test_clone_returns_correct_type(self, tmp_path: Path, class_: TempDirClasses):
         source_file = tmp_path / 'type_test.txt'
         source_file.write_text('test')
         with class_() as d:
