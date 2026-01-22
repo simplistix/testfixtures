@@ -44,7 +44,8 @@ uv run pytest --cov=testfixtures --cov-report=term-missing
 
 ### Documentation
 ```bash
-cd docs && uv run sphinx-build -b html . _build
+uv run pytest docs/                            # Run doc tests
+cd docs && uv run sphinx-build -b html . _build  # Build docs
 ```
 
 ### Package Building
