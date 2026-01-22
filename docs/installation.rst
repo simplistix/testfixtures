@@ -65,8 +65,8 @@ with the version of these packages that your project is using:
 
 - ``[mock-backport]``: See documentation on :ref:`which mock to use <what-mock>`.
 
-- ``[yaml]``: YAML format support for :class:`~testfixtures.TempDirectory`. See :ref:`files`.
+- ``[yaml]``: YAML format support for :class:`~testfixtures.TempDir`. See :ref:`files`.
 
-- ``[toml]``: TOML format writing support for :class:`~testfixtures.TempDirectory`. See :ref:`files`.
+- ``[toml]``: TOML format writing support for :class:`~testfixtures.TempDir`. See :ref:`files`.
 
 Multiple extras can be installed together, for example: ``testfixtures[django,twisted]``.
