@@ -9,8 +9,7 @@ happen in their own sandbox, files and directories contain what they
 should or code processes test files correctly, and the sandbox is
 cleared up at the end of the tests.
 
-To help with this, testfixtures provides the
-:class:`TempDir` class that hides most of the
+To help with this, testfixtures provides the :class:`TempDir` class that hides most of the
 boilerplate code you would need to write.
 
 .. note::
@@ -27,14 +26,13 @@ Suppose you wanted to test the following function:
 
   from pathlib import Path
 
-  def foo2bar(dirpath, filename):
-      path = Path(dirpath) / filename
+  def foo2bar(dirpath: Path, filename: str) -> None:
+      path = dirpath / filename
       data = path.read_bytes()
       data = data.replace(b'foo', b'bar')
       path.write_bytes(data)
 
-There are several different ways depending on the type of test you are
-writing:
+There are two ways to use a :class:`TempDir`:
 
 The context manager
 ~~~~~~~~~~~~~~~~~~~
@@ -43,12 +41,10 @@ A :class:`TempDir` can be used as a context manager:
 
 >>> from testfixtures import TempDir
 >>> with TempDir() as d:
-...   test_txt = (d / 'test.txt')
-...   bytes_written = test_txt.write_text('some foo thing')
-...   foo2bar(d.path, 'test.txt')
+...   test_txt = d.write('Downloads/test.txt', b'some foo thing')
+...   foo2bar(d / 'Downloads', 'test.txt')
 ...   test_txt.read_bytes()
 b'some bar thing'
-
 
 Manual usage
 ~~~~~~~~~~~~
@@ -84,6 +80,11 @@ you can easily clean them all up:
 
 >>> TempDir.cleanup_all()
 
+.. invisible-code-block: python
+
+   # Need to put re-create the docs-wide fixture now:
+   sample_path = _tempdir.create()
+
 
 Working with other interfaces
 -----------------------------
@@ -102,15 +103,6 @@ When doing this, :class:`TempDir` will not remove the directory it is wrapping:
 
 >>> tmp_path.exists()
 True
-
-Inversely, if you have an existing :class:`TempDir` but would like to interact with it
-using :class:`pathlib.Path` objects, you can get them as follows:
-
->>> with TempDir(tmp_path) as d:
-...     bytes_written = d.as_path('myfile.txt').write_text('some text')
-...     d.compare(expected=['myfile.txt'])
-...     d.read('myfile.txt')
-b'some text'
 
 Features of a temporary directory
 ---------------------------------
@@ -136,20 +128,26 @@ attribute:
 >>> tempdir.path
 PosixPath('...tmp...')
 
-A common use case is to want to compute a path within the temporary
-directory to pass to code under test. This can be done with the
-:meth:`~TempDir.as_string` method:
+If you want to compute a path within the directory, you can traverse directly from it as if
+it were a :class:`~pathlib.Path`:
+
+>>> tempdir / 'some' / 'where'
+PosixPath('.../some/where')
+
+You can also explicitly ask for either a :class:`~pathlib.Path` or a string path:
+
+>>> tempdir.as_path('foo')
+PosixPath('.../foo')
+>>> tempdir.as_string('bar')
+'.../bar'
+
+If you want to compute a deeper path, you can pass either a
+tuple or a forward slash-separated path to any of the methods:
 
 >>> import os
->>> tempdir.as_string('foo').rsplit(os.sep,1)[-1]
-'foo'
-
-If you want to compute a deeper path, you can either pass either a
-tuple or a forward slash-separated path:
-
 >>> tempdir.as_string(('foo', 'baz')).rsplit(os.sep, 2)[-2:]
 ['foo', 'baz']
->>> tempdir.as_string('foo/baz') .rsplit(os.sep, 2)[-2:]
+>>> tempdir.as_string('foo/baz').rsplit(os.sep, 2)[-2:]
 ['foo', 'baz']
 
 .. note:: 
@@ -165,38 +163,76 @@ To write to a file in the root of the temporary directory, you pass
 the name of the file and the content you want to write:
 
 >>> tempdir.write('myfile.txt', 'some text')
-PosixPath('...')
->>> with open(os.path.join(tempdir.path, 'myfile.txt')) as f:
-...     print(f.read())
+PosixPath(...)
+>>> print((tempdir / 'myfile.txt').read_text())
 some text
 
-The full path of the newly written file is returned:
+The absolute path of the newly written file is returned:
 
 >>> path = tempdir.write('anotherfile.txt', 'some more text')
->>> with open(path) as f:
-...     print(f.read())
+>>> print(path.read_text())
 some more text
 
 You can also write files into a sub-directory of the temporary
-directory, whether or not that directory exists, as follows:
+directory as follows; if any intermediate directories do not exist, they will be created:
 
 >>> path = tempdir.write(('some', 'folder', 'afile.txt'), 'the text')
->>> with open(path) as f:
-...     print(f.read())
+>>> print(path.read_text())
 the text
 
 You can also specify the path to write to as a forward-slash separated
 string:
 
 >>> path = tempdir.write('some/folder/bfile.txt', 'the text')
->>> with open(path) as f:
-...     print(f.read())
+>>> print(path.read_text())
 the text
 
-.. note:: 
+.. note::
 
    Forward slashes should be used regardless of the file system or
    operating system in use.
+
+For structured data like JSON, YAML, or TOML, the :meth:`~TempDir.dump` method
+provides automatic serialization based on file extension:
+
+>>> tempdir.dump('config.json', {'host': 'localhost', 'port': 8080})
+PosixPath('...')
+>>> print(tempdir.read_text('config.json'))
+{"host": "localhost", "port": 8080}
+
+.. invisible-code-block: python
+
+  try:
+      import yaml
+      import tomlkit
+  except ImportError:
+      missing_format_deps = True
+  else:
+      missing_format_deps = False
+
+.. skip: start if(missing_format_deps, reason="yaml or tomlkit not installed")
+
+>>> tempdir.dump('settings.yaml', {'debug': True, 'level': 'info'})
+PosixPath('...')
+>>> print(tempdir.read_text('settings.yaml'))
+debug: true
+level: info
+<BLANKLINE>
+
+.. skip: end
+
+You can also clone existing static files and directories using :meth:`~TempDir.clone`:
+
+.. invisible-code-block: python
+
+   sample_path = _tempdir.write("sample.txt", "Sample Content")
+
+>>> sample_path
+'.../sample.txt'
+>>> tempdir.clone(sample_path)
+PosixPath('...')
+>>> (tempdir / 'sample.txt').read_text()
+'Sample Content'
 
 Creating directories
 ~~~~~~~~~~~~~~~~~~~~
@@ -213,7 +249,7 @@ PosixPath('...')
 >>> (tempdir / 'output').is_dir()
 True
 
-As with file creation, the full path of the sub-directory that has
+As with file creation, the absolute path of the sub-directory that has
 just been created is returned:
 
 >>> path = tempdir.makedir('more_output')
@@ -229,7 +265,7 @@ False
 >>> Path(path).exists()
 True
 
-You can also specify the path to write to as a forward-slash separated
+You can also specify the path of the directories to create as a forward-slash separated
 string:
 
 >>> (tempdir / 'another').exists()
@@ -269,10 +305,10 @@ and then using the :meth:`TempDir.read` method to
 check the files were created with the correct content:
 
 >>> spew(tempdir.as_path())
->>> tempdir.read('root.txt')
-b'root output'
->>> tempdir.read(('subdir', 'file.txt'))
-b'subdir output'
+>>> tempdir.read_text('root.txt')
+'root output'
+>>> tempdir.read_text('subdir/file.txt')
+'subdir output'
 
 The second part of the above test shows how to use the
 :meth:`TempDir.read` method to check the contents
@@ -280,8 +316,8 @@ of files that are in sub-directories of the temporary directory. This
 can also be done by specifying the path relative to the root of 
 the temporary directory as a forward-slash separated string:
 
->>> tempdir.read('subdir/file.txt')
-b'subdir output'
+>>> tempdir.read_text('subdir/file.txt')
+'subdir output'
 
 .. note:: 
 
@@ -361,7 +397,7 @@ sub-directories when checking contents. To make this easy, the
 :class:`~testfixtures.TempDir` constructor takes an optional
 `ignore` parameter which, if provided, should contain a sequence of
 regular expressions. If any of the regular expressions return a match
-when used to search through the results of any of the the methods
+when used to search through the results of any of the methods
 covered in this section, that result will be ignored.
 
 For example, suppose we are testing some revision control code, but
@@ -488,44 +524,60 @@ True
 Serialization Formats
 ~~~~~~~~~~~~~~~~~~~~~
 
+.. skip: start if(missing_format_deps, reason="yaml or tomlkit not installed")
+
 .. new tempdir:
 
   >>> tempdir = TempDir()
 
 :class:`TempDir` also supports working with common serialization formats
-like JSON, YAML, and TOML through the ``format`` parameter of the
-:meth:`~TempDir.read` and :meth:`~TempDir.write` methods.
+like JSON, YAML, and TOML through the :meth:`~TempDir.parse` and
+:meth:`~TempDir.dump` methods, which auto-detect the format from the file
+extension:
 
-When a format is provided, objects are automatically serialized when writing
-and deserialized when reading:
-
->>> from testfixtures.formats import JSON
 >>> config = {'database': {'host': 'localhost', 'port': 5432}, 'debug': True}
->>> tempdir.write('config.json', config, format=JSON)
+>>> tempdir.dump('config.json', config)
 PosixPath('...')
->>> loaded = tempdir.read('config.json', format=JSON)
->>> loaded
+>>> print(_.read_text())
+{"database": {"host": "localhost", "port": 5432}, "debug": true}
+>>> tempdir.parse('config.json')
 {'database': {'host': 'localhost', 'port': 5432}, 'debug': True}
 
-The ``format`` and ``encoding`` parameters can be used together.
-When both are provided, the ``format`` parameter handles the serialization between
-objects and strings while the ``encoding`` parameter controls how the serialized strings are
-converted to and from bytes.
+If you need to test a situation where the format cannot be inferred from the filename,
+then it can be explicitly specified:
+
+>>> from testfixtures.formats import YAML
+>>> tempdir.dump('config', config, format=YAML)
+PosixPath('...')
+>>> print(_.read_text())
+database:
+  host: localhost
+  port: 5432
+debug: true
+<BLANKLINE>
+>>> tempdir.parse('config', format=YAML)
+{'database': {'host': 'localhost', 'port': 5432}, 'debug': True}
+
+A format can also be specified to :meth:`~TempDir.write` and :meth:`~TempDir.read`.
+When both ``encoding`` and ``format`` are provided, the ``format`` parameter handles the
+serialization between objects and strings while the ``encoding`` parameter controls how the
+serialized strings are converted to and from bytes.
 
 When writing, the format first renders the object to a string, then that string
 is encoded with the specified encoding:
 
->>> data = {'price': 'test'}
->>> path = tempdir.write('data.json', data, format=JSON, encoding='latin-1')
+>>> from testfixtures.formats import TOML
+>>> data = {'gbp': '£'}
+>>> path = tempdir.write('data.toml', data, format=TOML, encoding='latin-1')
 >>> path.read_bytes()
-b'{"price": "test"}'
+b'gbp = "\xa3"\n'
 
 When reading, bytes are first decoded with the specified encoding, then parsed
 by the format:
 
->>> loaded = tempdir.read('data.json', format=JSON, encoding='latin-1')
+>>> loaded = tempdir.read('data.toml', format=TOML, encoding='latin-1')
 >>> loaded
-{'price': 'test'}
+{'gbp': '£'}
 
 Built-in formats
 ^^^^^^^^^^^^^^^^
@@ -534,34 +586,45 @@ Three built-in format handlers are provided:
 
 **JSON** - Always available, uses the standard library :mod:`json` module:
 
->>> from testfixtures.formats import JSON
->>> tempdir.write('data.json', [1, 2, {'key': 'value'}], format=JSON)
+>>> tempdir.dump('data.json', [1, 2, {'key': 'value'}])
 PosixPath('...')
->>> tempdir.read('data.json', format=JSON)
+>>> print(_.read_text())
+[1, 2, {"key": "value"}]
+>>> tempdir.parse('data.json')
 [1, 2, {'key': 'value'}]
 
-**YAML** - YAML format support.
+**YAML** - Available when PyYAML is importable.
 
 .. note::
 
-   To use YAML format, install with the ``testfixtures[yaml]`` extra.
+   To use the YAML format, install with the ``testfixtures[yaml]`` extra.
 
->>> from testfixtures.formats import YAML
->>> tempdir.write('config.yaml', {'app': {'name': 'test'}}, format=YAML)
+>>> tempdir.dump('config.yaml', {'app': {'name': 'test'}})
 PosixPath('...')
+>>> print(_.read_text())
+app:
+  name: test
+<BLANKLINE>
+>>> tempdir.parse('config.yaml')
+{'app': {'name': 'test'}}
 
-**TOML** - TOML format support. Reading uses the standard library :mod:`tomllib`
+**TOML** - Reads uses the standard library :mod:`tomllib`
 module (Python 3.11+) or ``tomlkit`` if available. Writing requires ``tomlkit``.
 
 .. note::
 
    To use TOML format for writing, install with the ``testfixtures[toml]`` extra.
 
->>> from testfixtures.formats import TOML
->>> tempdir.write('config.toml', {'tool': {'name': 'example'}}, format=TOML)
+>>> tempdir.dump('config.toml', {'tool': {'name': 'example'}})
 PosixPath('...')
->>> tempdir.read('config.toml', format=TOML)
+>>> print(_.read_text())
+[tool]
+name = "example"
+<BLANKLINE>
+>>> tempdir.parse('config.toml')
 {'tool': {'name': 'example'}}
+
+.. skip: end
 
 Implementing custom formats
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -594,9 +657,12 @@ For example, here's a simple CSV format handler:
 Here's how it could be used
 
 >>> with TempDir() as d:
-...     d.write('data.csv', [['name', 'age'], ['Alice', '30']], format=CSVFormat())
-...     rows = d.read('data.csv', format=CSVFormat())
-PosixPath('...')
+...     path = d.dump('data.csv', [['name', 'age'], ['Alice', '30']], format=CSVFormat())
+...     print(path.read_text())
+...     rows = d.parse('data.csv', format=CSVFormat())
+name,age
+Alice,30
+<BLANKLINE>
 >>> rows
 [['name', 'age'], ['Alice', '30']]
 
@@ -758,10 +824,6 @@ technique:
 
 .. literalinclude:: ../tests/directory-contents.txt
    :language: rest
-
-.. clean up all tempdirs:
-
-  >>> TempDir.cleanup_all()
 
 A note on line endings
 ~~~~~~~~~~~~~~~~~~~~~~

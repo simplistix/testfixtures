@@ -87,7 +87,7 @@ class YAMLFormat:
 
 
 class TOMLFormat:
-    """TOML format handler. Read uses stdlib tomllib (3.11+) or tomlkit if available. Write requires tomlkit."""
+    """TOML format handler. Reading uses the standard library tomllib (3.11+) or tomlkit if available. Writing requires tomlkit."""
 
     suffixes: Sequence[str] = ('.toml',)
 
