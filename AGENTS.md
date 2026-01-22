@@ -13,14 +13,14 @@ Always work in a virtualenv managed by uv:
 
 ```bash
 # First time setup or after pulling changes
-uv sync --all-extras
+uv sync --all-extras --all-groups
 ```
 
 If you need to recreate the environment:
 
 ```bash
 rm -rf .venv
-uv sync --all-extras
+uv sync --all-extras --all-groups
 ```
 
 ### Running Tests
