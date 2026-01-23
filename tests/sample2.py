@@ -1,5 +1,5 @@
 # NB: This file is used in the documentation, if you make changes, ensure
-#     you update the line numbers in popen.txt!
+#     you update the line numbers in mocking.rst!
 """
 A sample module containing the kind of code that
 testfixtures helps with testing
