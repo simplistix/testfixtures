@@ -715,3 +715,14 @@ Gotchas
   an original to safely be able to test. This can be tricky when an
   original is imported into many modules that may be used by a
   particular test.
+
+- You can't replace whole top level modules, and nor should you want
+  to! The reason being that everything up to the last dot in the
+  replacement target specifies where the replacement will take place,
+  and the part after the last dot is used as the name of the thing to
+  be replaced:
+
+  >>> Replacer().replace('sys', Mock())
+  Traceback (most recent call last):
+   ...
+  ValueError: target must contain at least one dot!

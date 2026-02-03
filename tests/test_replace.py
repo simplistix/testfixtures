@@ -640,6 +640,11 @@ class TestReplace(TestCase):
 
         compare(my_dict, expected={})
 
+    def test_unclear_target(self):
+        replacer = Replacer()
+        with ShouldRaise(ValueError('target must contain at least one dot!')):
+            replacer('sys', replacement=None)
+
     def test_method_on_instance(self):
 
         class SampleClass:
