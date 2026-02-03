@@ -1,5 +1,5 @@
 # NB: This file is used in the documentation, if you make changes, ensure
-#     you update the line numbers in popen.txt!
+#     you update the line numbers in popen.rst!
 
 from subprocess import Popen, PIPE
 
