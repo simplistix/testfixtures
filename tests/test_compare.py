@@ -2119,6 +2119,9 @@ b
             )
         )
 
+    def test_uuid(self):
+        uuid = uuid4()
+        compare(uuid, uuid)
 
 class TestIgnore(CompareHelper):
 
