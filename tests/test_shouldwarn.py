@@ -93,7 +93,7 @@ class ShouldWarnTests(TestCase):
             "\n<SequenceComparison(ordered=True, partial=False)(failed)>\n"
             "same:\n[]\n\n"
             "expected:\n"
-            "[<C:builtins.DeprecationWarning(failed)>wrong type</>]\n\n"
+            "[<C:builtins.DeprecationWarning(failed)>wrong type: builtins.UserWarning</>]\n\n"
             "actual:\n[UserWarning('foo')]\n"
             "</SequenceComparison(ordered=True, partial=False)> (expected) "
             "!= [UserWarning('foo')] (actual)"

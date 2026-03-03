@@ -114,8 +114,12 @@ class TestC(TestCase):
         e = ValueError('some message')
         x, y = C(e), C(e)
         assert x != y
-        compare_repr(x, "<C:builtins.ValueError(failed)>wrong type</>")
-        compare_repr(y, "<C:builtins.ValueError>args: ('some message',)</>")
+        compare_repr(
+            x, "<C:builtins.ValueError(failed)>wrong type: testfixtures.comparison.Comparison</>"
+        )
+        compare_repr(
+            y, "<C:builtins.ValueError>args: ('some message',)</>"
+        )
 
     def test_repr_module(self):
         compare_repr(C('datetime'), '<C:datetime>')
@@ -171,10 +175,12 @@ class TestC(TestCase):
     def test_repr_failed_wrong_class(self):
         c = C('tests.test_comparison.AClass', x=1, y=2)
         assert c != BClass(1, 2)
-        compare_repr(c,
-                     "<C:tests.test_comparison.AClass(failed)>"
-                     "wrong type</>"
-                     )
+        compare_repr(
+            c,
+            "<C:tests.test_comparison.AClass(failed)>"
+            "wrong type: tests.test_comparison.BClass"
+            "</>"
+        )
 
     def test_repr_failed_all_reasons_in_one(self):
         c = C('tests.test_comparison.AClass',
