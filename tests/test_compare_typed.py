@@ -1,5 +1,6 @@
 # Tests that ensure compare and Comparison work correctly in strictly type checked environments
 from dataclasses import dataclass
+from uuid import UUID, uuid4
 
 from testfixtures import compare, Comparison
 from testfixtures.comparison import like, sequence, contains, unordered
@@ -47,6 +48,12 @@ def test_comparison_via_like_in_assert() -> None:
     assert expected == SampleClass(3, '4')
     assert expected != SampleClass
     assert expected != OtherClass()
+
+
+def test_uuid_already_seen_like():
+    comparison = Comparison(UUID)
+    uuid = uuid4()
+    compare(uuid, expected=like(UUID))
 
 
 class TestSequence:

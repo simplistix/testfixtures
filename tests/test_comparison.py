@@ -1,7 +1,8 @@
 import sys
 from unittest import TestCase
+from uuid import UUID, uuid4
 
-from testfixtures import Comparison as C, TempDirectory, diff, Comparison
+from testfixtures import Comparison as C, TempDirectory, diff, Comparison, compare, like
 from tests.sample1 import SampleClassA, a_function
 
 
@@ -699,3 +700,9 @@ class TestC(TestCase):
 
         c = Comparison(MyClass, a=1, partial=True)
         assert c == MyClass(a=1, b=2)
+
+
+    def test_already_seen(self):
+        c = Comparison(UUID)
+        uuid = uuid4()
+        compare(expected={'1': c, '2': c}, actual={'1': uuid, '2': uuid})
