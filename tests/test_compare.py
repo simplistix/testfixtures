@@ -1,12 +1,15 @@
 import re
+import uuid
 from abc import ABC
 from collections import namedtuple
+from dataclasses import dataclass
 from datetime import date, datetime, time
 from decimal import Decimal
 from functools import partial
 from re import compile
 from typing import TypeVar, Generic
 from unittest import TestCase
+from uuid import uuid4, UUID
 
 from testfixtures import (
     Comparison as C,
@@ -21,7 +24,7 @@ from testfixtures.comparison import (
     compare_object,
     Registry,
     compare_text,
-    merge_ignored_attributes,
+    merge_ignored_attributes, like,
 )
 from testfixtures.compat import PY_312_PLUS
 from testfixtures.mock import Mock, call
@@ -2024,6 +2027,152 @@ b
             '\n'
             "While comparing [2]: 'foo' != "
             "<AlreadySeen for {'ouroboros': {...}} at [1] with id "+id2+">"
+        )
+
+    def test_self_referential_comparison_object_and_failed(self) -> None:
+
+        @dataclass
+        class Item:
+            value: int
+
+            def __repr__(self):
+                return f"<item:{self.value}>"
+
+        @dataclass
+        class Sample:
+            id: Item
+            part: Item
+            x: str
+
+        i = Item(1)
+
+        self.check_raises(
+            expected=Sample(like(Item),  like(Item), x='foo'),
+            actual=Sample(i, i, x='bar'),
+            message=(
+                'Sample not as expected:\n'
+                '\n'
+                'attributes same:\n'
+                "['id']\n"
+                '\n'
+                'attributes differ:\n'
+                f"'part': "
+                f"<C:tests.test_compare.Item(failed)>"
+                f"wrong type: testfixtures.comparison.AlreadySeen"
+                f"</> (expected) != <item:1> (actual)\n"
+                "'x': 'foo' (expected) != 'bar' (actual)\n"
+                '\n'
+                "While comparing .x: 'foo' (expected) != 'bar' (actual)"
+            )
+        )
+
+    def test_self_referential_comparison_object_and_succeeded(self) -> None:
+
+        @dataclass
+        class Item:
+            value: int
+
+            def __repr__(self):
+                return f"<item:{self.value}>"
+
+        @dataclass
+        class Sample:
+            id: Item
+            part: Item
+            x: str
+
+        i = Item(1)
+
+        compare(
+            # There's short-circuit checking for the AlreadySeen that kicks in here, so we don't
+            # see any problems:
+            expected=Sample(like(Item),  like(Item), x='foo'),
+            actual=Sample(i, i, x='foo'),
+        )
+
+    def test_self_referential_comparison_object_and_same_but_strict(self) -> None:
+
+        @dataclass
+        class Item:
+            value: int
+
+            def __repr__(self):
+                return f"<item:{self.value}>"
+
+        @dataclass
+        class Sample:
+            id: Item
+            part: Item
+            x: str
+
+        i = Item(1)
+
+        self.check_raises(
+            expected=Sample(like(Item),  like(Item), x='foo'),
+            actual=Sample(i, i, x='bar'),
+            strict=True,
+            message=(
+                'Sample not as expected:\n'
+                '\n'
+                'attributes differ:\n'
+                "'id': <C:tests.test_compare.Item> (expected) != <item:1> (actual)\n"
+                "'part': <C:tests.test_compare.Item(failed)>wrong type: "
+                "testfixtures.comparison.AlreadySeen</> "
+                "(expected) != <item:1> (actual)\n"
+                "'x': 'foo' (expected) != 'bar' (actual)\n"
+                '\n'
+                "While comparing .id: <C:tests.test_compare.Item> "
+                "(<class 'testfixtures.comparison.Comparison'>) (expected) "
+                "!= <item:1> (<class 'tests.test_compare.TestCompare."
+                "test_self_referential_comparison_object_and_same_but_strict.<locals>.Item'>)"
+                " (actual)\n"
+                '\n'
+                "While comparing .part: <C:tests.test_compare.Item(fai... "
+                "(<class 'testfixtures.comparison.Comparison'>) (expected) != "
+                "<AlreadySeen for <item:1> at .... (<class 'testfixtures.comparison.AlreadySeen'>)"
+                " (actual)\n"
+                '\n'
+                "While comparing .x: 'foo' (expected) != 'bar' (actual)"
+            )
+        )
+
+    def test_self_referential_comparison_object_and_same_but_ignore_eq(self) -> None:
+
+        @dataclass
+        class Item:
+            value: int
+
+            def __repr__(self):
+                return f"<item:{self.value}>"
+
+        @dataclass
+        class Sample:
+            id: Item
+            part: Item
+            x: str
+
+        i = Item(1)
+
+        self.check_raises(
+            expected=Sample(like(Item),  like(Item), x='foo'),
+            actual=Sample(i, i, x='bar'),
+            ignore_eq=True,
+            message=(
+                'Sample not as expected:\n'
+                '\n'
+                'attributes same:\n'
+                "['id']\n"
+                '\n'
+                'attributes differ:\n'
+                "'part': "
+                "<C:tests.test_compare.Item(failed)>"
+                "wrong type: testfixtures.comparison.AlreadySeen"
+                "</> "
+                "(expected) != <item:1> (actual)\n"
+                "'x': 'foo' (expected) != 'bar' (actual)\n"
+                '\n'
+                "While comparing .x: 'foo' (expected) != 'bar' (actual)"
+            )
         )
 
     def test_self_referential_object_tree(self):
