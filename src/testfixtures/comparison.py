@@ -26,10 +26,7 @@ from typing import (
     Protocol,
     TypeAlias,
 )
-try:
-    from typing import _GenericAlias as GenericAlias  # type: ignore[attr-defined]
-except ImportError:
-    from typing import GenericAlias  # type: ignore[attr-defined]
+from typing import _GenericAlias as GenericAlias  # type: ignore[attr-defined]
 
 from unittest.mock import call as unittest_mock_call
 
