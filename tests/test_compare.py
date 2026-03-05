@@ -5,6 +5,7 @@ from datetime import date, datetime, time
 from decimal import Decimal
 from functools import partial
 from re import compile
+from typing import TypeVar, Generic
 from unittest import TestCase
 
 from testfixtures import (
@@ -22,6 +23,7 @@ from testfixtures.comparison import (
     compare_text,
     merge_ignored_attributes,
 )
+from testfixtures.compat import PY_312_PLUS
 from testfixtures.mock import Mock, call
 from testfixtures.shouldraise import ShouldAssert
 from tests.sample1 import Slotted
@@ -2293,3 +2295,50 @@ class TestDateAndTime:
             compare(
                 PandasDatetime(2000, 1, 1, fold=1), PandasDatetime(2000, 1, 1, fold=0), strict=True
             )
+
+
+T = TypeVar("T")
+
+
+class SampleGeneric(Generic[T]):
+    pass
+
+
+class TestGenericTypes:
+
+    def test_equal(self):
+        compare(SampleGeneric[float], SampleGeneric[float])
+
+    def test_not_equal(self):
+        if PY_312_PLUS:
+            attributes = ("['__module__', '__origin__', '__parameters__', '__slots__', "
+            "'__weakref__', '_inst', '_name']"
+                          )
+        else:
+            attributes = (
+                "['__module__', '__origin__', '__parameters__', '__slots__', '__weakref__', "
+                "'_inst', '_name', '_paramspec_tvars']"
+            )
+
+        check_raises(SampleGeneric[int], SampleGeneric[float], message=(
+            '_GenericAlias not as expected:\n'
+            '\n'
+            'attributes same:\n'
+            f"{attributes}\n"
+            '\n'
+            'attributes differ:\n'
+            "'__args__': (<class 'int'>,) != (<class 'float'>,)\n"
+            '\n'
+            'While comparing .__args__: sequence not as expected:\n'
+            '\n'
+            'same:\n'
+            '()\n'
+            '\n'
+            'first:\n'
+            "(<class 'int'>,)\n"
+            '\n'
+            'second:\n'
+            "(<class 'float'>,)\n"
+            '\n'
+            "While comparing .__args__[0]: <class 'int'> != <class 'float'>"
+        ))
