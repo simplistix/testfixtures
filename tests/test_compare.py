@@ -2051,15 +2051,11 @@ b
             actual=Sample(i, i, x='bar'),
             message=(
                 'Sample not as expected:\n'
-                '\n'
+                '\n' 
                 'attributes same:\n'
-                "['id']\n"
+                "['id', 'part']\n"
                 '\n'
                 'attributes differ:\n'
-                f"'part': "
-                f"<C:tests.test_compare.Item(failed)>"
-                f"wrong type: testfixtures.comparison.AlreadySeen"
-                f"</> (expected) != <item:1> (actual)\n"
                 "'x': 'foo' (expected) != 'bar' (actual)\n"
                 '\n'
                 "While comparing .x: 'foo' (expected) != 'bar' (actual)"
@@ -2113,23 +2109,18 @@ b
             strict=True,
             message=(
                 'Sample not as expected:\n'
+                '\n' 
+                'attributes same:\n'
+                "['part']\n"
                 '\n'
                 'attributes differ:\n'
                 "'id': <C:tests.test_compare.Item> (expected) != <item:1> (actual)\n"
-                "'part': <C:tests.test_compare.Item(failed)>wrong type: "
-                "testfixtures.comparison.AlreadySeen</> "
-                "(expected) != <item:1> (actual)\n"
                 "'x': 'foo' (expected) != 'bar' (actual)\n"
                 '\n'
                 "While comparing .id: <C:tests.test_compare.Item> "
-                "(<class 'testfixtures.comparison.Comparison'>) (expected) "
-                "!= <item:1> (<class 'tests.test_compare.TestCompare."
-                "test_self_referential_comparison_object_and_same_but_strict.<locals>.Item'>)"
-                " (actual)\n"
-                '\n'
-                "While comparing .part: <C:tests.test_compare.Item(fai... "
                 "(<class 'testfixtures.comparison.Comparison'>) (expected) != "
-                "<AlreadySeen for <item:1> at .... (<class 'testfixtures.comparison.AlreadySeen'>)"
+                "<item:1> (<class 'tests.test_compare.TestCompare."
+                "test_self_referential_comparison_object_and_same_but_strict.<locals>.Item'>)"
                 " (actual)\n"
                 '\n'
                 "While comparing .x: 'foo' (expected) != 'bar' (actual)"
@@ -2161,14 +2152,9 @@ b
                 'Sample not as expected:\n'
                 '\n'
                 'attributes same:\n'
-                "['id']\n"
+                "['id', 'part']\n"
                 '\n'
                 'attributes differ:\n'
-                "'part': "
-                "<C:tests.test_compare.Item(failed)>"
-                "wrong type: testfixtures.comparison.AlreadySeen"
-                "</> "
-                "(expected) != <item:1> (actual)\n"
                 "'x': 'foo' (expected) != 'bar' (actual)\n"
                 '\n'
                 "While comparing .x: 'foo' (expected) != 'bar' (actual)"

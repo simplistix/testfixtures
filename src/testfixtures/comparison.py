@@ -973,6 +973,10 @@ class Comparison(StatefulComparison):
         self.expected_attributes = attribute_dict
 
     def __ne__(self, other: Any) -> bool:
+
+        if isinstance(other, AlreadySeen):
+            other = other.obj
+
         other_type = type(other)
         if self.expected_type is not other_type:
             self.failed = f'wrong type: {other_type.__module__}.{other_type.__qualname__}'
