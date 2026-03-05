@@ -26,6 +26,11 @@ from typing import (
     Protocol,
     TypeAlias,
 )
+try:
+    from typing import _GenericAlias as GenericAlias  # type: ignore[attr-defined]
+except ImportError:
+    from typing import GenericAlias  # type: ignore[attr-defined]
+
 from unittest.mock import call as unittest_mock_call
 
 from testfixtures import not_there, singleton
@@ -523,7 +528,7 @@ def _short_repr(obj: Any) -> str:
 Comparer = Callable[[Any, Any, 'CompareContext'], str | None]
 Comparers: TypeAlias = dict[type, Comparer]
 
-_UNSAFE_ITERABLES = str, bytes, dict
+_UNSAFE_ITERABLES = str, bytes, dict, GenericAlias
 
 
 @dataclass
