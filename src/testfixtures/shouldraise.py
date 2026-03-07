@@ -1,9 +1,9 @@
 from contextlib import contextmanager
 from functools import wraps
 from types import TracebackType
-from typing import Callable, TypeAlias, Iterator, Self, ParamSpec, TypeVar, Generic
+from typing import Callable, TypeAlias, Iterator, Self, ParamSpec, TypeVar, Generic, cast
 
-from testfixtures import diff, compare
+from testfixtures import diff, compare, not_there, singleton
 from .comparison import split_repr
 
 
@@ -11,8 +11,12 @@ param_docs = """
 
     :param exception: This can be one of the following:
 
-                      * `None`, indicating that an exception must be
+                      * Not passed, indicating that an exception must be
                         raised, but the type is unimportant.
+
+                      * ``None``, indicating that no exception should be raised.
+                        This is useful for parameterised tests where the parameter
+                        may be either an exception or ``None``.
 
                       * An exception class, indicating that the type
                         of the exception is important but not the
@@ -55,10 +59,16 @@ class ShouldRaise(Generic[E]):
     #: The exception captured by the context manager.
     #: Can be used to inspect specific attributes of the exception.
     raised: E = NoException()  # type: ignore[assignment]
+    exception: E | type[E] | None
+    expected: bool
 
-    def __init__(self, exception: E | type[E] | None = None, unless: bool | None = False):
-        self.exception = exception
-        self.expected = not unless
+    def __init__(
+            self,
+            exception: E | type[E] | None | singleton = not_there,
+            unless: bool | None = False
+    ) -> None:
+        self.exception = None if exception in (None, not_there) else cast('E | type[E]', exception)
+        self.expected = False if exception is None else not unless
 
     def __enter__(self) -> Self:
         return self
@@ -105,8 +115,8 @@ class should_raise(Generic[E]):
     raised.
     """ + param_docs
 
-    def __init__(self, exception: E | type[E] | None = None, unless: bool | None = None):
-        self.exception = exception
+    def __init__(self, exception: E | type[E] | None | singleton = not_there, unless: bool | None = None) -> None:
+        self.exception: E | type[E] | None | singleton = exception
         self.unless = unless
 
     def __call__(self, target: Callable[P, T]) -> Callable[P, None]:

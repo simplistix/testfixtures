@@ -287,6 +287,20 @@ class TestShouldRaise(TestCase):
 
         to_test()
 
+    def test_none_means_no_exception_expected(self) -> None:
+        with ShouldRaise(None):
+            pass
+
+    def test_none_means_no_exception_expected_but_one_raised(self) -> None:
+        expected_exception = ValueError('oops')
+        try:
+            with ShouldRaise(None):
+                raise expected_exception
+        except ValueError as actual_exception:
+            assert actual_exception is expected_exception
+        else:  # pragma: no cover
+            self.fail('Exception should have propagated')
+
     def test_identical_reprs(self) -> None:
         class AnnoyingException(Exception):
             def __init__(self, **kw: object) -> None:
