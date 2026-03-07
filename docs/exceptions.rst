@@ -106,6 +106,27 @@ manager described in the documentation above.
   assertions about only the exact lines of code that you expect to
   raise the exception.
 
+Parameterised testing with optional exceptions
+----------------------------------------------
+
+When writing parameterised tests that may or may not expect an exception,
+you can pass ``None`` to :class:`ShouldRaise` to indicate that no exception
+should be raised. This avoids the need for conditional context manager selection:
+
+.. code-block:: python
+
+  import pytest
+  from testfixtures import ShouldRaise
+
+  @pytest.mark.parametrize('value,exception', [
+      (1, None),
+      (-1, ValueError('negative value')),
+  ])
+  def test_something(value, exception):
+      with ShouldRaise(exception):
+          if value < 0:
+              raise ValueError('negative value')
+
 Exceptions that are conditionally raised
 ----------------------------------------
 
