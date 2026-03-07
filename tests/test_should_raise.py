@@ -1,6 +1,6 @@
+import re
 from textwrap import dedent
 
-import pytest
 
 from testfixtures import Comparison as C, ShouldRaise, should_raise, compare
 from unittest import TestCase
@@ -380,3 +380,36 @@ class TestShouldRaise(TestCase):
             raise MyException(1)
 
         compare(r.raised.x, expected= 1)
+
+
+class TestMatch:
+
+    def test_type_passes(self) -> None:
+        with ShouldRaise(ValueError, match=r'bad'):
+            raise ValueError('bad value')
+
+    def test_type_fails(self) -> None:
+        with ShouldAssert("Pattern did not match:\n'good' (expected)\n'bad value' (actual)"):
+            with ShouldRaise(ValueError, match=r'good'):
+                raise ValueError('bad value')
+
+    def test_no_type_passes(self) -> None:
+        with ShouldRaise(match=r'bad'):
+            raise ValueError('bad value')
+
+    def test_no_type_fails(self) -> None:
+        with ShouldAssert("Pattern did not match:\n'good' (expected)\n'bad value' (actual)"):
+            with ShouldRaise(match=r'good'):
+                raise ValueError('bad value')
+
+    def test_instance_raises(self) -> None:
+        with ShouldRaise(TypeError('match can only be used when an exception type is provided')):
+            ShouldRaise(ValueError('x'), match=r'x')  # type: ignore[call-overload]
+
+    def test_none_raises(self) -> None:
+        with ShouldRaise(TypeError('match can only be used when an exception type is provided')):
+            ShouldRaise(None, match=r'x')  # type: ignore[call-overload]
+
+    def test_pattern_object(self) -> None:
+        with ShouldRaise(ValueError, match=re.compile(r'bad')):
+            raise ValueError('bad value')

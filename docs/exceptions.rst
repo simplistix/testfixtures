@@ -45,6 +45,9 @@ exception that's raised, you can check as follows:
 >>> with ShouldRaise(ValueError):
 ...     the_thrower()
 
+If you want to match :func:`pytest.raises` behaviour and just check that ``str(exception)`` matches
+a pattern you supply, see :ref:`shouldraise-match` below.
+
 If you're feeling slack and just want to check that an exception is
 raised, but don't care about the type of that exception, the following
 will suffice:
@@ -126,6 +129,42 @@ should be raised. This avoids the need for conditional context manager selection
       with ShouldRaise(exception):
           if value < 0:
               raise ValueError('negative value')
+
+.. _shouldraise-match:
+
+Matching exception messages
+---------------------------
+
+If you want just match a pattern in the ``str(exception)`` of a raised exception you can do this
+as follows:
+
+>>> with ShouldRaise(ValueError, match='Not good'):
+...     the_thrower()
+
+The ``match`` parameter can also be a :class:`re.Pattern`:
+
+>>> import re
+>>> with ShouldRaise(ValueError, match=re.compile('not good', re.IGNORECASE)):
+...     the_thrower()
+
+If the pattern doesn't match, an :class:`AssertionError` is raised:
+
+>>> with ShouldRaise(ValueError, match='^All good$'):
+...     the_thrower()
+Traceback (most recent call last):
+...
+AssertionError: Pattern did not match:
+'^All good$' (expected)
+'Not good!' (actual)
+
+``match`` can also be used without specifying an exception type, when you only care that
+something was raised and its message matches:
+
+>>> with ShouldRaise(match='Not good'):
+...     the_thrower()
+
+``match`` is not permitted when passing an exception instance or ``None``, indicating exception is
+expected; both will raise a :class:`TypeError` at construction time.
 
 Exceptions that are conditionally raised
 ----------------------------------------

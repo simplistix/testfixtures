@@ -1,7 +1,8 @@
+import re
 from contextlib import contextmanager
 from functools import wraps
 from types import TracebackType
-from typing import Callable, TypeAlias, Iterator, Self, ParamSpec, TypeVar, Generic, cast
+from typing import Callable, TypeAlias, Iterator, Self, ParamSpec, TypeVar, Generic, cast, overload
 
 from testfixtures import diff, compare, not_there, singleton
 from .comparison import split_repr
@@ -61,17 +62,36 @@ class ShouldRaise(Generic[E]):
     raised: E = NoException()  # type: ignore[assignment]
     exception: E | type[E] | None
     expected: bool
+    match: str | re.Pattern[str] | None
+
+    @overload
+    def __init__(self, exception: type[E], *, match: str | re.Pattern[str] | None = None, unless: bool | None = False) -> None: ...
+    @overload
+    def __init__(self, exception: singleton = not_there, *, match: str | re.Pattern[str] | None = None, unless: bool | None = False) -> None: ...
+    @overload
+    def __init__(self, exception: E | None, *, match: None = None, unless: bool | None = False) -> None: ...
 
     def __init__(
             self,
             exception: E | type[E] | None | singleton = not_there,
-            unless: bool | None = False
+            *,
+            match: str | re.Pattern[str] | None = None,
+            unless: bool | None = False,
     ) -> None:
+        if match is not None and (exception is None or (exception is not not_there and not isinstance(exception, type))):
+            raise TypeError('match can only be used when an exception type is provided')
         self.exception = None if exception in (None, not_there) else cast('E | type[E]', exception)
         self.expected = False if exception is None else not unless
+        self.match = match
 
     def __enter__(self) -> Self:
         return self
+
+    def _check_match(self, actual: BaseException) -> None:
+        if self.match is not None and not re.search(self.match, str(actual)):
+            raise AssertionError(
+                f'Pattern did not match:\n{self.match!r} (expected)\n{str(actual)!r} (actual)'
+            )
 
     def __exit__(
             self,
@@ -89,6 +109,7 @@ class ShouldRaise(Generic[E]):
                         actual_ = type(actual)
                         if self.exception is not actual_:
                             return False
+                        self._check_match(actual)
                     else:
                         if type(self.exception) is not type(actual):
                             return False
@@ -98,6 +119,8 @@ class ShouldRaise(Generic[E]):
                         y_label='raised')
             elif not actual:
                 raise NoException()
+            else:
+                self._check_match(actual)
         elif actual:
             return False
         return True
@@ -115,15 +138,29 @@ class should_raise(Generic[E]):
     raised.
     """ + param_docs
 
-    def __init__(self, exception: E | type[E] | None | singleton = not_there, unless: bool | None = None) -> None:
+    @overload
+    def __init__(self, exception: type[E], *, match: str | re.Pattern[str] | None = None, unless: bool | None = None) -> None: ...
+    @overload
+    def __init__(self, exception: singleton = not_there, *, match: str | re.Pattern[str] | None = None, unless: bool | None = None) -> None: ...
+    @overload
+    def __init__(self, exception: E | None, *, match: None = None, unless: bool | None = None) -> None: ...
+
+    def __init__(
+            self,
+            exception: E | type[E] | None | singleton = not_there,
+            *,
+            match: str | re.Pattern[str] | None = None,
+            unless: bool | None = None,
+    ) -> None:
         self.exception: E | type[E] | None | singleton = exception
+        self.match = match
         self.unless = unless
 
     def __call__(self, target: Callable[P, T]) -> Callable[P, None]:
 
         @wraps(target)
         def _should_raise_wrapper(*args: P.args, **kw: P.kwargs) -> None:
-            with ShouldRaise(self.exception, self.unless):
+            with ShouldRaise(self.exception, match=self.match, unless=self.unless):  # type: ignore[arg-type]
                 target(*args, **kw)
 
         return _should_raise_wrapper
