@@ -1,86 +1,46 @@
-This file provides guidance to LLM tools such as [aider](https://aider.chat/) 
-and [Claude Code](claude.ai/code) when working with code in this repository.
+# Agent Instructions
+
+## Principles
+
+- **Done means green** — a change is only complete when `./happy.sh` exits 0; do not commit until it does
+- **Docs for everything public** — new functionality or public API changes must have accompanying docs in `docs/*.rst`
+- **Type-annotate public APIs** — all public functions and classes need type annotations; mypy is the gate
 
 ## Project Overview
 
-Testfixtures is a Python testing utilities library that provides helpers and mock objects for automated testing. It includes tools for comparing objects, mocking, logging capture, stream output testing, file/directory testing, exception/warning testing, Django support, and Twisted support.
+Testfixtures is a Python testing utilities library. Features: object comparison with diff output, mocking/replacement, logging capture, temporary directories, datetime mocking, exception/warning testing, Django and Twisted support.
 
-## Development Commands
-
-### Environment
-
-Always work in a virtualenv managed by uv:
+## Environment
 
 ```bash
-# First time setup or after pulling changes
-uv sync --all-extras --all-groups
+uv sync --all-extras --all-groups              # setup or after pulling
+rm -rf .venv && uv sync --all-extras --all-groups  # full reset
 ```
 
-If you need to recreate the environment:
+## Commands
 
 ```bash
-rm -rf .venv
-uv sync --all-extras --all-groups
-```
-
-### Running Tests
-```bash
-uv run pytest                                  # Run all tests
-uv run pytest tests/test_comparison.py         # Run specific test file
-uv run pytest --cov                            # Run with coverage
-```
-
-### Type Checking
-```bash
-uv run mypy src/testfixtures                   # Run type checking
-```
-**CRITICAL**: Always run mypy after code changes. All type checks must pass.
-
-### Coverage
-```bash
-uv run pytest --cov=testfixtures --cov-report=term-missing
-```
-**CRITICAL**: Always run coverage after code changes. Coverage must not drop below baseline.
-
-### Documentation
-```bash
-uv run pytest docs/                            # Run doc tests
-cd docs && uv run sphinx-build -b html . _build  # Build docs
-```
-
-### Package Building
-```bash
-uv build                                       # Build sdist and wheel
+./happy.sh                                         # all checks — required before commit
+uv run pytest                                      # all tests + doctests
+uv run pytest tests/test_comparison.py             # single file
+uv run pytest --cov=testfixtures --cov-report=term-missing  # with coverage
+uv run mypy src/testfixtures                       # type checking
+make -C docs html                                  # build docs (use this, not sphinx-build directly)
+uv build                                           # build sdist + wheel
 ```
 
 ## Architecture
 
-### Core Components
+`src/testfixtures/` — all source. Key modules:
 
-- **comparison.py**: Core comparison functionality including `compare()`, `diff()`, and various comparison classes (`Comparison`, `StringComparison`, `RoundComparison`, etc.)
-- **replace.py**: Mocking and replacement functionality via `Replacer` class and `replace()` decorators
-- **logcapture.py**: Logging capture via `LogCapture` class for testing logged output
-- **datetime.py**: Date/time mocking utilities (`mock_datetime`, `mock_date`, `mock_time`)
-- **tempdirectory.py**: Temporary directory management for file system testing
-- **shouldraise.py**: Exception testing utilities (`ShouldRaise`, `should_raise`)
-- **shouldwarn.py**: Warning testing utilities (`ShouldWarn`, `ShouldNotWarn`)
+- `comparison.py` — `compare()`, `diff()`, `Comparison`, `StringComparison`, `RoundComparison`, etc.
+- `replace.py` — `Replacer`, `replace()` decorators
+- `logcapture.py` — `LogCapture`
+- `datetime.py` — `mock_datetime`, `mock_date`, `mock_time`
+- `tempdirectory.py` — temporary directory management
+- `shouldraise.py` — `ShouldRaise`, `should_raise`
+- `shouldwarn.py` — `ShouldWarn`, `ShouldNotWarn`
+- `django.py`, `twisted.py` — framework-specific support
+- `__init__.py` — main API exports
 
-### Key Features
-
-1. **Object Comparison**: Enhanced comparison with detailed diff output for complex nested structures
-2. **Mocking System**: Comprehensive replacement/mocking system for objects, methods, and modules
-3. **Logging Testing**: Capture and assert on logging output
-4. **File System Testing**: Temporary directories and file operations
-5. **Time Mocking**: Mock datetime, date, and time objects
-6. **Exception/Warning Testing**: Assert on raised exceptions and warnings
-
-### Module Organization
-
-- Main API exports are in `__init__.py`
-- Each major feature has its own module (comparison, replace, logcapture, etc.)
-- Django-specific functionality in `django.py`
-- Twisted-specific functionality in `twisted.py`
-
-## Configuration
-
-- **pyproject.toml**: Package configuration with optional dependencies for Django, Sybil, and Twisted
+Config: `pyproject.toml` (optional deps for Django, Sybil, Twisted).
