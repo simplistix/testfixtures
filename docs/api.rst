@@ -183,6 +183,9 @@ Helpers and Constants
 
 .. autofunction:: wrap
 
+.. autoclass:: singleton
+   :members:
+
 .. data:: not_there
 
    A singleton used to represent the absence of a particular attribute or parameter.
