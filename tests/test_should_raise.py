@@ -70,7 +70,7 @@ class TestShouldRaise(TestCase):
     def test_wrong_exception(self) -> None:
         def to_test() -> None:
             raise ValueError('bar')
-        expected = "ValueError('foo') (expected) != ValueError('bar') (raised)"
+        expected = "not equal:\nValueError('foo') (expected)\nValueError('bar') (raised)"
         with ShouldAssert(expected):
             should_raise(ValueError('foo'))(to_test)()
 
@@ -191,7 +191,7 @@ class TestShouldRaise(TestCase):
             raise ValueError('foo bar')
 
     def test_with_exception_supplied_wrong_args(self) -> None:
-        expected = "ValueError('foo') (expected) != ValueError('bar') (raised)"
+        expected = "not equal:\nValueError('foo') (expected)\nValueError('bar') (raised)"
         with ShouldAssert(expected):
             with ShouldRaise(ValueError('foo')):
                 raise ValueError('bar')
@@ -201,13 +201,13 @@ class TestShouldRaise(TestCase):
             raise ValueError('foo bar')
 
     def test_with_no_exception_when_expected(self) -> None:
-        expected = "ValueError('foo') (expected) != None (raised)"
+        expected = "not equal:\nValueError('foo') (expected)\nNone (raised)"
         with ShouldAssert(expected):
             with ShouldRaise(ValueError('foo')):
                 pass
 
     def test_with_no_exception_when_expected_by_type(self) -> None:
-        with ShouldAssert("<class 'ValueError'> (expected) != None (raised)"):
+        with ShouldAssert("not equal:\n<class 'ValueError'> (expected)\nNone (raised)"):
             with ShouldRaise(ValueError):
                 pass
 
@@ -358,8 +358,9 @@ class TestShouldRaise(TestCase):
                 "[Exception('baz')]\n\n"
                 "raised:\n"
                 "[Exception('bar')]\n\n"
-                "While comparing excs[0]: "
-                "Exception('baz') (expected) != Exception('bar') (raised)"
+                "While comparing excs[0]: not equal:\n"
+                "Exception('baz') (expected)\n"
+                "Exception('bar') (raised)"
         ):
             with ShouldRaise(ExceptionGroup('fob', [Exception('baz')])):
                 raise ExceptionGroup('foo', [Exception('bar')])

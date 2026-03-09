@@ -12,7 +12,8 @@ class TestShouldRaiseWithValidatorErrors:
 
     def test_not_as_expected(self):
         message = (
-            'ValidationError(["d\'oh"]) (expected) != '
+            'not equal:\n'
+            'ValidationError(["d\'oh"]) (expected)\n'
             'ValidationError([\'nuts\']) (raised)'
         )
         with ShouldAssert(message):
