@@ -12,6 +12,7 @@ jobs:
     name: "tests / python ${{ matrix.python-version }} / ${{ matrix.uv-resolution }} ${{ matrix.extra}}"
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version:
           - "3.11"
