@@ -3,6 +3,52 @@
 Changes
 =======
 
+11.0.0 (9 Mar 2026)
+-------------------
+
+- Moved to a `uv`__-based, ``pyproject.toml``-driven project layout, with ``main`` replacing
+  ``master`` as the default git branch.
+
+  __ https://docs.astral.sh/uv/
+
+- Move from Circle CI to Github Actions for continuous integration and releasing.
+
+- Lots of documentation has been refreshed.
+
+- Python versions between 3.11 and 3.14, inclusive, are now supported.
+
+- Python versions 3.10 and earlier are no longer supported.
+
+- :class:`TempDir` is now introduced as a :class:`~pathlib.Path`-based alternative to
+  :class:`TempDirectory`.
+
+- :class:`TempDir` and :class:`TempDirectory` have grown support for dumping and parsing JSON,
+  YAML and TOML natively by way of the :meth:`~TempDir.dump` and :meth:`TempDir.parse` methods.
+
+- :class:`TempDir` and :class:`TempDirectory` now have :meth:`~TempDir.read_text` and
+  :meth:`TempDir.read_bytes` methods that mirror the behaviour of their :class:`~pathlib.Path`
+  equivalents.
+
+- :class:`TempDir` and :class:`TempDirectory` now support :class:`~pathlib.Path` objects anywhere
+  they previously supported string and sequences of strings.
+
+- :class:`TempDir` and :class:`TempDirectory` now have a :meth:`~TempDir.clone` method for
+  copying existing files or directories into themselves for using during testing.
+
+- ``None`` can now be passed to :class:`ShouldRaise` to check that no exception is raised.
+  This is useful for parameterised tests where some cases may expect an exception to be raised
+  while others do not.
+
+- :class:`ShouldRaise` now has a ``match`` parameter to bring feature parity with
+  :func:`pytest.raises`.
+
+- :class:`Comparison` now shows the wrong type when it is compared against a wrong type.
+
+- :class:`Comparison` no longer spuriously reports
+  :class:`~testfixtures.comparison.AlreadySeen` as the wrong type.
+
+- Fixed a bug where comparing parameterised generic type objects resulted in an infinite loop.
+
 10.0.0 (29 Oct 2025)
 --------------------
 

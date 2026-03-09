@@ -647,6 +647,10 @@ def register(type_: type, comparer: Comparer) -> None:
 
 
 class AlreadySeen:
+    """
+    A marker for an object that has already been seen during a :func:`~testfixtures.compare` call.
+    These are used to prevent infinite recursion during comparison.
+    """
 
     def __init__(self, id_: int, obj: Any, breadcrumb: str) -> None:
         self.id = id_

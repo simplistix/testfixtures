@@ -74,6 +74,8 @@ testfixtures.comparison
 
 .. autoclass:: testfixtures.comparison.CompareContext
 
+.. autoclass:: testfixtures.comparison.AlreadySeen
+
 .. currentmodule:: testfixtures
 
 Capturing
