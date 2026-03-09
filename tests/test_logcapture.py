@@ -1,10 +1,11 @@
+import atexit
 from logging import getLogger, ERROR, Filter, shutdown
 from textwrap import dedent
 from unittest import TestCase
 from warnings import catch_warnings
 
 from testfixtures import Replacer, LogCapture, compare, Replace, ShouldWarn
-from testfixtures.mock import Mock
+from testfixtures.mock import Mock, call
 from testfixtures.shouldraise import ShouldAssert
 
 root = getLogger()
@@ -302,34 +303,34 @@ class LogCaptureTests(TestCase):
             logger.handlers = original_handlers
 
     def test_atexit(self):
-        # http://bugs.python.org/issue25532
-        from testfixtures.mock import call
-
         m = Mock()
-        with Replacer() as r:
+        with Replacer() as replace:
             # make sure the marker is false, other tests will
             # probably have set it
-            r.replace('testfixtures.LogCapture.atexit_setup', False)
-            r.replace('atexit.register', m.register)
+            replace(
+                LogCapture.atexit_setup,
+                replacement=False,
+                name='atexit_setup',
+                container=LogCapture,
+            )
+            replace.in_module(atexit.register, m.register)
 
             l = LogCapture()
 
-            expected = [call.register(l.atexit)]
+            compare(m.mock_calls, expected = [call.register(l.atexit)])
 
-            compare(expected, m.mock_calls)
-
-            with catch_warnings(record=True) as w:
-                l.atexit()
-                self.assertTrue(len(w), 1)
-                compare(str(w[0].message), (
+            with ShouldWarn(
+                UserWarning(
                     "LogCapture instances not uninstalled by shutdown, "
                     "loggers captured:\n"
                     "(None,)"
-                    ))
+                )
+            ):
+                l.atexit()
 
             l.uninstall()
 
-            compare(set(), LogCapture.instances)
+            compare(LogCapture.instances, expected = set())
 
             # check re-running has no ill effects
             l.atexit()

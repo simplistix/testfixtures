@@ -1,3 +1,4 @@
+import atexit
 import os
 from pathlib import Path
 from tempfile import mkdtemp
@@ -10,10 +11,11 @@ import pytest
 from testfixtures.mock import Mock, call
 
 from testfixtures import (
-    TempDirectory, TempDir, Replacer, ShouldRaise, compare, OutputCapture
+    TempDirectory, TempDir, Replacer, ShouldRaise, compare, OutputCapture, ShouldWarn
 )
 from testfixtures.formats import JSON, Format, YAML
 from testfixtures.rmtree import rmtree
+from testfixtures.tempdirectory import _TempDir
 
 TempDirClasses: TypeAlias = type[TempDir | TempDirectory]
 
@@ -213,26 +215,28 @@ class TempDirectoryTests(TestCase):
 
     def test_atexit(self) -> None:
         m = Mock()
-        with Replacer() as r:
+        with Replacer() as replace:
             # make sure the marker is false, other tests will
             # probably have set it
-            r.replace('testfixtures.TempDirectory.atexit_setup', False)
-            r.replace('atexit.register', m.register)
+            replace(
+                TempDirectory.atexit_setup,
+                replacement=False,
+                name='atexit_setup',
+                container=TempDirectory,
+            )
+            replace.in_module(atexit.register, m.register)
 
             d = TempDirectory()
 
-            expected = [call.register(d.atexit)]
+            compare(m.mock_calls, expected = [call.register(d.atexit)])
 
-            compare(expected, m.mock_calls)
-
-            with catch_warnings(record=True) as w:
+            with ShouldWarn(
+                UserWarning(
+                    f"TempDirectory instances not cleaned up by shutdown:\n{d.path}"
+                )
+            ):
                 d.atexit()
-                self.assertTrue(len(w), 1)
                 assert d.path is not None
-                compare(str(w[0].message), (  # pragma: no branch
-                    "TempDirectory instances not cleaned up by shutdown:\n" +
-                    d.path
-                    ))
 
             d.cleanup()
 
