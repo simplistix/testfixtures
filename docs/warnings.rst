@@ -26,7 +26,8 @@ causing the test in which it occurs to fail:
 ...     warn("sorry dave, I can't let you do that")
 Traceback (most recent call last):
 ...
-AssertionError:...
+AssertionError: not equal:
+<BLANKLINE>
 <SequenceComparison(ordered=True, partial=False)(failed)>
 same:
 []
@@ -39,8 +40,9 @@ attributes differ:
 </C:....UserWarning>]
 <BLANKLINE>
 actual:
-[UserWarning("sorry dave, I can't let you do that"...)]
-</SequenceComparison(ordered=True, partial=False)> (expected) != [UserWarning("sorry dave, I can't let you do that"...)] (actual)
+[UserWarning("sorry dave, I can't let you do that")]
+</SequenceComparison(ordered=True, partial=False)> (expected)
+[UserWarning("sorry dave, I can't let you do that")] (actual)
 
 You can check multiple warnings in a particular piece of code:
 
@@ -89,7 +91,8 @@ context it manages, it will raise an :class:`AssertionError` to indicate this:
 ...     warn("woah dude")
 Traceback (most recent call last):
 ...
-AssertionError:...
+AssertionError: not equal:
+<BLANKLINE>
 <SequenceComparison(ordered=True, partial=False)(failed)>
 same:
 []
@@ -98,5 +101,6 @@ expected:
 []
 <BLANKLINE>
 actual:
-[UserWarning('woah dude'...)]
-</SequenceComparison(ordered=True, partial=False)> (expected) != [UserWarning('woah dude'...)] (actual)
+[UserWarning('woah dude')]
+</SequenceComparison(ordered=True, partial=False)> (expected)
+[UserWarning('woah dude')] (actual)

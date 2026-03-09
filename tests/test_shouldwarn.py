@@ -19,12 +19,13 @@ class ShouldWarnTests(TestCase):
 
     def test_warn_not_expected(self):
         with ShouldAssert(
+            "not equal:\n"
             "\n<SequenceComparison(ordered=True, partial=False)(failed)>\n"
             "same:\n[]\n\n"
             "expected:\n[]\n\n"
             "actual:\n[UserWarning('foo')]\n"
-            "</SequenceComparison(ordered=True, partial=False)> (expected) "
-            "!= [UserWarning('foo')] (actual)"
+            "</SequenceComparison(ordered=True, partial=False)> (expected)\n"
+            "[UserWarning('foo')] (actual)"
         ):
             with warnings.catch_warnings(record=True) as backstop:
                 with ShouldNotWarn():
@@ -37,11 +38,13 @@ class ShouldWarnTests(TestCase):
 
     def test_no_warn_not_expected(self):
         with ShouldAssert(
+            "not equal:\n"
             "\n<SequenceComparison(ordered=True, partial=False)(failed)>\n"
             "same:\n[]\n\n"
             "expected:\n[<C:builtins.UserWarning>args: ('foo',)</>]"
             "\n\nactual:\n[]\n"
-            "</SequenceComparison(ordered=True, partial=False)> (expected) != [] (actual)"
+            "</SequenceComparison(ordered=True, partial=False)> (expected)\n"
+            "[] (actual)"
         ):
             with ShouldWarn(UserWarning('foo')):
                 pass
@@ -90,13 +93,14 @@ class ShouldWarnTests(TestCase):
 
     def test_minimal_bad(self):
         with ShouldAssert(
+            "not equal:\n"
             "\n<SequenceComparison(ordered=True, partial=False)(failed)>\n"
             "same:\n[]\n\n"
             "expected:\n"
             "[<C:builtins.DeprecationWarning(failed)>wrong type: builtins.UserWarning</>]\n\n"
             "actual:\n[UserWarning('foo')]\n"
-            "</SequenceComparison(ordered=True, partial=False)> (expected) "
-            "!= [UserWarning('foo')] (actual)"
+            "</SequenceComparison(ordered=True, partial=False)> (expected)\n"
+            "[UserWarning('foo')] (actual)"
         ):
             with ShouldWarn(DeprecationWarning):
                 warnings.warn('foo')
@@ -109,6 +113,7 @@ class ShouldWarnTests(TestCase):
 
     def test_maximal_bad(self):
         with ShouldAssert(
+            "not equal:\n"
             "\n<SequenceComparison(ordered=True, partial=False)(failed)>\n"
             "same:\n[]\n\n"
             "expected:\n[\n"
@@ -117,8 +122,8 @@ class ShouldWarnTests(TestCase):
             "'args': ('bar',) (Comparison) != ('foo',) (actual)\n"
             "</C:builtins.DeprecationWarning>]\n\n"
             "actual:\n[DeprecationWarning('foo')]\n"
-            "</SequenceComparison(ordered=True, partial=False)> (expected) "
-            "!= [DeprecationWarning('foo')] (actual)"
+            "</SequenceComparison(ordered=True, partial=False)> (expected)\n"
+            "[DeprecationWarning('foo')] (actual)"
         ):
             with ShouldWarn(DeprecationWarning('bar')):
                 warnings.warn_explicit(
@@ -154,11 +159,13 @@ class ShouldWarnTests(TestCase):
 
     def test_filter_missing(self):
         with ShouldAssert(
+            "not equal:\n"
             "\n<SequenceComparison(ordered=True, partial=False)(failed)>\n"
             "same:\n[]\n\n"
             "expected:\n[<C:builtins.DeprecationWarning>]\n\n"
             "actual:\n[]\n"
-            "</SequenceComparison(ordered=True, partial=False)> (expected) != [] (actual)"
+            "</SequenceComparison(ordered=True, partial=False)> (expected)\n"
+            "[] (actual)"
         ):
             with ShouldWarn(DeprecationWarning,
                             message="This function is deprecated."):

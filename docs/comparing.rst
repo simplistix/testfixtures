@@ -890,11 +890,13 @@ dictionary:
 >>> compare(C(SomeClass, {'partial': 3}, partial=True), SomeClass(1, 2))
 Traceback (most recent call last):
  ...
-AssertionError: 
+AssertionError: not equal:
+<BLANKLINE>
 <C:...SomeClass(failed)>
 attributes in Comparison but not actual:
 'partial': 3
-</C:...SomeClass> != <...SomeClass...>
+</C:...SomeClass>
+<...SomeClass...>
 
 Gotchas
 ~~~~~~~
@@ -947,7 +949,8 @@ you may need to check the order of the keys is as you expect.
 ...         actual=OrderedDict((('a', 1), ('d', 2), ('c', 3))))
 Traceback (most recent call last):
  ...
-AssertionError:...
+AssertionError: not equal:
+<BLANKLINE>
 <MappingComparison(ordered=True, partial=False)(failed)>
 wrong key order:
 <BLANKLINE>
@@ -959,7 +962,8 @@ expected:
 <BLANKLINE>
 actual:
 ['d', 'c']
-</MappingComparison(ordered=True, partial=False)> (expected) != OrderedDict({'a': 1, 'd': 2, 'c': 3}) (actual)
+</MappingComparison(ordered=True, partial=False)> (expected)
+OrderedDict({'a': 1, 'd': 2, 'c': 3}) (actual)
 
 You may also only care about certain keys being present in a mapping. This
 can also be achieved with :class:`MappingComparison` objects:
@@ -967,7 +971,8 @@ can also be achieved with :class:`MappingComparison` objects:
 >>> compare(expected=M(a=1, d=2, partial=True), actual={'a': 1, 'c': 3})
 Traceback (most recent call last):
  ...
-AssertionError:...
+AssertionError: not equal:
+<BLANKLINE>
 <MappingComparison(ordered=False, partial=True)(failed)>
 ignored:
 ['c']
@@ -977,7 +982,8 @@ same:
 <BLANKLINE>
 in expected but not actual:
 'd': 2
-</MappingComparison(ordered=False, partial=True)> (expected) != {'a': 1, 'c': 3} (actual)
+</MappingComparison(ordered=False, partial=True)> (expected)
+{'a': 1, 'c': 3} (actual)
 
 Where there are differences, they may be hard to spot. In this case, you can ask for a more
 detailed explanation of what wasn't as expected:
@@ -986,7 +992,8 @@ detailed explanation of what wasn't as expected:
 ...         actual=OrderedDict((('a', [1, 2]), ('d', [1, 4]))))
 Traceback (most recent call last):
  ...
-AssertionError:...
+AssertionError: not equal:
+<BLANKLINE>
 <MappingComparison(ordered=True, partial=False)(failed)>
 same:
 ['a']
@@ -1004,7 +1011,8 @@ expected:
 <BLANKLINE>
 actual:
 [4]
-</MappingComparison(ordered=True, partial=False)> (expected) != OrderedDict({'a': [1, 2], 'd': [1, 4]}) (actual)
+</MappingComparison(ordered=True, partial=False)> (expected)
+OrderedDict({'a': [1, 2], 'd': [1, 4]}) (actual)
 
 .. skip: end
 
@@ -1083,7 +1091,8 @@ can also be achieved with :class:`SequenceComparison` objects:
 >>> compare(expected=S(1, 3, 5, partial=True), actual=[1, 2, 3, 4, 6])
 Traceback (most recent call last):
  ...
-AssertionError:...
+AssertionError: not equal:
+<BLANKLINE>
 <SequenceComparison(ordered=True, partial=True)(failed)>
 ignored:
 [2, 4, 6]
@@ -1096,7 +1105,8 @@ expected:
 <BLANKLINE>
 actual:
 []
-</SequenceComparison(ordered=True, partial=True)> (expected) != [1, 2, 3, 4, 6] (actual)
+</SequenceComparison(ordered=True, partial=True)> (expected)
+[1, 2, 3, 4, 6] (actual)
 
 Where there are differences, they may be hard to spot. In this case, you can ask for a more
 detailed explanation of what wasn't as expected:
@@ -1104,7 +1114,8 @@ detailed explanation of what wasn't as expected:
 >>> compare(expected=S({1: 'a'}, {2: 'c'}, recursive=True), actual=[{1: 'a'}, {2: 'd'}])
 Traceback (most recent call last):
  ...
-AssertionError:...
+AssertionError: not equal:
+<BLANKLINE>
 <SequenceComparison(ordered=True, partial=False)(failed)>
 same:
 [{1: 'a'}]
@@ -1121,7 +1132,8 @@ values differ:
 2: 'c' (expected) != 'd' (actual)
 <BLANKLINE>
 While comparing [1][2]: 'c' (expected) != 'd' (actual)
-</SequenceComparison(ordered=True, partial=False)> (expected) != [{1: 'a'}, {2: 'd'}] (actual)
+</SequenceComparison(ordered=True, partial=False)> (expected)
+[{1: 'a'}, {2: 'd'}] (actual)
 
 There are also the :class:`Subset` and :class:`Permutation` shortcuts:
 

@@ -57,7 +57,9 @@ def diff(x: str, y: str, x_label: str | None = '', y_label: str | None = '') -> 
     )
 
 
-def compare_simple(x: Any, y: Any, context: 'CompareContext') -> str | None:
+def compare_simple(
+        x: Any, y: Any, context: 'CompareContext', newline_threshold: int = 15
+) -> str | None:
     """
     Returns a very simple textual difference between the two supplied objects.
     """
@@ -78,7 +80,12 @@ def compare_simple(x: Any, y: Any, context: 'CompareContext') -> str | None:
             return 'Both %s and %s appear as %r, but are not equal!' % (
                 context.x_label or 'x', context.y_label or 'y', repr_x
             )
-        return context.label('x', repr_x) + ' != ' + context.label('y', repr_y)
+        labeled_x = context.label('x', repr_x)
+        labeled_y = context.label('y', repr_y)
+        if len(repr_x) > newline_threshold or len(repr_y) > newline_threshold:
+            return f'not equal:\n{labeled_x}\n{labeled_y}'
+        else:
+            return context.label('x', repr_x) + ' != ' + context.label('y', repr_y)
     return None
 
 

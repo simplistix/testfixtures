@@ -93,7 +93,7 @@ class TestCompare(CompareHelper, TestCase):
     def test_object_diff(self):
         self.check_raises(
             object(), object(),
-            '<object object at ...> != <object object at ...>'
+            'not equal:\n<object object at ...>\n<object object at ...>'
         )
 
     def test_different_types(self):
@@ -214,7 +214,7 @@ class TestCompare(CompareHelper, TestCase):
         e2 = ValueError('some other message')
         self.check_raises(
             e1, e2,
-            "ValueError('some message') != ValueError('some other message')"
+            "not equal:\nValueError('some message')\nValueError('some other message')"
             )
 
     def test_exception_diff_c_wrapper(self):
@@ -222,13 +222,14 @@ class TestCompare(CompareHelper, TestCase):
         e2 = ValueError('some other message')
         self.check_raises(
             C(e1), e2,
-            ("\n"
+            ("not equal:\n"
+             "\n"
              "<C:builtins.ValueError(failed)>\n"
              "attributes differ:\n"
              "'args': ('some message',) (Comparison) "
              "!= ('some other message',) (actual)\n"
-             "</C:builtins.ValueError>"
-             " != ValueError('some other message')"
+             "</C:builtins.ValueError>\n"
+             "ValueError('some other message')"
              )
         )
 
@@ -812,9 +813,9 @@ class TestCompare(CompareHelper, TestCase):
 
     def test_default_style_classes_different(self):
         expected = (
+            "not equal:\n"
             "<class 'tests.test_compare.TestCompare."
-            "test_default_style_classes_different.<locals>.X'>"
-            " != "
+            "test_default_style_classes_different.<locals>.X'>\n"
             "<class 'tests.test_compare.TestCompare."
             "test_default_style_classes_different.<locals>.Y'>"
             )
@@ -833,9 +834,9 @@ class TestCompare(CompareHelper, TestCase):
 
     def test_new_style_classes_different(self):
         expected = (
+            "not equal:\n"
             "<class 'tests.test_compare.TestCompare."
-            "test_new_style_classes_different.<locals>.X'>"
-            " != "
+            "test_new_style_classes_different.<locals>.X'>\n"
             "<class 'tests.test_compare.TestCompare."
             "test_new_style_classes_different.<locals>.Y'>"
             )
@@ -1133,7 +1134,7 @@ b
     def test_generator_with_non_generator(self):
         self.check_raises(
             generator(1, 2, 3), None,
-            '<generator object generator at ...> != None',
+            'not equal:\n<generator object generator at ...>\nNone',
             )
 
     def test_generator_with_buggy_generator(self):
@@ -1454,7 +1455,7 @@ b
     def test_dict_with_list(self):
         self.check_raises(
             {1: 'one', 2: 'two'}, [1, 2],
-            "{1: 'one', 2: 'two'} != [1, 2]"
+            "not equal:\n{1: 'one', 2: 'two'}\n[1, 2]"
         )
 
     def test_explicit_expected(self):
@@ -1861,7 +1862,7 @@ b
                 'attributes differ:\n'
                 "'func': {foo} != {bar}\n"
                 '\n'
-                'While comparing .func: {foo} != {bar}'
+                'While comparing .func: not equal:\n{foo}\n{bar}'
             ).format(foo=hexsub(repr(foo)), bar=hexsub(repr(bar))))
 
     def test_partial_args_different(self):
@@ -2025,7 +2026,8 @@ b
             'values differ:\n'
             "2: 'foo' != {'ouroboros': <Recursion on dict with id="+id2+">}\n"
             '\n'
-            "While comparing [2]: 'foo' != "
+            "While comparing [2]: not equal:\n"
+            "'foo'\n"
             "<AlreadySeen for {'ouroboros': {...}} at [1] with id "+id2+">"
         )
 
