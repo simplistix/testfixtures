@@ -832,3 +832,8 @@ As currently implemented, the parser provided by testfixtures always
 writes content with ``'\n'`` line separators and, when read, will always
 have its line endings normalised to ``'\n'``.
 If you hit any limitations caused by this, please raise an issue in the tracker on GitHub.
+
+.. clean up:
+ >>> tempdir.cleanup_all()
+ >>> _tempdir.create()
+ <testfixtures...
