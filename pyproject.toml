@@ -67,6 +67,8 @@ filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::PendingDeprecationWarning",
     "error::SyntaxWarning",
+    "error::UserWarning",
+    "ignore:Unknown config option.+DJANGO_SETTINGS_MODULE:pytest.PytestConfigWarning",
 ]
 
 [tool.mypy]
