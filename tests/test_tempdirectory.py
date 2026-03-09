@@ -578,6 +578,14 @@ class TestParseDump:
             result = d.parse('config.yaml')
             compare(result, expected={'app': {'name': 'test'}})
 
+    def test_yml_extension(self, class_: TempDirClasses):
+        pytest.importorskip('yaml')
+        with class_() as d:
+            data = {'test': 'data'}
+            path = d.dump('config.yml', data)
+            result = d.parse(path)
+            compare(result, expected=data)
+
     def test_dump_toml(self, class_: TempDirClasses):
         with class_() as d:
             # TOML reading works with stdlib tomllib, no import needed
@@ -603,14 +611,6 @@ class TestParseDump:
             result = d.parse(path)
             compare(result, expected=data)
 
-    def test_yml_extension(self, class_: TempDirClasses):
-        pytest.importorskip('yaml')
-        with class_() as d:
-            data = {'test': 'data'}
-            path = d.dump('config.yml', data)
-            result = d.parse(path)
-            compare(result, expected=data)
-
     def test_unknown_extension(self, class_: TempDirClasses):
         with class_() as d:
             with ShouldRaise(ValueError(
@@ -627,20 +627,19 @@ class TestParseDump:
             )):
                 d.parse('filename')
 
-    def test_multiple_dots_json(self, class_: TempDirClasses):
+    def test_multiple_dots(self, class_: TempDirClasses):
         with class_() as d:
             data = {'backup': 'config'}
             d.dump('backup.config.json', data)
             result = d.parse('backup.config.json')
             compare(result, expected=data)
 
-    def test_multiple_dots_toml(self, class_: TempDirClasses):
-        pytest.importorskip('tomlkit')
+    def test_tuple_of_names_infer_format(self, class_: TempDirClasses):
         with class_() as d:
-            data = {'backup': 'config'}
-            d.dump('backup.config.toml', data)
-            result = d.parse('backup.config.toml')
-            compare(result, expected=data)
+            original = {'nested': {'data': [1, 2, 3]}, 'flag': True}
+            d.dump(('folder', 'config.json'), original)
+            result = d.parse(('folder', 'config.json'))
+            compare(result, expected=original)
 
     def test_custom_formats(self, class_: TempDirClasses):
         with class_(formats=[JSON]) as d:
