@@ -559,8 +559,7 @@ class _TempDir(ABC, Generic[P]):
         self,
         filepath: PathStrings,
         encoding: str | None = None,
-        errors: str | None = None,
-        newline: str | None = None
+        errors: str | None = None
     ) -> str:
         """
         Read file as text, mirroring pathlib.Path.read_text() behavior.
@@ -569,10 +568,9 @@ class _TempDir(ABC, Generic[P]):
         :param encoding: Text encoding. Uses instance default encoding if None,
                          then falls back to platform default (locale encoding).
         :param errors: Error handling strategy (e.g., 'strict', 'ignore', 'replace').
-        :param newline: Newline mode (e.g., None, '', '\\n', '\\r', '\\r\\n').
         :returns: The file contents as a string.
         """
-        return Path(self._join(filepath)).read_text(encoding or self.encoding, errors, newline)
+        return Path(self._join(filepath)).read_text(encoding or self.encoding, errors)
 
     def read_bytes(self, filepath: PathStrings) -> bytes:
         """

@@ -500,12 +500,6 @@ class TestReadText:
             result = d.read_text('file.txt', encoding='utf-8', errors='ignore')
             assert isinstance(result, str)
 
-    def test_newline_parameter(self, class_: TempDirClasses):
-        with class_() as d:
-            d.write('file.txt', 'line1\r\nline2\r\n', encoding='utf-8')
-            result = d.read_text('file.txt', encoding='utf-8', newline='')
-            compare(result, expected='line1\r\nline2\r\n')
-
     def test_type_annotation(self, class_: TempDirClasses):
         with class_() as d:
             d.write('file.txt', 'text', encoding='utf-8')
