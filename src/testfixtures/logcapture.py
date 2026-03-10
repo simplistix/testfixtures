@@ -19,6 +19,7 @@ class Entry:
 
     raw: Any
     actual: Any
+    level: int | None  # numeric level for ensure_checked; None means not level-checkable
     checked: bool = False
 
 
@@ -65,12 +66,12 @@ class LogCapture:
     """
 
     #: The log level above which checks must be made for logged events.
-    ensure_checks_above: int
+    ensure_checks_above: int | None
 
     instances: set['LogCapture'] = set()
     atexit_setup = False
     installed = False
-    default_ensure_checks_above = logging.NOTSET
+    default_ensure_checks_above: int | None = None
 
     def __init__(
         self,
@@ -113,7 +114,7 @@ class LogCapture:
             warnings.warn(
                 'LogCapture instances not uninstalled by shutdown, '
                 'loggers captured:\n'
-                '%s' % ('\n'.join((str(i.names) for i in cls.instances)))
+                '%s' % ('\n'.join((str(i._source.names) for i in cls.instances)))
             )
 
     def __len__(self) -> int:
@@ -159,17 +160,12 @@ class LogCapture:
 
         :param level: the logging level, defaults to :attr:`ensure_checks_above`.
         """
-        if level is None:
-            level = self.ensure_checks_above
-        if level == logging.NOTSET:
+        threshold: int | None = level if level is not None else self.ensure_checks_above
+        if threshold is None:
             return
         un_checked = []
         for entry in self.entries:
-            if (
-                isinstance(entry.raw, LogRecord)
-                and entry.raw.levelno >= level
-                and not entry.checked
-            ):
+            if entry.level is not None and entry.level >= threshold and not entry.checked:
                 un_checked.append(entry.actual)
         if un_checked:
             raise AssertionError(('Not asserted ERROR log(s): %s') % (pformat(un_checked)))
@@ -357,7 +353,7 @@ class LoggingSource(logging.Handler):
         return True
 
     def emit(self, record: LogRecord) -> None:
-        entry = Entry(raw=record, actual=self._compute_actual(record))
+        entry = Entry(raw=record, actual=self._compute_actual(record), level=record.levelno)
         if self._collector is not None:
             self._collector(entry)
 
