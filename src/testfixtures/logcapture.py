@@ -2,7 +2,7 @@ import atexit
 import logging
 import warnings
 from collections import defaultdict
-from collections.abc import Iterable
+from dataclasses import dataclass
 from logging import LogRecord
 from pprint import pformat
 from types import TracebackType
@@ -13,7 +13,16 @@ from .comparison import SequenceComparison, compare
 from .utils import wrap
 
 
-class LogCapture(logging.Handler):
+@dataclass
+class Entry:
+    """A captured log entry, with pre-computed extraction."""
+
+    raw: Any
+    actual: Any
+    checked: bool = False
+
+
+class LogCapture:
     """
     These are used to capture entries logged to the Python logging
     framework and make assertions about what was logged.
@@ -55,37 +64,33 @@ class LogCapture(logging.Handler):
 
     """
 
-    #: The records captured by this :class:`LogCapture`.
-    records: List[LogRecord]
     #: The log level above which checks must be made for logged events.
     ensure_checks_above: int
 
-    instances = set['LogCapture']()
+    instances: set['LogCapture'] = set()
     atexit_setup = False
     installed = False
     default_ensure_checks_above = logging.NOTSET
 
     def __init__(
-            self,
-            names: str | Tuple[str | None, ...] | None = None,
-            install: bool = True,
-            level: int = 1,
-            propagate: bool | None = None,
-            attributes: Sequence[str] | Callable[[LogRecord], Any] = (
-                    'name', 'levelname', 'getMessage'
-            ),
-            recursive_check: bool = False,
-            ensure_checks_above: int | None = None
+        self,
+        names: str | Tuple[str | None, ...] | None = None,
+        install: bool = True,
+        level: int = 1,
+        propagate: bool | None = None,
+        attributes: Sequence[str] | Callable[[LogRecord], Any] = (
+            'name',
+            'levelname',
+            'getMessage',
+        ),
+        recursive_check: bool = False,
+        ensure_checks_above: int | None = None,
     ):
-        logging.Handler.__init__(self)
         if not isinstance(names, tuple):
-            names = (names, )
-        self.names = names
-        self.level = level
-        self.propagate = propagate
-        self.attributes = attributes
+            names = (names,)
+        self._source = LoggingSource(names, level, propagate, attributes)
+        self._source.on_close = self._handle_close
         self.recursive_check = recursive_check
-        self.old: dict[str, dict[str | None, Any]] = defaultdict(dict)
         if ensure_checks_above is None:
             self.ensure_checks_above = self.default_ensure_checks_above
         else:
@@ -94,6 +99,14 @@ class LogCapture(logging.Handler):
         if install:
             self.install()
 
+    def _handle_close(self) -> None:
+        if self in self.instances:
+            warn(
+                'LogCapture instance closed while still installed, '
+                'loggers captured:\n'
+                '%s' % ('\n'.join((str(i._source.names) for i in self.instances)))
+            )
+
     @classmethod
     def atexit(cls) -> None:
         if cls.instances:
@@ -101,29 +114,38 @@ class LogCapture(logging.Handler):
                 'LogCapture instances not uninstalled by shutdown, '
                 'loggers captured:\n'
                 '%s' % ('\n'.join((str(i.names) for i in cls.instances)))
-                )
+            )
 
     def __bool__(self) -> bool:
         # Some logging internals check boolean rather than identity for handlers :-(r
         return True
 
     def __len__(self) -> int:
-        return len(self.records)
+        return len(self.entries)
 
     def __getitem__(self, index: int) -> Any:
-        return self._actual_row(self.records[index])
+        return self.entries[index].actual
 
     def __contains__(self, what: Any) -> bool:
-        item: Any
-        for i, item in enumerate(self):  # type: ignore[arg-type]
-            if what == item:
-                self.records[i].checked = True
+        for i, entry in enumerate(self.entries):
+            if what == entry.actual:
+                self.entries[i].checked = True
                 return True
         return False
 
     def clear(self) -> None:
         """Clear any entries that have been captured."""
-        self.records = []
+        self.entries: list[Entry] = []
+
+    @property
+    def records(self) -> List[LogRecord]:
+        """
+        The records captured by this :class:`LogCapture`.
+
+        .. deprecated:: 12
+            Use the ``entries`` attribute instead.
+        """
+        return [e.raw for e in self.entries if isinstance(e.raw, LogRecord)]
 
     def mark_all_checked(self) -> None:
         """
@@ -131,8 +153,8 @@ class LogCapture(logging.Handler):
         This should be called if you have made assertions about logging
         other than through :class:`LogCapture` methods.
         """
-        for record in self.records:
-            record.checked = True
+        for entry in self.entries:
+            entry.checked = True
 
     def ensure_checked(self, level: int | None = None) -> None:
         """
@@ -146,20 +168,18 @@ class LogCapture(logging.Handler):
         if level == logging.NOTSET:
             return
         un_checked = []
-        for record in self.records:
-            if record.levelno >= level and not record.checked:  # type: ignore[attr-defined]
-                un_checked.append(self._actual_row(record))
+        for entry in self.entries:
+            if (
+                isinstance(entry.raw, LogRecord)
+                and entry.raw.levelno >= level
+                and not entry.checked
+            ):
+                un_checked.append(entry.actual)
         if un_checked:
-            raise AssertionError((
-                    'Not asserted ERROR log(s): %s'
-                ) % (pformat(un_checked)))
+            raise AssertionError(('Not asserted ERROR log(s): %s') % (pformat(un_checked)))
 
-    def emit(self, record: logging.LogRecord) -> None:
-        """
-        Record the :class:`~logging.LogRecord`.
-        """
-        record.checked = False
-        self.records.append(record)
+    def _collect_entry(self, entry: Entry) -> None:
+        self.entries.append(entry)
 
     def install(self) -> Self | None:
         """
@@ -170,19 +190,7 @@ class LogCapture(logging.Handler):
         drop their level to that specified on this :class:`LogCapture` in order
         to capture all logging.
         """
-        for name in self.names:
-            logger = logging.getLogger(name)
-            self.old['levels'][name] = logger.level
-            self.old['filters'][name] = logger.filters
-            self.old['handlers'][name] = logger.handlers
-            self.old['disabled'][name] = logger.disabled
-            self.old['propagate'][name] = logger.propagate
-            logger.setLevel(self.level)
-            logger.filters = []
-            logger.handlers = [self]
-            logger.disabled = False
-            if self.propagate is not None:
-                logger.propagate = self.propagate
+        self._source.install(self._collect_entry)
         self.instances.add(self)
         if not self.__class__.atexit_setup:
             atexit.register(self.atexit)
@@ -199,13 +207,7 @@ class LogCapture(logging.Handler):
         that prior to installation.
         """
         if self in self.instances:
-            for name in self.names:
-                logger = logging.getLogger(name)
-                logger.setLevel(self.old['levels'][name])
-                logger.filters = self.old['filters'][name]
-                logger.handlers = self.old['handlers'][name]
-                logger.disabled = self.old['disabled'][name]
-                logger.propagate = self.old['propagate'][name]
+            self._source.uninstall()
             self.instances.remove(self)
 
     @classmethod
@@ -213,24 +215,6 @@ class LogCapture(logging.Handler):
         "This will uninstall all existing :class:`LogCapture` objects."
         for i in tuple(cls.instances):
             i.uninstall()
-
-    def _actual_row(self, record: logging.LogRecord) -> Any:
-        # Convert a log record to a Tuple or attribute value according the attributes member.
-        # record: logging.LogRecord
-
-        if callable(self.attributes):
-            return self.attributes(record)
-        else:
-            values = []
-            for a in self.attributes:
-                value = getattr(record, a, None)
-                if callable(value):
-                    value = value()
-                values.append(value)
-            if len(values) == 1:
-                return values[0]
-            else:
-                return tuple(values)
 
     def actual(self) -> list[Any]:
         """
@@ -240,15 +224,12 @@ class LogCapture(logging.Handler):
 
         This can be useful for making more complex assertions about logged
         records. The actual records logged can also be inspected by using the
-        :attr:`records` attribute.
+        ``entries`` attribute.
         """
-        actual = []
-        for r in self.records:
-            actual.append(self._actual_row(r))
-        return actual
+        return [e.actual for e in self.entries]
 
     def __str__(self) -> str:
-        if not self.records:
+        if not self.entries:
             return 'No logging captured'
         return '\n'.join(["%s %s\n  %s" % r for r in self.actual()])
 
@@ -268,6 +249,7 @@ class LogCapture(logging.Handler):
                        exception being raised.
         """
         __tracebackhide__ = True
+
         result = compare(
             expected,
             actual=self.actual(),
@@ -310,33 +292,23 @@ class LogCapture(logging.Handler):
                 raise AssertionError(expected_.failed)
             return expected_.failed
         for index in expected_.checked_indices:
-            self.records[index].checked = True
+            self.entries[index].checked = True
         return None
 
     def __enter__(self) -> Self:
         return self
 
     def __exit__(
-            self,
-            exc_type: type[BaseException] | None,
-            value: BaseException | None,
-            traceback: TracebackType | None,
+        self,
+        exc_type: type[BaseException] | None,
+        value: BaseException | None,
+        traceback: TracebackType | None,
     ) -> None:
         self.uninstall()
         self.ensure_checked()
 
-    def close(self) -> None:
-        super().close()
-        if self in self.instances:
-            warn(
-                'LogCapture instance closed while still installed, '
-                'loggers captured:\n'
-                '%s' % ('\n'.join((str(i.names) for i in self.instances)))
-            )
-
 
 class LogCaptureForDecorator(LogCapture):
-
     def install(self) -> Self:
         LogCapture.install(self)
         self.clear()
@@ -357,3 +329,81 @@ def log_capture(*names: str, **kw: Any) -> Callable:
     """
     l = LogCaptureForDecorator(names or None, install=False, **kw)
     return wrap(l.install, l.uninstall)
+
+
+class LoggingSource(logging.Handler):
+    """
+    A :class:`logging.Handler` that captures log records into :class:`Entry` objects
+    and delivers them to a collector callback.
+
+    All ``logging``-module knowledge lives here; :class:`~testfixtures.LogCapture`
+    never inspects framework-specific fields directly.
+    """
+
+    def __init__(
+        self,
+        names: Tuple[str | None, ...] = (None,),
+        level: int = 1,
+        propagate: bool | None = None,
+        attributes: Sequence[str] | Callable[[LogRecord], Any] = ('levelname', 'getMessage'),
+    ) -> None:
+        logging.Handler.__init__(self)
+        self.names = names
+        self.level = level
+        self.propagate = propagate
+        self.attributes = attributes
+        self.old: dict[str, dict[str | None, Any]] = defaultdict(dict)
+        self._collector: Callable[[Entry], None] | None = None
+        self.on_close: Callable[[], None] | None = None
+
+    def __bool__(self) -> bool:
+        # Some logging internals check boolean rather than identity for handlers :-(
+        return True
+
+    def emit(self, record: LogRecord) -> None:
+        entry = Entry(raw=record, actual=self._compute_actual(record))
+        if self._collector is not None:
+            self._collector(entry)
+
+    def _compute_actual(self, record: LogRecord) -> Any:
+        if callable(self.attributes):
+            return self.attributes(record)
+        values = []
+        for a in self.attributes:
+            value = getattr(record, a, None)
+            if callable(value):
+                value = value()
+            values.append(value)
+        if len(values) == 1:
+            return values[0]
+        return tuple(values)
+
+    def install(self, collector: Callable[[Entry], None]) -> None:
+        self._collector = collector
+        for name in self.names:
+            logger = logging.getLogger(name)
+            self.old['levels'][name] = logger.level
+            self.old['filters'][name] = logger.filters
+            self.old['handlers'][name] = logger.handlers
+            self.old['disabled'][name] = logger.disabled
+            self.old['propagate'][name] = logger.propagate
+            logger.setLevel(self.level)
+            logger.filters = []
+            logger.handlers = [self]
+            logger.disabled = False
+            if self.propagate is not None:
+                logger.propagate = self.propagate
+
+    def uninstall(self) -> None:
+        for name in self.names:
+            logger = logging.getLogger(name)
+            logger.setLevel(self.old['levels'][name])
+            logger.filters = self.old['filters'][name]
+            logger.handlers = self.old['handlers'][name]
+            logger.disabled = self.old['disabled'][name]
+            logger.propagate = self.old['propagate'][name]
+
+    def close(self) -> None:
+        super().close()
+        if self.on_close is not None:
+            self.on_close()
