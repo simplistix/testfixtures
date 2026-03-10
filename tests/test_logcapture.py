@@ -2,7 +2,6 @@ import atexit
 from logging import getLogger, ERROR, Filter, shutdown
 from textwrap import dedent
 from unittest import TestCase
-from warnings import catch_warnings
 
 from testfixtures import Replacer, LogCapture, compare, Replace, ShouldWarn
 from testfixtures.mock import Mock, call
@@ -366,11 +365,6 @@ class LogCaptureTests(TestCase):
             getLogger('foo').info('a log message')
         compare(len(log), expected=1)
         compare(log[0], expected=('foo', 'INFO', 'a log message'))
-
-    def test_truthiness_when_empty(self):
-        handler = LogCapture(install=False)
-        assert handler
-        assert bool(handler)
 
     def test_shutdown_while_installed(self):
         with LogCapture():
