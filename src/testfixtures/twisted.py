@@ -2,14 +2,66 @@
 Tools for helping to test Twisted applications.
 """
 from pprint import pformat
-from typing import Sequence, Callable, Any, TypeAlias, Self
+from typing import Sequence, Callable, Any, Self
 from unittest import TestCase
 
 from constantly import NamedConstant
 from twisted.logger import globalLogPublisher, formatEvent, LogLevel, ILogObserver, LogEvent
 
 from . import compare
+from .logcapture import Entry
 import zope.interface
+
+
+_LEVEL_MAP: dict[NamedConstant, int] = {
+    LogLevel.debug: 10,
+    LogLevel.info: 20,
+    LogLevel.warn: 30,
+    LogLevel.error: 40,
+    LogLevel.critical: 50,
+}
+
+
+@zope.interface.implementer(ILogObserver)
+class TwistedSource:
+    """
+    A capture source for Twisted log events, for use with :class:`~testfixtures.LogCapture`.
+
+    :param fields:
+      A sequence of field names or callables to extract from each event to form the ``actual``
+      value stored in :class:`~testfixtures.logcapture.Entry`. If a single field is specified,
+      the actual value is that field directly; otherwise it is a tuple.
+    """
+
+    def __init__(self, fields: Sequence[str | Callable] = ('log_level', formatEvent)) -> None:
+        self.fields = fields
+        self._collector: Callable[[Entry], None] | None = None
+        self._original_observers: list | None = None
+
+    def __call__(self, event: LogEvent) -> None:
+        if self._collector is not None:
+            failure = event.get('log_failure')
+            entry = Entry(
+                raw=event,
+                actual=self._compute_actual(event),
+                level=_LEVEL_MAP.get(event.get('log_level')),
+                exception=failure.value if failure is not None else None,
+            )
+            self._collector(entry)
+
+    def _compute_actual(self, event: LogEvent) -> Any:
+        values = tuple(f(event) if callable(f) else event.get(f) for f in self.fields)
+        return values[0] if len(values) == 1 else values
+
+    def install(self, collector: Callable[[Entry], None]) -> None:
+        self._collector = collector
+        self._original_observers = globalLogPublisher._observers
+        globalLogPublisher._observers = [self]
+
+    def uninstall(self) -> None:
+        if self._original_observers is not None:
+            globalLogPublisher._observers = self._original_observers
+            self._original_observers = None
 
 @zope.interface.implementer(ILogObserver)
 class LogCapture:
