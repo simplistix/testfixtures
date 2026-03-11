@@ -104,15 +104,13 @@ class TestLogCapture(TestCase):
         log.info('Sent FOO, length 1234')
         log.info('Sent 1 Messages')
         with ShouldAssert(
-            "entries not as expected:\n"
-            "\n"
-            "expected and found:\n"
+            "same:\n"
             "[(<LogLevel=info>, 'Failed to send BAR'), (<LogLevel=info>, 'Sent 1 Messages')]\n"
             "\n"
-            "expected but not found:\n"
+            "in expected but not actual:\n"
             "[(<LogLevel=info>, <S:Sent FOO, length abc>)]\n"
             "\n"
-            "other entries:\n"
+            "in actual but not expected:\n"
             "[(<LogLevel=info>, 'Sent FOO, length 1234')]"
         ):
             capture.check(
@@ -127,17 +125,12 @@ class TestLogCapture(TestCase):
         log.info('Failed to send BAR')
         log.info('Sent FOO, length 1234')
         with ShouldAssert(
-            "entries not as expected:\n"
+            "same:\n"
+            "[(<LogLevel=info>, 'Sent FOO, length 1234'),\n"
+            " (<LogLevel=info>, 'Failed to send BAR')]\n"
             "\n"
-            "expected and found:\n"
-            "[(<LogLevel=info>, 'Failed to send BAR'),\n"
-            " (<LogLevel=info>, <S:Sent FOO, length 1234>)]\n"
-            "\n"
-            "expected but not found:\n"
-            "[(<LogLevel=info>, 'Sent 1 Messages')]\n"
-            "\n"
-            "other entries:\n"
-            "[]"
+            "in expected but not actual:\n"
+            "[(<LogLevel=info>, 'Sent 1 Messages')]"
         ):
             capture.check(
                 (INFO, S('Sent FOO, length 1234')),
@@ -152,15 +145,13 @@ class TestLogCapture(TestCase):
         log.info('Sent FOO, length 1234')
         log.info('Sent 1 Messages')
         with ShouldAssert(
-            "entries not as expected:\n"
-            "\n"
-            "expected and found:\n"
+            "same:\n"
             "[(<LogLevel=info>, 'Failed to send BAR'), (<LogLevel=info>, 'Sent 1 Messages')]\n"
             "\n"
-            "expected but not found:\n"
+            "in expected but not actual:\n"
             "[(<LogLevel=info>, <S:Sent FOO, length abc>)]\n"
             "\n"
-            "other entries:\n"
+            "in actual but not expected:\n"
             "[(<LogLevel=info>, 'Sent FOO, length 1234')]"
         ):
             capture.check(
