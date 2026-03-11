@@ -7,7 +7,8 @@ from twisted.python.failure import Failure
 from twisted.trial.unittest import TestCase
 
 from testfixtures import compare, ShouldRaise, StringComparison as S, ShouldAssert
-from testfixtures.twisted import LogCapture, INFO
+from testfixtures import LogCapture as UnifiedLogCapture
+from testfixtures.twisted import LogCapture, INFO, TwistedSource
 
 log = Logger()
 
@@ -168,3 +169,83 @@ class TestLogCapture(TestCase):
                 (INFO, 'Sent 1 Messages'),
                 order_matters=False
             )
+
+
+class TestUnifiedLogCapture(TestCase):
+
+    def make_capture(self, **kw):
+        capture = UnifiedLogCapture(sources=[TwistedSource(**kw)], install=False)
+        capture.install()
+        self.addCleanup(capture.uninstall)
+        return capture
+
+    def test_basic_capture(self):
+        capture = self.make_capture()
+        log.info('hello {name}', name='world')
+        capture.check((INFO, 'hello world'))
+
+    def test_check_order_doesnt_matter_ok(self):
+        capture = self.make_capture()
+        log.info('first')
+        log.info('second')
+        capture.check(
+            (INFO, 'second'),
+            (INFO, 'first'),
+            order_matters=False,
+        )
+
+    def test_check_order_doesnt_matter_failure(self):
+        capture = self.make_capture()
+        log.info('first')
+        log.info('second')
+        with ShouldAssert(
+            "same:\n"
+            "[(<LogLevel=info>, 'second')]\n\n"
+            "in expected but not actual:\n"
+            "[(<LogLevel=info>, 'nope')]\n\n"
+            "in actual but not expected:\n"
+            "[(<LogLevel=info>, 'first')]"
+        ):
+            capture.check(
+                (INFO, 'second'),
+                (INFO, 'nope'),
+                order_matters=False,
+            )
+
+    def test_raise_first_exception(self):
+        capture = self.make_capture()
+        try:
+            raise ValueError('boom')
+        except Exception:
+            log.failure('oh no')
+        with ShouldRaise(ValueError('boom')):
+            capture.raise_first_exception()
+        self.flushLoggedErrors()
+
+    def test_raise_first_exception_with_start_index(self):
+        capture = self.make_capture()
+        try:
+            raise ValueError('first')
+        except Exception:
+            log.failure('first failure')
+        try:
+            raise TypeError('second')
+        except Exception:
+            log.failure('second failure')
+        with ShouldRaise(TypeError('second')):
+            capture.raise_first_exception(start_index=1)
+        self.flushLoggedErrors()
+
+    def test_check_exception_str(self):
+        capture = self.make_capture()
+        try:
+            raise ValueError('expected message')
+        except Exception:
+            log.failure('logged')
+        capture.check_exception_str('expected message')
+        self.flushLoggedErrors()
+
+    def test_single_field(self):
+        capture = self.make_capture(fields=(formatEvent,))
+        log.info('hello {name}', name='world')
+        capture.check('hello world')

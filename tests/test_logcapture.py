@@ -322,7 +322,7 @@ class LogCaptureTests(TestCase):
                 UserWarning(
                     "LogCapture instances not uninstalled by shutdown, "
                     "loggers captured:\n"
-                    "(None,)"
+                    "LoggingSource((None,))"
                 )
             ):
                 l.atexit()
@@ -371,7 +371,7 @@ class LogCaptureTests(TestCase):
             with ShouldWarn(
                 UserWarning(
                     'LogCapture instance closed while still installed, loggers captured:\n'
-                    '(None,)'
+                    'LoggingSource((None,))'
                 )
             ):
                 shutdown()

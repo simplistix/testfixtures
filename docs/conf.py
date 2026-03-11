@@ -53,6 +53,7 @@ nitpick_ignore = [
     ('py:class', 'testfixtures.tempdirectory.P'),  # type var
     ('py:class', 'testfixtures.utils.T'),  # type var
     ('py:class', 'testfixtures.utils.U'),  # type var
+    ('py:class', 'twisted.trial._asynctest.TestCase'),  # twisted doesn't use sphinx
     ('py:class', 'twisted.trial.unittest.TestCase'),  # twisted doesn't use sphinx
     ('py:class', 'unittest.case.TestCase'),  # no docs, apparently
     ('py:class', 'unittest.mock._Call'),  # No docstring.

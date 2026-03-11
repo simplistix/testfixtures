@@ -7,6 +7,7 @@ from logging import LogRecord
 from pprint import pformat
 from types import TracebackType
 from typing import List, Tuple, Sequence, Callable, Any, Self
+from unittest import TestCase
 from warnings import warn
 
 from .comparison import SequenceComparison, compare
@@ -20,6 +21,7 @@ class Entry:
     raw: Any
     actual: Any
     level: int | None  # numeric level for ensure_checked; None means not level-checkable
+    exception: BaseException | None = None
     checked: bool = False
 
 
@@ -68,6 +70,9 @@ class LogCapture:
     #: The log level above which checks must be made for logged events.
     ensure_checks_above: int | None
 
+    #: The list of :class:`~testfixtures.logcapture.Entry` objects captured so far.
+    entries: list[Entry]
+
     instances: set['LogCapture'] = set()
     atexit_setup = False
     installed = False
@@ -86,11 +91,16 @@ class LogCapture:
         ),
         recursive_check: bool = False,
         ensure_checks_above: int | None = None,
+        sources: list | None = None,
     ):
-        if not isinstance(names, tuple):
-            names = (names,)
-        self._source = LoggingSource(names, level, propagate, attributes)
-        self._source.on_close = self._handle_close
+        if sources is not None:
+            self._sources = list(sources)
+        else:
+            if not isinstance(names, tuple):
+                names = (names,)
+            source = LoggingSource(names, level, propagate, attributes)
+            source.on_close = self._handle_close
+            self._sources = [source]
         self.recursive_check = recursive_check
         if ensure_checks_above is None:
             self.ensure_checks_above = self.default_ensure_checks_above
@@ -105,7 +115,7 @@ class LogCapture:
             warn(
                 'LogCapture instance closed while still installed, '
                 'loggers captured:\n'
-                '%s' % ('\n'.join((str(i._source.names) for i in self.instances)))
+                '%s' % ('\n'.join((', '.join(repr(s) for s in i._sources) for i in self.instances)))
             )
 
     @classmethod
@@ -114,7 +124,7 @@ class LogCapture:
             warnings.warn(
                 'LogCapture instances not uninstalled by shutdown, '
                 'loggers captured:\n'
-                '%s' % ('\n'.join((str(i._source.names) for i in cls.instances)))
+                '%s' % ('\n'.join((', '.join(repr(s) for s in i._sources) for i in cls.instances)))
             )
 
     def __len__(self) -> int:
@@ -182,7 +192,8 @@ class LogCapture:
         drop their level to that specified on this :class:`LogCapture` in order
         to capture all logging.
         """
-        self._source.install(self._collect_entry)
+        for source in self._sources:
+            source.install(self._collect_entry)
         self.instances.add(self)
         if not self.__class__.atexit_setup:
             atexit.register(self.atexit)
@@ -199,7 +210,8 @@ class LogCapture:
         that prior to installation.
         """
         if self in self.instances:
-            self._source.uninstall()
+            for source in self._sources:
+                source.uninstall()
             self.instances.remove(self)
 
     @classmethod
@@ -225,7 +237,7 @@ class LogCapture:
             return 'No logging captured'
         return '\n'.join(["%s %s\n  %s" % r for r in self.actual()])
 
-    def check(self, *expected: Any, raises: bool = True) -> str | None:
+    def check(self, *expected: Any, order_matters: bool = True, raises: bool = True) -> str | None:
         """
         This will compare the captured entries with the expected
         entries provided and raise an :class:`AssertionError` if they
@@ -236,23 +248,57 @@ class LogCapture:
           A sequence of entries of the structure specified by the ``attributes``
           passed to the constructor.
 
+        :param order_matters:
+
+          A keyword-only parameter that controls whether the order of the
+          captured entries is required to match those of the expected entries.
+          Defaults to ``True``.
+
         :param raises: If ``False``, the message that would be raised in the
                        :class:`AssertionError` will be returned instead of the
                        exception being raised.
         """
         __tracebackhide__ = True
 
-        result = compare(
-            expected,
-            actual=self.actual(),
-            recursive=self.recursive_check,
-            raises=raises,
-        )
-        if result is None:
-            self.mark_all_checked()
+        result = None
+        if order_matters:
+            result = compare(
+                expected, actual=self.actual(), recursive=self.recursive_check, raises=False
+            )
+        else:
+            actual = self.actual()
+            expected_ = SequenceComparison(
+                *expected, ordered=False, partial=False, recursive=self.recursive_check
+            )
+            if expected_ != actual:
+                result = expected_.failed
+        if result and raises:
+            raise AssertionError(result)
+        self.mark_all_checked()
         return result
 
-    def check_present(self, *expected: Any, order_matters: bool = True, raises: bool = True) -> str | None:
+    def raise_first_exception(self, start_index: int = 0) -> None:
+        """
+        Raise the first captured exception from ``start_index`` onwards.
+
+        :param start_index: The index into :attr:`entries` from where to start looking.
+        """
+        for entry in self.entries[start_index:]:
+            if entry.exception is not None:
+                raise entry.exception
+
+    def check_exception_str(self, expected: str, index: int = -1) -> None:
+        """
+        Check the string representation of a captured exception.
+
+        :param expected: The expected string.
+        :param index: The index into :attr:`entries` where the exception should have been captured.
+        """
+        compare(expected, actual=str(self.entries[index].exception))
+
+    def check_present(
+            self, *expected: Any, order_matters: bool = True, raises: bool = True
+    ) -> str | None:
         """
         This will check if the captured entries contain all of the expected
         entries provided and raise an :class:`AssertionError` if not.
@@ -352,8 +398,17 @@ class LoggingSource(logging.Handler):
         # Some logging internals check boolean rather than identity for handlers :-(
         return True
 
+    def __repr__(self) -> str:
+        return f'LoggingSource({self.names!r})'
+
     def emit(self, record: LogRecord) -> None:
-        entry = Entry(raw=record, actual=self._compute_actual(record), level=record.levelno)
+        exception = record.exc_info[1] if record.exc_info else None
+        entry = Entry(
+            raw=record,
+            actual=self._compute_actual(record),
+            level=record.levelno,
+            exception=exception
+        )
         if self._collector is not None:
             self._collector(entry)
 
