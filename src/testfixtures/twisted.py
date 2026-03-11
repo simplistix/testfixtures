@@ -1,15 +1,14 @@
 """
 Tools for helping to test Twisted applications.
 """
-from pprint import pformat
 from typing import Sequence, Callable, Any, Self
-from unittest import TestCase
 
 from constantly import NamedConstant
 from twisted.logger import globalLogPublisher, formatEvent, LogLevel, ILogObserver, LogEvent
+from twisted.trial.unittest import TestCase
 
 from . import compare
-from .logcapture import Entry
+from .logcapture import Entry, LogCapture as _LogCapture
 import zope.interface
 
 
@@ -63,13 +62,13 @@ class TwistedSource:
             globalLogPublisher._observers = self._original_observers
             self._original_observers = None
 
-@zope.interface.implementer(ILogObserver)
-class LogCapture:
+
+class LogCapture(_LogCapture):
     """
     A helper for capturing stuff logged using Twisted's loggers.
 
     :param fields:
-      A sequence of field names that :meth:`~LogCapture.check` will use to build
+      A sequence of field names that :meth:`~testfixtures.LogCapture.check` will use to build
       "actual" events to compare against the expected events passed in.
       If items are strings, they will be treated as keys info the Twisted logging event.
       If they are callable, they will be called with the event as their only parameter.
@@ -77,60 +76,17 @@ class LogCapture:
       otherwise they will be a tuple of the specified fields.
     """
 
-    def __init__(self, fields: Sequence[str | Callable] = ('log_level', formatEvent,)):
-        #: The list of events captured.
-        self.events: list[LogEvent] = []
-        self.fields = fields
+    def __init__(
+            self,
+            fields: Sequence[str | Callable] = ('log_level', formatEvent),
+            install: bool = False
+    ) -> None:
+        super().__init__(TwistedSource(fields), install=install)
 
-    def __call__(self, event: LogEvent) -> None:
-        self.events.append(event)
-
-    def install(self) -> None:
-        "Start capturing."
-        self.original_observers = globalLogPublisher._observers
-        globalLogPublisher._observers = [self]
-
-    def uninstall(self) -> None:
-        "Stop capturing."
-        globalLogPublisher._observers = self.original_observers
-
-    def check(self, *expected: LogEvent, order_matters: bool = True) -> None:
-        """
-        Check captured events against those supplied. Please see the ``fields`` parameter
-        to the constructor to see how "actual" events are built.
-
-        :param order_matters:
-          This defaults to ``True``. If ``False``, the order of expected logging versus
-          actual logging will be ignored.
-        """
-        actual_event: Any
-        actual = []
-        for event in self.events:
-            actual_event = tuple(field(event) if callable(field) else event.get(field)
-                            for field in self.fields)
-            if len(actual_event) == 1:
-                actual_event = actual_event[0]
-            actual.append(actual_event)
-        if order_matters:
-            compare(expected=expected, actual=actual)
-        else:
-            expected_ = list(expected)
-            matched = []
-            unmatched = []
-            for entry in actual:
-                try:
-                    index = expected_.index(entry)
-                except ValueError:
-                    unmatched.append(entry)
-                else:
-                    matched.append(expected_.pop(index))
-            if expected_:
-                raise AssertionError((
-                    'entries not as expected:\n\n'
-                    'expected and found:\n%s\n\n'
-                    'expected but not found:\n%s\n\n'
-                    'other entries:\n%s'
-                ) % (pformat(matched), pformat(expected_), pformat(unmatched)))
+    @property
+    def events(self) -> list[LogEvent]:
+        """The list of raw Twisted log events captured."""
+        return [e.raw for e in self.entries]
 
     def check_failure_text(self, expected: str, index: int = -1, attribute: str = 'value') -> None:
         """
