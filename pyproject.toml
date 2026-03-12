@@ -29,6 +29,7 @@ django = [
 ]
 sybil = ["sybil>=6.0.3"]
 mock-backport = ["mock>=4.0.3"]
+loguru = ["loguru>=0.7.3"]
 twisted = ["twisted>=22.1"]
 yaml = ["pyyaml>=6.0.3"]
 toml = ["tomlkit>=0.10.0"]
