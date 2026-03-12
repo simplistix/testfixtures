@@ -215,6 +215,13 @@ testfixtures.sybil
    :members:
 
 
+testfixtures.loguru
+~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: testfixtures.loguru
+   :member-order: bysource
+   :members:
+
 testfixtures.twisted
 ~~~~~~~~~~~~~~~~~~~~
 

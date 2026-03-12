@@ -15,6 +15,7 @@ The sections below describe the use of the various tools included:
    warnings.rst
    popen.rst
    django.rst
+   loguru.rst
    twisted.rst
    utilities.rst
 
