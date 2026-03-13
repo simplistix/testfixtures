@@ -6,12 +6,26 @@ from dataclasses import dataclass
 from logging import LogRecord
 from pprint import pformat
 from types import TracebackType
-from typing import List, Tuple, Sequence, Callable, Any, Self
+from typing import List, Tuple, Sequence, Callable, Any, Self, Protocol, overload
 from unittest import TestCase
 from warnings import warn
 
 from .comparison import SequenceComparison, compare
 from .utils import wrap
+
+
+class CaptureSource(Protocol):
+    """
+    Protocol that capture sources must implement to be used with :class:`LogCapture`.
+    """
+
+    def install(self, collector: Callable[['Entry'], None]) -> None:
+        """Start capturing, delivering entries to ``collector``."""
+        ...
+
+    def uninstall(self) -> None:
+        """Stop capturing and restore any previous state."""
+        ...
 
 
 @dataclass
@@ -78,9 +92,31 @@ class LogCapture:
     installed = False
     default_ensure_checks_above: int | None = None
 
+    @overload
     def __init__(
         self,
         names: str | Tuple[str | None, ...] | None = None,
+        *,
+        install: bool = True,
+        level: int = 1,
+        propagate: bool | None = None,
+        attributes: Sequence[str] | Callable[[LogRecord], Any] = ...,
+        recursive_check: bool = False,
+        ensure_checks_above: int | None = None,
+    ) -> None: ...
+
+    @overload
+    def __init__(
+        self,
+        *sources: CaptureSource,
+        install: bool = True,
+        recursive_check: bool = False,
+        ensure_checks_above: int | None = None,
+    ) -> None: ...
+
+    def __init__(  # type: ignore[misc]
+        self,
+        *args: Any,
         install: bool = True,
         level: int = 1,
         propagate: bool | None = None,
@@ -91,11 +127,11 @@ class LogCapture:
         ),
         recursive_check: bool = False,
         ensure_checks_above: int | None = None,
-        sources: list | None = None,
-    ):
-        if sources is not None:
-            self._sources = list(sources)
+    ) -> None:
+        if args and hasattr(args[0], 'install'):
+            self._sources = list(args)
         else:
+            names: str | Tuple[str | None, ...] | None = args[0] if args else None
             if not isinstance(names, tuple):
                 names = (names,)
             source = LoggingSource(names, level, propagate, attributes)
