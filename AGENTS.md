@@ -2,7 +2,8 @@
 
 ## Principles
 
-- **Done means green** — a change is only complete when `./happy.sh` exits 0; do not commit until it does. If `./happy.sh` was already failing before your changes, you must fix those pre-existing failures too — or stop and ask the user how to proceed.
+- **Done means green** — a change is only complete when `./happy.sh` exits 0; do not commit until it does.
+- **No unrelated failures** — if `./happy.sh` fails on something unrelated to your changes, do NOT assume it is a pre-existing problem and proceed anyway. Stop immediately and ask the user how to proceed.
 - **Docs for everything public** — new functionality or public API changes must have accompanying docs in `docs/*.rst`
 - **Type-annotate public APIs** — all public functions and classes need type annotations; mypy is the gate
 
