@@ -648,3 +648,33 @@ class TestCheckPresent:
                 ('root', 'WARNING', 'two'),
                 order_matters=False
             )
+
+    def test_check_raises_false_no_difference(self):
+        with LogCapture() as log:
+            root.info('hello')
+        compare(log.check(('root', 'INFO', 'hello'), raises=False), expected=None)
+
+    def test_check_raises_false_with_difference(self):
+        with LogCapture() as log:
+            root.info('hello')
+        compare(log.check(('root', 'INFO', 'world'), raises=False), expected=(
+            "sequence not as expected:\n\n"
+            "same:\n()\n\n"
+            "expected:\n(('root', 'INFO', 'world'),)\n\n"
+            "actual:\n(('root', 'INFO', 'hello'),)"
+        ))
+
+    def test_check_present_raises_false_no_difference(self):
+        with LogCapture() as log:
+            root.info('hello')
+        compare(log.check_present(('root', 'INFO', 'hello'), raises=False), expected=None)
+
+    def test_check_present_raises_false_with_difference(self):
+        with LogCapture() as log:
+            root.info('hello')
+        compare(log.check_present(('root', 'INFO', 'world'), raises=False), expected=(
+            "ignored:\n[('root', 'INFO', 'hello')]\n\n"
+            "same:\n[]\n\n"
+            "expected:\n[('root', 'INFO', 'world')]\n\n"
+            "actual:\n[]"
+        ))

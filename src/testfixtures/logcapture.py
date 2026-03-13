@@ -252,7 +252,7 @@ class LogCapture(logging.Handler):
             return 'No logging captured'
         return '\n'.join(["%s %s\n  %s" % r for r in self.actual()])
 
-    def check(self, *expected: Any) -> None:
+    def check(self, *expected: Any, raises: bool = True) -> str | None:
         """
         This will compare the captured entries with the expected
         entries provided and raise an :class:`AssertionError` if they
@@ -262,15 +262,22 @@ class LogCapture(logging.Handler):
 
           A sequence of entries of the structure specified by the ``attributes``
           passed to the constructor.
+
+        :param raises: If ``False``, the message that would be raised in the
+                       :class:`AssertionError` will be returned instead of the
+                       exception being raised.
         """
-        compare(
+        result = compare(
             expected,
             actual=self.actual(),
-            recursive=self.recursive_check
-            )
-        self.mark_all_checked()
+            recursive=self.recursive_check,
+            raises=raises,
+        )
+        if result is None:
+            self.mark_all_checked()
+        return result
 
-    def check_present(self, *expected: Any, order_matters: bool = True) -> None:
+    def check_present(self, *expected: Any, order_matters: bool = True, raises: bool = True) -> str | None:
         """
         This will check if the captured entries contain all of the expected
         entries provided and raise an :class:`AssertionError` if not.
@@ -287,15 +294,22 @@ class LogCapture(logging.Handler):
           A keyword-only parameter that controls whether the order of the
           captured entries is required to match those of the expected entries.
           Defaults to ``True``.
+
+        :param raises: If ``False``, the message that would be raised in the
+                       :class:`AssertionError` will be returned instead of the
+                       exception being raised.
         """
         actual = self.actual()
         expected_ = SequenceComparison(
             *expected, ordered=order_matters, partial=True, recursive=self.recursive_check
         )
         if expected_ != actual:
-            raise AssertionError(expected_.failed)
+            if raises:
+                raise AssertionError(expected_.failed)
+            return expected_.failed
         for index in expected_.checked_indices:
             self.records[index].checked = True
+        return None
 
     def __enter__(self) -> Self:
         return self

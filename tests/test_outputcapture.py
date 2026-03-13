@@ -114,6 +114,23 @@ class TestOutputCapture(CompareHelper, TestCase):
             print('world', file=sys.stderr)
         output.compare(stdout=StringComparison(r'^hello\Z'), stderr=StringComparison(r'^world\Z'))
 
+    def test_compare_raises_false_no_difference(self) -> None:
+        with OutputCapture() as output:
+            print('foo')
+        compare(output.compare('foo', raises=False), expected=None)
+
+    def test_compare_raises_false_with_difference(self) -> None:
+        with OutputCapture() as output:
+            print('foo')
+        compare(output.compare('bar', raises=False), expected="'bar' (expected) != 'foo' (actual)")
+
+    def test_compare_raises_false_separate_with_difference(self) -> None:
+        with OutputCapture(separate=True) as output:
+            print('hello', file=sys.stdout)
+            print('world', file=sys.stderr)
+        compare(output.compare(stdout='hello', stderr='bad', raises=False),
+                expected="'bad' (expected) != 'world' (actual)")
+
 
 class TestOutputCaptureWithDescriptors:
 

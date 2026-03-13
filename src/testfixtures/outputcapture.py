@@ -110,8 +110,9 @@ class OutputCapture:
             self,
             expected: str | StringComparison = '',
             stdout: str | StringComparison = '',
-            stderr: str | StringComparison = ''
-    ) -> None:
+            stderr: str | StringComparison = '',
+            raises: bool = True,
+    ) -> str | None:
         """
         Compare the captured output to that expected. If the output is
         not the same, an :class:`AssertionError` will be raised.
@@ -122,6 +123,10 @@ class OutputCapture:
         :param stdout: A string containing the expected output to ``stdout``.
 
         :param stderr: A string containing the expected output to ``stderr``.
+
+        :param raises: If ``False``, the message that would be raised in the
+                       :class:`AssertionError` will be returned instead of the
+                       exception being raised.
         """
         expected_mapping = {}
         actual_mapping = {}
@@ -138,6 +143,7 @@ class OutputCapture:
                 expected_mapping[prefix] = _expected
                 actual_mapping[prefix] = captured
         if len(expected_mapping) == 1:
-            compare(expected=tuple(expected_mapping.values())[0],
-                    actual=tuple(actual_mapping.values())[0])
-        compare(expected=expected_mapping, actual=actual_mapping)
+            return compare(expected=tuple(expected_mapping.values())[0],
+                           actual=tuple(actual_mapping.values())[0],
+                           raises=raises)
+        return compare(expected=expected_mapping, actual=actual_mapping, raises=raises)
