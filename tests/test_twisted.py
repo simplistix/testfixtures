@@ -7,8 +7,8 @@ from twisted.python.failure import Failure
 from twisted.trial.unittest import TestCase
 
 from testfixtures import compare, ShouldRaise, StringComparison as S, ShouldAssert
-from testfixtures import LogCapture as UnifiedLogCapture
-from testfixtures.twisted import LogCapture, INFO, TwistedSource
+from testfixtures import LogCapture
+from testfixtures.twisted import LogCapture as TwistedLogCapture, INFO, TwistedSource
 
 log = Logger()
 
@@ -16,18 +16,18 @@ log = Logger()
 class TestLogCapture(TestCase):
 
     def test_simple(self):
-        capture = LogCapture.make(self)
+        capture = TwistedLogCapture.make(self)
         log.info('er, {greeting}', greeting='hi')
         capture.check((INFO, 'er, hi'))
 
     def test_captured(self):
-        capture = LogCapture.make(self)
+        capture = TwistedLogCapture.make(self)
         log.info('er, {greeting}', greeting='hi')
         assert len(capture.events) == 1
         compare(capture.events[0]['log_namespace'], expected='tests.test_twisted')
 
     def test_fields(self):
-        capture = LogCapture.make(self, fields=('a', 'b'))
+        capture = TwistedLogCapture.make(self, fields=('a', 'b'))
         log.info('{a}, {b}', a=1, b=2)
         log.info('{a}, {b}', a=3, b=4)
         capture.check(
@@ -36,12 +36,12 @@ class TestLogCapture(TestCase):
         )
 
     def test_field(self):
-        capture = LogCapture.make(self, fields=(formatEvent,))
+        capture = TwistedLogCapture.make(self, fields=(formatEvent,))
         log.info('er, {greeting}', greeting='hi')
         capture.check('er, hi')
 
     def test_check_failure_test_minimal(self):
-        capture = LogCapture.make(self)
+        capture = TwistedLogCapture.make(self)
         try:
             raise Exception('all gone wrong')
         except:
@@ -50,7 +50,7 @@ class TestLogCapture(TestCase):
         self.flushLoggedErrors()
 
     def test_check_failure_test_maximal(self):
-        capture = LogCapture.make(self)
+        capture = TwistedLogCapture.make(self)
         try:
             raise TypeError('all gone wrong')
         except:
@@ -61,7 +61,7 @@ class TestLogCapture(TestCase):
         self.flushLoggedErrors()
 
     def test_raise_logged_failure(self):
-        capture = LogCapture.make(self)
+        capture = TwistedLogCapture.make(self)
         try:
             raise TypeError('all gone wrong')
         except:
@@ -72,7 +72,7 @@ class TestLogCapture(TestCase):
         self.flushLoggedErrors()
 
     def test_raise_later_logged_failure(self):
-        capture = LogCapture.make(self)
+        capture = TwistedLogCapture.make(self)
         try:
             raise ValueError('boom!')
         except:
@@ -87,7 +87,7 @@ class TestLogCapture(TestCase):
         self.flushLoggedErrors()
 
     def test_order_doesnt_matter_ok(self):
-        capture = LogCapture.make(self)
+        capture = TwistedLogCapture.make(self)
         log.info('Failed to send BAR')
         log.info('Sent FOO, length 1234')
         log.info('Sent 1 Messages')
@@ -99,7 +99,7 @@ class TestLogCapture(TestCase):
         )
 
     def test_order_doesnt_matter_failure(self):
-        capture = LogCapture.make(self)
+        capture = TwistedLogCapture.make(self)
         log.info('Failed to send BAR')
         log.info('Sent FOO, length 1234')
         log.info('Sent 1 Messages')
@@ -121,7 +121,7 @@ class TestLogCapture(TestCase):
             )
 
     def test_order_doesnt_matter_extra_in_expected(self):
-        capture = LogCapture.make(self)
+        capture = TwistedLogCapture.make(self)
         log.info('Failed to send BAR')
         log.info('Sent FOO, length 1234')
         with ShouldAssert(
@@ -140,7 +140,7 @@ class TestLogCapture(TestCase):
             )
 
     def test_order_doesnt_matter_extra_in_actual(self):
-        capture = LogCapture.make(self)
+        capture = TwistedLogCapture.make(self)
         log.info('Failed to send BAR')
         log.info('Sent FOO, length 1234')
         log.info('Sent 1 Messages')
@@ -164,21 +164,15 @@ class TestLogCapture(TestCase):
 
 class TestUnifiedLogCapture(TestCase):
 
-    def make_capture(self, **kw):
-        capture = UnifiedLogCapture(sources=[TwistedSource(**kw)], install=False)
-        capture.install()
-        self.addCleanup(capture.uninstall)
-        return capture
-
     def test_basic_capture(self):
-        capture = self.make_capture()
-        log.info('hello {name}', name='world')
+        with LogCapture(TwistedSource()) as capture:
+            log.info('hello {name}', name='world')
         capture.check((INFO, 'hello world'))
 
     def test_check_order_doesnt_matter_ok(self):
-        capture = self.make_capture()
-        log.info('first')
-        log.info('second')
+        with LogCapture(TwistedSource()) as capture:
+            log.info('first')
+            log.info('second')
         capture.check(
             (INFO, 'second'),
             (INFO, 'first'),
@@ -186,9 +180,9 @@ class TestUnifiedLogCapture(TestCase):
         )
 
     def test_check_order_doesnt_matter_failure(self):
-        capture = self.make_capture()
-        log.info('first')
-        log.info('second')
+        with LogCapture(TwistedSource()) as capture:
+            log.info('first')
+            log.info('second')
         with ShouldAssert(
             "same:\n"
             "[(<LogLevel=info>, 'second')]\n\n"
@@ -204,39 +198,39 @@ class TestUnifiedLogCapture(TestCase):
             )
 
     def test_raise_first_exception(self):
-        capture = self.make_capture()
-        try:
-            raise ValueError('boom')
-        except Exception:
-            log.failure('oh no')
+        with LogCapture(TwistedSource()) as capture:
+            try:
+                raise ValueError('boom')
+            except Exception:
+                log.failure('oh no')
         with ShouldRaise(ValueError('boom')):
             capture.raise_first_exception()
         self.flushLoggedErrors()
 
     def test_raise_first_exception_with_start_index(self):
-        capture = self.make_capture()
-        try:
-            raise ValueError('first')
-        except Exception:
-            log.failure('first failure')
-        try:
-            raise TypeError('second')
-        except Exception:
-            log.failure('second failure')
+        with LogCapture(TwistedSource()) as capture:
+            try:
+                raise ValueError('first')
+            except Exception:
+                log.failure('first failure')
+            try:
+                raise TypeError('second')
+            except Exception:
+                log.failure('second failure')
         with ShouldRaise(TypeError('second')):
             capture.raise_first_exception(start_index=1)
         self.flushLoggedErrors()
 
     def test_check_exception_str(self):
-        capture = self.make_capture()
-        try:
-            raise ValueError('expected message')
-        except Exception:
-            log.failure('logged')
+        with LogCapture(TwistedSource()) as capture:
+            try:
+                raise ValueError('expected message')
+            except Exception:
+                log.failure('logged')
         capture.check_exception_str('expected message')
         self.flushLoggedErrors()
 
     def test_single_field(self):
-        capture = self.make_capture(fields=(formatEvent,))
-        log.info('hello {name}', name='world')
+        with LogCapture(TwistedSource(fields=(formatEvent,))) as capture:
+            log.info('hello {name}', name='world')
         capture.check('hello world')

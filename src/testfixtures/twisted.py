@@ -12,7 +12,7 @@ from .logcapture import Entry, LogCapture as _LogCapture
 import zope.interface
 
 
-_LEVEL_MAP: dict[NamedConstant, int] = {
+LEVEL_MAP: dict[NamedConstant, int] = {
     LogLevel.debug: 10,
     LogLevel.info: 20,
     LogLevel.warn: 30,
@@ -20,6 +20,8 @@ _LEVEL_MAP: dict[NamedConstant, int] = {
     LogLevel.critical: 50,
 }
 
+
+DEFAULT_FIELDS = ('log_level', formatEvent)
 
 @zope.interface.implementer(ILogObserver)
 class TwistedSource:
@@ -32,7 +34,7 @@ class TwistedSource:
       the actual value is that field directly; otherwise it is a tuple.
     """
 
-    def __init__(self, fields: Sequence[str | Callable] = ('log_level', formatEvent)) -> None:
+    def __init__(self, fields: Sequence[str | Callable] = DEFAULT_FIELDS) -> None:
         self.fields = fields
         self._collector: Callable[[Entry], None] | None = None
         self._original_observers: list | None = None
@@ -43,7 +45,7 @@ class TwistedSource:
             entry = Entry(
                 raw=event,
                 actual=self._compute_actual(event),
-                level=_LEVEL_MAP.get(event.get('log_level')),
+                level=LEVEL_MAP.get(event.get('log_level')),
                 exception=failure.value if failure is not None else None,
             )
             self._collector(entry)
@@ -78,7 +80,7 @@ class LogCapture(_LogCapture):
 
     def __init__(
             self,
-            fields: Sequence[str | Callable] = ('log_level', formatEvent),
+            fields: Sequence[str | Callable] = DEFAULT_FIELDS,
             install: bool = False
     ) -> None:
         super().__init__(TwistedSource(fields), install=install)
@@ -110,15 +112,17 @@ class LogCapture(_LogCapture):
                 raise failure
 
     @classmethod
-    def make(cls, testcase: TestCase, **kw: Sequence[str | Callable]) -> Self:
+    def make(cls, testcase: TestCase, fields: Sequence[str | Callable] = DEFAULT_FIELDS) -> Self:
         """
         Instantiate, install and add a cleanup for a :class:`LogCapture`.
 
         :param testcase: This must be an instance of :class:`twisted.trial.unittest.TestCase`.
-        :param kw: Any other parameters are passed directly to the :class:`LogCapture` constructor.
+
+        Any other parameters are passed directly to the :class:`LogCapture` constructor.
+
         :return: The :class:`LogCapture` instantiated by this method.
         """
-        capture = cls(**kw)
+        capture = cls(fields)
         capture.install()
         testcase.addCleanup(capture.uninstall)
         return capture

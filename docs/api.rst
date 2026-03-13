@@ -86,6 +86,9 @@ Capturing
 
 .. autofunction:: log_capture
 
+.. autoclass:: testfixtures.logcapture.CaptureSource
+   :members:
+
 .. autoclass:: testfixtures.logcapture.Entry
 
 .. autoclass:: OutputCapture
