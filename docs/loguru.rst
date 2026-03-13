@@ -20,7 +20,7 @@ restoring them on exit::
     from testfixtures import LogCapture
     from testfixtures.loguru import LoguruSource
 
-    with LogCapture(sources=[LoguruSource()]) as log:
+    with LogCapture(LoguruSource()) as log:
         # ... code that logs via loguru ...
         log.check(('INFO', 'expected message'))
 
@@ -28,13 +28,13 @@ By default, each captured entry's ``actual`` value is a ``(level_name, message)`
 
 To filter by level::
 
-    with LogCapture(sources=[LoguruSource(level='WARNING')]) as log:
+    with LogCapture(LoguruSource(level='WARNING')) as log:
         # only WARNING and above are captured
         ...
 
 To capture only the message (single field)::
 
-    with LogCapture(sources=[LoguruSource(fields=(lambda r: r['message'],))]) as log:
+    with LogCapture(LoguruSource(fields=(lambda r: r['message'],))) as log:
         ...
         log.check('expected message')
 

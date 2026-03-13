@@ -20,7 +20,7 @@ The recommended approach is to use the unified :class:`~testfixtures.LogCapture`
     from testfixtures import LogCapture
     from testfixtures.twisted import TwistedSource
 
-    with LogCapture(sources=[TwistedSource()]) as log:
+    with LogCapture(TwistedSource()) as log:
         # ... code that logs via Twisted ...
         log.check((INFO, 'expected message'))
 
