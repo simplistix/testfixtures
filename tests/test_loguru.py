@@ -1,4 +1,8 @@
+import logging
+
 import pytest
+
+from testfixtures.logcapture import LoggingSource
 
 pytest.importorskip("loguru")
 
@@ -62,3 +66,15 @@ class TestLogCapture:
             logger.info('ignored')
             logger.warning('captured')
         log.check(('WARNING', 'captured'))
+
+    def test_combined_logging(self):
+        with LogCapture(LoguruSource(), LoggingSource()) as log:
+            for level in 'info', 'warning':
+                getattr(logging, level)('from stdlib')
+                getattr(logger, level)('from loguru')
+        log.check(
+            ('INFO', 'from stdlib'),
+            ('INFO', 'from loguru'),
+            ('WARNING', 'from stdlib'),
+            ('WARNING', 'from loguru'),
+        )
