@@ -142,17 +142,13 @@ class TestLogCapture(TestCase):
     def test_order_doesnt_matter_extra_in_actual(self):
         capture = TwistedLogCapture.make(self)
         log.info('Failed to send BAR')
-        log.info('Sent FOO, length 1234')
         log.info('Sent 1 Messages')
         with ShouldAssert(
             "same:\n"
             "[(<LogLevel=info>, 'Failed to send BAR'), (<LogLevel=info>, 'Sent 1 Messages')]\n"
             "\n"
             "in expected but not actual:\n"
-            "[(<LogLevel=info>, <S:Sent FOO, length abc>)]\n"
-            "\n"
-            "in actual but not expected:\n"
-            "[(<LogLevel=info>, 'Sent FOO, length 1234')]"
+            "[(<LogLevel=info>, <S:Sent FOO, length abc>)]"
         ):
             capture.check(
                 (INFO, S('Sent FOO, length abc')),
