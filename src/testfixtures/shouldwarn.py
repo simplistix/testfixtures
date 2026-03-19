@@ -65,6 +65,7 @@ class ShouldWarn(warnings.catch_warnings):
             exc_val: BaseException | None,
             exc_tb: TracebackType | None,
     ) -> None:
+        __tracebackhide__ = True
         super(ShouldWarn, self).__exit__(exc_type, exc_val, exc_tb)
         if not self.recorded and self._empty_okay:
             return

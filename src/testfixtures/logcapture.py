@@ -267,6 +267,7 @@ class LogCapture(logging.Handler):
                        :class:`AssertionError` will be returned instead of the
                        exception being raised.
         """
+        __tracebackhide__ = True
         result = compare(
             expected,
             actual=self.actual(),
@@ -299,6 +300,7 @@ class LogCapture(logging.Handler):
                        :class:`AssertionError` will be returned instead of the
                        exception being raised.
         """
+        __tracebackhide__ = True
         actual = self.actual()
         expected_ = SequenceComparison(
             *expected, ordered=order_matters, partial=True, recursive=self.recursive_check

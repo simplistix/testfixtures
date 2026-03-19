@@ -128,6 +128,7 @@ class OutputCapture:
                        :class:`AssertionError` will be returned instead of the
                        exception being raised.
         """
+        __tracebackhide__ = True
         expected_mapping = {}
         actual_mapping = {}
         for prefix, _expected, captured in (
