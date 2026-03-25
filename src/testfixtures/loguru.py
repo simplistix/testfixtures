@@ -17,22 +17,39 @@ RecordAttributes: TypeAlias = AttributeSpec[Record]
 
 
 def level_name(record: Record) -> str:
+    """
+    Extract level name from the logged record
+
+    :param record: A loguru :ref:`record dict <loguru:record>`.
+    """
     return record['level'].name
 
 
 class LoguruSource:
     """
-    A capture source for loguru log records, for use with :class:`~testfixtures.LogCapture`.
+    A :class:`~testfixtures.logcapture.CaptureSource` for
+    `loguru <https://github.com/Delgan/loguru>`_ logging,
+    for use with :class:`~testfixtures.LogCapture`.
 
-    :param fields:
-      A sequence of field names (keys into the loguru record dict) or callables to extract
-      from each record to form the ``actual`` value stored in
-      :class:`~testfixtures.logcapture.Entry`. If a single field is specified, the actual
-      value is that field directly; otherwise it is a tuple.
+    On :meth:`~testfixtures.logcapture.CaptureSource.install` all existing loguru handlers
+    are removed and replaced with a single capture handler.
+    On :meth:`~testfixtures.logcapture.CaptureSource.uninstall`, the original handlers are restored.
 
-    :param level: The minimum log level to capture (passed to ``logger.add``).
+    :param attributes:
+        The sequence of attributes to return for each :ref:`record <loguru:record>` or a callable
+        that extracts :attr:`~testfixtures.logcapture.Entry.actual` from a record.
 
-    Additional keyword arguments are forwarded to ``logger.add``.
+        If a sequence of attribute names is passed, for each item, a key of that name will
+        be obtained from the :ref:`record dict <loguru:record>`. If the key is missing,
+        ``None`` will be used in its place.
+
+        If a callable is passed, it will be called with the :ref:`record <loguru:record>` and the
+        value returned will be used as :attr:`~testfixtures.logcapture.Entry.actual`.
+
+    :param level:
+        Minimum log level to capture.  Defaults to ``0``, capture everything.
+
+    Additional keyword arguments are forwarded to :meth:`logger.add <loguru._logger.Logger.add>`.
     """
 
     def __init__(
