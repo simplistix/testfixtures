@@ -17,7 +17,7 @@ from .utils import wrap
 
 class CaptureSource(Protocol):
     """
-    Protocol that capture sources must implement to be used with :class:`LogCapture`.
+    Protocol that :class:`LogCapture` sources must implement.
     """
 
     def install(self, collector: Callable[['Entry'], None]) -> None:
@@ -58,12 +58,23 @@ def build_actual_extractor(
 
 @dataclass
 class Entry:
-    """A captured log entry, with pre-computed extraction."""
+    """
+    A captured log entry produced by a :class:`~testfixtures.logcapture.CaptureSource`.
+    """
 
+    #: The raw object delivered by the logging framework. This is a :class:`~logging.LogRecord`
+    #: for standard library logging.
     raw: Any
+    #: The extracted value used by :meth:`~testfixtures.LogCapture.check` and related methods.
+    #: Its structure is determined by the ``attributes`` parameter of the source.
     actual: Any
-    level: int | None  # numeric level for ensure_checked; None means not level-checkable
+    #: Numeric log level used by :meth:`~testfixtures.LogCapture.ensure_checked`, or ``None``
+    #: if the source does not provide a comparable numeric level.
+    level: int | None
+    #: The exception associated with this entry if one was captured, otherwise ``None``.
     exception: BaseException | None = None
+    #: Whether this entry has been marked as checked by a :meth:`~testfixtures.LogCapture.check`
+    #: call.
     checked: bool = False
 
 LogRecordAttributes: TypeAlias = AttributeSpec[LogRecord]
@@ -71,44 +82,35 @@ LogRecordAttributes: TypeAlias = AttributeSpec[LogRecord]
 
 class LogCapture:
     """
-    These are used to capture entries logged to the Python logging
-    framework and make assertions about what was logged.
+    Captures log entries from one or more sources and provides methods to check what was logged.
 
-    :param names: A string (or tuple of strings) containing the dotted name(s)
-                  of loggers to capture. By default, the root logger is
-                  captured.
+    Construct with one or more :class:`~testfixtures.logcapture.CaptureSource` instances::
 
-    :param install: If `True`, the :class:`LogCapture` will be
-                    installed as part of its instantiation.
+        with LogCapture(LoggingSource()) as log:
+            ...
+            log.check(('INFO', 'expected message'))
 
-    :param propagate: If specified, any captured loggers will have their
-                      `propagate` attribute set to the supplied value. This can
-                      be used to prevent propagation from a child logger to a
-                      parent logger that has configured handlers.
+    Multiple sources may be combined to capture from several frameworks simultaneously::
 
-    :param attributes:
+        with LogCapture(LoggingSource(), LoguruSource()) as log:
+            ...
 
-      The sequence of attribute names to return for each record or a callable
-      that extracts a row from a record.
+    Alternatively, for stdlib :mod:`logging` only, a :class:`LoggingSource` is created
+    implicitly when the first positional argument is a logger name (or ``None``) rather than
+    a :class:`~testfixtures.logcapture.CaptureSource`::
 
-      If a sequence of attribute names, those attributes will be taken from the
-      :class:`~logging.LogRecord`. If an attribute is callable, the value
-      used will be the result of calling it. If an attribute is missing,
-      ``None`` will be used in its place.
+        with LogCapture('myapp', level=logging.WARNING) as log:
+            ...
 
-      If a callable, it will be called with the :class:`~logging.LogRecord`
-      and the value returned will be used as the row.
+    In this legacy form the optional first positional argument gives the logger name(s) and the
+    ``level``, ``propagate``, and ``attributes`` keyword arguments are forwarded to
+    :class:`LoggingSource`.
 
-    :param recursive_check:
-
-      If ``True``, log messages will be compared recursively by
-      :meth:`LogCapture.check`.
-
-    :param ensure_checks_above:
-
-      The log level above which checks must be made for logged events.
-      See :meth:`ensure_checked`.
-
+    :param install: If ``True`` (the default), capturing starts immediately on construction.
+        Pass ``False`` to defer installation and call :meth:`install` manually.
+    :param recursive_check: If ``True``, entries are compared recursively by :meth:`check`.
+    :param ensure_checks_above: The log level above which entries must have been checked.
+        See :meth:`ensure_checked`.
     """
 
     #: The log level above which checks must be made for logged events.
@@ -120,6 +122,8 @@ class LogCapture:
     instances: set['LogCapture'] = set()
     atexit_setup = False
     installed = False
+    #: Class-level default for :attr:`ensure_checks_above`. Set this to apply a level
+    #: threshold to all :class:`LogCapture` instances that do not override it explicitly.
     default_ensure_checks_above: int | None = None
 
     @overload
@@ -241,12 +245,7 @@ class LogCapture:
 
     def install(self) -> Self | None:
         """
-        Install this :class:`LogCapture` into the Python logging
-        framework for the named loggers.
-
-        This will remove any existing handlers for those loggers and
-        drop their level to that specified on this :class:`LogCapture` in order
-        to capture all logging.
+        Install this :class:`LogCapture`, enabling all configured sources to begin capturing.
         """
         for source in self._sources:
             source.install(self._collect_entry)
@@ -258,12 +257,7 @@ class LogCapture:
 
     def uninstall(self) -> None:
         """
-        Un-install this :class:`LogCapture` from the Python logging
-        framework for the named loggers.
-
-        This will re-instate any existing handlers for those loggers
-        that were removed during installation and restore their level
-        that prior to installation.
+        Uninstall this :class:`LogCapture`, restoring all sources to their previous state.
         """
         if self in self.instances:
             for source in self._sources:
@@ -447,11 +441,28 @@ class LoggingHandler(logging.Handler):
 
 class LoggingSource:
     """
-    A :class:`logging.Handler` that captures log records into :class:`Entry` objects
-    and delivers them to a collector callback.
+    A :class:`~testfixtures.logcapture.CaptureSource` for the standard-library
+    :mod:`logging` framework, for use with :class:`~testfixtures.LogCapture`.
 
-    All ``logging``-module knowledge lives here; :class:`~testfixtures.LogCapture`
-    never inspects framework-specific fields directly.
+    :param attributes: Controls the :attr:`~testfixtures.logcapture.Entry.actual` value
+        stored for each entry.
+
+        * A sequence of attribute names or callables: each string name is looked up on the
+          :class:`~logging.LogRecord` (if the attribute value is itself callable, it is called
+          to obtain the final value); each callable element is called with the
+          :class:`~logging.LogRecord`.  If only one element is given the value is stored
+          directly; otherwise a tuple is stored.  Defaults to ``('levelname', 'getMessage')``,
+          producing ``('INFO', 'the message')`` tuples.
+        * A single callable: called with the :class:`~logging.LogRecord` and the return value
+          is stored as-is.
+    :param level: The minimum numeric log level to capture.  Defaults to ``1``, capturing
+        everything.
+    :param names: A tuple of logger names to capture.  Use ``(None,)`` (the default) to
+        capture the root logger, which receives records from all loggers that do not
+        suppress propagation.
+    :param propagate: If given, each captured logger's ``propagate`` flag is set to this
+        value for the duration of the capture.  Useful to suppress duplicate output when
+        a child logger is captured alongside its parent.
     """
 
     def __init__(

@@ -31,12 +31,25 @@ LogEventAttributes: TypeAlias = AttributeSpec[LogEvent]
 @zope.interface.implementer(ILogObserver)
 class TwistedSource:
     """
-    A capture source for Twisted log events, for use with :class:`~testfixtures.LogCapture`.
+    A :class:`~testfixtures.logcapture.CaptureSource` for Twisted log events,
+    for use with :class:`~testfixtures.LogCapture`.
 
-    :param fields:
-      A sequence of field names or callables to extract from each event to form the ``actual``
-      value stored in :class:`~testfixtures.logcapture.Entry`. If a single field is specified,
-      the actual value is that field directly; otherwise it is a tuple.
+    On :meth:`~testfixtures.logcapture.CaptureSource.install` all existing observers on
+    ``twisted.logger.globalLogPublisher`` are replaced with this source; on
+    :meth:`~testfixtures.logcapture.CaptureSource.uninstall` the original observers are
+    restored.
+
+    :param attributes: Controls the :attr:`~testfixtures.logcapture.Entry.actual` value stored
+        for each entry.  May be a sequence whose elements are either a string key into the
+        Twisted log event dict or a callable that receives the event dict and returns a value;
+        or a single callable that receives the event dict and returns the full value directly.
+        If only one element is given the value is stored directly; otherwise a tuple is stored.
+        Defaults to ``('log_level', formatEvent)``, producing ``(LogLevel.info, 'formatted
+        message')`` tuples.  Use the module-level constants :data:`DEBUG`, :data:`INFO`,
+        :data:`WARN`, :data:`ERROR`, :data:`CRITICAL` for readable assertions.
+    :param level: Minimum log level to capture.  Accepts an ``int`` (e.g. ``30``), a Twisted
+        :class:`~twisted.logger.LogLevel` constant (e.g. ``LogLevel.warn``), or a level-name
+        string (e.g. ``'warn'``).  Defaults to ``0`` (capture everything).
     """
 
     def __init__(
@@ -91,7 +104,7 @@ class LogCapture(_LogCapture):
     """
     A helper for capturing stuff logged using Twisted's loggers.
 
-    :param fields:
+    :param attributes:
       A sequence of field names that :meth:`~testfixtures.LogCapture.check` will use to build
       "actual" events to compare against the expected events passed in.
       If items are strings, they will be treated as keys info the Twisted logging event.

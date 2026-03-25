@@ -22,15 +22,22 @@ def level_name(record: Record) -> str:
 
 class LoguruSource:
     """
-    A capture source for loguru log records, for use with :class:`~testfixtures.LogCapture`.
+    A :class:`~testfixtures.logcapture.CaptureSource` for
+    `loguru <https://github.com/Delgan/loguru>`_ log records,
+    for use with :class:`~testfixtures.LogCapture`.
 
-    :param fields:
-      A sequence of field names (keys into the loguru record dict) or callables to extract
-      from each record to form the ``actual`` value stored in
-      :class:`~testfixtures.logcapture.Entry`. If a single field is specified, the actual
-      value is that field directly; otherwise it is a tuple.
+    On :meth:`~testfixtures.logcapture.CaptureSource.install` all existing loguru handlers
+    are removed and replaced with a single capture handler; on
+    :meth:`~testfixtures.logcapture.CaptureSource.uninstall` the original handlers are restored.
 
-    :param level: The minimum log level to capture (passed to ``logger.add``).
+    :param attributes: Controls the :attr:`~testfixtures.logcapture.Entry.actual` value stored
+        for each entry.  May be a sequence whose elements are either a string key into the
+        loguru record dict or a callable that receives the record dict and returns a value;
+        or a single callable that receives the record dict and returns the full value directly.
+        If only one element is given the value is stored directly; otherwise a tuple is stored.
+        Defaults to ``(level_name, 'message')``, producing ``('INFO', 'the message')`` tuples.
+    :param level: Minimum log level to capture, forwarded to ``logger.add``.  Defaults to
+        ``0`` (capture everything).
 
     Additional keyword arguments are forwarded to ``logger.add``.
     """
