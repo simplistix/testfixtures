@@ -332,7 +332,7 @@ class LogCaptureTests(TestCase):
             with ShouldWarn(
                 UserWarning(
                     "LogCapture instances not uninstalled by shutdown, "
-                    "loggers captured:\n"
+                    "sources captured:\n"
                     "LoggingSource((None,))"
                 )
             ):

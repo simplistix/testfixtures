@@ -3,76 +3,323 @@ Testing logging
 
 .. currentmodule:: testfixtures
 
-Python includes a :mod:`logging` package, and while it is widely used, many
-people assume that logging calls do not need to be tested or find the prospect too daunting.
-To help with this, testfixtures allows you to easily capture the
-output of calls to Python's logging framework and make sure they were
-as expected. 
+Logging is important and testing that your logging is correct should be as easy as possible.
+:class:`LogCapture` allows this for standard library :mod:`logging`,
+:doc:`loguru <loguru>` and :doc:`twisted <twisted>` logging.
+Support for other frameworks is easy to implement by way of the
+:class:`~testfixtures.logcapture.CaptureSource` protocol.
 
-.. note:: The :class:`LogCapture` class is useful for checking that
-          your code logs the right messages. If you want to check that
-          the configuration of your handlers is correct, please see
-          the :ref:`section <check-log-config>` below.
+If you want to test that your logging has been correctly configured,
+see :ref:`check-log-config`.
+
+As a simple example, you can capture logging with a `pytest`__ fixture such as this:
+
+__ https://docs.pytest.org/
+
+.. code-block:: python
+
+  import pytest
+  from typing import Iterator
+  from testfixtures import LogCapture, LoggingSource
+
+  @pytest.fixture()
+  def logs() -> Iterator[LogCapture]:
+      with LogCapture(LoggingSource()) as logs_:
+          yield logs_
+
+You can check that the code you're testing logs correctly like this:
+
+.. code-block:: python
+
+  import logging
+
+  def test_logging(logs: LogCapture) -> None:
+      # code under test
+      logging.info('%i is fine', 42)
+      logging.error('%s is not', 13)
+      logs.check(
+          ('INFO', '42 is fine'),
+          ('ERROR', '13 is not'),
+      )
+
+
+.. invisible-code-block: python
+
+  from sybil.testing import run_pytest
+  run_pytest(test_logging, fixtures=[logs])
+
+Checking captured log messages
+------------------------------
+
+There are three ways of checking that the messages captured were as expected.
+The following example is used to show these:
+
+.. code-block:: python
+
+  from testfixtures import LogCapture, LoggingSource
+  from logging import getLogger
+  logger = getLogger()
+
+  with LogCapture(LoggingSource()) as log:
+      logger.info('start of block number %i', 1)
+      try:
+          logger.debug('inside try block')
+          raise RuntimeError('No code to run!')
+      except:
+          logger.error('error occurred', exc_info=True)
+
+The check methods
+~~~~~~~~~~~~~~~~~
+
+:obj:`~testfixtures.LogCapture` instances have :meth:`~testfixtures.LogCapture.check`
+and :meth:`~testfixtures.LogCapture.check_present` methods to make assertions about
+entries that have been logged.
+
+:meth:`~testfixtures.LogCapture.check` will compare the captured logging with what you expect:
+
+>>> log.check(
+...     ('INFO', 'start of block number 1'),
+...     ('DEBUG', 'inside try block'),
+...     ('ERROR', 'error occurred'),
+... )
+
+
+If the actual entries logged were different, you'll get an :class:`AssertionError`:
+
+>>> log.check(('INFO', 'start of block number 1'))
+Traceback (most recent call last):
+ ...
+AssertionError: sequence not as expected:
+<BLANKLINE>
+same:
+(('INFO', 'start of block number 1'),)
+<BLANKLINE>
+expected:
+()
+<BLANKLINE>
+actual:
+(('DEBUG', 'inside try block'), ('ERROR', 'error occurred'))
+
+In contrast, :meth:`~testfixtures.LogCapture.check_present` will only check that the entries you
+specify are present, and that their order is as specified. Other entries will be ignored:
+
+>>> log.check_present(
+...     ('INFO', 'start of block number 1'),
+...     ('ERROR', 'error occurred'),
+... )
+
+If the order of entries is non-deterministic, then you can be explicit that the order doesn't
+matter:
+
+>>> log.check_present(
+...     ('ERROR', 'error occurred'),
+...     ('INFO', 'start of block number 1'),
+...     order_matters=False
+... )
+
+Similarly, if the order of entries is non-deterministic, but you want to ensure there is
+no unexpected logging, :meth:`~testfixtures.LogCapture.check` also support ``order_matters``:
+
+>>> log.check(
+...     ('DEBUG', 'inside try block'),
+...     ('INFO', 'start of block number 1'),
+...     ('ERROR', 'error occurred'),
+...     order_matters=False
+... )
+
+Inspecting
+~~~~~~~~~~
+
+:obj:`~testfixtures.LogCapture` instances also keep a list of the
+:class:`entries <testfixtures.logcapture.Entry>` they capture. This is useful when
+you want to check specifics of the captured logging that aren't
+available from either the string representation or the
+:meth:`~testfixtures.LogCapture.check` method.
+
+A common case of this is where you want to check that exception
+information was logged for certain messages:
+
+.. code-block:: python
+
+  from testfixtures import compare
+
+  compare(log.entries[-1].exception, expected=RuntimeError('No code to run!'))
+
+If you need access to the raw object captured from the logging framework:
+
+>>> log.entries[0].raw
+<LogRecord: root, 20, ..., "start of block number %i">
+
+If you want to access the items considered by the check methods, then use
+:meth:`~testfixtures.LogCapture.actual`:
+
+>>> from pprint import pprint
+>>> pprint(log.actual())
+[('INFO', 'start of block number 1'),
+ ('DEBUG', 'inside try block'),
+ ('ERROR', 'error occurred')]
+
+Printing
+~~~~~~~~
+
+:obj:`~testfixtures.LogCapture` instances have a string representation that
+shows what entries it has captured. This can be useful in doc tests:
+
+>>> print(log)
+INFO start of block number 1
+DEBUG inside try block
+ERROR error occurred
+
+This representation can also be used to check that no logging has
+occurred:
+
+>>> empty = LogCapture()
+>>> print(empty)
+No logging captured
+
+Only capturing specific logging
+-------------------------------
+
+You can capture only logging above a certain level like this:
+
+.. code-block:: python
+
+    with LogCapture(LoggingSource(level=logging.WARNING)) as logs:
+        logger = getLogger()
+        logger.debug('junk')
+        logger.info('something we care about')
+        logger.error('an error')
+
+    logs.check(
+        ('ERROR', 'an error'),
+    )
+
+To only capture a specific logger:
+
+.. code-block:: python
+
+    with LogCapture(LoggingSource(names=['specific'])) as logs:
+        getLogger('something').info('junk')
+        getLogger('specific').info('what we care about')
+        getLogger().info('more junk')
+
+    logs.check(
+        ('INFO', 'what we care about'),
+    )
+
+To capture multiple loggers:
+
+.. code-block:: python
+
+    with LogCapture(LoggingSource(names=('one', 'two'))) as logs:
+        getLogger('three').info('3')
+        getLogger('two').info('2')
+        getLogger('one').info('1')
+
+    logs.check(
+        ('INFO', '2'),
+        ('INFO', '1'),
+    )
+
+Capturing can also be disabled and enabled during a test by only having the
+:class:`~testfixtures.LogCapture` installed when necessary:
+
+>>> logger = logging.getLogger()
+>>> logs = LogCapture(LoggingSource(), install=False)
+
+>>> logger.info('junk')
+>>> logs.install()
+>>> logger.info('something we care about')
+>>> logs.uninstall()
+>>> logger.info('more junk')
+
+>>> logs.check(('INFO', 'something we care about'))
+
+You can also capture different attributes by specifying their names; if the attribute is
+callable, as with ``getMessage`` here, it will be called:
+
+.. code-block:: python
+
+    logger = getLogger()
+
+    with LogCapture(LoggingSource(attributes=('name', 'levelname', 'getMessage'))) as logs:
+        logger.debug('a debug message')
+        logger.info('something %s', 'info')
+        logger.error('an error')
+
+    logs.check(
+        ('root', 'DEBUG', 'a debug message'),
+        ('root', 'INFO', 'something info'),
+        ('root', 'ERROR', 'an error'),
+    )
+
+If you need even more control, you can pass a callable to extract the required information:
+
+.. code-block:: python
+
+    def extract(record):
+        return {'level': record.levelname, 'message': record.getMessage()}
+
+    with LogCapture(attributes=extract) as log:
+        logger = getLogger()
+        logger.debug('a debug message')
+        logger.error('an error')
+    log.check(
+        {'level': 'DEBUG', 'message': 'a debug message'},
+        {'level': 'ERROR', 'message': 'an error'},
+    )
 
 Methods of capture
 ------------------
 
-When using the tools provided by Testfixtures, there are three different techniques for
-capturing messages logged to the Python logging framework, depending on the type of test you are
-writing. They are all described in the sections below.
+There are three different ways of having a :class:`LogCapture` installed while your code
+under test is running:
 
 The context manager
 ~~~~~~~~~~~~~~~~~~~
 
 The context manager can be used as follows:
 
->>> import logging
->>> from testfixtures import LogCapture
->>> with LogCapture() as l:
-...     logger = logging.getLogger()
-...     logger.info('a message')
-...     logger.error('an error')
+.. code-block:: python
 
-For the duration of the ``with`` block, log messages are captured. The
-context manager provides a check method that raises an exception if
-the logging wasn't as you expected:
+    import logging
+    from testfixtures import LogCapture, LoggingSource
 
->>> l.check(
-...     ('root', 'INFO', 'a message'),
-...     ('root', 'ERROR', 'another error'),
+    logger = logging.getLogger()
+
+    with LogCapture(LoggingSource()) as logs:
+        logger.info('a message')
+        logger.error('an error')
+
+For the duration of the ``with`` block, logging is captured. If it doesn't match expectations
+then an :class:`AssertionError` will be raised:
+
+>>> logs.check(
+...     ('INFO', 'a message'),
+...     ('ERROR', 'another error'),
 ... )
 Traceback (most recent call last):
  ...
 AssertionError: sequence not as expected:
 <BLANKLINE>
 same:
-(('root', 'INFO', 'a message'),)
+(('INFO', 'a message'),)
 <BLANKLINE>
 expected:
-(('root', 'ERROR', 'another error'),)
+(('ERROR', 'another error'),)
 <BLANKLINE>
 actual:
-(('root', 'ERROR', 'an error'),)
-
-It also has a string representation that allows you to see what has
-been logged, which is useful for doc tests:
-
->>> print(l)
-root INFO
-  a message
-root ERROR
-  an error
+(('ERROR', 'an error'),)
 
 The decorator
 ~~~~~~~~~~~~~
 
-If you only want to capture logging for a particular test function, you may
-find the decorator suits your needs better:
+To capture logging for a particular test function:
 
 .. code-block:: python
 
   from testfixtures import log_capture
-  
+
   @log_capture()
   def test_function(capture):
       logger = logging.getLogger()
@@ -91,33 +338,20 @@ find the decorator suits your needs better:
 
 .. note::
     This method is not compatible with pytest's fixture discovery stuff.
-    Instead, put a fixture such as the following in your ``conftest.py``:
-
-    .. code-block:: python
-
-      import pytest
-
-      @pytest.fixture(autouse=True)
-      def capture():
-          with LogCapture() as capture:
-              yield capture
-
 
 Manual usage
 ~~~~~~~~~~~~
 
-If you want to capture logging for the duration of a doctest or
-in every test in a :class:`~unittest.TestCase`, then you can use the
-:class:`~testfixtures.LogCapture` manually.
+You can also manually instantiate, install and uninstall a :class:`~testfixtures.LogCapture`:
 
-The instantiation, which also starts the capturing, is done in the set-up step
-of the :class:`~unittest.TestCase` or equivalent:
+>>> from testfixtures import LogCapture, LoggingSource
+>>> logs = LogCapture(LoggingSource(), install=False)
 
->>> from testfixtures import LogCapture
->>> l = LogCapture()
+When you want to start capturing, :meth:`~LogCapture.install` the capture:
 
-You can then execute whatever will log the messages you want to test
-for:
+>>> logs.install()
+
+You can then execute code that will log the events you want to test:
 
 >>> from logging import getLogger
 >>> getLogger().info('a message')
@@ -125,19 +359,17 @@ for:
 At any point, you can check what has been logged using the
 check method:
 
->>> l.check(('root', 'INFO', 'a message'))
+>>> logs.check(('INFO', 'a message'))
 
 Alternatively, you can use the string representation of the
-:class:`~testfixtures.LogCapture`: 
+:class:`~testfixtures.LogCapture`:
 
->>> print(l)
-root INFO
-  a message
+>>> print(logs)
+INFO a message
 
-Then, in the tear-down step of the :class:`~unittest.TestCase` or equivalent,
-you should make sure you stop the capturing:
+When you're done capturing:
 
->>> l.uninstall()
+>>> logs.uninstall()
 
 The :meth:`~testfixtures.LogCapture.uninstall` method can also be added as an
 :meth:`~unittest.TestCase.addCleanup` if that is easier or more compact in your test
@@ -148,299 +380,64 @@ you can easily uninstall them all:
 
 >>> LogCapture.uninstall_all()
 
-Checking captured log messages
-------------------------------
-
-Regardless of how you use the :class:`~testfixtures.LogCapture` to
-capture messages, there are three ways of checking that the messages
-captured were as expected.
-
-The following example is useful for showing these:
-
-.. code-block:: python
-
-  from testfixtures import LogCapture
-  from logging import getLogger
-  logger = getLogger()
-
-  with LogCapture() as log:
-      logger.info('start of block number %i', 1)
-      try:
-          logger.debug('inside try block')
-          raise RuntimeError('No code to run!')
-      except:
-          logger.error('error occurred', exc_info=True)
-
-The check methods
-~~~~~~~~~~~~~~~~~
-
-:obj:`~testfixtures.LogCapture` instances have :meth:`~testfixtures.LogCapture.check`
-and :meth:`~testfixtures.LogCapture.check_present` methods to make assertions about
-entries that have been logged.
-
-:meth:`~testfixtures.LogCapture.check` will compare the
-log messages captured with those you expect. Expected messages are
-expressed, by default, as three-element tuples where the first element is the name
-of the logger to which the message should have been logged, the
-second element is the string representation of the level at which the
-message should have been logged and the third element is the message
-that should have been logged after any parameter interpolation has
-taken place.
-
-If things are as you expected, the method will not raise any exceptions:
-
->>> log.check(
-...     ('root', 'INFO', 'start of block number 1'),
-...     ('root', 'DEBUG', 'inside try block'),
-...     ('root', 'ERROR', 'error occurred'),
-... )
-
-
-However, if the actual messages logged were different, you'll get an
-:class:`AssertionError` explaining what happened:
-
->>> log.check(('root', 'INFO', 'start of block number 1'))
-Traceback (most recent call last):
- ...
-AssertionError: sequence not as expected:
-<BLANKLINE>
-same:
-(('root', 'INFO', 'start of block number 1'),)
-<BLANKLINE>
-expected:
-()
-<BLANKLINE>
-actual:
-(('root', 'DEBUG', 'inside try block'), ('root', 'ERROR', 'error occurred'))
-
-In contrast, :meth:`~testfixtures.LogCapture.check_present` will only check that the messages you
-specify are present, and that their order is as specified. Other messages will be ignored:
-
->>> log.check_present(
-...     ('root', 'INFO', 'start of block number 1'),
-...     ('root', 'ERROR', 'error occurred'),
-... )
-
-If the order of messages is non-deterministic, then you can be explict that the order doesn't
-matter:
-
->>> log.check_present(
-...     ('root', 'ERROR', 'error occurred'),
-...     ('root', 'INFO', 'start of block number 1'),
-...     order_matters=False
-... )
-
-Printing
-~~~~~~~~
-
-The :obj:`~testfixtures.LogCapture` has a string representation that
-shows what messages it has captured. This can be useful in doc tests:
-
->>> print(log)
-root INFO
-  start of block number 1
-root DEBUG
-  inside try block
-root ERROR
-  error occurred
-
-This representation can also be used to check that no logging has
-occurred: 
-
->>> empty = LogCapture()
->>> print(empty)
-No logging captured
-
-Inspecting
-~~~~~~~~~~
-
-The :obj:`~testfixtures.LogCapture` also keeps a list of the
-:class:`~logging.LogRecord` instances it captures. This is useful when
-you want to check specifics of the captured logging that aren't
-available from either the string representation or the
-:meth:`~testfixtures.LogCapture.check` method.
-
-A common case of this is where you want to check that exception
-information was logged for certain messages:
-
-.. code-block:: python
-
-  from testfixtures import compare, Comparison as C
-
-  compare(log.records[-1].exc_info[1], expected=C(RuntimeError('No code to run!')))
-
-If you wish the extraction specified in the ``attributes`` parameter to the
-:obj:`~testfixtures.LogCapture` constructor to be taken into account, you can examine the list
-of recorded entries returned by the :meth:`~testfixtures.LogCapture.actual` method:
-
-.. code-block:: python
-
-  assert log.actual()[-1][-1] == 'error occurred'
-
-Only capturing specific logging
--------------------------------
-
-Some actions that you want to test may generate a lot of logging, only
-some of which you actually need to care about. 
-
-The logging you care about is often only that above a certain log
-level. If this is the case, you can configure :obj:`~testfixtures.LogCapture` to
-only capture logging at or above a specific level:
-
->>> with LogCapture(level=logging.INFO) as l:
-...     logger = getLogger()
-...     logger.debug('junk') 
-...     logger.info('something we care about')
-...     logger.error('an error')
->>> print(l)
-root INFO
-  something we care about
-root ERROR
-  an error
-
-In other cases this problem can be alleviated by only capturing a
-specific logger:
-
->>> with LogCapture('specific') as l:
-...     getLogger('something').info('junk')
-...     getLogger('specific').info('what we care about')
-...     getLogger().info('more junk')
->>> print(l)
-specific INFO
-  what we care about
-
-However, it may be that while you don't want to capture all logging,
-you do want to capture logging from multiple specific loggers:
-
->>> with LogCapture(('one', 'two')) as l:
-...     getLogger('three').info('3')
-...     getLogger('two').info('2')
-...     getLogger('one').info('1')
->>> print(l)
-two INFO
-  2
-one INFO
-  1
-
-It may also be that the simplest thing to do is only capture logging
-for part of your test. This is particularly common with long doc
-tests. To make this easier, :class:`~testfixtures.LogCapture` supports
-manual installation and un-installation as shown in the following
-example:
-
->>> l = LogCapture(install=False)
->>> getLogger().info('junk')
->>> l.install()
->>> getLogger().info('something we care about')
->>> l.uninstall()
->>> getLogger().info('more junk')
->>> l.install()
->>> getLogger().info('something else we care about')
->>> print(l)
-root INFO
-  something we care about
-root INFO
-  something else we care about
-
-.. uninstall:
-
-  >>> LogCapture.uninstall_all()
-
-Once you have the filtered to the entries you would like to make assertions about, you may also
-want to look at a different set of attributes that the defaults for
-:class:`~testfixtures.LogCapture`:
-
->>> with LogCapture(attributes=('levelname', 'getMessage')) as log:
-...     logger = getLogger()
-...     logger.debug('a debug message')
-...     logger.info('something %s', 'info')
-...     logger.error('an error')
->>> log.check(
-...     ('DEBUG', 'a debug message'),
-...     ('INFO', 'something info'),
-...     ('ERROR', 'an error')
-... )
-
-As you can see, if a specified attribute is callable, it will be called and the result used to
-form part of the entry. If you need even more control, you can pass a callable to the
-``attributes`` parameter, which can extract any required information from the records and return
-it in the most appropriate form:
-
-.. code-block:: python
-
-  def extract(record):
-      return {'level': record.levelname, 'message': record.getMessage()}
-
->>> with LogCapture(attributes=extract) as log:
-...     logger = getLogger()
-...     logger.debug('a debug message')
-...     logger.error('an error')
->>> log.check(
-...     {'level': 'DEBUG', 'message': 'a debug message'},
-...     {'level': 'ERROR', 'message': 'an error'},
-... )
-
 .. _check-log-config:
 
-Checking the configuration of your log handlers
------------------------------------------------
+Testing logging configuration
+-----------------------------
 
 :class:`LogCapture` is good for checking that your code is logging the
 correct messages; just as important is checking that your application
-has correctly configured log handers. This can be done using a unit
-test such as the following:
+has correctly configured log handlers. If you have a ``setup_logging`` function such as this:
 
 .. code-block:: python
 
-    from testfixtures import Comparison as C, compare
-    from unittest import TestCase
+    def setup_logging(level: int = logging.INFO) -> None:
+        # Our logging configuration code, in this case just a
+        # call to basicConfig:
+        logging.basicConfig(
+            format='%(levelname)s %(message)s',
+            level=level,
+            force=True,
+        )
+
+This can be tested with a unit test such as the following:
+
+.. code-block:: python
+
+    from testfixtures import Replacer, compare, like
     import logging
     import sys
 
-    class LoggingConfigurationTests(TestCase):
+    logger = logging.getLogger()
 
-        # We mock out the handlers list for the logger we're
-        # configuring in such a way that we have no handlers
-        # configured at the start of the test and the handlers our
-        # configuration installs are removed at the end of the test.
+    def test_setup_logging() -> None:
+        with Replacer() as replace:
+            # We mock out the handlers list for the logger we're
+            # configuring in such a way that we have no handlers
+            # configured at the start of the test and the handlers our
+            # configuration installs are removed at the end of the test.
+            replace(logger.handlers, [], container=logger, name='handlers')
+            replace(logger.level, 0, container=logger, name='level')
 
-        def setUp(self):
-            self.logger = logging.getLogger()
-            self.orig_handlers = self.logger.handlers
-            self.logger.handlers = []
-            self.level = self.logger.level
+            setup_logging(level=logging.WARNING)
 
-        def tearDown(self):
-            self.logger.handlers = self.orig_handlers
-            self.logger.level = self.level
-        
-        def test_basic_configuration(self):
-            # Our logging configuration code, in this case just a
-            # call to basicConfig:
-            logging.basicConfig(format='%(levelname)s %(message)s',
-                                level=logging.INFO)
-
-            # Now we check the configuration is as expected:
-
-            compare(self.logger.level, 20)
-            compare([
-                C('logging.StreamHandler',
-                  stream=sys.stderr,
-                  formatter=C('logging.Formatter',
-                              _fmt='%(levelname)s %(message)s',
-                              partial=True),
-                  level=logging.NOTSET,
-                  partial=True)
-                ], self.logger.handlers)
+            compare(logger.level, expected=logging.WARNING)
+            compare(
+                logger.handlers,
+                expected=[
+                    like(
+                        logging.StreamHandler,
+                        stream = sys.stderr,
+                        formatter = like(
+                            logging.Formatter,
+                            _fmt = '%(levelname)s %(message)s'
+                        ),
+                        level=logging.NOTSET
+                    )
+                ]
+            )
       
 
-.. the result:
+.. check it:
 
-   >>> import unittest
-   >>> from io import StringIO
-   >>> suite = unittest.TestLoader().loadTestsFromTestCase(LoggingConfigurationTests)
-   >>> stream = StringIO()
-   >>> result = unittest.TextTestRunner(verbosity=0, stream=stream).run(suite)
-   >>> if result.errors or result.failures: print(stream.getvalue())
-   >>> result
-   <unittest...TextTestResult run=1 errors=0 failures=0>
+   >>> test_setup_logging()
