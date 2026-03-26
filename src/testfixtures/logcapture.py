@@ -271,7 +271,8 @@ class LogCapture:
     def __str__(self) -> str:
         if not self.entries:
             return 'No logging captured'
-        return '\n'.join(["%s %s\n  %s" % r for r in self.actual()])
+        tuples = (r if isinstance(r, tuple) else (r,) for r in self.actual())
+        return '\n'.join(' '.join(str(e) for e in t) for t in tuples)
 
     def check(self, *expected: Any, order_matters: bool = True, raises: bool = True) -> str | None:
         """
