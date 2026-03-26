@@ -4,6 +4,7 @@ from textwrap import dedent
 from unittest import TestCase
 
 from testfixtures import Replacer, LogCapture, compare, Replace, ShouldWarn
+from testfixtures.logcapture import LoggingSource
 from testfixtures.mock import Mock, call
 from testfixtures.shouldraise import ShouldAssert
 
@@ -26,7 +27,7 @@ class TestLogCapture(TestCase):
         root.info('during')
         l.uninstall()
         root.info('after')
-        assert str(l) == "root INFO\n  during"
+        assert str(l) == "root INFO during"
 
     def test_simple_strict(self):
         log_capture = LogCapture(ensure_checks_above=ERROR)
@@ -107,8 +108,8 @@ class TestLogCapture(TestCase):
         child.info('4')
         l.uninstall()
         assert str(l) == (
-            "one INFO\n  2\n"
-            "one.child INFO\n  4"
+            "one INFO 2\n"
+            "one.child INFO 4"
         )
 
     def test_multiple_loggers(self):
@@ -119,8 +120,8 @@ class TestLogCapture(TestCase):
         child.info('4')
         l.uninstall()
         assert str(l) == (
-            "two INFO\n  3\n"
-            "one.child INFO\n  4"
+            "two INFO 3\n"
+            "one.child INFO 4"
         )
 
     def test_simple_manual_install(self):
@@ -130,7 +131,7 @@ class TestLogCapture(TestCase):
         root.info('during')
         l.uninstall()
         root.info('after')
-        assert str(l) == "root INFO\n  during"
+        assert str(l) == "root INFO during"
 
     def test_uninstall(self):
         # Lets start off with a couple of loggers:
@@ -176,11 +177,11 @@ class TestLogCapture(TestCase):
 
             child.info('2')
             assert str(l1) == (
-                "root INFO\n  1\n"
-                "child INFO\n  2"
+                "root INFO 1\n"
+                "child INFO 2"
             )
             assert str(l2) == (
-                "child INFO\n  2"
+                "child INFO 2"
             )
 
             # Add a dummy filter to the child,
@@ -237,16 +238,16 @@ class TestLogCapture(TestCase):
 
         l1 = LogCapture()
         root.info('1st message')
-        assert str(l1) == "root INFO\n  1st message"
+        assert str(l1) == "root INFO 1st message"
         l2 = LogCapture()
         root.info('2nd message')
 
         # So, l1 missed this message:
-        assert str(l1) == "root INFO\n  1st message"
+        assert str(l1) == "root INFO 1st message"
 
         # ...because l2 kicked it out and recorded the message:
 
-        assert str(l2) == "root INFO\n  2nd message"
+        assert str(l2) == "root INFO 2nd message"
 
         LogCapture.uninstall_all()
 
@@ -277,7 +278,17 @@ class TestLogCapture(TestCase):
         with LogCapture() as l:
           root.info('during')
         root.info('after')
-        assert str(l) == "root INFO\n  during"
+        assert str(l) == "root INFO during"
+
+    def test_str_logging_source_default(self):
+        with LogCapture(LoggingSource()) as l:
+            root.info('during')
+        assert str(l) == "INFO during"
+
+    def test_str_single_attribute(self):
+        with LogCapture(attributes=('getMessage',)) as l:
+            root.info('during')
+        assert str(l) == "during"
 
 
 class LogCaptureTests(TestCase):

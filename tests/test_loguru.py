@@ -67,6 +67,11 @@ class TestLogCapture:
             logger.warning('captured')
         log.check(('WARNING', 'captured'))
 
+    def test_str(self):
+        with LogCapture(LoguruSource()) as log:
+            logger.info('hello world')
+        assert str(log) == "INFO hello world"
+
     def test_combined_logging(self):
         with LogCapture(LoguruSource(), LoggingSource()) as log:
             for level in 'info', 'warning':
