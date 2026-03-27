@@ -21,7 +21,9 @@ LEVEL_MAP: dict[NamedConstant, int] = {
 }
 
 
-DEFAULT_FIELDS = ('log_level', formatEvent)
+def level_name(event: LogEvent) -> str:
+    return event['log_level'].name.upper()
+
 
 @zope.interface.implementer(ILogObserver)
 class TwistedSource:
@@ -34,8 +36,11 @@ class TwistedSource:
       the actual value is that field directly; otherwise it is a tuple.
     """
 
-    def __init__(self, fields: Sequence[str | Callable] = DEFAULT_FIELDS) -> None:
-        self.fields = fields
+    def __init__(
+            self,
+            fields: Sequence[str | Callable] | Callable[[LogEvent], Any] = (level_name, formatEvent)
+    ) -> None:
+        self.fields = fields if isinstance(fields, Sequence) else (fields,)
         self._collector: Callable[[Entry], None] | None = None
         self._original_observers: list | None = None
 
@@ -63,6 +68,9 @@ class TwistedSource:
         if self._original_observers is not None:
             globalLogPublisher._observers = self._original_observers
             self._original_observers = None
+
+
+DEFAULT_FIELDS = ('log_level', formatEvent)
 
 
 class LogCapture(_LogCapture):

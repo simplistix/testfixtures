@@ -2,7 +2,7 @@ import pytest
 
 pytest.importorskip("twisted")
 
-from twisted.logger import Logger, formatEvent
+from twisted.logger import Logger, formatEvent, LogLevel
 from twisted.python.failure import Failure
 from twisted.trial.unittest import TestCase
 
@@ -163,15 +163,15 @@ class TestUnifiedLogCapture(TestCase):
     def test_basic_capture(self):
         with LogCapture(TwistedSource()) as capture:
             log.info('hello {name}', name='world')
-        capture.check((INFO, 'hello world'))
+        capture.check(('INFO', 'hello world'))
 
     def test_check_order_doesnt_matter_ok(self):
         with LogCapture(TwistedSource()) as capture:
             log.info('first')
             log.info('second')
         capture.check(
-            (INFO, 'second'),
-            (INFO, 'first'),
+            ('INFO', 'second'),
+            ('INFO', 'first'),
             order_matters=False,
         )
 
@@ -181,15 +181,15 @@ class TestUnifiedLogCapture(TestCase):
             log.info('second')
         with ShouldAssert(
             "same:\n"
-            "[(<LogLevel=info>, 'second')]\n\n"
+            "[('INFO', 'second')]\n\n"
             "in expected but not actual:\n"
-            "[(<LogLevel=info>, 'nope')]\n\n"
+            "[('INFO', 'nope')]\n\n"
             "in actual but not expected:\n"
-            "[(<LogLevel=info>, 'first')]"
+            "[('INFO', 'first')]"
         ):
             capture.check(
-                (INFO, 'second'),
-                (INFO, 'nope'),
+                ('INFO', 'second'),
+                ('INFO', 'nope'),
                 order_matters=False,
             )
 
@@ -230,3 +230,33 @@ class TestUnifiedLogCapture(TestCase):
         with LogCapture(TwistedSource(fields=(formatEvent,))) as capture:
             log.info('hello {name}', name='world')
         capture.check('hello world')
+
+    def test_attributes_single_callable(self):
+        def extract(event):
+            return {'level': event['log_level'].name, 'message': formatEvent(event)}
+
+        with LogCapture(TwistedSource(extract)) as capture:
+            log.info('started')
+            log.warn('low memory')
+        capture.check(
+            {'level': 'info', 'message': 'started'},
+            {'level': 'warn', 'message': 'low memory'},
+        )
+
+    def test_level_filtering_int(self):
+        with LogCapture(TwistedSource(level=30)) as capture:
+            log.info('ignored')
+            log.warn('captured')
+        capture.check(("WARN", 'captured'))
+
+    def test_level_filtering_string(self):
+        with LogCapture(TwistedSource(level='warn')) as capture:
+            log.info('ignored')
+            log.warn('captured')
+        capture.check(("WARN", 'captured'))
+
+    def test_level_filtering_twisted_level(self):
+        with LogCapture(TwistedSource(level=LogLevel.warn)) as capture:
+            log.info('ignored')
+            log.warn('captured')
+        capture.check(("WARN", 'captured'))
