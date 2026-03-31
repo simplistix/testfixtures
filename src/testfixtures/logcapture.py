@@ -7,7 +7,6 @@ from logging import LogRecord
 from pprint import pformat
 from types import TracebackType
 from typing import List, Tuple, Sequence, Callable, Any, Self, Protocol, overload
-from unittest import TestCase
 from warnings import warn
 
 from .comparison import SequenceComparison, compare
@@ -134,9 +133,7 @@ class LogCapture:
             names: str | Tuple[str | None, ...] | None = args[0] if args else None
             if not isinstance(names, tuple):
                 names = (names,)
-            source = LoggingSource(names, level, propagate, attributes)
-            source.on_close = self._handle_close
-            self._sources = [source]
+            self._sources = [LoggingSource(names, level, propagate, attributes)]
         self.recursive_check = recursive_check
         if ensure_checks_above is None:
             self.ensure_checks_above = self.default_ensure_checks_above
@@ -145,14 +142,6 @@ class LogCapture:
         self.clear()
         if install:
             self.install()
-
-    def _handle_close(self) -> None:
-        if self in self.instances:
-            warn(
-                'LogCapture instance closed while still installed, '
-                'loggers captured:\n'
-                '%s' % ('\n'.join((', '.join(repr(s) for s in i._sources) for i in self.instances)))
-            )
 
     @classmethod
     def atexit(cls) -> None:
@@ -406,7 +395,26 @@ def log_capture(*names: str, **kw: Any) -> Callable:
     return wrap(l.install, l.uninstall)
 
 
-class LoggingSource(logging.Handler):
+class LoggingHandler(logging.Handler):
+    """Minimal handler that forwards records to a :class:`LoggingSource`."""
+
+    def __init__(self, source: 'LoggingSource') -> None:
+        super().__init__()
+        self._source = source
+
+    def __bool__(self) -> bool:
+        # Some logging internals check boolean rather than identity for handlers :-(
+        return True
+
+    def emit(self, record: LogRecord) -> None:
+        self._source._handle_record(record)
+
+    def close(self) -> None:
+        super().close()
+        self._source._handler_closed()
+
+
+class LoggingSource:
     """
     A :class:`logging.Handler` that captures log records into :class:`Entry` objects
     and delivers them to a collector callback.
@@ -422,32 +430,34 @@ class LoggingSource(logging.Handler):
         propagate: bool | None = None,
         attributes: Sequence[str] | Callable[[LogRecord], Any] = ('levelname', 'getMessage'),
     ) -> None:
-        logging.Handler.__init__(self)
         self.names = names
         self.level = level
         self.propagate = propagate
         self.attributes = attributes
         self.old: dict[str, dict[str | None, Any]] = defaultdict(dict)
         self._collector: Callable[[Entry], None] | None = None
-        self.on_close: Callable[[], None] | None = None
-
-    def __bool__(self) -> bool:
-        # Some logging internals check boolean rather than identity for handlers :-(
-        return True
+        self._handler: LoggingHandler | None = None
 
     def __repr__(self) -> str:
         return f'LoggingSource({self.names!r})'
 
-    def emit(self, record: LogRecord) -> None:
+    def _handler_closed(self) -> None:
+        if self._collector is not None:
+            warn(
+                f'LoggingSource closed while still capturing loggers: {self.names!r}\n'
+                'Call uninstall() or use LogCapture as a context manager.'
+            )
+
+    def _handle_record(self, record: LogRecord) -> None:
+        if self._collector is None:
+            return
         exception = record.exc_info[1] if record.exc_info else None
-        entry = Entry(
+        self._collector(Entry(
             raw=record,
             actual=self._compute_actual(record),
             level=record.levelno,
-            exception=exception
-        )
-        if self._collector is not None:
-            self._collector(entry)
+            exception=exception,
+        ))
 
     def _compute_actual(self, record: LogRecord) -> Any:
         if callable(self.attributes):
@@ -464,6 +474,7 @@ class LoggingSource(logging.Handler):
 
     def install(self, collector: Callable[[Entry], None]) -> None:
         self._collector = collector
+        self._handler = LoggingHandler(self)
         for name in self.names:
             logger = logging.getLogger(name)
             self.old['levels'][name] = logger.level
@@ -473,7 +484,7 @@ class LoggingSource(logging.Handler):
             self.old['propagate'][name] = logger.propagate
             logger.setLevel(self.level)
             logger.filters = []
-            logger.handlers = [self]
+            logger.handlers = [self._handler]
             logger.disabled = False
             if self.propagate is not None:
                 logger.propagate = self.propagate
@@ -486,8 +497,5 @@ class LoggingSource(logging.Handler):
             logger.handlers = self.old['handlers'][name]
             logger.disabled = self.old['disabled'][name]
             logger.propagate = self.old['propagate'][name]
-
-    def close(self) -> None:
-        super().close()
-        if self.on_close is not None:
-            self.on_close()
+        self._handler = None
+        self._collector = None
