@@ -381,8 +381,8 @@ class LogCaptureTests(TestCase):
         with LogCapture():
             with ShouldWarn(
                 UserWarning(
-                    'LogCapture instance closed while still installed, loggers captured:\n'
-                    'LoggingSource((None,))'
+                    "LoggingSource closed while still capturing loggers: (None,)\n"
+                    "Call uninstall() or use LogCapture as a context manager."
                 )
             ):
                 shutdown()
