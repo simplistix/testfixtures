@@ -8,7 +8,7 @@ from twisted.trial.unittest import TestCase
 
 from testfixtures import compare, ShouldRaise, StringComparison as S, ShouldAssert
 from testfixtures import LogCapture
-from testfixtures.twisted import LogCapture as TwistedLogCapture, INFO, TwistedSource
+from testfixtures.twisted import LogCapture as TwistedLogCapture, INFO, WARN, TwistedSource
 
 log = Logger()
 
@@ -27,7 +27,7 @@ class TestLogCapture(TestCase):
         compare(capture.events[0]['log_namespace'], expected='tests.test_twisted')
 
     def test_fields(self):
-        capture = TwistedLogCapture.make(self, fields=('a', 'b'))
+        capture = TwistedLogCapture.make(self, attributes=('a', 'b'))
         log.info('{a}, {b}', a=1, b=2)
         log.info('{a}, {b}', a=3, b=4)
         capture.check(
@@ -36,7 +36,7 @@ class TestLogCapture(TestCase):
         )
 
     def test_field(self):
-        capture = TwistedLogCapture.make(self, fields=(formatEvent,))
+        capture = TwistedLogCapture.make(self, attributes=(formatEvent,))
         log.info('er, {greeting}', greeting='hi')
         capture.check('er, hi')
 
@@ -227,7 +227,7 @@ class TestUnifiedLogCapture(TestCase):
         self.flushLoggedErrors()
 
     def test_single_field(self):
-        with LogCapture(TwistedSource(fields=(formatEvent,))) as capture:
+        with LogCapture(TwistedSource((formatEvent,))) as capture:
             log.info('hello {name}', name='world')
         capture.check('hello world')
 
