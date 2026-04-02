@@ -20,6 +20,8 @@ LEVEL_MAP: dict[NamedConstant, int] = {
     LogLevel.critical: 50,
 }
 
+LEVEL_NAME_MAP: dict[str, int] = {level.name: numeric for level, numeric in LEVEL_MAP.items()}
+
 
 def level_name(event: LogEvent) -> str:
     return event['log_level'].name.upper()
@@ -39,10 +41,15 @@ class TwistedSource:
     def __init__(
         self,
         attributes: Sequence[str | Callable] | Callable = (level_name, formatEvent),
-        level: int = 0,
+        level: int | str | NamedConstant = 0,
     ) -> None:
         self.attributes = attributes
-        self.level = level
+        if isinstance(level, str):
+            self.level: int = LEVEL_NAME_MAP[level.lower()]
+        elif isinstance(level, int):
+            self.level = level
+        else:
+            self.level = LEVEL_MAP[level]
         self._collector: Callable[[Entry], None] | None = None
         self._original_observers: list | None = None
 
@@ -78,7 +85,7 @@ class TwistedSource:
             self._original_observers = None
 
 
-DEFAULT_FIELDS = ('log_level', formatEvent)
+DEFAULT_ATTRIBUTES = ('log_level', formatEvent)
 
 
 class LogCapture(_LogCapture):
@@ -96,7 +103,7 @@ class LogCapture(_LogCapture):
 
     def __init__(
             self,
-            attributes: Sequence[str | Callable] | Callable = ('log_level', formatEvent),
+            attributes: Sequence[str | Callable] | Callable = DEFAULT_ATTRIBUTES,
             install: bool = False
     ) -> None:
         super().__init__(TwistedSource(attributes), install=install)
@@ -128,7 +135,11 @@ class LogCapture(_LogCapture):
                 raise failure
 
     @classmethod
-    def make(cls, testcase: TestCase, attributes: Sequence[str | Callable] | Callable = DEFAULT_ATTRIBUTES) -> Self:
+    def make(
+            cls,
+            testcase: TestCase,
+            fields: Sequence[str | Callable] | Callable = DEFAULT_ATTRIBUTES
+    ) -> Self:
         """
         Instantiate, install and add a cleanup for a :class:`LogCapture`.
 
@@ -138,7 +149,7 @@ class LogCapture(_LogCapture):
 
         :return: The :class:`LogCapture` instantiated by this method.
         """
-        capture = cls(attributes)
+        capture = cls(fields)
         capture.install()
         testcase.addCleanup(capture.uninstall)
         return capture

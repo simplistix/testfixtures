@@ -2,7 +2,7 @@ import pytest
 
 pytest.importorskip("twisted")
 
-from twisted.logger import Logger, formatEvent, LogLevel
+from twisted.logger import Logger, LogLevel, formatEvent
 from twisted.python.failure import Failure
 from twisted.trial.unittest import TestCase
 
@@ -27,7 +27,7 @@ class TestLogCapture(TestCase):
         compare(capture.events[0]['log_namespace'], expected='tests.test_twisted')
 
     def test_fields(self):
-        capture = TwistedLogCapture.make(self, attributes=('a', 'b'))
+        capture = TwistedLogCapture.make(self, fields=('a', 'b'))
         log.info('{a}, {b}', a=1, b=2)
         log.info('{a}, {b}', a=3, b=4)
         capture.check(
@@ -36,7 +36,7 @@ class TestLogCapture(TestCase):
         )
 
     def test_field(self):
-        capture = TwistedLogCapture.make(self, attributes=(formatEvent,))
+        capture = TwistedLogCapture.make(self, fields=(formatEvent,))
         log.info('er, {greeting}', greeting='hi')
         capture.check('er, hi')
 
