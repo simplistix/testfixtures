@@ -591,6 +591,15 @@ class TestCheckPresent:
                 order_matters=False
             )
 
+    def test_attributes_callable_in_sequence(self):
+        with LogCapture(LoggingSource((lambda r: r.levelname.lower(), 'getMessage'))) as log:
+            root.info('hello')
+            root.warning('world')
+        log.check(
+            ('info', 'hello'),
+            ('warning', 'world'),
+        )
+
     def test_entries_are_dictionaries(self):
         def extract(record):
             return {'level': record.levelname, 'message': record.getMessage()}

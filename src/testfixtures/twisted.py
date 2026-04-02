@@ -37,15 +37,21 @@ class TwistedSource:
     """
 
     def __init__(
-            self,
-            fields: Sequence[str | Callable] | Callable[[LogEvent], Any] = (level_name, formatEvent)
+        self,
+        attributes: Sequence[str | Callable] | Callable = (level_name, formatEvent),
+        level: int = 0,
     ) -> None:
-        self.fields = fields if isinstance(fields, Sequence) else (fields,)
+        self.attributes = attributes
+        self.level = level
         self._collector: Callable[[Entry], None] | None = None
         self._original_observers: list | None = None
 
     def __call__(self, event: LogEvent) -> None:
         if self._collector is not None:
+            if self.level:
+                event_level = LEVEL_MAP.get(event.get('log_level'))
+                if event_level is None or event_level < self.level:
+                    return
             failure = event.get('log_failure')
             entry = Entry(
                 raw=event,
@@ -56,7 +62,9 @@ class TwistedSource:
             self._collector(entry)
 
     def _compute_actual(self, event: LogEvent) -> Any:
-        values = tuple(f(event) if callable(f) else event.get(f) for f in self.fields)
+        if callable(self.attributes):
+            return self.attributes(event)
+        values = tuple(f(event) if callable(f) else event.get(f) for f in self.attributes)
         return values[0] if len(values) == 1 else values
 
     def install(self, collector: Callable[[Entry], None]) -> None:
@@ -88,10 +96,10 @@ class LogCapture(_LogCapture):
 
     def __init__(
             self,
-            fields: Sequence[str | Callable] = DEFAULT_FIELDS,
+            attributes: Sequence[str | Callable] | Callable = ('log_level', formatEvent),
             install: bool = False
     ) -> None:
-        super().__init__(TwistedSource(fields), install=install)
+        super().__init__(TwistedSource(attributes), install=install)
 
     @property
     def events(self) -> list[LogEvent]:
@@ -120,7 +128,7 @@ class LogCapture(_LogCapture):
                 raise failure
 
     @classmethod
-    def make(cls, testcase: TestCase, fields: Sequence[str | Callable] = DEFAULT_FIELDS) -> Self:
+    def make(cls, testcase: TestCase, attributes: Sequence[str | Callable] | Callable = DEFAULT_ATTRIBUTES) -> Self:
         """
         Instantiate, install and add a cleanup for a :class:`LogCapture`.
 
@@ -130,7 +138,7 @@ class LogCapture(_LogCapture):
 
         :return: The :class:`LogCapture` instantiated by this method.
         """
-        capture = cls(fields)
+        capture = cls(attributes)
         capture.install()
         testcase.addCleanup(capture.uninstall)
         return capture

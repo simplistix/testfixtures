@@ -41,6 +41,18 @@ class TestLogCapture:
             ('INFO', 'msg2'),
         )
 
+    def test_attributes_single_callable(self):
+        def extract(record):
+            return {'level': record['level'].name, 'message': record['message']}
+
+        with LogCapture(LoguruSource(extract)) as log:
+            logger.info('hello')
+            logger.error('boom')
+        log.check(
+            {'level': 'INFO', 'message': 'hello'},
+            {'level': 'ERROR', 'message': 'boom'},
+        )
+
     def test_exception(self):
         with LogCapture(LoguruSource()) as log:
             try:
