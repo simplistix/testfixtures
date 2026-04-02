@@ -99,7 +99,7 @@ class LogCapture:
         install: bool = True,
         level: int = 1,
         propagate: bool | None = None,
-        attributes: Sequence[str] | Callable[[LogRecord], Any] = ...,
+        attributes: Sequence[str | Callable[[LogRecord], Any]] | Callable[[LogRecord], Any] = ...,
         recursive_check: bool = False,
         ensure_checks_above: int | None = None,
     ) -> None: ...
@@ -119,7 +119,7 @@ class LogCapture:
         install: bool = True,
         level: int = 1,
         propagate: bool | None = None,
-        attributes: Sequence[str] | Callable[[LogRecord], Any] = (
+        attributes: Sequence[str | Callable[[LogRecord], Any]] | Callable[[LogRecord], Any] = (
             'name',
             'levelname',
             'getMessage',
@@ -133,7 +133,7 @@ class LogCapture:
             names: str | Tuple[str | None, ...] | None = args[0] if args else None
             if not isinstance(names, tuple):
                 names = (names,)
-            self._sources = [LoggingSource(names, level, propagate, attributes)]
+            self._sources = [LoggingSource(attributes, level, names=names, propagate=propagate)]
         self.recursive_check = recursive_check
         if ensure_checks_above is None:
             self.ensure_checks_above = self.default_ensure_checks_above
@@ -425,15 +425,19 @@ class LoggingSource:
 
     def __init__(
         self,
-        names: Tuple[str | None, ...] = (None,),
+        attributes: Sequence[str | Callable[[LogRecord], Any]] | Callable[[LogRecord], Any] = (
+            'levelname',
+            'getMessage',
+        ),
         level: int = 1,
+        *,
+        names: Tuple[str | None, ...] = (None,),
         propagate: bool | None = None,
-        attributes: Sequence[str] | Callable[[LogRecord], Any] = ('levelname', 'getMessage'),
     ) -> None:
-        self.names = names
-        self.level = level
-        self.propagate = propagate
         self.attributes = attributes
+        self.level = level
+        self.names = names
+        self.propagate = propagate
         self.old: dict[str, dict[str | None, Any]] = defaultdict(dict)
         self._collector: Callable[[Entry], None] | None = None
         self._handler: LoggingHandler | None = None
@@ -464,9 +468,12 @@ class LoggingSource:
             return self.attributes(record)
         values = []
         for a in self.attributes:
-            value = getattr(record, a, None)
-            if callable(value):
-                value = value()
+            if callable(a):
+                value = a(record)
+            else:
+                value = getattr(record, a, None)
+                if callable(value):
+                    value = value()
             values.append(value)
         if len(values) == 1:
             return values[0]

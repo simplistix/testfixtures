@@ -29,11 +29,11 @@ class LoguruSource:
 
     def __init__(
         self,
-        fields: Sequence[str | Callable] = (level_name, 'message'),
+        attributes: Sequence[str | Callable] | Callable = (level_name, 'message'),
         level: int | str = 0,
         **kw: Any,
     ) -> None:
-        self.fields = fields
+        self.attributes = attributes
         self._kw: dict[str, Any] = {'level': level, 'colorize': False, 'catch': False, **kw}
         self._collector: Callable[[Entry], None] | None = None
         self._id: int | None = None
@@ -53,7 +53,9 @@ class LoguruSource:
             self._collector(entry)
 
     def _compute_actual(self, record: dict) -> Any:
-        values = tuple(f(record) if callable(f) else record.get(f) for f in self.fields)
+        if callable(self.attributes):
+            return self.attributes(record)
+        values = tuple(f(record) if callable(f) else record.get(f) for f in self.attributes)
         return values[0] if len(values) == 1 else values
 
     def __repr__(self) -> str:
