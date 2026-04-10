@@ -11,6 +11,12 @@ from loguru import logger
 from testfixtures import LogCapture, ShouldRaise
 from testfixtures.loguru import LoguruSource
 
+@pytest.fixture(autouse=True)
+def clean_loguru():
+    logger.remove()
+    yield
+    logger.remove()
+
 
 class TestLogCapture:
 
