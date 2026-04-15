@@ -78,6 +78,16 @@ class TestLogCapture:
             logger.info('hello world')
         assert str(log) == "INFO hello world"
 
+    def test_broken_attribute_method(self) -> None:
+
+        def raw(e):
+            raise ValueError("boom")
+
+        with LogCapture(LoguruSource((raw,))) as log:
+            with ShouldRaise(ValueError("boom")):
+                    logger.info("task logging")
+        log.check()
+
     def test_combined_logging(self):
         with LogCapture(LoguruSource(), LoggingSource()) as log:
             for level in 'info', 'warning':
