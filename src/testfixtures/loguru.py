@@ -60,14 +60,18 @@ class LoguruSource:
         return 'LoguruSource()'
 
     def install(self, collector: Callable[[Entry], None]) -> None:
+        core = logger._core  # type: ignore[attr-defined]
         self._collector = collector
-        self._original_handlers = dict(logger._core.handlers)  # type: ignore[attr-defined]
-        logger.remove()
+        self._original_handlers = dict(core.handlers)
+        self._original_min_level = core.min_level
+        core.handlers = {}  # hide existing sinks, don't stop them
         self._id = logger.add(self._handle, format="{message}", **self._kw)
 
     def uninstall(self) -> None:
         if self._original_handlers is not None:
-            logger.remove(self._id)
-            logger._core.handlers = self._original_handlers  # type: ignore[attr-defined]
+            logger.remove(self._id)  # stop only the capture handler (fine to stop)
+            core = logger._core  # type: ignore[attr-defined]
+            core.min_level = self._original_min_level
+            core.handlers = self._original_handlers  # restore live sinks
             self._original_handlers = None
             self._id = None
