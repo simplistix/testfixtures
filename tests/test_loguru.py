@@ -10,8 +10,8 @@ from testfixtures import LogCapture, ShouldRaise, compare, StringComparison
 pytest.importorskip("loguru")
 
 from loguru import logger
+from testfixtures.loguru import LoguruSource, level_name
 
-from testfixtures.loguru import LoguruSource
 
 @pytest.fixture(autouse=True)
 def clean_loguru():
@@ -90,6 +90,29 @@ class TestLogCapture:
                     logger.info("task logging")
         log.check()
 
+    def test_contextualize(self) -> None:
+        with LogCapture(LoguruSource((level_name, 'message', 'extra'))) as log:
+            with logger.contextualize(task=1234):
+                logger.info("task logging")
+        log.check(('INFO', 'task logging', {'task': 1234}))
+
+    def test_bind(self) -> None:
+        with LogCapture(LoguruSource((level_name, 'message', 'extra'))) as log:
+            context_logger = logger.bind(ip="192.168.0.1", user="someone")
+            context_logger.info("Contextualize your logger easily")
+            context_logger.bind(other="foo").info("Inline binding of extra attribute")
+            context_logger.info("Use kwargs to add context during formatting: {user}", user="me")
+        log.check(
+            ('INFO',
+             'Contextualize your logger easily',
+             {'ip': '192.168.0.1', 'user': 'someone'}),
+            ('INFO',
+             'Inline binding of extra attribute',
+             {'ip': '192.168.0.1', 'user': 'someone', 'other': 'foo'}),
+            ('INFO',
+             'Use kwargs to add context during formatting: me',
+             {'ip': '192.168.0.1', 'user': 'me'})
+        )
 
     def test_serialize(self):
         sink = Mock()
