@@ -1,14 +1,16 @@
 import logging
+from pathlib import Path
 
 import pytest
 
 from testfixtures.logcapture import LoggingSource
+from testfixtures.mock import Mock, call, _Call as Call
+from testfixtures import LogCapture, ShouldRaise, compare, StringComparison
 
 pytest.importorskip("loguru")
 
 from loguru import logger
 
-from testfixtures import LogCapture, ShouldRaise
 from testfixtures.loguru import LoguruSource
 
 @pytest.fixture(autouse=True)
@@ -87,6 +89,58 @@ class TestLogCapture:
             with ShouldRaise(ValueError("boom")):
                     logger.info("task logging")
         log.check()
+
+
+    def test_serialize(self):
+        sink = Mock()
+        logger.add(sink, serialize=True)
+        logger.info('before capture')
+        with LogCapture(LoguruSource()) as log:
+            logger.info('during capture')
+        logger.info('after capture')
+        log.check(('INFO', 'during capture'))
+
+        def write_call(message: str) -> Call:
+            return call.write(
+                StringComparison(
+                    (
+                        r'{"text": ".+ \| INFO +\| tests.test_loguru:test_serialize:\d+'
+                        r' - MESSAGE\\n", "record": {"elapsed": {"repr": "0.+", "seconds": .+}, '
+                        r'"exception": null, "extra": {}, '
+                        r'"file": {"name": "test_loguru.py", "path": ".+"}, '
+                        '"function": "test_serialize", '
+                        r'"level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": \d+, '
+                        '"message": "MESSAGE", '
+                        '"module": "test_loguru", "name": "tests.test_loguru", '
+                        '"process": {.+}, '
+                        '"thread": {.+}, '
+                        '"time": {"repr": ".+", "timestamp": .+}}}\n'
+                  ).replace('MESSAGE', message)
+            ))
+
+        compare(sink.mock_calls, expected=[
+            write_call('before capture'),
+            call.flush(),
+            write_call('after capture'),
+            call.flush(),
+        ])
+
+    def test_format(self, tmp_path: Path):
+        log_file= tmp_path / "file.log"
+        logger.add(log_file, format="{level} {extra[ip]} {extra[user]} {message}")
+        with logger.contextualize(ip="192.168.0.1", user="someone"):
+            logger.info('before capture')
+            with LogCapture(LoguruSource()) as log:
+                logger.info('during capture')
+            logger.info('after capture')
+        compare(
+            log_file.read_text(),
+            expected=(
+                "INFO 192.168.0.1 someone before capture\n"
+                "INFO 192.168.0.1 someone after capture\n"
+            )
+        )
+
 
     def test_combined_logging(self):
         with LogCapture(LoguruSource(), LoggingSource()) as log:
