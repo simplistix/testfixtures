@@ -5,7 +5,7 @@ from types import TracebackType
 from typing import Callable, TypeAlias, Iterator, Self, ParamSpec, TypeVar, Generic, cast, overload
 
 from testfixtures import diff, compare, not_there, singleton
-from .comparison import split_repr
+from .comparers import split_repr
 
 
 param_docs = """

@@ -485,7 +485,8 @@ don't compare as equal.
 
 .. invisible-code-block: python
 
-  from testfixtures.comparison import _registry, Registry, compare_sequence
+  from testfixtures.comparison import _registry, Registry
+  from testfixtures.comparers import compare_sequence
   from testfixtures import Replacer
   r = Replacer()
   r.replace('testfixtures.comparison._registry', Registry.initial({
@@ -704,16 +705,16 @@ AssertionError: Decimal('2.001') != Decimal('2.009') when rounded to 2 places
 Ignoring attributes in custom comparers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-When writing custom comparers that delegate to :func:`~testfixtures.comparison.compare_object`,
+When writing custom comparers that delegate to :func:`~testfixtures.comparers.compare_object`,
 you may want to always ignore certain attributes while still allowing users to pass additional
 attributes to ignore via the ``ignore_attributes`` parameter to :func:`compare`.
 
-The :func:`~testfixtures.comparison.merge_ignored_attributes` function makes this easy by
+The :func:`~testfixtures.comparers.merge_ignored_attributes` function makes this easy by
 combining multiple ignore specifications:
 
 .. code-block:: python
 
-  from testfixtures.comparison import compare_object, merge_ignored_attributes
+  from testfixtures.comparers import compare_object, merge_ignored_attributes
 
   class Thing:
       def __init__(self, **kw):

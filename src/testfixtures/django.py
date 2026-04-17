@@ -3,8 +3,8 @@ from typing import Any, Sequence, Iterable
 from django.db.models import Model, Field
 
 from . import compare as base_compare
+from .comparers import _compare_mapping
 from .comparison import (
-    _compare_mapping,
     register,
     CompareContext,
     unspecified,

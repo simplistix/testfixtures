@@ -19,13 +19,13 @@ from testfixtures import (
     generator,
     singleton,
 )
-from testfixtures.comparison import (
+from testfixtures.comparers import (
     compare_sequence,
     compare_object,
-    Registry,
     compare_text,
-    merge_ignored_attributes, like,
+    merge_ignored_attributes,
 )
+from testfixtures.comparison import Registry, like
 from testfixtures.compat import PY_312_PLUS
 from testfixtures.mock import Mock, call
 from testfixtures.shouldraise import ShouldAssert
@@ -2251,7 +2251,7 @@ b
                 '[<MyList:[1, 2, 3]>]\n'
                 '\n'
                 f"While comparing [1]: <AlreadySeen for [1, 2, 3] at ... "
-                f"(<class 'testfixtures.comparison.AlreadySeen'>) != "
+                f"(<class 'testfixtures.comparers.AlreadySeen'>) != "
                 f"<MyList:[1, 2, 3]> ({type_repr})"
             )
         )

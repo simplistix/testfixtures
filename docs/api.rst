@@ -48,33 +48,38 @@ testfixtures.comparison
 
 .. autofunction:: testfixtures.comparison.register
 
-.. autofunction:: testfixtures.comparison.compare_simple
-
-.. autofunction:: testfixtures.comparison.compare_object
-
-.. autofunction:: testfixtures.comparison.merge_ignored_attributes
-
-.. autofunction:: testfixtures.comparison.compare_exception
-
-.. autofunction:: testfixtures.comparison.compare_exception_group
-
-.. autofunction:: testfixtures.comparison.compare_with_type
-
-.. autofunction:: testfixtures.comparison.compare_sequence
-
-.. autofunction:: testfixtures.comparison.compare_generator
-
-.. autofunction:: testfixtures.comparison.compare_tuple
-
-.. autofunction:: testfixtures.comparison.compare_dict
-
-.. autofunction:: testfixtures.comparison.compare_set
-
-.. autofunction:: testfixtures.comparison.compare_text
-
 .. autoclass:: testfixtures.comparison.CompareContext
 
-.. autoclass:: testfixtures.comparison.AlreadySeen
+testfixtures.comparers
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: testfixtures.comparers
+
+.. autofunction:: testfixtures.comparers.compare_simple
+
+.. autofunction:: testfixtures.comparers.compare_object
+
+.. autofunction:: testfixtures.comparers.merge_ignored_attributes
+
+.. autofunction:: testfixtures.comparers.compare_exception
+
+.. autofunction:: testfixtures.comparers.compare_exception_group
+
+.. autofunction:: testfixtures.comparers.compare_with_type
+
+.. autofunction:: testfixtures.comparers.compare_sequence
+
+.. autofunction:: testfixtures.comparers.compare_generator
+
+.. autofunction:: testfixtures.comparers.compare_tuple
+
+.. autofunction:: testfixtures.comparers.compare_dict
+
+.. autofunction:: testfixtures.comparers.compare_set
+
+.. autofunction:: testfixtures.comparers.compare_text
+
+.. autoclass:: testfixtures.comparers.AlreadySeen
 
 .. currentmodule:: testfixtures
 

@@ -45,7 +45,7 @@ Changes
 - :class:`Comparison` now shows the wrong type when it is compared against a wrong type.
 
 - :class:`Comparison` no longer spuriously reports
-  :class:`~testfixtures.comparison.AlreadySeen` as the wrong type.
+  :class:`~testfixtures.comparers.AlreadySeen` as the wrong type.
 
 - Fixed a bug where comparing parameterised generic type objects resulted in an infinite loop.
 
@@ -105,11 +105,11 @@ Changes
 
 - :class:`ShouldRaise` now supports :class:`ExceptionGroup`.
 
-- Fixed bug where :func:`~testfixtures.comparison.compare_generator` did not respect
+- Fixed bug where :func:`~testfixtures.comparers.compare_generator` did not respect
   ``strict=True``.
 
 - Fixed bug in the type annotations for :class:`ShouldRaise` and
-  :func:`~testfixtures.comparison.compare_exception`.
+  :func:`~testfixtures.comparers.compare_exception`.
 
 - :class:`LogCapture` will now raise an exception if closed while still installed.
   This can be a source of particularly confusing bugs.
@@ -349,7 +349,7 @@ Thanks to Daniel Fortunov for the fix.
 --------------------
 
 - Allow any attributes that need to be ignored to be specified directly when calling
-  :func:`~testfixtures.comparison.compare_object`. This is handy when writing
+  :func:`~testfixtures.comparers.compare_object`. This is handy when writing
   comparers for :func:`compare`.
 
 6.12.1 (16 Feb 2020)
@@ -1070,7 +1070,7 @@ Thanks to Matthias Lehmann for the import error reports.
 2.3.5 (13 August 2012)
 ----------------------
 
-- Fixed a bug in :func:`~testfixtures.comparison.compare_dict` that
+- Fixed a bug in :func:`~testfixtures.comparers.compare_dict` that
   mean the list of keys that were the same was returned in an unsorted
   order.
 
@@ -1166,7 +1166,7 @@ Thanks to Matthias Lehmann for the import error reports.
 - added a comparer for :class:`set` instances to :func:`compare`.
 
 - added a new `show_whitespace` parameter to
-  :func:`~comparison.compare_text`, the comparer used when comparing
+  :func:`~comparers.compare_text`, the comparer used when comparing
   strings and unicodes with :func:`compare`.
 
 - The internal queue for :any:`test_datetime <mock_datetime>`  is now considered to

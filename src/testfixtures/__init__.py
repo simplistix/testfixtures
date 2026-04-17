@@ -12,8 +12,9 @@ class singleton:
 not_there: singleton = singleton('not_there')
 
 
+from testfixtures.comparers import diff
 from testfixtures.comparison import (
-    Comparison, StringComparison, RoundComparison, compare, diff, RangeComparison,
+    Comparison, StringComparison, RoundComparison, compare, RangeComparison,
     SequenceComparison, Subset, Permutation, MappingComparison, like, sequence,
     contains, unordered
 )
