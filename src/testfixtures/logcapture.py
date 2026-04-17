@@ -27,6 +27,28 @@ class CaptureSource(Protocol):
         ...
 
 
+def build_actual_extractor(
+    attributes: Sequence[str | Callable[..., Any]] | Callable[..., Any],
+    extract_field: Callable[[Any, str], Any],
+) -> Callable[[Any], Any]:
+    # Compile the attributes spec into a callable that extracts an entry's
+    # ``actual`` value from a raw record. A bare string is treated as a single
+    # attribute name (``str`` is itself a ``Sequence[str]``).
+    if callable(attributes):
+        return attributes
+    if isinstance(attributes, str):
+        attributes = (attributes,)
+    attrs = tuple(attributes)
+    if len(attrs) == 1:
+        only = attrs[0]
+        if callable(only):
+            return only
+        return lambda raw: extract_field(raw, only)
+    return lambda raw: tuple(
+        a(raw) if callable(a) else extract_field(raw, a) for a in attrs
+    )
+
+
 @dataclass
 class Entry:
     """A captured log entry, with pre-computed extraction."""
@@ -441,6 +463,13 @@ class LoggingSource:
         self.old: dict[str, dict[str | None, Any]] = defaultdict(dict)
         self._collector: Callable[[Entry], None] | None = None
         self._handler: LoggingHandler | None = None
+        self._compute_actual = build_actual_extractor(attributes, self.extract_field)
+
+    def extract_field(self, raw: LogRecord, attribute: str) -> Any:
+        value = getattr(raw, attribute, None)
+        if callable(value):
+            value = value()
+        return value
 
     def __repr__(self) -> str:
         return f'LoggingSource({self.names!r})'
@@ -462,22 +491,6 @@ class LoggingSource:
             level=record.levelno,
             exception=exception,
         ))
-
-    def _compute_actual(self, record: LogRecord) -> Any:
-        if callable(self.attributes):
-            return self.attributes(record)
-        values = []
-        for a in self.attributes:
-            if callable(a):
-                value = a(record)
-            else:
-                value = getattr(record, a, None)
-                if callable(value):
-                    value = value()
-            values.append(value)
-        if len(values) == 1:
-            return values[0]
-        return tuple(values)
 
     def install(self, collector: Callable[[Entry], None]) -> None:
         self._collector = collector

@@ -6,7 +6,7 @@ from warnings import warn
 
 from loguru import logger
 
-from .logcapture import Entry
+from .logcapture import Entry, build_actual_extractor
 
 
 def level_name(record: dict) -> str:
@@ -40,6 +40,10 @@ class LoguruSource:
         self._id: int | None = None
         self._original_handlers: dict | None = None
         self._original_min_level: int | None = None
+        self._compute_actual = build_actual_extractor(attributes, self.extract_field)
+
+    def extract_field(self, raw: dict, attribute: str) -> Any:
+        return raw.get(attribute)
 
     def write(self, message: Any) -> None:
         if self._collector is not None:
@@ -59,12 +63,6 @@ class LoguruSource:
                 'LoguruSource left installed at shutdown.\n'
                 'Call uninstall() or use LogCapture as a context manager.'
             )
-
-    def _compute_actual(self, record: dict) -> Any:
-        if callable(self.attributes):
-            return self.attributes(record)
-        values = tuple(f(record) if callable(f) else record.get(f) for f in self.attributes)
-        return values[0] if len(values) == 1 else values
 
     def __repr__(self) -> str:
         return 'LoguruSource()'

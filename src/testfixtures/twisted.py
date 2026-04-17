@@ -8,7 +8,7 @@ from twisted.logger import globalLogPublisher, formatEvent, LogLevel, ILogObserv
 from twisted.trial.unittest import TestCase
 
 from . import compare
-from .logcapture import Entry, LogCapture as _LogCapture
+from .logcapture import Entry, LogCapture as _LogCapture, build_actual_extractor
 import zope.interface
 
 
@@ -52,6 +52,10 @@ class TwistedSource:
             self.level = LEVEL_MAP[level]
         self._collector: Callable[[Entry], None] | None = None
         self._original_observers: list | None = None
+        self._compute_actual = build_actual_extractor(attributes, self.extract_field)
+
+    def extract_field(self, raw: LogEvent, attribute: str) -> Any:
+        return raw.get(attribute)
 
     def __call__(self, event: LogEvent) -> None:
         if self._collector is not None:
@@ -67,12 +71,6 @@ class TwistedSource:
                 exception=failure.value if failure is not None else None,
             )
             self._collector(entry)
-
-    def _compute_actual(self, event: LogEvent) -> Any:
-        if callable(self.attributes):
-            return self.attributes(event)
-        values = tuple(f(event) if callable(f) else event.get(f) for f in self.attributes)
-        return values[0] if len(values) == 1 else values
 
     def install(self, collector: Callable[[Entry], None]) -> None:
         self._collector = collector
