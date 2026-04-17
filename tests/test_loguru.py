@@ -39,6 +39,11 @@ class TestLogCapture:
             logger.info('just the message')
         log.check('just the message')
 
+    def test_attributes_bare_string(self):
+        with LogCapture(LoguruSource('message')) as log:
+            logger.info('just the message')
+        log.check('just the message')
+
     def test_fields_callable(self):
         with LogCapture(LoguruSource((lambda r: r['level'].name, 'message'))) as log:
             logger.debug('msg1')

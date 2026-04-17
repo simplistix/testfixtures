@@ -231,6 +231,11 @@ class TestUnifiedLogCapture(TestCase):
             log.info('hello {name}', name='world')
         capture.check('hello world')
 
+    def test_attributes_bare_string(self):
+        with LogCapture(TwistedSource('log_format')) as capture:
+            log.info('hi there')
+        capture.check('hi there')
+
     def test_attributes_single_callable(self):
         def extract(event):
             return {'level': event['log_level'].name, 'message': formatEvent(event)}
