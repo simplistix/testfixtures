@@ -5,7 +5,14 @@ import pytest
 
 from testfixtures.logcapture import LoggingSource
 from testfixtures.mock import Mock, call, _Call as Call
-from testfixtures import LogCapture, ShouldRaise, compare, StringComparison
+from testfixtures import (
+    LogCapture,
+    ShouldNotWarn,
+    ShouldRaise,
+    ShouldWarn,
+    StringComparison,
+    compare,
+)
 
 pytest.importorskip("loguru")
 
@@ -188,3 +195,16 @@ class TestLogCapture:
             ('WARNING', 'from stdlib'),
             ('WARNING', 'from loguru'),
         )
+
+    def test_shutdown_while_installed(self):
+        with LogCapture(LoguruSource()):
+            with ShouldWarn(UserWarning(
+                'LoguruSource left installed at shutdown.\n'
+                'Call uninstall() or use LogCapture as a context manager.'
+            )):
+                logger.remove()
+
+    def test_uninstall_does_not_warn(self):
+        with ShouldNotWarn():
+            with LogCapture(LoguruSource()):
+                logger.info('hi')
