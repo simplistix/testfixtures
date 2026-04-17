@@ -7,6 +7,7 @@
 - **Docs for everything public** — new functionality or public API changes must have accompanying docs in `docs/*.rst`
 - **Type-annotate public APIs** — all public functions and classes need type annotations; mypy is the gate
 - **Use `compare()` in tests** — never use bare `assert` statements; always use `compare(actual, expected=...)` for assertions
+- **No `noqa`, ever** — this project has zero linter suppressions; don't add them. Fix the underlying issue instead.
 
 ## Project Overview
 
