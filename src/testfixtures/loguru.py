@@ -2,6 +2,7 @@
 Tools for helping to test applications that use Loguru.
 """
 from typing import Sequence, Callable, Any
+from warnings import warn
 
 from loguru import logger
 
@@ -40,7 +41,7 @@ class LoguruSource:
         self._original_handlers: dict | None = None
         self._original_min_level: int | None = None
 
-    def _handle(self, message: Any) -> None:
+    def write(self, message: Any) -> None:
         if self._collector is not None:
             record = message.record
             exc_info = record['exception']
@@ -51,6 +52,13 @@ class LoguruSource:
                 exception=exc_info.value if exc_info is not None else None,
             )
             self._collector(entry)
+
+    def stop(self) -> None:
+        if self._collector is not None:
+            warn(
+                'LoguruSource left installed at shutdown.\n'
+                'Call uninstall() or use LogCapture as a context manager.'
+            )
 
     def _compute_actual(self, record: dict) -> Any:
         if callable(self.attributes):
@@ -67,12 +75,14 @@ class LoguruSource:
         self._original_handlers = dict(core.handlers)
         self._original_min_level = core.min_level
         core.handlers = {}  # hide existing sinks, don't stop them
-        self._id = logger.add(self._handle, format="{message}", **self._kw)
+        self._id = logger.add(self, format="{message}", **self._kw)
 
     def uninstall(self) -> None:
         if self._original_handlers is not None:
-            logger.remove(self._id)  # stop only the capture handler (fine to stop)
+            self._collector = None  # suppress the shutdown warning from stop()
             core = logger._core  # type: ignore[attr-defined]
+            if self._id in core.handlers:
+                logger.remove(self._id)  # stop only the capture handler
             core.min_level = self._original_min_level
             core.handlers = self._original_handlers  # restore live sinks
             self._original_handlers = None
