@@ -600,6 +600,16 @@ class TestCheckPresent:
             ('warning', 'world'),
         )
 
+    def test_attributes_bare_string(self):
+        with LogCapture(LoggingSource('getMessage')) as log:
+            root.info('hello')
+        log.check('hello')
+
+    def test_attributes_bare_string_via_logcapture_kwarg(self):
+        with LogCapture(attributes='getMessage') as log:
+            root.info('hello')
+        log.check('hello')
+
     def test_entries_are_dictionaries(self):
         def extract(record):
             return {'level': record.levelname, 'message': record.getMessage()}
