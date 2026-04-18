@@ -270,7 +270,7 @@ def compare_object(
     y_attrs = _extract_attrs(y, _attrs_to_ignore(ignore_attributes, y))
     if x_attrs is None or y_attrs is None or not (x_attrs and y_attrs):
         return compare_simple(x, y, context)
-    if not context.simple_equals(x_attrs, y_attrs):
+    if not context.qualified_equals(x_attrs, y_attrs):
         return _compare_mapping(x_attrs, y_attrs, context, x,
                                 'attributes ', '.%s')
     return None
@@ -347,7 +347,7 @@ def compare_generator(x: Iterable, y: Iterable, context: 'CompareContext') -> st
     x = tuple(x)
     y = tuple(y)
 
-    if context.simple_equals(x, y):
+    if context.qualified_equals(x, y):
         return None
 
     return compare_sequence(x, y, context)

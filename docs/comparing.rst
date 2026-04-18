@@ -527,8 +527,8 @@ don't compare as equal.
   from testfixtures.comparison import _registry, Registry
   from testfixtures.comparers import compare_sequence
   from testfixtures import Replacer
-  r = Replacer()
-  r.replace('testfixtures.comparison._registry', Registry.initial({
+  registry_replacer = Replacer()
+  registry_replacer('testfixtures.comparison._registry', Registry.initial({
       list: compare_sequence
   }))
 
@@ -613,7 +613,7 @@ AssertionError: MyObject named 'foo' != MyObject named 'bar'
 
 .. invisible-code-block: python
 
-  r.restore()
+  registry_replacer.restore()
 
 A full list of the available comparers included can be found below the
 API documentation for :func:`compare`. These make good candidates for
@@ -801,9 +801,17 @@ or :exc:`SystemExit`, and substitute any failures with a marker.
 Ignoring ``__eq__``
 ~~~~~~~~~~~~~~~~~~~
 
-Some objects, such as those from the :doc:`Django ORM <django>`, have pretty broken
-implementations of ``__eq__``. Since :func:`compare` normally relies on this,
-it can result in objects appearing to be equal when they are not.
+.. warning::
+  If you find yourself in situation where objects incorrectly express equality, be very careful to
+  ensure that you see any tests you implement failing due to inequality before you assume that
+  anything described in this section is working as you expect.
+  Equality checking is complex, and there are gotchas lurking
+  with container types and objects on either side of an equality check implementing ``__eq__``.
+
+Some objects, such as those from the :doc:`Django ORM <django>`, make unfortunate choices in their
+implementations of ``__eq__`` when it comes to checking that objects have identical attributes.
+Since :func:`compare` normally relies on this, it can result in objects appearing to be equal when
+they are not.
 
 Take this class, for example:
 
@@ -821,20 +829,91 @@ If we compare normally, we erroneously understand the objects to be equal:
 
 >>> compare(actual=OrmObj(1), expected=OrmObj(2))
 
-In order to get a sane comparison, we need to both supply a custom comparer
-as described above, and use the ``ignore_eq`` parameter:
+In order to get a correct comparison, we need to use the ``ignore_eq`` parameter:
+
+>>> compare(actual=OrmObj(1), expected=OrmObj(2), ignore_eq=OrmObj)
+Traceback (most recent call last):
+...
+AssertionError: OrmObj not as expected:
+<BLANKLINE>
+attributes differ:
+'a': 2 (expected) != 1 (actual)
+
+``ignore_eq`` accepts a single type, an iterable of types, or ``True`` to
+skip ``__eq__`` for *every* object during the comparison.
+
+If a particular type and all of its sublclasses are always problematic, you can register it once
+globally so callers don't need to remember the ``ignore_eq=`` argument:
+
+.. invisible-code-block: python
+
+  registry_replacer = Replacer()
+  registry_replacer('testfixtures.comparison._registry', _registry.copy())
+
 
 .. code-block:: python
 
-  def compare_orm_obj(x, y, context):
-      if x.a != y.a:
-          return 'OrmObj: %s != %s' % (x.a, y.a)
+  from testfixtures import register
 
->>> compare(actual=OrmObj(1), expected=OrmObj(2),
-...         comparers={OrmObj: compare_orm_obj}, ignore_eq=True)
+  register(OrmObj, ignore_eq=True)
+
+.. invisible-code-block: python
+
+   registry_replacer.restore()
+
+Custom containers and ``ignore_eq``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When you pass a type to ``ignore_eq``, :func:`compare` also has to
+ignore the ``__eq__`` of any containers that might contain the type passed to ``ignore_eq``.
+This is handled for standard container types and their subclasses, specifically :class:`list`,
+:class:`tuple`, :class:`dict`, :class:`set`, and :class:`frozenset`.
+
+For an custom container or wrapper types that implement ``__eq__`` and don't subclass one
+of these standard container types, *and* which can contain instance of a type for which you'd like
+to ``ignore_eq``, you will find that ``ignore_eq`` for that type alone is not sufficient.
+
+For example, consider this container type:
+
+.. code-block:: python
+
+  class OrmObjBox:
+      def __init__(self, *items: OrmObj):
+          self.items = list(items)
+      def __eq__(self, other: "OrmObjBox") -> bool:
+          return self.items == other.items
+
+If we only pass :class:`!OrmObj` to ``ignore_eq``, the :class:`!OrmObjBox` instances will still
+erroneously appear to be equal:
+
+>>> compare(OrmObjBox(OrmObj(1)), OrmObjBox(OrmObj(2)), ignore_eq=OrmObj)
+
+To successfully ignore the ``__eq__`` of :class:`!OrmObj`, we need to pass both the type and
+any custom container or wrapper types to ``ignore_eq``:
+
+>>> compare(OrmObjBox(OrmObj(1)), OrmObjBox(OrmObj(2)), ignore_eq=[OrmObj, OrmObjBox])
 Traceback (most recent call last):
 ...
-AssertionError: OrmObj: 2 != 1
+AssertionError: OrmObjBox not as expected:
+<BLANKLINE>
+attributes differ:
+'items': [OrmObj: 1] != [OrmObj: 2]
+<BLANKLINE>
+While comparing .items: sequence not as expected:
+<BLANKLINE>
+same:
+[]
+<BLANKLINE>
+first:
+[OrmObj: 1]
+<BLANKLINE>
+second:
+[OrmObj: 2]
+<BLANKLINE>
+While comparing .items[0]: OrmObj not as expected:
+<BLANKLINE>
+attributes differ:
+'a': 1 != 2
 
 .. _strict-comparison:
 

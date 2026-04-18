@@ -16,7 +16,7 @@ from testfixtures.comparers import diff, safe_pformat, safe_repr
 from testfixtures.comparison import (
     Comparison, StringComparison, RoundComparison, compare, RangeComparison,
     SequenceComparison, Subset, Permutation, MappingComparison, like, sequence,
-    contains, unordered
+    contains, unordered, register
 )
 from testfixtures.datetime import mock_datetime, mock_date, mock_time
 from testfixtures.logcapture import LogCapture, log_capture, LoggingSource
@@ -74,6 +74,7 @@ __all__ = [
     'mock_datetime',
     'mock_time',
     'not_there',
+    'register',
     'replace',
     'replace_in_environ',
     'replace_on_class',

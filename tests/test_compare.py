@@ -15,6 +15,7 @@ from uuid import uuid4, UUID
 from testfixtures import (
     Comparison as C,
     MappingComparison,
+    Replace,
     Replacer,
     SequenceComparison,
     ShouldRaise,
@@ -30,7 +31,7 @@ from testfixtures.comparers import (
     compare_text,
     merge_ignored_attributes,
 )
-from testfixtures.comparison import Registry, like
+from testfixtures.comparison import Registry, _registry, like, register
 from testfixtures.compat import PY_312_PLUS
 from testfixtures.mock import Mock, call
 from testfixtures.shouldraise import ShouldAssert
@@ -1560,6 +1561,281 @@ b
             actual=query_set(),
             ignore_eq=True
         )
+
+    def test_django_orm_is_horrible_type(self):
+
+        assert self.OrmObj(1) == self.OrmObj(2)
+
+        def query_set():
+            yield self.OrmObj(1)
+            yield self.OrmObj(2)
+
+        self.check_raises(
+            message=(
+                "sequence not as expected:\n"
+                "\n"
+                "same:\n"
+                "(OrmObj: 1,)\n"
+                "\n"
+                "expected:\n"
+                "(OrmObj: 3,)\n"
+                "\n"
+                "actual:\n"
+                "(OrmObj: 2,)\n"
+                '\n'
+                'While comparing [1]: OrmObj not as expected:\n'
+                '\n'
+                'attributes differ:\n'
+                "'a': 3 (expected) != 2 (actual)"
+            ),
+            expected=[self.OrmObj(1), self.OrmObj(3)],
+            actual=query_set(),
+            ignore_eq=self.OrmObj
+        )
+
+    def test_django_orm_is_horrible_iterable(self):
+
+        assert self.OrmObj(1) == self.OrmObj(2)
+
+        def query_set():
+            yield self.OrmObj(1)
+            yield self.OrmObj(2)
+
+        self.check_raises(
+            message=(
+                "sequence not as expected:\n"
+                "\n"
+                "same:\n"
+                "(OrmObj: 1,)\n"
+                "\n"
+                "expected:\n"
+                "(OrmObj: 3,)\n"
+                "\n"
+                "actual:\n"
+                "(OrmObj: 2,)\n"
+                '\n'
+                'While comparing [1]: OrmObj not as expected:\n'
+                '\n'
+                'attributes differ:\n'
+                "'a': 3 (expected) != 2 (actual)"
+            ),
+            expected=[self.OrmObj(1), self.OrmObj(3)],
+            actual=query_set(),
+            ignore_eq=[self.OrmObj]
+        )
+
+    def test_ignore_eq_default_respects_broken_eq(self):
+        compare(self.OrmObj(1), self.OrmObj(2))
+
+    def test_ignore_eq_registered_by_type(self):
+        mock = type(_registry.ignore_eq_types)()
+        with Replace(_registry.ignore_eq_types, mock, container=_registry, name='ignore_eq_types'):
+            register(self.OrmObj, ignore_eq=True)
+            self.check_raises(
+                message=(
+                    'OrmObj not as expected:\n'
+                    '\n'
+                    'attributes differ:\n'
+                    "'a': 1 (expected) != 2 (actual)"
+                ),
+                expected=self.OrmObj(1),
+                actual=self.OrmObj(2),
+            )
+
+    def test_ignore_eq_mro_matching(self):
+        class SubOrm(self.OrmObj):
+            pass
+
+        self.check_raises(
+            message=(
+                'SubOrm not as expected:\n'
+                '\n'
+                'attributes differ:\n'
+                "'a': 1 (expected) != 2 (actual)"
+            ),
+            expected=SubOrm(1),
+            actual=SubOrm(2),
+            ignore_eq=self.OrmObj,
+        )
+
+    def test_ignore_eq_blocks_shortcut_for_nested_ignored_types(self):
+        # When any per-type ignore is in play, the `x == y` shortcut is
+        # disabled even at the container level — otherwise a list of
+        # OrmObj would have list.__eq__ silently delegate to OrmObj's
+        # broken __eq__ and report equal.
+        self.check_raises(
+            message=(
+                "sequence not as expected:\n"
+                "\n"
+                "same:\n"
+                "[OrmObj: 1]\n"
+                "\n"
+                "expected:\n"
+                "[OrmObj: 3]\n"
+                "\n"
+                "actual:\n"
+                "[OrmObj: 2]\n"
+                '\n'
+                'While comparing [1]: OrmObj not as expected:\n'
+                '\n'
+                'attributes differ:\n'
+                "'a': 3 (expected) != 2 (actual)"
+            ),
+            expected=[self.OrmObj(1), self.OrmObj(3)],
+            actual=[self.OrmObj(1), self.OrmObj(2)],
+            ignore_eq=self.OrmObj,
+        )
+
+    @dataclass(kw_only=True)
+    class Attrs:
+        x: int
+        y: int
+
+        def __repr__(self):
+            return f'{type(self).__name__}(x={self.x}, y={self.y})'
+
+    class OnlyXEq(Attrs):
+        def __eq__(self, other):
+            return self.x == other.x
+
+    class OnlyYEq(Attrs):
+        def __eq__(self, other):
+            return self.y == other.y
+
+    def test_ignore_eq_does_not_disable_other_types_eq(self):
+        # The OnlyYEq does not have its __eq__ ignored, so even though the instances have
+        # differing x attributes, no AssertionError is raised:
+        compare(
+            expected=self.OnlyYEq(x=1, y=3),
+            actual=self.OnlyYEq(x=2, y=3),
+            ignore_eq=self.OnlyXEq,
+        )
+        # The OnlyXEq instances are identical, so the ignore_eq doesn't uncover any attribute
+        # differences that would have been ignored:
+        compare(
+            expected=self.OnlyXEq(x=3, y=1),
+            actual=self.OnlyXEq(x=3, y=1),
+            ignore_eq=self.OnlyXEq,
+        )
+        # Now, we ignore the __eq__ of OnlyXEq, so an AssertionError is raised as the differences
+        # in the y attributes are no longer ignoreed:
+        self.check_raises(
+            message=(
+                "OnlyXEq not as expected:\n\n"
+                "attributes same:\n"
+                "['x']\n\n"
+                "attributes differ:\n"
+                "'y': 1 (expected) != 2 (actual)"
+            ),
+            expected=self.OnlyXEq(x=1, y=1),
+            actual=self.OnlyXEq(x=1, y=2),
+            ignore_eq=self.OnlyXEq,
+        )
+
+    def test_ignore_eq_does_not_disable_other_types_eq_in_sequence(self):
+        self.check_raises(
+            message=(
+                'sequence not as expected:\n\n'
+                'same:\n'
+                '[OnlyXEq(x=1, y=1)]\n\n'
+                'expected:\n'
+                '[OnlyYEq(x=1, y=3)]\n\n'
+                'actual:\n'
+                '[OnlyYEq(x=2, y=3)]\n\n'
+                'While comparing [1]: OnlyYEq not as expected:\n\n'
+                'attributes same:\n'
+                "['y']\n\n"
+                'attributes differ:\n'
+                "'x': 1 (expected) != 2 (actual)"
+            ),
+            # Here, we don't ignore_eq for OnlyXEq, so the two instances compare equal
+            # even though their y attributes differ. We ignore_eq for OnlyYEq, so even though the
+            # two OnlyYEq instances have identical y attributes, we ignore the __eq__ and so we
+            # get an AssertionError for the different in the x attributes.
+            expected=[self.OnlyXEq(x=1, y=1), self.OnlyYEq(x=1, y=3)],
+            actual=[self.OnlyXEq(x=1, y=2), self.OnlyYEq(x=2, y=3)],
+            ignore_eq=self.OnlyYEq,
+        )
+
+    def test_ignore_eq_registry_and_parameter_combine(self):
+
+        class OtherBroken:
+            def __init__(self, a):
+                self.a = a
+            def __eq__(self, other):
+                return True
+            def __repr__(self):
+                return 'OtherBroken: '+str(self.a)
+
+        register(self.OrmObj, ignore_eq=True)
+        try:
+            self.check_raises(
+                message=(
+                    'OtherBroken not as expected:\n'
+                    '\n'
+                    'attributes differ:\n'
+                    "'a': 1 (expected) != 2 (actual)"
+                ),
+                expected=OtherBroken(1),
+                actual=OtherBroken(2),
+                ignore_eq=OtherBroken,
+            )
+            self.check_raises(
+                message=(
+                    'OrmObj not as expected:\n'
+                    '\n'
+                    'attributes differ:\n'
+                    "'a': 1 (expected) != 2 (actual)"
+                ),
+                expected=self.OrmObj(1),
+                actual=self.OrmObj(2),
+                ignore_eq=OtherBroken,
+            )
+        finally:
+            _registry.ignore_eq_types.discard(self.OrmObj)
+
+    def test_register_requires_comparer_or_ignore_eq(self):
+        class SomeType:
+            pass
+
+        with ShouldRaise(TypeError(
+            "register() requires either a comparer or ignore_eq=True"
+        )):
+            register(SomeType)
+
+    def test_ignore_eq_per_type_with_shared_instance(self):
+        # When the same object appears at the same position in expected and
+        # actual, AlreadySeen kicks in on the second sighting. Equality must
+        # fall back to identity rather than the type's __eq__ — which is
+        # precisely the operator ignore_eq is asking us to distrust, and
+        # which may not cooperate with unknown operands like AlreadySeen.
+        class Strict:
+            def __init__(self, value):
+                self.value = value
+            def __eq__(self, other):
+                return isinstance(other, Strict) and self.value == other.value
+            def __hash__(self):
+                return hash(self.value)
+
+        s = Strict(1)
+        compare(expected=[s], actual=[s], ignore_eq=Strict)
+
+    def test_ignore_eq_registered_with_shared_instance(self):
+        # Same as above but via the registry — guards against a globally
+        # registered ignore_eq type leaking into unrelated comparisons that
+        # happen to reuse instances within a container.
+        class Strict:
+            def __init__(self, value):
+                self.value = value
+            def __eq__(self, other):
+                return isinstance(other, Strict) and self.value == other.value
+            def __hash__(self):
+                return hash(self.value)
+
+        with registry():
+            register(Strict, ignore_eq=True)
+            s = Strict(1)
+            compare(expected=[s], actual=[s])
 
     def test_django_orm_is_horrible_part_2(self):
 
