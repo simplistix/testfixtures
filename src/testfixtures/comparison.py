@@ -17,6 +17,7 @@ from typing import (
     List,
     Mapping,
     Callable,
+    Iterable,
     cast,
     overload,
     Self,
@@ -37,6 +38,11 @@ from .comparers import _compare_mapping, _extract_attrs
 # Some common types that are immutable, for optimisation purposes within CompareContext
 IMMUTABLE_TYPEs = str, bytes, int, float, tuple, type(None)
 
+# Container types whose `__eq__` delegates to their elements. When per-type
+# ignore_eq is in play, we can't trust `x == y` on these because nested
+# instances of an ignored type would silently leak through.
+CONTAINER_TYPES = list, tuple, dict, set, frozenset
+
 
 Comparer = Callable[[Any, Any, 'CompareContext'], str | None]
 Comparers: TypeAlias = dict[type, Comparer]
@@ -49,6 +55,7 @@ class Registry:
     comparers: dict[type, Comparer]
     all_option_names: set[str]
     options_for: dict[Comparer, set[str]]
+    ignore_eq_types: set[type]
 
     @staticmethod
     def _shared_mro(x: Any, y: Any) -> Iterable[type]:
@@ -89,7 +96,8 @@ class Registry:
         registry = cls(
             comparers={},
             all_option_names = {'ignore_attributes'},
-            options_for = {compare_object: {'ignore_attributes'}}
+            options_for = {compare_object: {'ignore_attributes'}},
+            ignore_eq_types = set(),
         )
         for name, value in comparers.items():
             registry[name] = value
@@ -99,7 +107,8 @@ class Registry:
         return type(self)(
             comparers=self.comparers.copy(),
             all_option_names = self.all_option_names.copy(),
-            options_for = self.options_for.copy()
+            options_for = self.options_for.copy(),
+            ignore_eq_types = self.ignore_eq_types.copy(),
         )
 
     def overlay_with(self, comparers: Comparers) -> Self:
@@ -131,13 +140,37 @@ _registry = Registry.initial({
 })
 
 
-def register(type_: type, comparer: Comparer) -> None:
+@overload
+def register(type_: type, comparer: Comparer) -> None: ...
+@overload
+def register(type_: type, comparer: Comparer, *, ignore_eq: bool) -> None: ...
+@overload
+def register(type_: type, *, ignore_eq: Literal[True]) -> None: ...
+
+
+def register(
+    type_: type,
+    comparer: Comparer | None = None,
+    *,
+    ignore_eq: bool = False,
+) -> None:
     """
-    Register the supplied comparer for the specified type.
+    Register the supplied comparer for the specified type, and/or mark the
+    type as one whose ``__eq__`` should be ignored during comparison.
+
+    At least one of ``comparer`` or ``ignore_eq=True`` must be supplied.
+
     This registration is global and will be in effect from the point
     this function is called until the end of the current process.
     """
-    _registry[type_] = comparer
+    if comparer is None and not ignore_eq:
+        raise TypeError(
+            "register() requires either a comparer or ignore_eq=True"
+        )
+    if comparer is not None:
+        _registry[type_] = comparer
+    if ignore_eq:
+        _registry.ignore_eq_types.add(type_)
 
 
 class CompareContext:
@@ -152,7 +185,7 @@ class CompareContext:
             y_label: str | None,
             recursive: bool = True,
             strict: bool = False,
-            ignore_eq: bool = False,
+            ignore_eq: bool | type | Iterable[type] = False,
             comparers: Comparers | None = None,
             options: dict[str, Any] | None = None,
     ):
@@ -167,7 +200,16 @@ class CompareContext:
         self.y_label = y_label
         self.recursive: bool = recursive
         self.strict: bool = strict
-        self.ignore_eq: bool = ignore_eq
+        self.ignore_eq_all: bool = False
+        self.ignore_eq_types: set[type] = set(self._registry.ignore_eq_types)
+        if ignore_eq is True:
+            self.ignore_eq_all = True
+        elif ignore_eq is False:
+            pass
+        elif isinstance(ignore_eq, type):
+            self.ignore_eq_types.add(ignore_eq)
+        else:
+            self.ignore_eq_types.update(ignore_eq)
         self.options: dict[str, Any] = options or {}
         self.message: str = ''
         self.breadcrumbs: List[str] = []
@@ -221,8 +263,36 @@ class CompareContext:
             self._seen[id_] = breadcrumb
             return obj
 
-    def simple_equals(self, x: Any, y: Any) -> bool:
-        return not (self.strict or self.ignore_eq) and x == y
+    def qualified_equals(self, x: Any, y: Any) -> bool:
+        """
+        Determines if two objects are equal, taking ``strict``, ``ignore_eq`` and instances
+        of :class:`~testfixtures.comparers.AlreadySeen` into account.
+        """
+        pair = x, y
+        # When either side is an AlreadySeen wrapper for the other (same
+        # underlying id), it's the same object we already handled —
+        # equal by identity. Skipping __eq__ here keeps that guarantee
+        # when __eq__ is broken, strict about unknown operands, or being
+        # bypassed via ignore_eq.
+        if any(type(o) is AlreadySeen for o in pair):
+            a, b = (o.id if type(o) is AlreadySeen else id(o) for o in pair)
+            if a == b:
+                return True
+        # AlreadySeen.__eq__ delegates to the wrapped object, so let
+        # normal equality run when the wrapper is on the right.
+        if type(y) is AlreadySeen:
+            return x == y
+        if self.strict or self.ignore_eq_all:
+            return False
+        # Containers delegate __eq__ to their elements, so when any
+        # ignored type is in play we must block container == as well.
+        types = self.ignore_eq_types
+        if types and any(
+            isinstance(o, CONTAINER_TYPES) or not types.isdisjoint(type(o).__mro__)
+            for o in pair
+        ):
+            return False
+        return x == y
 
     def call(self, comparer: Comparer, x: Any, y: Any) -> str | None:
         kw = {}
@@ -250,12 +320,11 @@ class CompareContext:
         current_message = ''
         try:
 
-            if type(y) is AlreadySeen or not (self.strict or self.ignore_eq):
-                try:
-                    if x == y:
-                        return False
-                except RecursionError:
-                    pass
+            try:
+                if self.qualified_equals(x, y):
+                    return False
+            except RecursionError:
+                pass
 
             comparer: Comparer = self._registry.lookup(x, y, self.strict)
 
@@ -304,7 +373,7 @@ def compare(
         raises: bool = True,
         recursive: bool = True,
         strict: bool = False,
-        ignore_eq: bool = False,
+        ignore_eq: bool | type | Iterable[type] = False,
         comparers: Comparers | None = None,
         **options: Any
 ) -> str | None:
@@ -350,11 +419,15 @@ def compare(
     :param strict: If ``True``, objects will only compare equal if they are
                    of the same type as well as being equal.
 
-    :param ignore_eq: If ``True``, object equality, which relies on ``__eq__``
-                      being correctly implemented, will not be used.
-                      Instead, comparers will be looked up and used
-                      and, if no suitable comparer is found, objects will
-                      be considered equal if their hash is equal.
+    :param ignore_eq: Controls when ``__eq__`` is skipped in favour of a
+                      registered comparer (or the hash-equality fallback):
+
+                      * ``True`` — skip ``__eq__`` for *every* object.
+                      * ``False`` (default) — honour ``__eq__`` except for
+                        types registered with ``ignore_eq=True``.
+                      * a type — also skip ``__eq__`` whenever an instance of
+                        that type is on either side of a comparison.
+                      * an iterable of types — as above, for each type.
 
     :param comparers: If supplied, should be a dictionary mapping
                       types to comparer functions for those types. These will
