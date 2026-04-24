@@ -124,14 +124,12 @@ _registry = Registry.initial({
     mock_call.__class__: compare_call,
     unittest_mock_call.__class__: compare_call,
     BaseException: compare_exception,
+    BaseExceptionGroup: compare_exception_group,
     partial_type: compare_partial,
     Path: compare_path,
     datetime: compare_with_fold,
     time: compare_with_fold,
 })
-
-
-_registry[BaseExceptionGroup] = compare_exception_group
 
 
 def register(type_: type, comparer: Comparer) -> None:
