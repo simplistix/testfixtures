@@ -24,6 +24,29 @@ class Tests(TestCase):
     def test_not_string(self):
         self.assertFalse(40220 == S(r'on \d+'))
 
+    def test_not_string_returns_not_implemented(self):
+        assert S(r'x').__eq__(40220) is NotImplemented
+
+    def test_not_string_reflected_equality(self):
+        class MatchesAnything:
+            def __eq__(self, other):
+                return True
+            def __ne__(self, other):
+                return False
+        other = MatchesAnything()
+        assert S(r'x') == other
+        assert other == S(r'x')
+
+    def test_not_string_reflected_inequality(self):
+        class MatchesAnything:
+            def __eq__(self, other):
+                return True
+            def __ne__(self, other):
+                return False
+        other = MatchesAnything()
+        assert not (S(r'x') != other)
+        assert not (other != S(r'x'))
+
     def test_repr(self):
         compare('<S:on \\d+>', repr(S(r'on \d+')))
 

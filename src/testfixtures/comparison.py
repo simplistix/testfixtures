@@ -10,7 +10,7 @@ from inspect import signature
 from operator import __or__
 from pathlib import Path
 from pprint import pformat
-from types import GeneratorType
+from types import GeneratorType, NotImplementedType
 from typing import (
     Any,
     Sequence,
@@ -1321,15 +1321,10 @@ class StringComparison:
 
         self.re = re.compile(*args)
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: Any) -> bool | NotImplementedType:
         if not isinstance(other, str):
-            return False
-        if self.re.match(other):
-            return True
-        return False
-
-    def __ne__(self, other: Any) -> bool:
-        return not self == other
+            return NotImplemented
+        return self.re.match(other) is not None
 
     def __repr__(self) -> str:
         return '<S:%s>' % self.re.pattern
