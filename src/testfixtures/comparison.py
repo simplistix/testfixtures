@@ -586,12 +586,15 @@ class Registry:
             registry[name] = value
         return registry
 
-    def overlay_with(self, comparers: Comparers) -> Self:
-        registry = type(self)(
+    def copy(self) -> Self:
+        return type(self)(
             comparers=self.comparers.copy(),
             all_option_names = self.all_option_names.copy(),
             options_for = self.options_for.copy()
         )
+
+    def overlay_with(self, comparers: Comparers) -> Self:
+        registry = self.copy()
         for name, value in comparers.items():
             registry[name] = value
         return registry
