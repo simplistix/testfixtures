@@ -16,7 +16,7 @@ intersphinx_mapping = {
 }
 
 # General
-source_suffix = '.rst'
+source_suffix = {'.rst': 'restructuredtext'}
 master_doc = 'index'
 project = 'testfixtures'
 copyright = '2008-2015 Simplistix Ltd, 2016 onwards Chris Withers'
