@@ -23,7 +23,10 @@ copyright = '2008-2015 Simplistix Ltd, 2016 onwards Chris Withers'
 release = metadata.version(project)
 exclude_trees = ['_build']
 pygments_style = 'sphinx'
+
+# Type hints
 autodoc_typehints = 'description'
+autodoc_typehints_description_target = "documented"
 
 # Options for HTML output
 html_theme = 'furo'
