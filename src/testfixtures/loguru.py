@@ -17,6 +17,11 @@ RecordAttributes: TypeAlias = AttributeSpec[Record]
 
 
 def level_name(record: Record) -> str:
+    """
+    Extract level name from the logged record
+
+    :param record: A loguru :ref:`record dict <loguru:record>`.
+    """
     return record['level'].name
 
 

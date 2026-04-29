@@ -21,7 +21,11 @@ class CaptureSource(Protocol):
     """
 
     def install(self, collector: Callable[['Entry'], None]) -> None:
-        """Start capturing, delivering entries to ``collector``."""
+        """
+        Start capturing.
+
+        :param collector: The destination for captured :attr:`~testfixtures.LogCapture.entries`.
+        """
         ...
 
     def uninstall(self) -> None:
@@ -59,7 +63,7 @@ def build_actual_extractor(
 @dataclass
 class Entry:
     """
-    A captured log entry produced by a :class:`~testfixtures.logcapture.CaptureSource`.
+    A captured log entry captured by a :class:`~testfixtures.logcapture.CaptureSource`.
     """
 
     #: The raw object delivered by the logging framework. This is a :class:`~logging.LogRecord`
@@ -84,45 +88,61 @@ class LogCapture:
     """
     Captures log entries from one or more sources and provides methods to check what was logged.
 
-    Construct with one or more :class:`~testfixtures.logcapture.CaptureSource` instances::
-
-        with LogCapture(LoggingSource()) as log:
-            ...
-            log.check(('INFO', 'expected message'))
-
-    Multiple sources may be combined to capture from several frameworks simultaneously::
-
-        with LogCapture(LoggingSource(), LoguruSource()) as log:
-            ...
-
-    Alternatively, for stdlib :mod:`logging` only, a :class:`LoggingSource` is created
-    implicitly when the first positional argument is a logger name (or ``None``) rather than
-    a :class:`~testfixtures.logcapture.CaptureSource`::
-
-        with LogCapture('myapp', level=logging.WARNING) as log:
-            ...
-
-    In this legacy form the optional first positional argument gives the logger name(s) and the
-    ``level``, ``propagate``, and ``attributes`` keyword arguments are forwarded to
-    :class:`LoggingSource`.
-
-    :param install: If ``True`` (the default), capturing starts immediately on construction.
-        Pass ``False`` to defer installation and call :meth:`install` manually.
-    :param recursive_check: If ``True``, entries are compared recursively by :meth:`check`.
-    :param ensure_checks_above: The log level above which entries must have been checked.
+    :param sources:
+        One or more :class:`capture sources <testfixtures.logcapture.CaptureSource>`
+    :param install:
+        If ``True`` (the default), capturing starts immediately on construction.
+        If ``False``, installation is deferred until :meth:`install` is called.
+    :param recursive_check:
+        If ``True``, entries are compared recursively by :meth:`check`.
+    :param ensure_checks_above:
+        The log level above which entries must have been checked.
         See :meth:`ensure_checked`.
+
+    For compatibility with earlier versions, capturing only
+    :any:`standard library logging <logging>` is supported by instantiating using these parameters:
+
+    :param names:
+        A string (or tuple of strings) containing the dotted name(s) of loggers to capture.
+        By default, the root logger is captured.
+    :param level:
+        The minimum log level to capture.  Defaults to ``1``, capturing everything.
+    :param propagate:
+        If specified, any captured loggers will have their propagate attribute set to the supplied
+        value. This can be used to prevent propagation from a child logger to a parent logger that
+        has configured handlers.
+    :param attributes:
+        The sequence of attribute names to return for each record or a callable that extracts
+        :attr:`~testfixtures.logcapture.Entry.actual` from a record.
+
+        If a sequence of attribute names is passed, those attributes will be taken from the
+        :class:`logging.LogRecord`. If an attribute is callable, the value used will be the result
+        of calling it. If an attribute is missing, ``None`` will be used in its place.
+
+        If a callable is passed, it will be called with the :class:`~logging.LogRecord` and the
+        value returned will be used as :attr:`~testfixtures.logcapture.Entry.actual`.
     """
 
-    #: The log level above which checks must be made for logged events.
-    ensure_checks_above: int | None
-
-    #: The list of :class:`~testfixtures.logcapture.Entry` objects captured so far.
+    #: The list of :class:`entries <testfixtures.logcapture.Entry>` captured so far.
     entries: list[Entry]
+
+    @property
+    def records(self) -> List[LogRecord]:
+        """
+        The records captured by this :class:`LogCapture`.
+
+        .. deprecated:: 12
+            Use the :attr:`entries` attribute instead.
+        """
+        return [e.raw for e in self.entries if isinstance(e.raw, LogRecord)]
+
 
     instances: set['LogCapture'] = set()
     atexit_setup = False
     installed = False
-    #: Class-level default for :attr:`ensure_checks_above`. Set this to apply a level
+
+    ensure_checks_above: int | None
+    #: Class-level default for :meth:`ensure_checked`. Set this to apply a level
     #: threshold to all :class:`LogCapture` instances that do not override it explicitly.
     default_ensure_checks_above: int | None = None
 
@@ -204,16 +224,6 @@ class LogCapture:
         """Clear any entries that have been captured."""
         self.entries: list[Entry] = []
 
-    @property
-    def records(self) -> List[LogRecord]:
-        """
-        The records captured by this :class:`LogCapture`.
-
-        .. deprecated:: 12
-            Use the ``entries`` attribute instead.
-        """
-        return [e.raw for e in self.entries if isinstance(e.raw, LogRecord)]
-
     def mark_all_checked(self) -> None:
         """
         Mark all captured events as checked.
@@ -228,7 +238,8 @@ class LogCapture:
         Ensure every entry logged above the specified `level` has been checked.
         Raises an :class:`AssertionError` if this is not the case.
 
-        :param level: the logging level, defaults to :attr:`ensure_checks_above`.
+        :param level:
+           This defaults to the level passed during :class:`LogCapture` instantiation.
         """
         threshold: int | None = level if level is not None else self.ensure_checks_above
         if threshold is None:
@@ -272,13 +283,11 @@ class LogCapture:
 
     def actual(self) -> list[Any]:
         """
-        The sequence of actual records logged, having had their attributes
-        extracted as specified by the ``attributes`` parameter to the
-        :class:`LogCapture` constructor.
+        The sequence of :attr:`~testfixtures.logcapture.Entry.actual` items captured.
 
-        This can be useful for making more complex assertions about logged
-        records. The actual records logged can also be inspected by using the
-        ``entries`` attribute.
+        This can be useful for making more complex assertions about captured logging.
+        The full :class:`~testfixtures.logcapture.Entry` objects captured for each logging call
+        can be accessed through :attr:`entries`.
         """
         return [e.actual for e in self.entries]
 
@@ -296,8 +305,7 @@ class LogCapture:
 
         :param expected:
 
-          A sequence of entries of the structure specified by the ``attributes``
-          passed to the constructor.
+          A sequence of expected :attr:`~testfixtures.logcapture.Entry.actual` items.
 
         :param order_matters:
 
@@ -351,15 +359,14 @@ class LogCapture:
             self, *expected: Any, order_matters: bool = True, raises: bool = True
     ) -> str | None:
         """
-        This will check if the captured entries contain all of the expected
+        This will check if the captured attr:`entries` contain all of the expected
         entries provided and raise an :class:`AssertionError` if not.
         This will ignore entries that have been captured but that do not
         match those in ``expected``.
 
         :param expected:
 
-          A sequence of entries of the structure specified by the ``attributes``
-          passed to the constructor.
+          A sequence of expected :attr:`~testfixtures.logcapture.Entry.actual` items.
 
         :param order_matters:
 
@@ -444,25 +451,25 @@ class LoggingSource:
     A :class:`~testfixtures.logcapture.CaptureSource` for the standard-library
     :mod:`logging` framework, for use with :class:`~testfixtures.LogCapture`.
 
-    :param attributes: Controls the :attr:`~testfixtures.logcapture.Entry.actual` value
-        stored for each entry.
+    :param attributes:
+        The sequence of attribute names to return for each record or a callable that extracts
+        :attr:`~testfixtures.logcapture.Entry.actual` from a record.
 
-        * A sequence of attribute names or callables: each string name is looked up on the
-          :class:`~logging.LogRecord` (if the attribute value is itself callable, it is called
-          to obtain the final value); each callable element is called with the
-          :class:`~logging.LogRecord`.  If only one element is given the value is stored
-          directly; otherwise a tuple is stored.  Defaults to ``('levelname', 'getMessage')``,
-          producing ``('INFO', 'the message')`` tuples.
-        * A single callable: called with the :class:`~logging.LogRecord` and the return value
-          is stored as-is.
-    :param level: The minimum numeric log level to capture.  Defaults to ``1``, capturing
-        everything.
-    :param names: A tuple of logger names to capture.  Use ``(None,)`` (the default) to
-        capture the root logger, which receives records from all loggers that do not
-        suppress propagation.
-    :param propagate: If given, each captured logger's ``propagate`` flag is set to this
-        value for the duration of the capture.  Useful to suppress duplicate output when
-        a child logger is captured alongside its parent.
+        If a sequence of attribute names is passed, those attributes will be taken from the
+        :class:`logging.LogRecord`. If an attribute is callable, the value used will be the result
+        of calling it. If an attribute is missing, ``None`` will be used in its place.
+
+        If a callable is passed, it will be called with the :class:`~logging.LogRecord` and the
+        value returned will be used as :attr:`~testfixtures.logcapture.Entry.actual`.
+    :param level:
+        The minimum log level to capture.  Defaults to ``1``, capturing everything.
+    :param names:
+        A string (or tuple of strings) containing the dotted name(s) of loggers to capture.
+        By default, the root logger is captured.
+    :param propagate:
+        If specified, any captured loggers will have their propagate attribute set to the supplied
+        value. This can be used to prevent propagation from a child logger to a parent logger that
+        has configured handlers.
     """
 
     def __init__(

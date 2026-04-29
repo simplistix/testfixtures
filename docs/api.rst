@@ -225,7 +225,7 @@ testfixtures.sybil
 testfixtures.loguru
 ~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: testfixtures.loguru.LoguruSource
+.. automodule:: testfixtures.loguru
    :members:
 
 testfixtures.twisted
