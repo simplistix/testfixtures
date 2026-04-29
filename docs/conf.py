@@ -12,6 +12,7 @@ intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
     'django': ('https://django.readthedocs.io/en/latest/', None),
     'pytest': ('https://docs.pytest.org/en/latest/', None),
+    'loguru': ('https://loguru.readthedocs.io/en/stable/', None),
     'sybil': ('https://sybil.readthedocs.io/en/latest/', None),
 }
 
@@ -53,6 +54,12 @@ nitpick_ignore = [
     ('py:class', 'testfixtures.tempdirectory.P'),  # type var
     ('py:class', 'testfixtures.utils.T'),  # type var
     ('py:class', 'testfixtures.utils.U'),  # type var
+    ('py:class', 'twisted.logger.Logger'),  # twisted doesn't use sphinx
+    ('py:class', 'twisted.logger.LogLevel'),  # twisted doesn't use sphinx
+    ('py:class', 'twisted.logger.FileLogObserver'),  # twisted doesn't use sphinx
+    ('py:class', 'twisted.python.failure.Failure'),  # twisted doesn't use sphinx
+    ('py:func', 'twisted.logger.formatEvent'),  # twisted doesn't use sphinx
+    ('py:class', 'twisted.trial._asynctest.TestCase'),  # twisted doesn't use sphinx
     ('py:class', 'twisted.trial.unittest.TestCase'),  # twisted doesn't use sphinx
     ('py:class', 'unittest.case.TestCase'),  # no docs, apparently
     ('py:class', 'unittest.mock._Call'),  # No docstring.

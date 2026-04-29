@@ -1,23 +1,111 @@
 """
 Tools for helping to test Twisted applications.
 """
-from pprint import pformat
-from typing import Sequence, Callable, Any, TypeAlias, Self
-from unittest import TestCase
+from typing import Sequence, Callable, Any, Self, TypeAlias
 
 from constantly import NamedConstant
 from twisted.logger import globalLogPublisher, formatEvent, LogLevel, ILogObserver, LogEvent
+from twisted.trial.unittest import TestCase
 
 from . import compare
+from .logcapture import Entry, LogCapture as _LogCapture, build_actual_extractor, AttributeSpec
 import zope.interface
 
+
+LEVEL_MAP: dict[NamedConstant, int] = {
+    LogLevel.debug: 10,
+    LogLevel.info: 20,
+    LogLevel.warn: 30,
+    LogLevel.error: 40,
+    LogLevel.critical: 50,
+}
+
+LEVEL_NAME_MAP: dict[str, int] = {level.name: numeric for level, numeric in LEVEL_MAP.items()}
+
+
+def level_name(event: LogEvent) -> str:
+    return event['log_level'].name.upper()
+
+LogEventAttributes: TypeAlias = AttributeSpec[LogEvent]
+
 @zope.interface.implementer(ILogObserver)
-class LogCapture:
+class TwistedSource:
+    """
+    A :class:`~testfixtures.logcapture.CaptureSource` for Twisted log events,
+    for use with :class:`~testfixtures.LogCapture`.
+
+    On :meth:`~testfixtures.logcapture.CaptureSource.install` all existing observers on
+    ``twisted.logger.globalLogPublisher`` are replaced with this source; on
+    :meth:`~testfixtures.logcapture.CaptureSource.uninstall` the original observers are
+    restored.
+
+    :param attributes: Controls the :attr:`~testfixtures.logcapture.Entry.actual` value stored
+        for each entry.  May be a sequence whose elements are either a string key into the
+        Twisted log event dict or a callable that receives the event dict and returns a value;
+        or a single callable that receives the event dict and returns the full value directly.
+        If only one element is given the value is stored directly; otherwise a tuple is stored.
+        Defaults to ``('log_level', formatEvent)``, producing ``(LogLevel.info, 'formatted
+        message')`` tuples.  Use the module-level constants :data:`DEBUG`, :data:`INFO`,
+        :data:`WARN`, :data:`ERROR`, :data:`CRITICAL` for readable assertions.
+    :param level: Minimum log level to capture.  Accepts an ``int`` (e.g. ``30``), a Twisted
+        :class:`~twisted.logger.LogLevel` constant (e.g. ``LogLevel.warn``), or a level-name
+        string (e.g. ``'warn'``).  Defaults to ``0`` (capture everything).
+    """
+
+    def __init__(
+        self,
+        attributes: LogEventAttributes = (level_name, formatEvent),
+        level: int | str | NamedConstant = 0,
+    ) -> None:
+        self.attributes = attributes
+        if isinstance(level, str):
+            self.level: int = LEVEL_NAME_MAP[level.lower()]
+        elif isinstance(level, int):
+            self.level = level
+        else:
+            self.level = LEVEL_MAP[level]
+        self._collector: Callable[[Entry], None] | None = None
+        self._original_observers: list | None = None
+        self._compute_actual = build_actual_extractor(attributes, self.extract_field)
+
+    def extract_field(self, raw: LogEvent, attribute: str) -> Any:
+        return raw.get(attribute)
+
+    def __call__(self, event: LogEvent) -> None:
+        if self._collector is not None:
+            if self.level:
+                event_level = LEVEL_MAP.get(event.get('log_level'))
+                if event_level is None or event_level < self.level:
+                    return
+            failure = event.get('log_failure')
+            entry = Entry(
+                raw=event,
+                actual=self._compute_actual(event),
+                level=LEVEL_MAP.get(event.get('log_level')),
+                exception=failure.value if failure is not None else None,
+            )
+            self._collector(entry)
+
+    def install(self, collector: Callable[[Entry], None]) -> None:
+        self._collector = collector
+        self._original_observers = globalLogPublisher._observers
+        globalLogPublisher._observers = [self]
+
+    def uninstall(self) -> None:
+        if self._original_observers is not None:
+            globalLogPublisher._observers = self._original_observers
+            self._original_observers = None
+
+
+DEFAULT_ATTRIBUTES = ('log_level', formatEvent)
+
+
+class LogCapture(_LogCapture):
     """
     A helper for capturing stuff logged using Twisted's loggers.
 
-    :param fields:
-      A sequence of field names that :meth:`~LogCapture.check` will use to build
+    :param attributes:
+      A sequence of field names that :meth:`~testfixtures.LogCapture.check` will use to build
       "actual" events to compare against the expected events passed in.
       If items are strings, they will be treated as keys info the Twisted logging event.
       If they are callable, they will be called with the event as their only parameter.
@@ -25,60 +113,17 @@ class LogCapture:
       otherwise they will be a tuple of the specified fields.
     """
 
-    def __init__(self, fields: Sequence[str | Callable] = ('log_level', formatEvent,)):
-        #: The list of events captured.
-        self.events: list[LogEvent] = []
-        self.fields = fields
+    def __init__(
+            self,
+            attributes: LogEventAttributes = DEFAULT_ATTRIBUTES,
+            install: bool = False
+    ) -> None:
+        super().__init__(TwistedSource(attributes), install=install)
 
-    def __call__(self, event: LogEvent) -> None:
-        self.events.append(event)
-
-    def install(self) -> None:
-        "Start capturing."
-        self.original_observers = globalLogPublisher._observers
-        globalLogPublisher._observers = [self]
-
-    def uninstall(self) -> None:
-        "Stop capturing."
-        globalLogPublisher._observers = self.original_observers
-
-    def check(self, *expected: LogEvent, order_matters: bool = True) -> None:
-        """
-        Check captured events against those supplied. Please see the ``fields`` parameter
-        to the constructor to see how "actual" events are built.
-
-        :param order_matters:
-          This defaults to ``True``. If ``False``, the order of expected logging versus
-          actual logging will be ignored.
-        """
-        actual_event: Any
-        actual = []
-        for event in self.events:
-            actual_event = tuple(field(event) if callable(field) else event.get(field)
-                            for field in self.fields)
-            if len(actual_event) == 1:
-                actual_event = actual_event[0]
-            actual.append(actual_event)
-        if order_matters:
-            compare(expected=expected, actual=actual)
-        else:
-            expected_ = list(expected)
-            matched = []
-            unmatched = []
-            for entry in actual:
-                try:
-                    index = expected_.index(entry)
-                except ValueError:
-                    unmatched.append(entry)
-                else:
-                    matched.append(expected_.pop(index))
-            if expected_:
-                raise AssertionError((
-                    'entries not as expected:\n\n'
-                    'expected and found:\n%s\n\n'
-                    'expected but not found:\n%s\n\n'
-                    'other entries:\n%s'
-                ) % (pformat(matched), pformat(expected_), pformat(unmatched)))
+    @property
+    def events(self) -> list[LogEvent]:
+        """The list of raw Twisted log events captured."""
+        return [e.raw for e in self.entries]
 
     def check_failure_text(self, expected: str, index: int = -1, attribute: str = 'value') -> None:
         """
@@ -102,15 +147,21 @@ class LogCapture:
                 raise failure
 
     @classmethod
-    def make(cls, testcase: TestCase, **kw: Sequence[str | Callable]) -> Self:
+    def make(
+            cls,
+            testcase: TestCase,
+            fields: LogEventAttributes = DEFAULT_ATTRIBUTES
+    ) -> Self:
         """
         Instantiate, install and add a cleanup for a :class:`LogCapture`.
 
         :param testcase: This must be an instance of :class:`twisted.trial.unittest.TestCase`.
-        :param kw: Any other parameters are passed directly to the :class:`LogCapture` constructor.
+
+        Any other parameters are passed directly to the :class:`LogCapture` constructor.
+
         :return: The :class:`LogCapture` instantiated by this method.
         """
-        capture = cls(**kw)
+        capture = cls(fields)
         capture.install()
         testcase.addCleanup(capture.uninstall)
         return capture

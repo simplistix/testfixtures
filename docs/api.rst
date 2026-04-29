@@ -84,7 +84,16 @@ Capturing
 .. autoclass:: LogCapture
    :members:
 
+.. autoclass:: LoggingSource
+   :members:
+
 .. autofunction:: log_capture
+
+.. autoclass:: testfixtures.logcapture.CaptureSource
+   :members:
+
+.. autoclass:: testfixtures.logcapture.Entry
+   :members:
 
 .. autoclass:: OutputCapture
    :members:
@@ -213,9 +222,25 @@ testfixtures.sybil
    :members:
 
 
+testfixtures.loguru
+~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: testfixtures.loguru
+   :members:
+
 testfixtures.twisted
 ~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: testfixtures.twisted
-   :member-order: bysource
+
+.. autoclass:: testfixtures.twisted.TwistedSource
    :members:
+
+.. autoclass:: testfixtures.twisted.LogCapture
+   :members:
+
+.. autodata:: testfixtures.twisted.DEBUG
+.. autodata:: testfixtures.twisted.INFO
+.. autodata:: testfixtures.twisted.WARN
+.. autodata:: testfixtures.twisted.ERROR
+.. autodata:: testfixtures.twisted.CRITICAL

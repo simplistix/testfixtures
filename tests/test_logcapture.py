@@ -2,9 +2,9 @@ import atexit
 from logging import getLogger, ERROR, Filter, shutdown
 from textwrap import dedent
 from unittest import TestCase
-from warnings import catch_warnings
 
 from testfixtures import Replacer, LogCapture, compare, Replace, ShouldWarn
+from testfixtures.logcapture import LoggingSource
 from testfixtures.mock import Mock, call
 from testfixtures.shouldraise import ShouldAssert
 
@@ -27,7 +27,7 @@ class TestLogCapture(TestCase):
         root.info('during')
         l.uninstall()
         root.info('after')
-        assert str(l) == "root INFO\n  during"
+        assert str(l) == "root INFO during"
 
     def test_simple_strict(self):
         log_capture = LogCapture(ensure_checks_above=ERROR)
@@ -108,8 +108,8 @@ class TestLogCapture(TestCase):
         child.info('4')
         l.uninstall()
         assert str(l) == (
-            "one INFO\n  2\n"
-            "one.child INFO\n  4"
+            "one INFO 2\n"
+            "one.child INFO 4"
         )
 
     def test_multiple_loggers(self):
@@ -120,8 +120,8 @@ class TestLogCapture(TestCase):
         child.info('4')
         l.uninstall()
         assert str(l) == (
-            "two INFO\n  3\n"
-            "one.child INFO\n  4"
+            "two INFO 3\n"
+            "one.child INFO 4"
         )
 
     def test_simple_manual_install(self):
@@ -131,7 +131,7 @@ class TestLogCapture(TestCase):
         root.info('during')
         l.uninstall()
         root.info('after')
-        assert str(l) == "root INFO\n  during"
+        assert str(l) == "root INFO during"
 
     def test_uninstall(self):
         # Lets start off with a couple of loggers:
@@ -177,11 +177,11 @@ class TestLogCapture(TestCase):
 
             child.info('2')
             assert str(l1) == (
-                "root INFO\n  1\n"
-                "child INFO\n  2"
+                "root INFO 1\n"
+                "child INFO 2"
             )
             assert str(l2) == (
-                "child INFO\n  2"
+                "child INFO 2"
             )
 
             # Add a dummy filter to the child,
@@ -238,16 +238,16 @@ class TestLogCapture(TestCase):
 
         l1 = LogCapture()
         root.info('1st message')
-        assert str(l1) == "root INFO\n  1st message"
+        assert str(l1) == "root INFO 1st message"
         l2 = LogCapture()
         root.info('2nd message')
 
         # So, l1 missed this message:
-        assert str(l1) == "root INFO\n  1st message"
+        assert str(l1) == "root INFO 1st message"
 
         # ...because l2 kicked it out and recorded the message:
 
-        assert str(l2) == "root INFO\n  2nd message"
+        assert str(l2) == "root INFO 2nd message"
 
         LogCapture.uninstall_all()
 
@@ -278,7 +278,17 @@ class TestLogCapture(TestCase):
         with LogCapture() as l:
           root.info('during')
         root.info('after')
-        assert str(l) == "root INFO\n  during"
+        assert str(l) == "root INFO during"
+
+    def test_str_logging_source_default(self):
+        with LogCapture(LoggingSource()) as l:
+            root.info('during')
+        assert str(l) == "INFO during"
+
+    def test_str_single_attribute(self):
+        with LogCapture(attributes=('getMessage',)) as l:
+            root.info('during')
+        assert str(l) == "during"
 
 
 class LogCaptureTests(TestCase):
@@ -323,7 +333,7 @@ class LogCaptureTests(TestCase):
                 UserWarning(
                     "LogCapture instances not uninstalled by shutdown, "
                     "loggers captured:\n"
-                    "(None,)"
+                    "LoggingSource((None,))"
                 )
             ):
                 l.atexit()
@@ -367,17 +377,12 @@ class LogCaptureTests(TestCase):
         compare(len(log), expected=1)
         compare(log[0], expected=('foo', 'INFO', 'a log message'))
 
-    def test_truthiness_when_empty(self):
-        handler = LogCapture(install=False)
-        assert handler
-        assert bool(handler)
-
     def test_shutdown_while_installed(self):
         with LogCapture():
             with ShouldWarn(
                 UserWarning(
-                    'LogCapture instance closed while still installed, loggers captured:\n'
-                    '(None,)'
+                    "LoggingSource closed while still capturing loggers: (None,)\n"
+                    "Call uninstall() or use LogCapture as a context manager."
                 )
             ):
                 shutdown()
@@ -585,6 +590,25 @@ class TestCheckPresent:
                 ('root', 'WARNING', 'two'),
                 order_matters=False
             )
+
+    def test_attributes_callable_in_sequence(self):
+        with LogCapture(LoggingSource((lambda r: r.levelname.lower(), 'getMessage'))) as log:
+            root.info('hello')
+            root.warning('world')
+        log.check(
+            ('info', 'hello'),
+            ('warning', 'world'),
+        )
+
+    def test_attributes_bare_string(self):
+        with LogCapture(LoggingSource('getMessage')) as log:
+            root.info('hello')
+        log.check('hello')
+
+    def test_attributes_bare_string_via_logcapture_kwarg(self):
+        with LogCapture(attributes='getMessage') as log:
+            root.info('hello')
+        log.check('hello')
 
     def test_entries_are_dictionaries(self):
         def extract(record):

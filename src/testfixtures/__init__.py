@@ -18,7 +18,7 @@ from testfixtures.comparison import (
     contains, unordered
 )
 from testfixtures.datetime import mock_datetime, mock_date, mock_time
-from testfixtures.logcapture import LogCapture, log_capture
+from testfixtures.logcapture import LogCapture, log_capture, LoggingSource
 from testfixtures.outputcapture import OutputCapture
 from testfixtures.resolve import resolve
 from testfixtures.replace import (
@@ -46,6 +46,7 @@ test_time.__test__ = False  # type: ignore[attr-defined]
 __all__ = [
     'Comparison',
     'LogCapture',
+    'LoggingSource',
     'MappingComparison',
     'OutputCapture',
     'Permutation',

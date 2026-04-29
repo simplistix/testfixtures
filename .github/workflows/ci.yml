@@ -36,6 +36,9 @@ jobs:
             extra: "--extra sybil"
           - python-version: "3.14"
             uv-resolution: "highest"
+            extra: "--extra loguru"
+          - python-version: "3.14"
+            uv-resolution: "highest"
             extra: "--extra twisted --group twisted-dev"
           - python-version: "3.14"
             uv-resolution: "highest"
@@ -88,6 +91,7 @@ jobs:
         extra:
           - ""
           - "django"
+          - "loguru"
           - "sybil"
           - "mock"
           - "twisted"

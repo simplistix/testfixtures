@@ -59,6 +59,8 @@ with the version of these packages that your project is using:
 
 - ``[django]``: Django ORM integration and comparison helpers. See :doc:`django`.
 
+- ``[loguru]``: Loguru logging framework support. See :doc:`loguru`.
+
 - ``[twisted]``: Twisted framework logging support. See :doc:`twisted`.
 
 - ``[sybil]``: Sybil documentation testing framework. See :ref:`sybil`.
