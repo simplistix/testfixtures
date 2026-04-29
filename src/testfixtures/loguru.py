@@ -1,15 +1,22 @@
 """
 Tools for helping to test applications that use Loguru.
 """
-from typing import Sequence, Callable, Any
+from typing import TYPE_CHECKING, Callable, Any, TypeAlias
 from warnings import warn
 
 from loguru import logger
 
-from .logcapture import Entry, build_actual_extractor
+from .logcapture import Entry, build_actual_extractor, AttributeSpec
+
+if TYPE_CHECKING:
+    from loguru import Record, Message
+else:
+    Record = dict
+
+RecordAttributes: TypeAlias = AttributeSpec[Record]
 
 
-def level_name(record: dict) -> str:
+def level_name(record: Record) -> str:
     return record['level'].name
 
 
@@ -30,7 +37,7 @@ class LoguruSource:
 
     def __init__(
         self,
-        attributes: Sequence[str | Callable] | Callable = (level_name, 'message'),
+        attributes: RecordAttributes = (level_name, 'message'),
         level: int | str = 0,
         **kw: Any,
     ) -> None:
@@ -42,10 +49,10 @@ class LoguruSource:
         self._original_min_level: int | None = None
         self._compute_actual = build_actual_extractor(attributes, self.extract_field)
 
-    def extract_field(self, raw: dict, attribute: str) -> Any:
+    def extract_field(self, raw: Record, attribute: str) -> Any:
         return raw.get(attribute)
 
-    def write(self, message: Any) -> None:
+    def write(self, message: 'Message') -> None:
         if self._collector is not None:
             record = message.record
             exc_info = record['exception']
