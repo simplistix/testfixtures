@@ -1,14 +1,14 @@
 """
 Tools for helping to test Twisted applications.
 """
-from typing import Sequence, Callable, Any, Self
+from typing import Sequence, Callable, Any, Self, TypeAlias
 
 from constantly import NamedConstant
 from twisted.logger import globalLogPublisher, formatEvent, LogLevel, ILogObserver, LogEvent
 from twisted.trial.unittest import TestCase
 
 from . import compare
-from .logcapture import Entry, LogCapture as _LogCapture, build_actual_extractor
+from .logcapture import Entry, LogCapture as _LogCapture, build_actual_extractor, AttributeSpec
 import zope.interface
 
 
@@ -26,6 +26,7 @@ LEVEL_NAME_MAP: dict[str, int] = {level.name: numeric for level, numeric in LEVE
 def level_name(event: LogEvent) -> str:
     return event['log_level'].name.upper()
 
+LogEventAttributes: TypeAlias = AttributeSpec[LogEvent]
 
 @zope.interface.implementer(ILogObserver)
 class TwistedSource:
@@ -40,7 +41,7 @@ class TwistedSource:
 
     def __init__(
         self,
-        attributes: Sequence[str | Callable] | Callable = (level_name, formatEvent),
+        attributes: LogEventAttributes = (level_name, formatEvent),
         level: int | str | NamedConstant = 0,
     ) -> None:
         self.attributes = attributes
@@ -101,7 +102,7 @@ class LogCapture(_LogCapture):
 
     def __init__(
             self,
-            attributes: Sequence[str | Callable] | Callable = DEFAULT_ATTRIBUTES,
+            attributes: LogEventAttributes = DEFAULT_ATTRIBUTES,
             install: bool = False
     ) -> None:
         super().__init__(TwistedSource(attributes), install=install)
@@ -136,7 +137,7 @@ class LogCapture(_LogCapture):
     def make(
             cls,
             testcase: TestCase,
-            fields: Sequence[str | Callable] | Callable = DEFAULT_ATTRIBUTES
+            fields: LogEventAttributes = DEFAULT_ATTRIBUTES
     ) -> Self:
         """
         Instantiate, install and add a cleanup for a :class:`LogCapture`.

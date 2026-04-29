@@ -6,7 +6,9 @@ from dataclasses import dataclass
 from logging import LogRecord
 from pprint import pformat
 from types import TracebackType
-from typing import List, Tuple, Sequence, Callable, Any, Self, Protocol, overload
+from typing import (
+    Any, Callable, Sequence, TypeAlias, TypeVar, List, Tuple, Self, Protocol, overload
+)
 from warnings import warn
 
 from .comparison import SequenceComparison, compare
@@ -27,10 +29,15 @@ class CaptureSource(Protocol):
         ...
 
 
+
+T = TypeVar('T')
+AttributeSpec: TypeAlias = Sequence[str | Callable[[T], Any]] | Callable[[T], Any]
+
+
 def build_actual_extractor(
-    attributes: Sequence[str | Callable[..., Any]] | Callable[..., Any],
-    extract_field: Callable[[Any, str], Any],
-) -> Callable[[Any], Any]:
+    attributes: AttributeSpec[T],
+    extract_field: Callable[[T, str], Any],
+) -> Callable[[T], Any]:
     # Compile the attributes spec into a callable that extracts an entry's
     # ``actual`` value from a raw record. A bare string is treated as a single
     # attribute name (``str`` is itself a ``Sequence[str]``).
@@ -58,6 +65,8 @@ class Entry:
     level: int | None  # numeric level for ensure_checked; None means not level-checkable
     exception: BaseException | None = None
     checked: bool = False
+
+LogRecordAttributes: TypeAlias = AttributeSpec[LogRecord]
 
 
 class LogCapture:
@@ -116,12 +125,8 @@ class LogCapture:
     @overload
     def __init__(
         self,
-        names: str | Tuple[str | None, ...] | None = None,
-        *,
+        *sources: CaptureSource,
         install: bool = True,
-        level: int = 1,
-        propagate: bool | None = None,
-        attributes: Sequence[str | Callable[[LogRecord], Any]] | Callable[[LogRecord], Any] = ...,
         recursive_check: bool = False,
         ensure_checks_above: int | None = None,
     ) -> None: ...
@@ -129,8 +134,12 @@ class LogCapture:
     @overload
     def __init__(
         self,
-        *sources: CaptureSource,
+        names: str | Tuple[str | None, ...] | None = None,
+        *,
         install: bool = True,
+        level: int = 1,
+        propagate: bool | None = None,
+        attributes: LogRecordAttributes = ...,
         recursive_check: bool = False,
         ensure_checks_above: int | None = None,
     ) -> None: ...
@@ -141,7 +150,7 @@ class LogCapture:
         install: bool = True,
         level: int = 1,
         propagate: bool | None = None,
-        attributes: Sequence[str | Callable[[LogRecord], Any]] | Callable[[LogRecord], Any] = (
+        attributes: LogRecordAttributes = (
             'name',
             'levelname',
             'getMessage',
@@ -447,10 +456,7 @@ class LoggingSource:
 
     def __init__(
         self,
-        attributes: Sequence[str | Callable[[LogRecord], Any]] | Callable[[LogRecord], Any] = (
-            'levelname',
-            'getMessage',
-        ),
+        attributes: LogRecordAttributes = ('levelname', 'getMessage'),
         level: int = 1,
         *,
         names: Tuple[str | None, ...] = (None,),
