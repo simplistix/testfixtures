@@ -111,7 +111,7 @@ class LogCapture(_LogCapture):
     """
     A helper for capturing stuff logged using Twisted's loggers.
 
-    :param attributes:
+    :param fields:
         The sequence of fields to return for each :class:`!LogEvent` or a callable that extracts
         :attr:`~testfixtures.logcapture.Entry.actual` from a record.
 
@@ -125,10 +125,10 @@ class LogCapture(_LogCapture):
 
     def __init__(
             self,
-            attributes: LogEventAttributes = DEFAULT_ATTRIBUTES,
+            fields: LogEventAttributes = DEFAULT_ATTRIBUTES,
             install: bool = False
     ) -> None:
-        super().__init__(TwistedSource(attributes), install=install)
+        super().__init__(TwistedSource(fields), install=install)
 
     @property
     def events(self) -> list[LogEvent]:
