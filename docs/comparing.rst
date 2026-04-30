@@ -741,6 +741,19 @@ attributes to ignore:
 
   r.restore()
 
+Rendering objects safely in custom comparers
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When a customer comparer builds a message it usually needs to render the objects
+it is comparing. If one of those objects raises an exception as part of that process, the
+caller sees an unrelated traceback instead of any useful comparison message.
+
+:func:`~testfixtures.comparers.safe_repr` and
+:func:`~testfixtures.comparers.safe_pformat` are
+drop-in replacements for :func:`repr` and :func:`pprint.pformat` that catch
+exceptions, but not :class:`BaseException` instances such as :exc:`KeyboardInterrupt`
+or :exc:`SystemExit`, and substitute any failures with a marker.
+
 .. _ignore-eq:
 
 Ignoring ``__eq__``

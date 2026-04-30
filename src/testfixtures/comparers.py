@@ -23,6 +23,54 @@ if TYPE_CHECKING:
     from .comparison import CompareContext
 
 
+def safe_repr(obj: Any) -> str:
+    """
+    A fault-tolerant version of :func:`repr`.
+
+    :exc:`KeyboardInterrupt` and :exc:`SystemExit` are not caught.
+    """
+    try:
+        return repr(obj)
+    except Exception as e:
+        type_ = type(obj)
+        type_name = type_.__name__
+        match obj:
+            case list():
+                return '[' + ', '.join(safe_repr(e) for e in obj) + ']'
+            case tuple():
+                body = ', '.join(safe_repr(e) for e in obj)
+                suffix = ',)' if len(obj) == 1 else ')'
+                return '(' + body + suffix
+            case dict():
+                body = ', '.join(f'{safe_repr(k)}: {safe_repr(v)}' for k, v in obj.items())
+                return '{' + body + '}'
+            case frozenset():
+                if not obj:
+                    return type_name
+                return type_name + '({' + ', '.join(safe_repr(e) for e in obj) + '})'
+            case set():
+                if not obj:
+                    return type_name + '()'
+                return '{' + ', '.join(safe_repr(e) for e in obj) + '}'
+            case _:
+                try:
+                    detail = f'{type(e).__name__}: {e}'
+                except:
+                    detail = type(e).__name__
+                return f'<unrepresentable {type_.__module__}.{type_.__qualname__}: {detail}>'
+
+
+def safe_pformat(obj: Any) -> str:
+    """
+    A fault-tolerant version of  :func:`pprint.pformat` but tolerant.
+    Falls back to :func:`safe_repr` when :func:`~pprint.pformat` fails.
+    """
+    try:
+        return pformat(obj)
+    except:
+        return safe_repr(obj)
+
+
 class AlreadySeen:
     """
     A marker for an object that has already been seen during a :func:`~testfixtures.compare` call.
@@ -35,7 +83,7 @@ class AlreadySeen:
         self.breadcrumb = breadcrumb
 
     def __repr__(self) -> str:
-        return f'<AlreadySeen for {self.obj!r} at {self.breadcrumb} with id {self.id}>'
+        return f'<AlreadySeen for {safe_repr(self.obj)} at {self.breadcrumb} with id {self.id}>'
 
     def __eq__(self, other: Any)-> bool:
         if isinstance(other, AlreadySeen):
@@ -69,8 +117,8 @@ def compare_simple(
     Returns a very simple textual difference between the two supplied objects.
     """
     if x != y:
-        repr_x = repr(x)
-        repr_y = repr(y)
+        repr_x = safe_repr(x)
+        repr_y = safe_repr(y)
         if repr_x == repr_y:
             if type(x) is not type(y):
                 return compare_with_type(x, y, context)
@@ -82,15 +130,15 @@ def compare_simple(
                                          'attributes ', '.%s')
             if diff_:
                 return diff_
-            return 'Both %s and %s appear as %r, but are not equal!' % (
-                context.x_label or 'x', context.y_label or 'y', repr_x
-            )
+            x_label = context.x_label or 'x'
+            y_label = context.y_label or 'y'
+            return f'Both {x_label} and {y_label} appear as {repr_x!r}, but are not equal!'
         labeled_x = context.label('x', repr_x)
         labeled_y = context.label('y', repr_y)
         if len(repr_x) > newline_threshold or len(repr_y) > newline_threshold:
             return f'not equal:\n{labeled_x}\n{labeled_y}'
         else:
-            return context.label('x', repr_x) + ' != ' + context.label('y', repr_y)
+            return f'{labeled_x} != {labeled_y}'
     return None
 
 
@@ -247,13 +295,15 @@ def compare_sequence(
     if l_x == l_y and i == l_x:
         return None
 
-    return (('sequence not as expected:\n\n' if prefix else '')+
-            'same:\n%s\n\n'
-            '%s:\n%s\n\n'
-            '%s:\n%s') % (pformat(x[:i]),
-                          context.x_label or 'first', pformat(x[i:]),
-                          context.y_label or 'second', pformat(y[i:]),
-                          )
+    header = 'sequence not as expected:\n\n' if prefix else ''
+    same = safe_pformat(x[:i])
+    x_label = context.x_label or 'first'
+    y_label = context.y_label or 'second'
+    return (
+        f'{header}same:\n{same}\n\n'
+        f'{x_label}:\n{safe_pformat(x[i:])}\n\n'
+        f'{y_label}:\n{safe_pformat(y[i:])}'
+    )
 
 
 def compare_generator(x: Iterable, y: Iterable, context: 'CompareContext') -> str | None:
@@ -307,7 +357,7 @@ Item = TypeVar('Item')
 
 
 def sorted_by_repr(sequence: Iterable[Item]) -> List[Item]:
-    return sorted(sequence, key=lambda o: repr(o))
+    return sorted(sequence, key=safe_repr)
 
 
 def _compare_mapping(
@@ -324,11 +374,9 @@ def _compare_mapping(
     diffs = []
     for key in sorted_by_repr(x_keys.intersection(y_keys)):
         if context.different(x[key], y[key], breadcrumb % (key, )):
-            diffs.append('%r: %s != %s' % (
-                key,
-                context.label('x', pformat(x[key])),
-                context.label('y', pformat(y[key])),
-                ))
+            labelled_x = context.label('x', safe_pformat(x[key]))
+            labelled_y = context.label('y', safe_pformat(y[key]))
+            diffs.append(f'{safe_repr(key)}: {labelled_x} != {labelled_y}')
         else:
             same.append(key)
 
@@ -338,34 +386,28 @@ def _compare_mapping(
     if obj_for_class is not_there:
         lines = []
     else:
-        lines = ['%s not as expected:' % obj_for_class.__class__.__name__]
+        lines = [f'{obj_for_class.__class__.__name__} not as expected:']
 
     if same:
         try:
             same = sorted(same)
         except TypeError:
             pass
-        lines.extend(('', '%ssame:' % prefix, repr(same)))
+        lines.extend(('', f'{prefix}same:', safe_repr(same)))
 
     x_label = context.x_label or 'first'
     y_label = context.y_label or 'second'
 
     if x_not_y:
-        lines.extend(('', '%sin %s but not %s:' % (prefix, x_label, y_label)))
+        lines.extend(('', f'{prefix}in {x_label} but not {y_label}:'))
         for key in sorted_by_repr(x_not_y):
-            lines.append('%r: %s' % (
-                key,
-                pformat(x[key])
-                ))
+            lines.append(f'{safe_repr(key)}: {safe_pformat(x[key])}')
     if y_not_x:
-        lines.extend(('', '%sin %s but not %s:' % (prefix, y_label, x_label)))
+        lines.extend(('', f'{prefix}in {y_label} but not {x_label}:'))
         for key in sorted_by_repr(y_not_x):
-            lines.append('%r: %s' % (
-                key,
-                pformat(y[key])
-                ))
+            lines.append(f'{safe_repr(key)}: {safe_pformat(y[key])}')
     if diffs:
-        lines.extend(('', '%sdiffer:' % (prefix or 'values ')))
+        lines.extend(('', f"{prefix or 'values '}differ:"))
         lines.extend(diffs)
     return '\n'.join(lines)
 
@@ -379,19 +421,19 @@ def compare_set(x: set, y: set, context: 'CompareContext') -> str | None:
     y_not_x = y - x
     if not (y_not_x or x_not_y):
         return None
-    lines = ['%s not as expected:' % x.__class__.__name__, '']
+    lines = [f'{x.__class__.__name__} not as expected:', '']
     x_label = context.x_label or 'first'
     y_label = context.y_label or 'second'
     if x_not_y:
         lines.extend((
-            'in %s but not %s:' % (x_label, y_label),
-            pformat(sorted_by_repr(x_not_y)),
+            f'in {x_label} but not {y_label}:',
+            safe_pformat(sorted_by_repr(x_not_y)),
             '',
             ))
     if y_not_x:
         lines.extend((
-            'in %s but not %s:' % (y_label, x_label),
-            pformat(sorted_by_repr(y_not_x)),
+            f'in {y_label} but not {x_label}:',
+            safe_pformat(sorted_by_repr(y_not_x)),
             '',
             ))
     return '\n'.join(lines)+'\n'
@@ -529,7 +571,7 @@ def compare_with_fold(x: datetime, y: datetime, context: 'CompareContext') -> st
 
 
 def _short_repr(obj: Any) -> str:
-    repr_ = repr(obj)
+    repr_ = safe_repr(obj)
     if len(repr_) > 30:
         repr_ = repr_[:30] + '...'
     return repr_

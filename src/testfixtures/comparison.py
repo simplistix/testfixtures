@@ -275,7 +275,11 @@ class CompareContext:
 
 
 def _resolve_lazy(source: Any) -> str:
-    return str(source() if callable(source) else source)
+    value = source() if callable(source) else source
+    try:
+        return str(value)
+    except Exception:
+        return safe_repr(value)
 
 
 unspecified = singleton('unspecified')
@@ -398,7 +402,7 @@ class StatefulComparison:
         return name
 
     def body(self) -> str:
-        return pformat(self.expected)[1:-1]
+        return safe_pformat(self.expected)[1:-1]
 
     def __repr__(self) -> str:
         name = self.name()
@@ -507,10 +511,10 @@ class Comparison(StatefulComparison):
             # if we're not failed, show what we will expect:
             lines = []
             for k, v in sorted(self.expected_attributes.items()):
-                rv = repr(v)
+                rv = safe_repr(v)
                 if '\n' in rv:
                     rv = indent(rv)
-                lines.append('%s: %s' % (k, rv))
+                lines.append(f'{k}: {rv}')
             return '\n'.join(lines)
         return ''
 
@@ -700,7 +704,7 @@ class MappingComparison(StatefulComparison):
         parts = []
         text_length = 0
         for key, value in self.expected.items():
-            part = repr(key)+': '+pformat(value)
+            part = f'{safe_repr(key)}: {safe_pformat(value)}'
             text_length += len(part)
             parts.append(part)
         if text_length > 60:

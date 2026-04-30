@@ -12,7 +12,7 @@ class singleton:
 not_there: singleton = singleton('not_there')
 
 
-from testfixtures.comparers import diff
+from testfixtures.comparers import diff, safe_pformat, safe_repr
 from testfixtures.comparison import (
     Comparison, StringComparison, RoundComparison, compare, RangeComparison,
     SequenceComparison, Subset, Permutation, MappingComparison, like, sequence,
@@ -78,6 +78,8 @@ __all__ = [
     'replace_on_class',
     'replace_in_module',
     'resolve',
+    'safe_pformat',
+    'safe_repr',
     'sequence',
     'should_raise',
     'singleton',

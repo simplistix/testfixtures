@@ -1,3 +1,4 @@
+import json
 import re
 import uuid
 from abc import ABC
@@ -13,10 +14,14 @@ from uuid import uuid4, UUID
 
 from testfixtures import (
     Comparison as C,
+    MappingComparison,
     Replacer,
+    SequenceComparison,
     ShouldRaise,
     compare,
     generator,
+    safe_pformat,
+    safe_repr,
     singleton,
 )
 from testfixtures.comparers import (
@@ -2482,3 +2487,346 @@ class TestGenericTypes:
             '\n'
             "While comparing .__args__[0]: <class 'int'> != <class 'float'>"
         ))
+
+
+class Broken:
+    # An object whose __repr__ raises on demand.
+    marker = '<unrepresentable tests.test_compare.Broken: ValueError: boom!>'
+
+    def __init__(self, label='broken', exc=None):
+        self.label = label
+        self._exc = ValueError('boom!') if exc is None else exc
+
+    def __repr__(self):
+        raise self._exc
+
+
+class HashableBroken(Broken):
+    # Hashable + comparable so it can be used as a dict key or set member.
+
+    marker = '<unrepresentable tests.test_compare.HashableBroken: ValueError: boom!>'
+
+    def __init__(self, label='broken', exc=None):
+        super().__init__(label, exc)
+
+    def __hash__(self):
+        return hash(self.label)
+
+    def __eq__(self, other):
+        return isinstance(other, HashableBroken) and self.label == other.label
+
+
+class TestSafeHelpers:
+
+    def test_safe_repr_normal_object(self):
+        compare(safe_repr(42), expected='42')
+        compare(safe_repr('hi'), expected="'hi'")
+        compare(safe_repr([1, 2]), expected='[1, 2]')
+
+    def test_safe_repr_broken_object(self):
+        compare(safe_repr(Broken()), expected=Broken.marker)
+
+    def test_safe_repr_other_exception_class(self):
+        compare(
+            safe_repr(Broken(exc=TypeError('nope'))),
+            expected='<unrepresentable tests.test_compare.Broken: TypeError: nope>',
+        )
+
+    def test_safe_repr_list_with_broken_element(self):
+        compare(
+            safe_repr([1, Broken(), 3]),
+            expected=f'[1, {Broken.marker}, 3]',
+        )
+
+    def test_safe_repr_tuple_with_broken_element(self):
+        compare(
+            safe_repr((1, Broken())),
+            expected=f'(1, {Broken.marker})',
+        )
+
+    def test_safe_repr_single_element_tuple_with_broken(self):
+        compare(
+            safe_repr((Broken(),)),
+            expected=f'({Broken.marker},)',
+        )
+
+    def test_safe_repr_dict_with_broken_value(self):
+        compare(
+            safe_repr({'k': Broken()}),
+            expected=f"{{'k': {Broken.marker}}}",
+        )
+
+    def test_safe_repr_dict_with_broken_key(self):
+        compare(
+            safe_repr({HashableBroken('k1'): 'v'}),
+            expected=f"{{{HashableBroken.marker}: 'v'}}",
+        )
+
+    def test_safe_repr_set_with_broken_element(self):
+        compare(
+            safe_repr({HashableBroken('k1')}),
+            expected='{' + HashableBroken.marker + '}',
+        )
+
+    def test_safe_repr_frozenset_with_broken_element(self):
+        compare(
+            safe_repr(frozenset({HashableBroken('k1')})),
+            expected='frozenset({' + HashableBroken.marker + '})',
+        )
+
+    def test_safe_repr_empty_frozenset_subclass_with_broken_repr(self):
+        # repr() of an empty frozenset never fails naturally, so reach the
+        # empty-frozenset fallback via a subclass whose __repr__ raises.
+        class BrokenFrozenSet(frozenset):
+            def __repr__(self):
+                raise ValueError('boom!')
+
+        compare(safe_repr(BrokenFrozenSet()), expected='BrokenFrozenSet')
+
+    def test_safe_repr_empty_set_subclass_with_broken_repr(self):
+        class BrokenSet(set):
+            def __repr__(self):
+                raise ValueError('boom!')
+
+        compare(safe_repr(BrokenSet()), expected='BrokenSet()')
+
+    def test_safe_repr_propagates_keyboard_interrupt(self):
+        class K(KeyboardInterrupt): pass
+
+        with ShouldRaise(K):
+            safe_repr(Broken(exc=K()))
+
+    def test_safe_repr_handles_exception_with_broken_str(self):
+        class BrokenExc(Exception):
+            def __str__(self):
+                raise RuntimeError('inner-fail')
+
+        # When the exception's __str__ raises, the marker still falls back
+        # to just the exception class name without the message.
+        result = safe_repr(Broken(exc=BrokenExc()))
+        compare(
+            result,
+            expected='<unrepresentable tests.test_compare.Broken: BrokenExc>',
+        )
+
+    def test_safe_pformat_normal_object(self):
+        compare(safe_pformat([1, 2, 3]), expected='[1, 2, 3]')
+
+    def test_safe_pformat_falls_back_to_safe_repr(self):
+        compare(
+            safe_pformat([1, Broken(), 3]),
+            expected=f'[1, {Broken.marker}, 3]',
+        )
+
+    def test_safe_pformat_propagates_keyboard_interrupt(self):
+        class K(KeyboardInterrupt): pass
+
+        with ShouldRaise(K):
+            safe_pformat(Broken(exc=K()))
+
+
+class TestSafeRenderingInComparers:
+
+    def test_compare_simple_broken_x(self):
+        check_raises(
+            Broken(), 42,
+            message=(
+                'not equal:\n'
+                f'{Broken.marker}\n'
+                '42'
+            ),
+        )
+
+    def test_compare_simple_broken_y(self):
+        check_raises(
+            42, Broken(),
+            message=(
+                'not equal:\n'
+                '42\n'
+                f'{Broken.marker}'
+            ),
+        )
+
+    def test_compare_sequence_broken_element(self):
+        check_raises(
+            [1, Broken(), 3], [1, Broken(), 3, 4],
+            message=(
+                'sequence not as expected:\n'
+                '\n'
+                'same:\n'
+                f'[1, {Broken.marker}, 3]\n'
+                '\n'
+                'first:\n'
+                '[]\n'
+                '\n'
+                'second:\n'
+                '[4]'
+            ),
+        )
+
+    def test_compare_dict_broken_value_difference(self):
+        check_raises(
+            {'k': Broken()}, {'k': 99},
+            message=(
+                'dict not as expected:\n'
+                '\n'
+                'values differ:\n'
+                f"'k': {Broken.marker} != 99\n"
+                '\n'
+                "While comparing ['k']: not equal:\n"
+                f'{Broken.marker}\n'
+                '99'
+            ),
+        )
+
+    def test_compare_dict_key_only_on_one_side(self):
+        check_raises(
+            {HashableBroken('only-x'): 1},
+            {HashableBroken('only-y'): 2},
+            message=(
+                'dict not as expected:\n'
+                '\n'
+                'in first but not second:\n'
+                f'{HashableBroken.marker}: 1\n'
+                '\n'
+                'in second but not first:\n'
+                f'{HashableBroken.marker}: 2'
+            ),
+        )
+
+    def test_compare_set_broken_element(self):
+        check_raises(
+            {HashableBroken('a'), 1}, {1},
+            message=(
+                'set not as expected:\n'
+                '\n'
+                'in first but not second:\n'
+                f'[{HashableBroken.marker}]\n'
+                '\n'
+            ),
+        )
+
+    def test_compare_with_type_short_repr_broken(self):
+        check_raises(
+            Broken(), 'hello',
+            strict=True,
+            message=(
+                "<unrepresentable tests.test_co... "
+                "(<class 'tests.test_compare.Broken'>) != "
+                "'hello' (<class 'str'>)"
+            ),
+        )
+
+    def test_already_seen_broken_repr(self):
+        broken = Broken()
+        check_raises(
+            [broken, [1, 2, 3]], [broken, broken],
+            strict=True,
+            message=(
+                'sequence not as expected:\n'
+                '\n'
+                'same:\n'
+                f'[{Broken.marker}]\n'
+                '\n'
+                'first:\n'
+                '[[1, 2, 3]]\n'
+                '\n'
+                'second:\n'
+                f'[{Broken.marker}]\n'
+                '\n'
+                "While comparing [1]: [1, 2, 3] (<class 'list'>) != "
+                "<AlreadySeen for <unrepresenta... "
+                "(<class 'testfixtures.comparers.AlreadySeen'>)"
+            ),
+        )
+
+
+class BrokenStr(Broken):
+    # __str__ AND __repr__ raise on demand
+
+    def __str__(self):
+        raise self._exc
+
+
+class TestSafeRenderingInComparison:
+
+    def test_resolve_lazy_prefix_str_raises(self):
+        # prefix is a callable whose return value's __str__ raises;
+        # _resolve_lazy must not crash compare's diff rendering.
+        check_raises(
+            1, 2,
+            prefix=lambda: BrokenStr(),
+            message=(
+                '<unrepresentable tests.test_compare.BrokenStr: ValueError: boom!>: 1 != 2'
+            ),
+        )
+
+    def test_resolve_lazy_suffix_str_raises(self):
+        check_raises(
+            1, 2,
+            suffix=lambda: BrokenStr(),
+            message=(
+                '1 != 2\n'
+                '<unrepresentable tests.test_compare.BrokenStr: ValueError: boom!>'
+            ),
+        )
+
+    def test_comparison_body_broken_attribute_value(self):
+        # Comparison.body is hit when repr() is called on a fresh Comparison
+        # whose comparison hasn't run yet (self.failed empty).
+        class Holder:
+            pass
+
+        compare(
+            repr(C(Holder, attr=Broken())),
+            expected=f'<C:tests.test_compare.Holder>attr: {Broken.marker}</>',
+        )
+
+    def test_mapping_comparison_body_broken_value(self):
+        compare(
+            repr(MappingComparison(k=Broken())),
+            expected=(
+                '<MappingComparison(ordered=False, partial=False)>'
+                f"'k': {Broken.marker}</>"
+            ),
+        )
+
+    def test_sequence_comparison_body_broken_value(self):
+        compare(
+            repr(SequenceComparison(Broken())),
+            expected=(
+                '<SequenceComparison(ordered=True, partial=False)>'
+                f'{Broken.marker},</>'
+            ),
+        )
+
+
+@dataclass(repr=False)
+class JsonReprThing:
+    name: str
+
+    def __repr__(self) -> str:
+        # blow up if we get a Comparison for one of our attributes:
+        return json.dumps(vars(self))
+
+
+class TestSafeRendering:
+
+    def test_json_repr(self):
+        check_raises(
+            expected=[JsonReprThing(name=like(str))],
+            actual=[JsonReprThing(name='hello'), JsonReprThing(name='extra')],
+            message=(
+                'sequence not as expected:\n'
+                '\n'
+                'same:\n'
+                '[<unrepresentable tests.test_compare.JsonReprThing: '
+                'TypeError: Object of type Comparison is not JSON serializable>]\n'
+                '\n'
+                'expected:\n'
+                '[]\n'
+                '\n'
+                'actual:\n'
+                '[{"name": "extra"}]'
+            ),
+        )

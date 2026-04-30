@@ -79,6 +79,10 @@ testfixtures.comparers
 
 .. autofunction:: testfixtures.comparers.compare_text
 
+.. autofunction:: testfixtures.comparers.safe_repr
+
+.. autofunction:: testfixtures.comparers.safe_pformat
+
 .. autoclass:: testfixtures.comparers.AlreadySeen
 
 .. currentmodule:: testfixtures
