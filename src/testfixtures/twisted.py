@@ -1,16 +1,15 @@
 """
 Tools for helping to test Twisted applications.
 """
-from typing import Sequence, Callable, Any, Self, TypeAlias
+from typing import Callable, Any, Self, TypeAlias
 
+import zope.interface
 from constantly import NamedConstant
 from twisted.logger import globalLogPublisher, formatEvent, LogLevel, ILogObserver, LogEvent
 from twisted.trial.unittest import TestCase
 
 from . import compare
 from .logcapture import Entry, LogCapture as _LogCapture, build_actual_extractor, AttributeSpec
-import zope.interface
-
 
 LEVEL_MAP: dict[NamedConstant, int] = {
     LogLevel.debug: 10,

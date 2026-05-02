@@ -250,6 +250,12 @@ testfixtures.polars
 .. automodule:: testfixtures.polars
    :members:
 
+testfixtures.structlog
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: testfixtures.structlog
+   :members:
+
 testfixtures.twisted
 ~~~~~~~~~~~~~~~~~~~~
 
