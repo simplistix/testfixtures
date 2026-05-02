@@ -30,6 +30,7 @@ django = [
 sybil = ["sybil>=10.0.1"]
 mock-backport = ["mock>=4.0.3"]
 loguru = ["loguru>=0.7.3"]
+pandas = ["pandas>=2.0"]
 twisted = ["twisted>=22.1"]
 yaml = ["pyyaml>=6.0.3"]
 toml = ["tomlkit>=0.10.0"]
@@ -44,6 +45,9 @@ dev = [
 django-dev = [
     "django-stubs",
     "pytest-django>=4",
+]
+pandas-dev = [
+    "pandas-stubs",
 ]
 twisted-dev = [
     "mypy-zope",
