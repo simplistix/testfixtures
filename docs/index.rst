@@ -18,6 +18,7 @@ The sections below describe the use of the various tools included:
    loguru.rst
    polars.rst
    pandas.rst
+   structlog.rst
    twisted.rst
    utilities.rst
 
