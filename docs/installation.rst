@@ -63,6 +63,8 @@ with the version of these packages that your project is using:
 
 - ``[polars]``: Polars DataFrame helpers. See :doc:`polars`.
 
+- ``[pandas]``: Pandas DataFrame helpers. See :doc:`pandas`.
+
 - ``[twisted]``: Twisted framework logging support. See :doc:`twisted`.
 
 - ``[sybil]``: Sybil documentation testing framework. See :ref:`sybil`.
