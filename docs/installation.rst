@@ -61,6 +61,8 @@ with the version of these packages that your project is using:
 
 - ``[loguru]``: Loguru logging framework support. See :doc:`loguru`.
 
+- ``[polars]``: Polars DataFrame helpers. See :doc:`polars`.
+
 - ``[twisted]``: Twisted framework logging support. See :doc:`twisted`.
 
 - ``[sybil]``: Sybil documentation testing framework. See :ref:`sybil`.
