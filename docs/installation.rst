@@ -67,6 +67,8 @@ with the version of these packages that your project is using:
 
 - ``[mock-backport]``: See documentation on :ref:`which mock to use <what-mock>`.
 
+- ``[structlog]``: structlog logging framework support. See :doc:`structlog`.
+
 - ``[yaml]``: YAML format support for :class:`~testfixtures.TempDir`. See :ref:`files`.
 
 - ``[toml]``: TOML format writing support for :class:`~testfixtures.TempDir`. See :ref:`files`.
