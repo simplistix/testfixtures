@@ -17,6 +17,7 @@ The sections below describe the use of the various tools included:
    django.rst
    loguru.rst
    polars.rst
+   pandas.rst
    twisted.rst
    utilities.rst
 
