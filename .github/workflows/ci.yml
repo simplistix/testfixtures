@@ -39,6 +39,9 @@ jobs:
             extra: "--extra loguru"
           - python-version: "3.14"
             uv-resolution: "highest"
+            extra: "--extra structlog"
+          - python-version: "3.14"
+            uv-resolution: "highest"
             extra: "--extra twisted --group twisted-dev"
           - python-version: "3.14"
             uv-resolution: "highest"
@@ -94,6 +97,7 @@ jobs:
           - "loguru"
           - "sybil"
           - "mock"
+          - "structlog"
           - "twisted"
     steps:
       - uses: cjw296/python-action/check-distributions@v3

@@ -16,6 +16,7 @@ The sections below describe the use of the various tools included:
    popen.rst
    django.rst
    loguru.rst
+   structlog.rst
    twisted.rst
    utilities.rst
 
