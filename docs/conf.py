@@ -26,7 +26,7 @@ exclude_trees = ['_build']
 pygments_style = 'sphinx'
 
 # Type hints
-autodoc_typehints = 'description'
+autodoc_typehints = 'both'
 autodoc_typehints_description_target = "documented"
 
 # Options for HTML output
