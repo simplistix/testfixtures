@@ -13,6 +13,7 @@ intersphinx_mapping = {
     'django': ('https://django.readthedocs.io/en/latest/', None),
     'pytest': ('https://docs.pytest.org/en/latest/', None),
     'loguru': ('https://loguru.readthedocs.io/en/stable/', None),
+    'structlog': ('https://www.structlog.org/en/stable/', None),
     'sybil': ('https://sybil.readthedocs.io/en/latest/', None),
     'pandas': ('https://pandas.pydata.org/docs/', None),
     'polars': ('https://docs.pola.rs/api/python/stable/', None),
