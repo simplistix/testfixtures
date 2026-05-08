@@ -466,6 +466,45 @@ While comparing [1]['text']:
 This also applies to any comparers you have provided, as can be seen
 in the next section.
 
+Preventing infinite recursion
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If an object refers back to itself — directly, or via something it
+contains — the recursive comparison used by :func:`compare` would loop forever.
+To avoid this, if an object is seen more than once during a comparison, it is
+wrapped with an :class:`~testfixtures.comparers.AlreadySeen` marker
+rather than being compared again.
+
+When that happens *and* a difference is being reported anyway, the
+marker becomes visible in the output:
+
+>>> ouroboros1 = {}
+>>> ouroboros1['ouroboros'] = ouroboros1
+>>> ouroboros2 = {}
+>>> ouroboros2['ouroboros'] = ouroboros2
+>>> compare({1: ouroboros1, 2: 'foo'}, {1: ouroboros2, 2: ouroboros2})
+Traceback (most recent call last):
+ ...
+AssertionError: dict not as expected:
+<BLANKLINE>
+same:
+[1]
+<BLANKLINE>
+values differ:
+2: 'foo' != {'ouroboros': <Recursion on dict with id=...>}
+<BLANKLINE>
+While comparing [2]: not equal:
+'foo'
+<AlreadySeen for {'ouroboros': {...}} at [1] with id ...>
+
+The ``at [1]`` part of the marker is the path where that object was
+first encountered, so you can trace the cycle back to its origin.
+
+If the same object appears at the same position in both sides of a
+comparison :func:`compare` treats it as equal by identity without calling its ``__eq__``.
+No marker is visible in that case, and an :ref:`unhelpful <ignore-eq>` ``__eq__`` cannot
+cause a spurious difference.
+
 .. _comparer-register:
 
 Providing your own comparers
