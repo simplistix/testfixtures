@@ -31,7 +31,7 @@ from testfixtures.comparers import (
     compare_text,
     merge_ignored_attributes,
 )
-from testfixtures.comparison import Registry, _registry, like, register
+from testfixtures.comparison import Registry, _registry, like, register, registry
 from testfixtures.compat import PY_312_PLUS
 from testfixtures.mock import Mock, call
 from testfixtures.shouldraise import ShouldAssert
@@ -976,9 +976,7 @@ b
         def compare_my_object(x, y, context):
             return '%s != %s' % (x.name, y.name)
 
-        with Replacer() as r:
-            registry = Registry.initial({list: compare_sequence, str: compare_text})
-            r.replace('testfixtures.comparison._registry', registry)
+        with registry({list: compare_sequence, str: compare_text}):
             self.check_raises(
                 [1, MyObject('foo')], [1, MyObject('bar')],
                 "sequence not as expected:\n"
@@ -1629,6 +1627,7 @@ b
 
     def test_ignore_eq_registered_by_type(self):
         mock = type(_registry.ignore_eq_types)()
+        # Should have an empty registry primitive?
         with Replace(_registry.ignore_eq_types, mock, container=_registry, name='ignore_eq_types'):
             register(self.OrmObj, ignore_eq=True)
             self.check_raises(
@@ -1767,8 +1766,9 @@ b
             def __repr__(self):
                 return 'OtherBroken: '+str(self.a)
 
-        register(self.OrmObj, ignore_eq=True)
-        try:
+        with registry():
+            register(self.OrmObj, ignore_eq=True)
+            # use empty registry primitive
             self.check_raises(
                 message=(
                     'OtherBroken not as expected:\n'
@@ -1791,8 +1791,6 @@ b
                 actual=self.OrmObj(2),
                 ignore_eq=OtherBroken,
             )
-        finally:
-            _registry.ignore_eq_types.discard(self.OrmObj)
 
     def test_register_requires_comparer_or_ignore_eq(self):
         class SomeType:

@@ -1,6 +1,7 @@
 import re
 from collections import OrderedDict
 from collections.abc import Iterable
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, time
 from decimal import Decimal
@@ -17,11 +18,12 @@ from typing import (
     List,
     Mapping,
     Callable,
-    Iterable,
     cast,
     overload,
     Self,
-    TypeAlias, Literal,
+    TypeAlias,
+    Literal,
+    Iterator,
 )
 from typing import _GenericAlias as GenericAlias  # type: ignore[attr-defined]
 
@@ -49,6 +51,27 @@ Comparers: TypeAlias = dict[type, Comparer]
 
 _UNSAFE_ITERABLES = str, bytes, dict, GenericAlias
 
+DEFAULT_COMPARERS: Comparers = {
+    dict: compare_dict,
+    set: compare_set,
+    list: compare_sequence,
+    tuple: compare_tuple,
+    str: compare_text,
+    bytes: compare_bytes,
+    int: compare_simple,
+    float: compare_simple,
+    Decimal: compare_simple,
+    GeneratorType: compare_generator,
+    mock_call.__class__: compare_call,
+    unittest_mock_call.__class__: compare_call,
+    BaseException: compare_exception,
+    BaseExceptionGroup: compare_exception_group,
+    partial_type: compare_partial,
+    Path: compare_path,
+    datetime: compare_with_fold,
+    time: compare_with_fold,
+}
+
 
 @dataclass
 class Registry:
@@ -56,6 +79,7 @@ class Registry:
     all_option_names: set[str]
     options_for: dict[Comparer, set[str]]
     ignore_eq_types: set[type]
+    original: "Registry | None" = None
 
     @staticmethod
     def _shared_mro(x: Any, y: Any) -> Iterable[type]:
@@ -92,14 +116,14 @@ class Registry:
         self.comparers[key] = value
 
     @classmethod
-    def initial(cls, comparers: Comparers) -> Self:
+    def initial(cls, comparers: Comparers | None = None) -> Self:
         registry = cls(
             comparers={},
             all_option_names = {'ignore_attributes'},
             options_for = {compare_object: {'ignore_attributes'}},
             ignore_eq_types = set(),
         )
-        for name, value in comparers.items():
+        for name, value in (DEFAULT_COMPARERS if comparers is None else comparers).items():
             registry[name] = value
         return registry
 
@@ -117,27 +141,29 @@ class Registry:
             registry[name] = value
         return registry
 
+    def install(self) -> Self:
+        global _registry
+        self.original = _registry
+        _registry = self
+        return self
 
-_registry = Registry.initial({
-    dict: compare_dict,
-    set: compare_set,
-    list: compare_sequence,
-    tuple: compare_tuple,
-    str: compare_text,
-    bytes: compare_bytes,
-    int: compare_simple,
-    float: compare_simple,
-    Decimal: compare_simple,
-    GeneratorType: compare_generator,
-    mock_call.__class__: compare_call,
-    unittest_mock_call.__class__: compare_call,
-    BaseException: compare_exception,
-    BaseExceptionGroup: compare_exception_group,
-    partial_type: compare_partial,
-    Path: compare_path,
-    datetime: compare_with_fold,
-    time: compare_with_fold,
-})
+    def uninstall(self) -> None:
+        global _registry
+        assert self.original is not None, "uninstall() called without install()"
+        _registry = self.original
+        del self.original
+
+_registry = Registry.initial()
+
+
+@contextmanager
+def registry(comparers: Comparers | None = None) -> Iterator[Registry]:
+    _registry = Registry.initial(comparers)
+    _registry.install()
+    try:
+        yield _registry
+    finally:
+        _registry.uninstall()
 
 
 @overload
