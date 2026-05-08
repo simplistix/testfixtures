@@ -23,6 +23,35 @@ if TYPE_CHECKING:
     from .comparison import CompareContext
 
 
+__all__ = [
+    'AlreadySeen',
+    'compare_bytes',
+    'compare_call',
+    'compare_dict',
+    'compare_exception',
+    'compare_exception_group',
+    'compare_generator',
+    'compare_object',
+    'compare_partial',
+    'compare_path',
+    'compare_sequence',
+    'compare_set',
+    'compare_simple',
+    'compare_text',
+    'compare_tuple',
+    'compare_with_fold',
+    'compare_with_type',
+    'diff',
+    'merge_ignored_attributes',
+    'safe_pformat',
+    'safe_repr',
+    'sorted_by_repr',
+    'split_repr',
+    'strip_blank_lines',
+    'trailing_whitespace_re',
+]
+
+
 def safe_repr(obj: Any) -> str:
     """
     A fault-tolerant version of :func:`repr`.
