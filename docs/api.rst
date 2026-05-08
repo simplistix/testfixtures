@@ -49,6 +49,7 @@ testfixtures.comparison
 .. autofunction:: testfixtures.comparison.register
 
 .. autoclass:: testfixtures.comparison.CompareContext
+   :members:
 
 testfixtures.comparers
 ~~~~~~~~~~~~~~~~~~~~~~

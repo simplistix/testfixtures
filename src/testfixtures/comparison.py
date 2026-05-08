@@ -20,7 +20,7 @@ from typing import (
     cast,
     overload,
     Self,
-    TypeAlias,
+    TypeAlias, Literal,
 )
 from typing import _GenericAlias as GenericAlias  # type: ignore[attr-defined]
 
@@ -195,7 +195,10 @@ class CompareContext:
 
         return possible
 
-    def label(self, side: str, value: Any) -> str:
+    def label(self, side: Literal["x", "y"], value: Any) -> str:
+        """
+        Generate a labelled representation of the value for one side of a comparison.
+        """
         r = str(value)
         label = getattr(self, side+'_label')
         if label:
@@ -232,6 +235,10 @@ class CompareContext:
         return comparer(x, y, self, **kw)
 
     def different(self, x: Any, y: Any, breadcrumb: str) -> bool | str | None:
+        """
+        Comparers can call this method to :ref:`hand off <custom-comparer-different>`
+        comparison of elements within the objects they are currently comparing.
+        """
 
         x = self._break_loops(x, breadcrumb)
         y = self._break_loops(y, breadcrumb)
