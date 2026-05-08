@@ -587,6 +587,9 @@ implement your own comparers.
   A comparer should always return some text when it considers
   the two objects it is comparing to be different.
 
+
+.. _custom-comparer-different:
+
 Handing off comparison
 ^^^^^^^^^^^^^^^^^^^^^^
 
