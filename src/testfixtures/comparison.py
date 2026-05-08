@@ -1,6 +1,6 @@
 import re
 from collections import OrderedDict
-from collections.abc import Iterable as IterableABC
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime, time
 from decimal import Decimal
@@ -17,7 +17,6 @@ from typing import (
     List,
     Mapping,
     Callable,
-    Iterable,
     cast,
     overload,
     Self,
@@ -68,7 +67,7 @@ class Registry:
                 return comparer
 
         # fallback for iterables
-        if ((isinstance(x, IterableABC) and isinstance(y, IterableABC)) and not
+        if ((isinstance(x, Iterable) and isinstance(y, Iterable)) and not
             (isinstance(x, _UNSAFE_ITERABLES) or
              isinstance(y, _UNSAFE_ITERABLES))):
             return compare_generator
