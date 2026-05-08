@@ -524,13 +524,9 @@ don't compare as equal.
 
 .. invisible-code-block: python
 
-  from testfixtures.comparison import _registry, Registry
+  from testfixtures.comparison import Registry
   from testfixtures.comparers import compare_sequence
-  from testfixtures import Replacer
-  registry_replacer = Replacer()
-  registry_replacer('testfixtures.comparison._registry', Registry.initial({
-      list: compare_sequence
-  }))
+  registry = Registry.initial({list: compare_sequence}).install()
 
 As an example, suppose you have a class whose instances have a
 timestamp and a name as attributes, but you'd like to ignore the
@@ -613,7 +609,7 @@ AssertionError: MyObject named 'foo' != MyObject named 'bar'
 
 .. invisible-code-block: python
 
-  registry_replacer.restore()
+  registry.uninstall()
 
 A full list of the available comparers included can be found below the
 API documentation for :func:`compare`. These make good candidates for
@@ -702,9 +698,7 @@ comparer could be implemented and registered as follows:
 
 .. invisible-code-block: python
 
-  from testfixtures.comparison import _registry
-  r = Replacer()
-  r.replace('testfixtures.comparison._registry', _registry.overlay_with({}))
+  registry = Registry.initial().install()
 
 .. code-block:: python
 
@@ -781,7 +775,7 @@ attributes to ignore:
 
 .. invisible-code-block: python
 
-  r.restore()
+  registry.uninstall()
 
 Rendering objects safely in custom comparers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -847,8 +841,7 @@ globally so callers don't need to remember the ``ignore_eq=`` argument:
 
 .. invisible-code-block: python
 
-  registry_replacer = Replacer()
-  registry_replacer('testfixtures.comparison._registry', _registry.copy())
+  registry = Registry.initial().install()
 
 
 .. code-block:: python
@@ -859,7 +852,7 @@ globally so callers don't need to remember the ``ignore_eq=`` argument:
 
 .. invisible-code-block: python
 
-   registry_replacer.restore()
+   registry.uninstall()
 
 Custom containers and ``ignore_eq``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
