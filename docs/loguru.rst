@@ -48,6 +48,12 @@ You can then check logging in your tests like this:
           ('ERROR', '13 is not'),
       )
 
+.. invisible-code-block: python
+
+  from sybil.testing import run_pytest
+  run_pytest(test_logging, fixtures=[logs])
+
+
 See :doc:`logging` for the full :class:`~testfixtures.LogCapture` API, including
 :meth:`~testfixtures.LogCapture.check`, :meth:`~testfixtures.LogCapture.check_present`,
 :meth:`~testfixtures.LogCapture.actual`, and the :attr:`~testfixtures.LogCapture.entries`
