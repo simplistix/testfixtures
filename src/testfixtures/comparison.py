@@ -1109,3 +1109,12 @@ def unordered(
     return SequenceComparison(  # type: ignore[return-value]
         *items, ordered=False, partial=False, recursive=True
     )
+
+
+try:
+    from django.db.models import Model
+    from .django import compare_model
+except ImportError:
+    pass
+else:
+    register(Model, compare_model, ignore_eq=True)

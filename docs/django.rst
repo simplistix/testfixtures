@@ -11,6 +11,8 @@ Testing with Django
       import django
   except ImportError:
       django = None
+  else:
+      from tests.test_django.models import SampleModel
 
 .. skip: start if(django is None, reason="No django installed")
 
@@ -18,34 +20,20 @@ Django's ORM has an unfortunate implementation choice of considering
 :class:`~django.db.models.Model` instances to be identical as long as their
 primary keys are the same:
 
->>> from tests.test_django.models import SampleModel
+.. literalinclude:: ../tests/test_django/models.py
+   :pyobject: SampleModel
+
 >>> SampleModel(id=1, value=1) == SampleModel(id=1, value=2)
 True
 
-To work around this, :mod:`testfixtures.django` :ref:`registers <comparer-register>`
-a :func:`comparer <testfixtures.django.compare_model>` for the django
-:class:`~django.db.models.Model` class. However, for this to work,
-``ignore_eq=True`` must be passed:
+To work around this, when Django is installed, a
+:func:`comparer <testfixtures.django.compare_model>` for the
+:class:`~django.db.models.Model` class is automatically
+:ref:`registered <comparer-register>` with ``ignore_eq=True``, so
+:func:`~testfixtures.compare` does the right thing:
 
 >>> from testfixtures import compare
->>> import testfixtures.django # to register the comparer...
->>> compare(SampleModel(id=1, value=1), SampleModel(id=1, value=2),
-...         ignore_eq=True)
-Traceback (most recent call last):
- ...
-AssertionError: SampleModel not as expected:
-<BLANKLINE>
-same:
-['id']
-<BLANKLINE>
-values differ:
-'value': 1 != 2
-
-Since the above can quickly become cumbersome, a django-specific version
-of :func:`~testfixtures.compare` that ignores ``__eq__`` by default is provided:
-
->>> from testfixtures.django import compare as django_compare
->>> django_compare(SampleModel(id=1, value=1), SampleModel(id=1, value=2))
+>>> compare(SampleModel(id=1, value=1), SampleModel(id=1, value=2))
 Traceback (most recent call last):
  ...
 AssertionError: SampleModel not as expected:
@@ -61,10 +49,10 @@ Ignoring fields
 
 It may also be that you want to ignore fields over which you have no control
 and cannot easily mock, such as created or modified times. For this, you
-can use the `ignore_fields` option:
+can use the ``ignore_fields`` option:
 
 >>> compare(SampleModel(id=1, value=1), SampleModel(id=1, value=2),
-...         ignore_eq=True, ignore_fields=['value'])
+...         ignore_fields=['value'])
 
 
 Comparing non-editable fields
@@ -72,13 +60,13 @@ Comparing non-editable fields
 
 By default, non-editable fields are ignored:
 
->>> django_compare(SampleModel(not_editable=1), SampleModel(not_editable=2))
+>>> compare(SampleModel(not_editable=1), SampleModel(not_editable=2))
 
 If you wish to include these fields in the comparison, pass the
 ``non_editable_fields`` option:
 
->>> django_compare(SampleModel(not_editable=1), SampleModel(not_editable=2),
-...                non_editable_fields=True)
+>>> compare(SampleModel(not_editable=1), SampleModel(not_editable=2),
+...         non_editable_fields=True)
 Traceback (most recent call last):
  ...
 AssertionError: SampleModel not as expected:

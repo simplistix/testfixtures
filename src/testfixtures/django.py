@@ -1,15 +1,11 @@
-from typing import Any, Sequence, Iterable
+from typing import TYPE_CHECKING, Any, Iterable, Sequence
 
 from django.db.models import Model, Field
 
-from . import compare as base_compare
 from .comparers import _compare_mapping
-from .comparison import (
-    register,
-    CompareContext,
-    unspecified,
-    Comparers,
-)
+
+if TYPE_CHECKING:
+    from .comparison import CompareContext
 
 
 def instance_fields(instance: Model) -> Iterable[Field]:
@@ -43,7 +39,7 @@ def model_to_dict(
 def compare_model(
         x: Model,
         y: Model,
-        context: CompareContext,
+        context: 'CompareContext',
         ignore_fields: Sequence[str] = (),
         non_editable_fields: bool = False,
 ) -> str | None:
@@ -66,47 +62,3 @@ def compare_model(
     args.append(context)
     args.append(x)
     return _compare_mapping(*args)
-
-
-register(Model, compare_model)
-
-
-def compare(
-        *args: Any,
-        x: Any = unspecified,
-        y: Any = unspecified,
-        expected: Any = unspecified,
-        actual: Any = unspecified,
-        prefix: str | None = None,
-        suffix: str | None = None,
-        x_label: str | None = None,
-        y_label: str | None = None,
-        raises: bool = True,
-        recursive: bool = True,
-        strict: bool = False,
-        ignore_eq: bool = True,
-        comparers: Comparers | None = None,
-        **options: Any
-) -> str | None:
-    """
-    This is identical to :func:`~testfixtures.compare`, but with ``ignore=True``
-    automatically set to make comparing django :class:`~django.db.models.Model`
-    instances easier.
-    """
-    return base_compare(
-        *args,
-        x=x,
-        y=y,
-        expected=expected,
-        actual=actual,
-        prefix=prefix,
-        suffix=suffix,
-        x_label=x_label,
-        y_label=y_label,
-        raises=raises,
-        recursive=recursive,
-        strict=strict,
-        ignore_eq=ignore_eq,
-        comparers=comparers,
-        **options
-    )
