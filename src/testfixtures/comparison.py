@@ -45,11 +45,13 @@ IMMUTABLE_TYPEs = str, bytes, int, float, tuple, type(None)
 # instances of an ignored type would silently leak through.
 CONTAINER_TYPES = list, tuple, dict, set, frozenset
 
+# Things that are iterable, but should not be treated as such.
+UNSAFE_ITERABLES = str, bytes, dict, GenericAlias
+
 
 Comparer = Callable[[Any, Any, 'CompareContext'], str | None]
 Comparers: TypeAlias = dict[type, Comparer]
 
-_UNSAFE_ITERABLES = str, bytes, dict, GenericAlias
 
 DEFAULT_COMPARERS: Comparers = {
     dict: compare_dict,
@@ -99,8 +101,8 @@ class Registry:
 
         # fallback for iterables
         if ((isinstance(x, Iterable) and isinstance(y, Iterable)) and not
-            (isinstance(x, _UNSAFE_ITERABLES) or
-             isinstance(y, _UNSAFE_ITERABLES))):
+            (isinstance(x, UNSAFE_ITERABLES) or
+             isinstance(y, UNSAFE_ITERABLES))):
             return compare_generator
 
         # special handling for Comparisons:
