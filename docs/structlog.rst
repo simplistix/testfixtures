@@ -1,4 +1,4 @@
-Testing with structlog
+Testing with Structlog
 ======================
 
 .. note::
@@ -24,13 +24,17 @@ that flow through a configurable chain of :doc:`processors <structlog:processors
 :class:`~testfixtures.structlog.StructlogSource` is provided to capture and test
 these event dictionaries using :class:`~testfixtures.LogCapture`.
 
-If your tests use ``cache_logger_on_first_use=True`` and acquire loggers before
+If you have ``cache_logger_on_first_use`` enabled and acquire loggers before
 :class:`~testfixtures.LogCapture` is installed, those cached loggers will keep their
 old processor chain and bypass capture; acquire loggers inside the capture block, or
-set ``cache_logger_on_first_use=False`` in test configurations.
+disable ``cache_logger_on_first_use`` during tests.
 
-For non-testfixtures use cases, structlog also ships its own
-:func:`~structlog.testing.capture_logs` context manager and ``LogCapture`` processor.
+.. note::
+
+    Structlog also has its own :doc:`testing tools <structlog:testing>` including the
+    :func:`~structlog.testing.capture_logs` context manager and
+    :class:`~structlog.testing.LogCapture` processor, which should not be confused with
+    :class:`testfixtures.LogCapture`!
 
 As a simple example, you can capture structlog output with a `pytest`__ fixture such as this:
 
@@ -53,20 +57,21 @@ You can then check logging in your tests like this:
 
   import structlog
 
+  logger = structlog.get_logger()
+
   def test_logging(logs: LogCapture) -> None:
-      structlog.get_logger().info('42 is fine')
-      structlog.get_logger().error('13 is not')
+      logger.info('42 is fine')
+      logger.error('13 is not')
       logs.check(
           ('INFO', '42 is fine'),
           ('ERROR', '13 is not'),
       )
 
+
 .. invisible-code-block: python
 
-    from testfixtures import LogCapture
-    from testfixtures.structlog import StructlogSource
-    with LogCapture(StructlogSource()) as logs:
-        test_logging(logs)
+  from sybil.testing import run_pytest
+  run_pytest(test_logging, fixtures=[logs])
 
 See :doc:`logging` for the full :class:`~testfixtures.LogCapture` API, including
 :meth:`~testfixtures.LogCapture.check`, :meth:`~testfixtures.LogCapture.check_present`,
@@ -90,35 +95,32 @@ exposes the underlying structlog event dict via its ``raw`` attribute:
 >>> log.entries[0].raw
 {'event': 'hello world', 'level': 'info'}
 
-Bound and contextualised values appear at the top level of this dict — there is
-no separate ``extra`` sub-key.
-
 Checking logging context
 ------------------------
 
 structlog supports two ways of carrying contextual data: per-logger
 :meth:`~structlog.BoundLoggerBase.bind`, which returns a new logger with extra
-key/value pairs, and the contextvars-based
-:func:`~structlog.contextvars.bind_contextvars` /
+context bound int, and the contextvars-based
+:func:`~structlog.contextvars.bind_contextvars` or
 :func:`~structlog.contextvars.bound_contextvars`, which carry context across
 function calls and async tasks. Both end up as keys at the top level of the
 event dict.
 
-To capture bound keys alongside the default level and message, list them in
-``attributes``:
+To full capture context, use the :func:`~testfixtures.structlog.raw` helper:
 
 .. code-block:: python
 
-    from testfixtures.structlog import StructlogSource, level_name
+    from testfixtures.structlog import StructlogSource, raw
 
-    with LogCapture(StructlogSource((level_name, 'event', 'request_id'))) as log:
-        request_log = structlog.get_logger().bind(request_id='abc123')
+    request_log = structlog.get_logger().bind(request_id='abc123')
+
+    with LogCapture(StructlogSource(raw)) as log:
         request_log.info('handling request')
         request_log.info('request complete')
 
     log.check(
-        ('INFO', 'handling request', 'abc123'),
-        ('INFO', 'request complete', 'abc123'),
+        {'event': 'handling request', 'level': 'info', 'request_id': 'abc123'},
+        {'event': 'request complete', 'level': 'info', 'request_id': 'abc123'},
     )
 
 The contextvars-based API works the same way; it relies on the

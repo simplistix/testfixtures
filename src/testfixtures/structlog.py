@@ -1,6 +1,7 @@
 """
 Tools for helping to test applications that use structlog.
 """
+
 import logging
 import sys
 from typing import Any, Callable, Sequence, TypeAlias
@@ -26,6 +27,13 @@ def level_name(event_dict: EventDict) -> str:
     :class:`~testfixtures.loguru.LoguruSource`.
     """
     return str(event_dict.get('level', '')).upper()
+
+
+def raw(event_dict: EventDict) -> EventDict:
+    """
+    XXX
+    """
+    return event_dict
 
 
 def _resolve_level(level: int | str) -> int:
@@ -127,12 +135,14 @@ class StructlogSource:
             numeric = None
             exception = None
             actual = event_dict
-        self.collector(Entry(
-            raw=event_dict,
-            actual=actual,
-            level=numeric,
-            exception=exception,
-        ))
+        self.collector(
+            Entry(
+                raw=event_dict,
+                actual=actual,
+                level=numeric,
+                exception=exception,
+            )
+        )
         raise DropEvent
 
     def __repr__(self) -> str:
