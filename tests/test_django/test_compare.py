@@ -3,23 +3,22 @@ from unittest import TestCase
 import pytest
 from django.contrib.auth.models import User
 from testfixtures import OutputCapture, Replacer
+from testfixtures.comparison import registry
 from .models import SampleModel
 from tests.test_django.manage import main
 
 from tests.test_compare import CompareHelper
 from testfixtures import compare
-from testfixtures.django import compare as django_compare
 
 
 class CompareTests(CompareHelper, TestCase):
 
     def test_simple_same(self):
-        django_compare(SampleModel(id=1), SampleModel(id=1))
+        compare(SampleModel(id=1), SampleModel(id=1))
 
     def test_simple_diff(self):
         self.check_raises(
             SampleModel(id=1), SampleModel(id=2),
-            compare=django_compare,
             message=(
                 'SampleModel not as expected:\n'
                 '\n'
@@ -32,16 +31,14 @@ class CompareTests(CompareHelper, TestCase):
         )
 
     def test_simple_ignore_fields(self):
-        django_compare(SampleModel(id=1), SampleModel(id=1),
-                       ignore_fields=['id'])
+        compare(SampleModel(id=1), SampleModel(id=1), ignore_fields=['id'])
 
     def test_ignored_because_speshul(self):
-        django_compare(SampleModel(not_editable=1), SampleModel(not_editable=2))
+        compare(SampleModel(not_editable=1), SampleModel(not_editable=2))
 
     def test_ignored_because_no_longer_speshul(self):
         self.check_raises(
             SampleModel(not_editable=1), SampleModel(not_editable=2),
-            compare=django_compare,
             message=(
                 'SampleModel not as expected:\n'
                 '\n'
@@ -55,13 +52,13 @@ class CompareTests(CompareHelper, TestCase):
         )
 
     def test_normal_compare_id_same(self):
-        # other diffs ignored
-        compare(SampleModel(id=1, value=1), SampleModel(id=1, value=2))
+        # without the comparer registered, the models compare equal:
+        with registry():
+            compare(SampleModel(id=1, value=1), SampleModel(id=1, value=2))
 
     def test_normal_compare_id_diff(self):
         self.check_raises(
             SampleModel(id=3, value=1), SampleModel(id=4, value=2),
-            compare=django_compare,
             message=(
                 'SampleModel not as expected:\n'
                 '\n'
@@ -82,9 +79,9 @@ class CompareTests(CompareHelper, TestCase):
     @pytest.mark.django_db
     def test_many_to_many_same(self):
         user = User.objects.create(username='foo')
-        django_compare(user,
-                       expected=User(
-                           username='foo', first_name='', last_name='',
-                           is_superuser=False
-                       ),
-                       ignore_fields=['id', 'date_joined'])
+        compare(user,
+                expected=User(
+                    username='foo', first_name='', last_name='',
+                    is_superuser=False
+                ),
+                ignore_fields=['id', 'date_joined'])
