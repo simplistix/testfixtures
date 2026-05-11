@@ -1118,3 +1118,21 @@ except ImportError:
     pass
 else:
     register(Model, compare_model, ignore_eq=True)
+
+
+try:
+    from pandas import DataFrame as PandasDataFrame
+    from .pandas import compare_dataframe as compare_pandas_dataframe
+except ImportError:
+    pass
+else:
+    register(PandasDataFrame, compare_pandas_dataframe, ignore_eq=True)
+
+
+try:
+    from polars import DataFrame as PolarsDataFrame
+    from .polars import compare_dataframe as compare_polars_dataframe
+except ImportError:
+    pass
+else:
+    register(PolarsDataFrame, compare_polars_dataframe, ignore_eq=True)
