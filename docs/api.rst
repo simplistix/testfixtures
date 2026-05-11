@@ -238,6 +238,18 @@ testfixtures.loguru
 .. automodule:: testfixtures.loguru
    :members:
 
+testfixtures.pandas
+~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: testfixtures.pandas
+   :members:
+
+testfixtures.polars
+~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: testfixtures.polars
+   :members:
+
 testfixtures.twisted
 ~~~~~~~~~~~~~~~~~~~~
 
