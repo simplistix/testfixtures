@@ -14,6 +14,8 @@ intersphinx_mapping = {
     'pytest': ('https://docs.pytest.org/en/latest/', None),
     'loguru': ('https://loguru.readthedocs.io/en/stable/', None),
     'sybil': ('https://sybil.readthedocs.io/en/latest/', None),
+    'pandas': ('https://pandas.pydata.org/docs/', None),
+    'polars': ('https://docs.pola.rs/api/python/stable/', None),
 }
 
 # General
@@ -43,6 +45,8 @@ nitpick_ignore = [
     ('py:class', '~P'),  # param spec
     ('py:class', 'constantly._constants.NamedConstant'),  # twisted logging constants
     ('py:class', 'django.db.models.base.Model'),  # not documented upstream
+    ('py:class', 'polars.DataFrame'),  # polars inventory has no top-level class entry
+    ('py:class', 'polars.dataframe.frame.DataFrame'),  # same
     ('py:class', 'module'),  # ModuleType not documented.
     ('py:class', 'tempfile.TemporaryFile'),  # not documented as a class so type annotation broken
     ('py:class', 'testfixtures.comparison.S'),  # type var
