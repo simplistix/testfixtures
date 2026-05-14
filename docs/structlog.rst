@@ -131,6 +131,7 @@ that bound context shows up in tests with no extra wiring:
 .. code-block:: python
 
     from structlog.contextvars import bound_contextvars
+    from testfixtures.structlog import level_name
 
     with LogCapture(StructlogSource((level_name, 'event', 'task_id'))) as log:
         structlog.get_logger().info('before task')

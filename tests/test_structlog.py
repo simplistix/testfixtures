@@ -185,7 +185,7 @@ class TestLogCapture:
             ('WARNING', 'from structlog'),
         )
 
-    def test_displaced_during_capture_warns(self):
+    def test_displaced_by_reset_defaults_warns(self):
         with ShouldWarn(UserWarning(
             'StructlogSource was displaced from structlog configuration before uninstall.\n'
             'Avoid calling structlog.configure() or structlog.reset_defaults() '
@@ -193,6 +193,24 @@ class TestLogCapture:
         )):
             with LogCapture(StructlogSource()):
                 structlog.reset_defaults()
+
+    def test_displaced_by_reconfigure_warns(self):
+        processors_before = structlog.get_config()['processors']
+        with ShouldWarn(UserWarning(
+            'StructlogSource was displaced from structlog configuration before uninstall.\n'
+            'Avoid calling structlog.configure() or structlog.reset_defaults() '
+            'inside a LogCapture block.'
+        )):
+            with LogCapture(StructlogSource()) as cap:
+                structlog.get_logger().info('captured before displacement')
+                structlog.configure(processors=[structlog.processors.KeyValueRenderer()])
+                # Anything logged after the user swapped the list reference goes
+                # through their new chain, not our capture — nothing we can do
+                # about that. We still warn and restore the original config on
+                # uninstall.
+                structlog.get_logger().bind(after='displacement').info('lost')
+        cap.check(('INFO', 'captured before displacement'))
+        compare(structlog.get_config()['processors'], expected=processors_before)
 
     def test_uninstall_does_not_warn(self):
         with ShouldNotWarn():

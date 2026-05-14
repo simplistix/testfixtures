@@ -98,7 +98,8 @@ class StructlogSource:
         self.user_processors: tuple[Processor, ...] = tuple(processors)
         self.min_level = _resolve_level(level)
         self.collector: Callable[[Entry], None] | None = None
-        self.saved_config: dict[str, Any] | None = None
+        self.live_processors: list[Processor] | None = None
+        self.saved_processors: list[Processor] | None = None
         self.compute_actual = build_actual_extractor(attributes, self.extract_field)
 
     def extract_field(self, raw: EventDict, attribute: str) -> Any:
@@ -150,27 +151,36 @@ class StructlogSource:
 
     def install(self, collector: Callable[[Entry], None]) -> None:
         self.collector = collector
-        self.saved_config = structlog.get_config()
-        structlog.configure(
-            processors=[
-                structlog.stdlib.add_log_level,
-                *self.user_processors,
-                self.capture,
-            ],
-        )
+        # Mutate the configured processors list in place rather than swapping
+        # in a new one — loggers bound (or cached) before install() hold a
+        # reference to this list, and replacing it would leave them on the
+        # old chain. structlog.testing.capture_logs uses the same trick.
+        self.live_processors = structlog.get_config()['processors']
+        self.saved_processors = list(self.live_processors)
+        self.live_processors.clear()
+        self.live_processors.extend([
+            structlog.stdlib.add_log_level,
+            *self.user_processors,
+            self.capture,
+        ])
+        structlog.configure(processors=self.live_processors)
 
     def uninstall(self) -> None:
-        if self.saved_config is None:
+        if self.live_processors is None or self.saved_processors is None:
             return
-        saved = self.saved_config
-        self.saved_config = None
+        live = self.live_processors
+        saved = self.saved_processors
+        self.live_processors = None
+        self.saved_processors = None
         self.collector = None
-        live = list(structlog.get_config().get('processors') or [])
-        if self.capture not in live:
+        current = structlog.get_config()['processors']
+        if current is not live or self.capture not in current:
             warn(
                 'StructlogSource was displaced from structlog configuration before uninstall.\n'
                 'Avoid calling structlog.configure() or structlog.reset_defaults() '
                 'inside a LogCapture block.'
             )
-        structlog.reset_defaults()
-        structlog.configure(**saved)
+            current = live
+        current.clear()
+        current.extend(saved)
+        structlog.configure(processors=current)
