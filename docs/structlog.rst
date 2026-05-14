@@ -1,6 +1,8 @@
 Testing with Structlog
 ======================
 
+.. currentmodule:: testfixtures.structlog
+
 .. note::
 
    To ensure you are using compatible versions, install with the ``testfixtures[structlog]`` extra.
@@ -21,7 +23,7 @@ Testing with Structlog
 
 `structlog <https://www.structlog.org/>`_ builds log entries as event dictionaries
 that flow through a configurable chain of :doc:`processors <structlog:processors>`.
-:class:`~testfixtures.structlog.StructlogSource` is provided to capture and test
+:class:`StructlogSource` is provided to capture and test
 these event dictionaries using :class:`~testfixtures.LogCapture`.
 
 If you have ``cache_logger_on_first_use`` enabled and acquire loggers before
@@ -98,7 +100,7 @@ exposes the underlying structlog event dict via its ``raw`` attribute:
 Checking logging context
 ------------------------
 
-structlog supports two ways of carrying contextual data: per-logger
+Structlog supports two ways of carrying contextual data: per-logger
 :meth:`~structlog.BoundLoggerBase.bind`, which returns a new logger with extra
 context bound int, and the contextvars-based
 :func:`~structlog.contextvars.bind_contextvars` or
@@ -106,10 +108,11 @@ context bound int, and the contextvars-based
 function calls and async tasks. Both end up as keys at the top level of the
 event dict.
 
-To full capture context, use the :func:`~testfixtures.structlog.raw` helper:
+To full capture context, use the :func:`raw` helper:
 
 .. code-block:: python
 
+    from testfixtures import LogCapture
     from testfixtures.structlog import StructlogSource, raw
 
     request_log = structlog.get_logger().bind(request_id='abc123')
@@ -131,18 +134,17 @@ that bound context shows up in tests with no extra wiring:
 .. code-block:: python
 
     from structlog.contextvars import bound_contextvars
-    from testfixtures.structlog import level_name
 
-    with LogCapture(StructlogSource((level_name, 'event', 'task_id'))) as log:
+    with LogCapture(StructlogSource(raw)) as log:
         structlog.get_logger().info('before task')
         with bound_contextvars(task_id=1234):
             structlog.get_logger().info('processing task')
         structlog.get_logger().info('after task')
 
     log.check(
-        ('INFO', 'before task', None),
-        ('INFO', 'processing task', 1234),
-        ('INFO', 'after task', None),
+        {'event': 'before task', 'level': 'info'},
+        {'event': 'processing task', 'level': 'info', 'task_id': 1234},
+        {'event': 'after task', 'level': 'info'}
     )
 
 Capturing specific fields
@@ -164,7 +166,10 @@ You can also mix string keys and callables:
 
 .. code-block:: python
 
-    with LogCapture(StructlogSource((lambda d: d['level'].upper(), 'event'))) as log:
+    from testfixtures import LogCapture
+    from testfixtures.structlog import StructlogSource, level_name
+
+    with LogCapture(StructlogSource((level_name, 'event'))) as log:
         structlog.get_logger().debug('a debug message')
         structlog.get_logger().info('something info')
     log.check(
@@ -215,18 +220,18 @@ a :class:`~testfixtures.structlog.StructlogSource` to one
     from testfixtures.structlog import StructlogSource
 
     with LogCapture(StructlogSource(), LoggingSource()) as log:
-        logging.warning('from standard library logging')
-        structlog.get_logger().warning('from structlog')
+        logging.info('from standard library logging')
+        structlog.get_logger().info('from structlog')
 
     log.check(
-        ('WARNING', 'from standard library logging'),
-        ('WARNING', 'from structlog'),
+        ('INFO', 'from standard library logging'),
+        ('INFO', 'from structlog'),
     )
 
 Note that if your structlog is configured with
 :class:`structlog.stdlib.LoggerFactory` so that structlog calls flow *through*
 stdlib logging, then a single :class:`~testfixtures.logcapture.LoggingSource`
-is enough — adding :class:`~testfixtures.structlog.StructlogSource` would
+is enough and adding :class:`~testfixtures.structlog.StructlogSource` would
 double-capture each event.
 
 Exceptions
@@ -252,13 +257,12 @@ Running selected processors during capture
 ------------------------------------------
 
 By default :class:`~testfixtures.structlog.StructlogSource` bypasses your
-configured processor chain — only :func:`structlog.stdlib.add_log_level` and
+configured processor chain and only :func:`structlog.stdlib.add_log_level` and
 :func:`~structlog.contextvars.merge_contextvars` run before capture. This
 mirrors :func:`structlog.testing.capture_logs` and keeps assertions clean of
 per-run noise like timestamps and call sites.
 
-If you need different processors during capture (for example, to verify what a
-renderer would emit), pass them via ``processors``:
+If you need different processors during capture you can pass them via ``processors``:
 
 .. code-block:: python
 
@@ -267,7 +271,7 @@ renderer would emit), pass them via ``processors``:
 
     with LogCapture(
         StructlogSource(
-            attributes='event',
+            attributes=raw,
             processors=[merge_contextvars, KeyValueRenderer(sort_keys=True)],
         )
     ) as log:
@@ -283,7 +287,7 @@ The same pattern works for :class:`~structlog.processors.JSONRenderer`:
 
     with LogCapture(
         StructlogSource(
-            attributes='event',
+            attributes=raw,
             processors=[merge_contextvars, JSONRenderer(sort_keys=True)],
         )
     ) as log:
@@ -292,13 +296,12 @@ The same pattern works for :class:`~structlog.processors.JSONRenderer`:
     log.check('{"event": "hi", "level": "info", "user": "alice"}')
 
 When a renderer is the last processor, the captured value is a string, so
-``attributes`` is best set to a single key like ``'event'`` to avoid
-tuple-shaping over a string. See structlog's :doc:`processors guide
-<structlog:processors>` and :func:`~structlog.testing.capture_logs` for the
+``attributes`` should be set to :func:`raw`. See structlog's
+:doc:`processors guide <structlog:processors>` and :func:`~structlog.testing.capture_logs` for the
 underlying mechanics.
 
-Avoid putting :func:`structlog.processors.format_exc_info` in ``processors``:
-it replaces ``exc_info`` with a formatted string and defeats the
+Avoid putting :func:`structlog.processors.format_exc_info` in ``processors`` as it replaces
+``exc_info`` with a formatted string and defeats the
 :attr:`~testfixtures.logcapture.Entry.exception` extraction shown above.
 
 Checking the configuration of your logging
@@ -327,16 +330,21 @@ This can be tested with a unit test such as the following:
 
 .. code-block:: python
 
-    from testfixtures import compare
+    from testfixtures import compare, replace_in_module
+    from testfixtures.mock import Mock, call
 
     def test_setup_logging() -> None:
-        setup_logging()
-        config = structlog.get_config()
-        names = [getattr(p, '__name__', type(p).__name__) for p in config['processors']]
-        compare(
-            names,
-            expected=['merge_contextvars', 'add_log_level', 'TimeStamper', 'JSONRenderer'],
-        )
+        configure = Mock()
+        with replace_in_module(structlog.configure, configure, module=structlog):
+            setup_logging()
+        compare(configure.mock_calls, expected=[call(
+            processors=[
+                structlog.contextvars.merge_contextvars,
+                structlog.stdlib.add_log_level,
+                structlog.processors.TimeStamper(fmt='iso'),
+                structlog.processors.JSONRenderer(),
+            ],
+        )])
 
 .. check it:
 
