@@ -36,15 +36,6 @@ def raw(event_dict: EventDict) -> EventDict:
     return event_dict
 
 
-def _resolve_level(level: int | str) -> int:
-    if isinstance(level, int):
-        return level
-    resolved = logging.getLevelName(level.upper())
-    if not isinstance(resolved, int):
-        raise ValueError(f'Unknown structlog level name: {level!r}')
-    return resolved
-
-
 class StructlogSource:
     """
     A :class:`~testfixtures.logcapture.CaptureSource` for
@@ -88,19 +79,34 @@ class StructlogSource:
         defeat :attr:`~testfixtures.logcapture.Entry.exception` extraction.
     """
 
+    collector: Callable[[Entry], None] | None = None
+    live_processors: list[Processor] | None = None
+    saved_processors: list[Processor] | None = None
+
     def __init__(
         self,
         attributes: EventDictAttributes = (level_name, 'event'),
         level: int | str = 0,
-        processors: Sequence[Processor] = (structlog.contextvars.merge_contextvars,),
+        processors: Sequence[Processor] = (
+            structlog.stdlib.add_log_level,
+            structlog.contextvars.merge_contextvars,
+        ),
     ) -> None:
         self.attributes = attributes
-        self.user_processors: tuple[Processor, ...] = tuple(processors)
-        self.min_level = _resolve_level(level)
-        self.collector: Callable[[Entry], None] | None = None
-        self.live_processors: list[Processor] | None = None
-        self.saved_processors: list[Processor] | None = None
+        self.processors: tuple[Processor, ...] = tuple(processors)
+        self.min_level = self.resolve_level(level)
         self.compute_actual = build_actual_extractor(attributes, self.extract_field)
+
+    @staticmethod
+    def resolve_level(level: int | str) -> int:
+        match level:
+            case int():
+                resolved = level
+            case str():
+                resolved = logging.getLevelName(level.upper())
+                if not isinstance(resolved, int):
+                    raise ValueError(f'Unknown structlog level name: {level!r}')
+        return resolved
 
     def extract_field(self, raw: EventDict, attribute: str) -> Any:
         return raw.get(attribute)
@@ -113,14 +119,13 @@ class StructlogSource:
     ) -> EventDict:
         if self.collector is None:
             raise DropEvent
+
+        level = self.resolve_level(method_name)
+        if level < self.min_level:
+            raise DropEvent
+
+        exception: BaseException | None = None
         if isinstance(event_dict, dict):
-            level_str = str(event_dict.get('level', '')).upper()
-            numeric = logging.getLevelName(level_str) if level_str else None
-            if not isinstance(numeric, int):
-                numeric = None
-            if numeric is not None and numeric < self.min_level:
-                raise DropEvent
-            exception: BaseException | None = None
             exc_info = event_dict.get('exc_info')
             if exc_info is True:
                 exc_info = sys.exc_info()
@@ -128,22 +133,11 @@ class StructlogSource:
                 exception = exc_info[1]
             elif isinstance(exc_info, BaseException):
                 exception = exc_info
-            actual = self.compute_actual(event_dict)
-        else:
-            # A renderer earlier in the user-supplied processor chain has
-            # already turned the event dict into a string or bytes; pass it
-            # through unmodified and skip level/exception bookkeeping.
-            numeric = None
-            exception = None
-            actual = event_dict
-        self.collector(
-            Entry(
-                raw=event_dict,
-                actual=actual,
-                level=numeric,
-                exception=exception,
-            )
-        )
+
+        actual = self.compute_actual(event_dict)
+
+        self.collector(Entry(raw=event_dict, actual=actual, level=level, exception=exception))
+
         raise DropEvent
 
     def __repr__(self) -> str:
@@ -157,12 +151,7 @@ class StructlogSource:
         # old chain. structlog.testing.capture_logs uses the same trick.
         self.live_processors = structlog.get_config()['processors']
         self.saved_processors = list(self.live_processors)
-        self.live_processors.clear()
-        self.live_processors.extend([
-            structlog.stdlib.add_log_level,
-            *self.user_processors,
-            self.capture,
-        ])
+        self.live_processors[:] = [*self.processors, self.capture]
         structlog.configure(processors=self.live_processors)
 
     def uninstall(self) -> None:
@@ -170,9 +159,9 @@ class StructlogSource:
             return
         live = self.live_processors
         saved = self.saved_processors
-        self.live_processors = None
-        self.saved_processors = None
-        self.collector = None
+        del self.live_processors
+        del self.saved_processors
+        del self.collector
         current = structlog.get_config()['processors']
         if current is not live or self.capture not in current:
             warn(
@@ -181,6 +170,5 @@ class StructlogSource:
                 'inside a LogCapture block.'
             )
             current = live
-        current.clear()
-        current.extend(saved)
+        current[:] = saved
         structlog.configure(processors=current)

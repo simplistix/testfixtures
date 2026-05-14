@@ -277,7 +277,7 @@ If you need different processors during capture you can pass them via ``processo
     ) as log:
         structlog.get_logger().bind(user='alice').info('hi')
 
-    log.check("event='hi' level='info' user='alice'")
+    log.check("event='hi' user='alice'")
 
 The same pattern works for :class:`~structlog.processors.JSONRenderer`:
 
@@ -293,7 +293,7 @@ The same pattern works for :class:`~structlog.processors.JSONRenderer`:
     ) as log:
         structlog.get_logger().bind(user='alice').info('hi')
 
-    log.check('{"event": "hi", "level": "info", "user": "alice"}')
+    log.check('{"event": "hi", "user": "alice"}')
 
 When a renderer is the last processor, the captured value is a string, so
 ``attributes`` should be set to :func:`raw`. See structlog's
@@ -326,25 +326,39 @@ function such as this:
             ],
         )
 
-This can be tested with a unit test such as the following:
+This can be tested with the following unit test:
 
 .. code-block:: python
 
-    from testfixtures import compare, replace_in_module
+    from testfixtures import compare, Replacer
     from testfixtures.mock import Mock, call
 
     def test_setup_logging() -> None:
-        configure = Mock()
-        with replace_in_module(structlog.configure, configure, module=structlog):
+        mocks = Mock()
+        with Replacer() as replace:
+            # While used from structlog, configure is defined in structlog._config:
+            replace.in_module(structlog.configure, mocks.configure, module=structlog)
+            # Instances of these classes have internal state that does not compare equal,
+            # so just mock them and ensure we've called them correctly:
+            replace.in_module(structlog.processors.TimeStamper, mocks.TimeStamper)
+            replace.in_module(structlog.processors.JSONRenderer, mocks.JSONRenderer)
             setup_logging()
-        compare(configure.mock_calls, expected=[call(
-            processors=[
-                structlog.contextvars.merge_contextvars,
-                structlog.stdlib.add_log_level,
-                structlog.processors.TimeStamper(fmt='iso'),
-                structlog.processors.JSONRenderer(),
+
+        compare(
+            mocks.mock_calls,
+            expected=[
+                call.TimeStamper(fmt='iso'),
+                call.JSONRenderer(),
+                call.configure(
+                    processors=[
+                        structlog.contextvars.merge_contextvars,
+                        structlog.stdlib.add_log_level,
+                        mocks.TimeStamper.return_value,
+                        mocks.JSONRenderer.return_value,
+                    ],
+                ),
             ],
-        )])
+        )
 
 .. check it:
 

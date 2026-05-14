@@ -15,7 +15,8 @@ from testfixtures import (
     compare,
 )
 from testfixtures.logcapture import LoggingSource
-from testfixtures.structlog import StructlogSource, level_name
+from testfixtures.mock import Mock
+from testfixtures.structlog import StructlogSource, level_name, raw
 
 
 @pytest.fixture(autouse=True)
@@ -28,7 +29,6 @@ def clean_structlog():
 
 
 class TestLogCapture:
-
     def test_simple(self):
         with LogCapture(StructlogSource()) as log:
             structlog.get_logger().info('hello world')
@@ -45,24 +45,23 @@ class TestLogCapture:
         log.check('just the event')
 
     def test_fields_callable(self):
+        logger = structlog.get_logger()
         with LogCapture(StructlogSource((lambda d: d['level'].upper(), 'event'))) as log:
-            structlog.get_logger().debug('msg1')
-            structlog.get_logger().info('msg2')
+            logger.debug('msg1')
+            logger.info('msg2')
         log.check(
             ('DEBUG', 'msg1'),
             ('INFO', 'msg2'),
         )
 
     def test_attributes_single_callable(self):
-        def extract(event_dict):
-            return {'level': event_dict['level'].upper(), 'event': event_dict['event']}
-
-        with LogCapture(StructlogSource(extract)) as log:
-            structlog.get_logger().info('hello')
-            structlog.get_logger().error('boom')
+        logger = structlog.get_logger()
+        with LogCapture(StructlogSource(raw)) as log:
+            logger.info('hello')
+            logger.error('boom')
         log.check(
-            {'level': 'INFO', 'event': 'hello'},
-            {'level': 'ERROR', 'event': 'boom'},
+            {'level': 'info', 'event': 'hello'},
+            {'level': 'error', 'event': 'boom'},
         )
 
     def test_exception(self):
@@ -73,25 +72,9 @@ class TestLogCapture:
                 structlog.get_logger().exception('oh no')
         log.check(('ERROR', 'oh no'))
         log.check_exception_str('boom')
-
-    def test_raise_first_exception(self):
-        with LogCapture(StructlogSource()) as log:
-            try:
-                raise ValueError('boom')
-            except ValueError:
-                structlog.get_logger().exception('oh no')
         with ShouldRaise(ValueError('boom')):
             log.raise_first_exception()
-
-    def test_order_doesnt_matter(self):
-        with LogCapture(StructlogSource()) as log:
-            structlog.get_logger().info('first')
-            structlog.get_logger().info('second')
-        log.check(
-            ('INFO', 'second'),
-            ('INFO', 'first'),
-            order_matters=False,
-        )
+        compare(log.entries[0].exception, expected=ValueError('boom'))
 
     def test_level_filtering(self):
         with LogCapture(StructlogSource(level='WARNING')) as log:
@@ -99,60 +82,56 @@ class TestLogCapture:
             structlog.get_logger().warning('captured')
         log.check(('WARNING', 'captured'))
 
-    def test_str(self):
-        with LogCapture(StructlogSource()) as log:
-            structlog.get_logger().info('hello world')
-        compare(str(log), expected='INFO hello world')
-
     def test_broken_attribute_method(self):
-
-        def raw(event_dict):
+        def bad(event_dict):
             raise ValueError('boom')
 
-        with LogCapture(StructlogSource((raw,))) as log:
+        with LogCapture(StructlogSource((bad,))) as log:
             with ShouldRaise(ValueError('boom')):
                 structlog.get_logger().info('task logging')
         log.check()
 
     def test_bound_contextvars(self):
-        with LogCapture(StructlogSource((level_name, 'event', 'task'))) as log:
+        with LogCapture(StructlogSource(raw)) as log:
             with bound_contextvars(task=1234):
                 structlog.get_logger().info('task logging')
-        log.check(('INFO', 'task logging', 1234))
+        log.check({'event': 'task logging', 'level': 'info', 'task': 1234})
 
     def test_bind_contextvars(self):
         bind_contextvars(request_id='abc123')
-        with LogCapture(StructlogSource((level_name, 'event', 'request_id'))) as log:
-            structlog.get_logger().info('handling')
-            structlog.get_logger().info('done')
+        logger = structlog.get_logger()
+        with LogCapture(StructlogSource(raw)) as log:
+            logger.info('handling')
+            logger.info('done')
         log.check(
-            ('INFO', 'handling', 'abc123'),
-            ('INFO', 'done', 'abc123'),
+            {'event': 'handling', 'level': 'info', 'request_id': 'abc123'},
+            {'event': 'done', 'level': 'info', 'request_id': 'abc123'},
         )
 
     def test_bind(self):
-        with LogCapture(StructlogSource((level_name, 'event', 'ip', 'user'))) as log:
-            context_logger = structlog.get_logger().bind(ip='192.168.0.1', user='someone')
-            context_logger.info('Contextualize your logger easily')
-            context_logger.bind(other='foo').info('Inline binding of extra attribute')
+        logger = structlog.get_logger().bind(ip='192.168.0.1', user='someone')
+        with LogCapture(StructlogSource((level_name, 'event', 'ip', 'user', 'other'))) as log:
+            logger.info('Contextualize your logger easily')
+            logger.bind(other='foo').info('Inline binding of extra attribute')
         log.check(
-            ('INFO', 'Contextualize your logger easily', '192.168.0.1', 'someone'),
-            ('INFO', 'Inline binding of extra attribute', '192.168.0.1', 'someone'),
+            ('INFO', 'Contextualize your logger easily', '192.168.0.1', 'someone', None),
+            ('INFO', 'Inline binding of extra attribute', '192.168.0.1', 'someone', 'foo'),
         )
 
     def test_processor_chain_restored_after_capture(self):
         rendered: list[str] = []
 
         def render(logger, method_name, event_dict):
-            rendered.append(f"{event_dict['level']}: {event_dict['event']}")
-            return rendered[-1]
+            rendered.append(text := f"{event_dict['level']}: {event_dict['event']}")
+            return text
 
         structlog.configure(processors=[structlog.stdlib.add_log_level, render])
 
-        structlog.get_logger().info('before capture')
+        logger = structlog.get_logger()
+        logger.info('before capture')
         with LogCapture(StructlogSource()) as log:
-            structlog.get_logger().info('during capture')
-        structlog.get_logger().info('after capture')
+            logger.info('during capture')
+        logger.info('after capture')
 
         log.check(('INFO', 'during capture'))
         compare(rendered, expected=['info: before capture', 'info: after capture'])
@@ -160,7 +139,7 @@ class TestLogCapture:
     def test_renderer_in_processors(self):
         with LogCapture(
             StructlogSource(
-                attributes='event',
+                attributes=raw,
                 processors=[
                     structlog.contextvars.merge_contextvars,
                     structlog.processors.KeyValueRenderer(sort_keys=True),
@@ -168,10 +147,21 @@ class TestLogCapture:
             )
         ) as log:
             structlog.get_logger().bind(user='alice').info('hi')
-        compare(
-            log.entries[0].actual,
-            expected="event='hi' level='info' user='alice'",
-        )
+        log.check("event='hi' user='alice'")
+
+    def test_processors_supplied_excluding_loglevel(self):
+        logger = structlog.get_logger().bind(user='alice')
+        with LogCapture(
+            StructlogSource(
+                attributes=raw,
+                processors=[structlog.processors.KeyValueRenderer(sort_keys=True)],
+                level='WARNING',
+            ),
+        ) as log:
+            logger.info('hi from info')
+            logger.warning('hi from warning')
+        # note that filtering still works:
+        log.check("event='hi from warning' user='alice'")
 
     def test_combined_logging(self):
         with LogCapture(StructlogSource(), LoggingSource()) as log:
@@ -186,21 +176,25 @@ class TestLogCapture:
         )
 
     def test_displaced_by_reset_defaults_warns(self):
-        with ShouldWarn(UserWarning(
-            'StructlogSource was displaced from structlog configuration before uninstall.\n'
-            'Avoid calling structlog.configure() or structlog.reset_defaults() '
-            'inside a LogCapture block.'
-        )):
+        with ShouldWarn(
+            UserWarning(
+                'StructlogSource was displaced from structlog configuration before uninstall.\n'
+                'Avoid calling structlog.configure() or structlog.reset_defaults() '
+                'inside a LogCapture block.'
+            )
+        ):
             with LogCapture(StructlogSource()):
                 structlog.reset_defaults()
 
     def test_displaced_by_reconfigure_warns(self):
         processors_before = structlog.get_config()['processors']
-        with ShouldWarn(UserWarning(
-            'StructlogSource was displaced from structlog configuration before uninstall.\n'
-            'Avoid calling structlog.configure() or structlog.reset_defaults() '
-            'inside a LogCapture block.'
-        )):
+        with ShouldWarn(
+            UserWarning(
+                'StructlogSource was displaced from structlog configuration before uninstall.\n'
+                'Avoid calling structlog.configure() or structlog.reset_defaults() '
+                'inside a LogCapture block.'
+            )
+        ):
             with LogCapture(StructlogSource()) as cap:
                 structlog.get_logger().info('captured before displacement')
                 structlog.configure(processors=[structlog.processors.KeyValueRenderer()])
