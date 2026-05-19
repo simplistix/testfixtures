@@ -72,12 +72,12 @@ class MockedCurrent(Generic[T]):
                         'Cannot add %s with tzinfo of %s as configured to use %s' % (
                             instance.__class__.__name__, instance_tzinfo, cls._mock_tzinfo
                         ))
-                instance = instance.replace(tzinfo=None)  # type: ignore[attr-defined]
+                instance = instance.replace(tzinfo=None)  # type: ignore[attr-defined,union-attr,call-arg,assignment,unused-ignore]
             if cls._correct_mock_type:
-                instance = cls._correct_mock_type(instance)  # type: ignore[arg-type]
+                instance = cls._correct_mock_type(instance)  # type: ignore[arg-type,unused-ignore]
         else:
-            instance = cls(*args, **kw)  # type: ignore[arg-type]
-        cls._mock_queue.append(instance)  # type: ignore[arg-type]
+            instance = cls(*args, **kw)  # type: ignore[arg-type,assignment,unused-ignore]
+        cls._mock_queue.append(instance)  # type: ignore[arg-type,unused-ignore]
 
     @classmethod
     def set(cls, *args: int | T, **kw: int | TZInfo | None) -> None:
