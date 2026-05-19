@@ -134,7 +134,7 @@ line-length = 100
 quote-style = "preserve"
 
 [tool.coverage.run]
-source = ["testfixtures"]
+source = ["testfixtures", "tests"]
 
 [tool.coverage.report]
 exclude_lines = [
