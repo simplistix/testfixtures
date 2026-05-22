@@ -8,7 +8,7 @@ from datetime import date, datetime, time
 from decimal import Decimal
 from functools import partial
 from re import compile
-from typing import TypeVar, Generic
+from typing import TypeVar, Generic, Any
 from unittest import TestCase
 from uuid import uuid4, UUID
 
@@ -57,6 +57,79 @@ class Lazy:
 
     def __str__(self):
         return self.message
+
+
+class Strict:
+    def __init__(self, value):
+        self.value = value
+    def __eq__(self, other):
+        return isinstance(other, Strict) and self.value == other.value
+    def __hash__(self):
+        return hash(self.value)
+
+
+@dataclass
+class Item:
+    value: int
+
+    def __repr__(self):
+        return f"<item:{self.value}>"
+
+
+@dataclass
+class Sample:
+    id: Item
+    part: Item
+    x: str
+
+
+class Broken:
+    # An object whose __repr__ raises on demand.
+    marker = '<unrepresentable tests.test_compare.Broken: ValueError: boom!>'
+
+    def __init__(self, label='broken', exc=None):
+        self.label = label
+        self._exc = ValueError('boom!') if exc is None else exc
+
+    def __repr__(self):
+        raise self._exc
+
+
+class HashableBroken(Broken):
+    # Hashable + comparable so it can be used as a dict key or set member.
+
+    marker = '<unrepresentable tests.test_compare.HashableBroken: ValueError: boom!>'
+
+    def __init__(self, label='broken', exc=None):
+        super().__init__(label, exc)
+
+    def __hash__(self):
+        return hash(self.label)
+
+    def __eq__(self, other):
+        return isinstance(other, HashableBroken) and self.label == other.label
+
+class TestSampleClasses:
+    # Test coverage for the helper objects above, to make sure the things test below rely on
+    # behave as expected:
+    def test_strict_eq(self):
+
+        @dataclass
+        class Other:
+            value: Any
+
+        assert not Strict('foo') == Other('foo')
+        assert not Strict('foo') == Strict('bar')
+        assert hash(Strict('foo')) == hash('foo')
+
+    def test_hashable_broken_eq(self):
+
+        @dataclass
+        class Other:
+            label: Any
+
+        assert not HashableBroken('foo') == Other('foo')
+        assert not HashableBroken('foo') == Strict('bar')
 
 
 def check_raises(x_=marker, y_=marker, message=None, regex=None,
@@ -1761,10 +1834,10 @@ b
         class OtherBroken:
             def __init__(self, a):
                 self.a = a
-            def __eq__(self, other):
-                return True
-            def __repr__(self):
-                return 'OtherBroken: '+str(self.a)
+            # def __eq__(self, other):
+            #     return True
+            # def __repr__(self):
+            #     return 'OtherBroken: '+str(self.a)
 
         with registry():
             register(self.OrmObj, ignore_eq=True)
@@ -1807,14 +1880,6 @@ b
         # fall back to identity rather than the type's __eq__ — which is
         # precisely the operator ignore_eq is asking us to distrust, and
         # which may not cooperate with unknown operands like AlreadySeen.
-        class Strict:
-            def __init__(self, value):
-                self.value = value
-            def __eq__(self, other):
-                return isinstance(other, Strict) and self.value == other.value
-            def __hash__(self):
-                return hash(self.value)
-
         s = Strict(1)
         compare(expected=[s], actual=[s], ignore_eq=Strict)
 
@@ -1822,14 +1887,6 @@ b
         # Same as above but via the registry — guards against a globally
         # registered ignore_eq type leaking into unrelated comparisons that
         # happen to reuse instances within a container.
-        class Strict:
-            def __init__(self, value):
-                self.value = value
-            def __eq__(self, other):
-                return isinstance(other, Strict) and self.value == other.value
-            def __hash__(self):
-                return hash(self.value)
-
         with registry():
             register(Strict, ignore_eq=True)
             s = Strict(1)
@@ -2312,19 +2369,6 @@ b
 
     def test_self_referential_comparison_object_and_failed(self) -> None:
 
-        @dataclass
-        class Item:
-            value: int
-
-            def __repr__(self):
-                return f"<item:{self.value}>"
-
-        @dataclass
-        class Sample:
-            id: Item
-            part: Item
-            x: str
-
         i = Item(1)
 
         self.check_raises(
@@ -2345,19 +2389,6 @@ b
 
     def test_self_referential_comparison_object_and_succeeded(self) -> None:
 
-        @dataclass
-        class Item:
-            value: int
-
-            def __repr__(self):
-                return f"<item:{self.value}>"
-
-        @dataclass
-        class Sample:
-            id: Item
-            part: Item
-            x: str
-
         i = Item(1)
 
         compare(
@@ -2368,19 +2399,6 @@ b
         )
 
     def test_self_referential_comparison_object_and_same_but_strict(self) -> None:
-
-        @dataclass
-        class Item:
-            value: int
-
-            def __repr__(self):
-                return f"<item:{self.value}>"
-
-        @dataclass
-        class Sample:
-            id: Item
-            part: Item
-            x: str
 
         i = Item(1)
 
@@ -2400,8 +2418,7 @@ b
                 '\n'
                 "While comparing .id: <C:tests.test_compare.Item> "
                 "(<class 'testfixtures.comparison.Comparison'>) (expected) != "
-                "<item:1> (<class 'tests.test_compare.TestCompare."
-                "test_self_referential_comparison_object_and_same_but_strict.<locals>.Item'>)"
+                "<item:1> (<class 'tests.test_compare.Item'>)"
                 " (actual)\n"
                 '\n'
                 "While comparing .x: 'foo' (expected) != 'bar' (actual)"
@@ -2409,19 +2426,6 @@ b
         )
 
     def test_self_referential_comparison_object_and_same_but_ignore_eq(self) -> None:
-
-        @dataclass
-        class Item:
-            value: int
-
-            def __repr__(self):
-                return f"<item:{self.value}>"
-
-        @dataclass
-        class Sample:
-            id: Item
-            part: Item
-            x: str
 
         i = Item(1)
 
@@ -2761,33 +2765,6 @@ class TestGenericTypes:
             '\n'
             "While comparing .__args__[0]: <class 'int'> != <class 'float'>"
         ))
-
-
-class Broken:
-    # An object whose __repr__ raises on demand.
-    marker = '<unrepresentable tests.test_compare.Broken: ValueError: boom!>'
-
-    def __init__(self, label='broken', exc=None):
-        self.label = label
-        self._exc = ValueError('boom!') if exc is None else exc
-
-    def __repr__(self):
-        raise self._exc
-
-
-class HashableBroken(Broken):
-    # Hashable + comparable so it can be used as a dict key or set member.
-
-    marker = '<unrepresentable tests.test_compare.HashableBroken: ValueError: boom!>'
-
-    def __init__(self, label='broken', exc=None):
-        super().__init__(label, exc)
-
-    def __hash__(self):
-        return hash(self.label)
-
-    def __eq__(self, other):
-        return isinstance(other, HashableBroken) and self.label == other.label
 
 
 class TestSafeHelpers:

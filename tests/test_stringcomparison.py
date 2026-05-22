@@ -36,14 +36,6 @@ class Tests(TestCase):
         other = MatchesAnything()
         assert S(r'x') == other
         assert other == S(r'x')
-
-    def test_not_string_reflected_inequality(self):
-        class MatchesAnything:
-            def __eq__(self, other):
-                return True
-            def __ne__(self, other):
-                return False
-        other = MatchesAnything()
         assert not (S(r'x') != other)
         assert not (other != S(r'x'))
 

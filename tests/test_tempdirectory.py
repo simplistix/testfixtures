@@ -655,10 +655,8 @@ class TestParseDump:
     def test_duplicate_suffix(self, class_: TempDirClasses):
         class CustomFormat:
             suffixes: Sequence[str] = ('.json',)
-            def parse(self, data: str):
-                return {'custom': data}
-            def render(self, obj):
-                return str(obj)
+            def parse(self, data: str): ...
+            def render(self, obj): ...
 
         custom_fmt = CustomFormat()
         with ShouldRaise(ValueError("Multiple formats registered for extension '.json'")):
