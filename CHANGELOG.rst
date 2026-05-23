@@ -3,6 +3,28 @@
 Changes
 =======
 
+12.0.0 (23 May 2026)
+--------------------
+
+.. warning:: Breaking changes:
+
+  - Comparers have moved from :mod:`!testfixtures.comparison` to :mod:`testfixtures.comparers`.
+  - :func:`!django_compare` has been removed, :func:`compare` now works with Django models.
+
+- Refactoring of :class:`LogCapture` to introduce support for :doc:`loguru <loguru>`,
+  :doc:`structlog <structlog>` and similar support for :doc:`twisted <twisted>` by way of the new
+  :class:`~testfixtures.logcapture.CaptureSource` architecture.
+
+- :func:`compare` now supports per-type ``ignore_eq``.
+
+- :func:`compare` now supports both :doc:`polars <polars>` and :doc:`pandas <pandas>` dataframes.
+
+- :func:`compare` now provides better feedback when objects being compared raised exceptipns in
+  their :any:`str` or :any:`repr`.
+
+- Added ``raises`` parameter to :meth:`OutputCapture.compare`, :meth:`LogCapture.check` and
+  :meth:`LogCapture.check_present` to they can be more easily used in compositions.
+
 11.0.0 (9 Mar 2026)
 -------------------
 
