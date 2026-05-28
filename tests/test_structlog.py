@@ -123,7 +123,7 @@ class TestLogCapture:
             ('INFO', 'Inline binding of extra attribute', '192.168.0.1', 'someone', 'foo'),
         )
 
-    def test_processor_chain_restored_after_capture(self):
+    def test_processor_chain_restored_after_capture(self) -> None:
         rendered: list[str] = []
 
         def render(logger, method_name, event_dict):
@@ -216,7 +216,7 @@ class TestLogCapture:
             with LogCapture(StructlogSource()):
                 structlog.get_logger().info('hi')
 
-    def test_capture_dropped_when_chain_outlives_source(self):
+    def test_capture_dropped_when_chain_outlives_source(self) -> None:
         # If something holds the live processor chain mid-capture and reuses
         # it after uninstall — eg. a user snapshotted it, or a bound logger
         # was passed across the boundary — the leaked capture processor must

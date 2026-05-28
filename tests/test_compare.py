@@ -112,7 +112,7 @@ class HashableBroken(Broken):
 class TestSampleClasses:
     # Test coverage for the helper objects above, to make sure the things test below rely on
     # behave as expected:
-    def test_strict_eq(self):
+    def test_strict_eq(self) -> None:
 
         @dataclass
         class Other:
@@ -122,7 +122,7 @@ class TestSampleClasses:
         assert not Strict('foo') == Strict('bar')
         assert hash(Strict('foo')) == hash('foo')
 
-    def test_hashable_broken_eq(self):
+    def test_hashable_broken_eq(self) -> None:
 
         @dataclass
         class Other:
