@@ -8,7 +8,9 @@ authors = [
 ]
 license = { text = "MIT" }
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "typing_extensions>=4.12; python_version < '3.13'",
+]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
