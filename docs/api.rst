@@ -174,6 +174,15 @@ Assertions
    :members:
 
 
+Commands
+--------
+
+.. automodule:: testfixtures.command
+   :members:
+   :special-members: __call__
+
+.. currentmodule:: testfixtures
+
 Resources
 ---------
 

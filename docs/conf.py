@@ -55,6 +55,7 @@ nitpick_ignore = [
     ('py:class', 'testfixtures.comparison.S_'),  # type var
     ('py:class', 'testfixtures.comparison.T'),  # type var
     ('py:class', 'testfixtures.datetime.MockedCurrent'),  # internal class that shouldn't be doc'ed
+    ('py:class', 'testfixtures.command.ResultT'),  # type var
     ('py:class', 'testfixtures.replace.R'),  # type var
     ('py:class', 'testfixtures.shouldraise.E'),  # type var
     ('py:class', 'testfixtures.tempdirectory.P'),  # type var
