@@ -61,7 +61,7 @@ reported as ``1``:
 Asserting logging
 -----------------
 
-The default :meth:`~testfixtures.command.Command.logging` hook installs a
+The default :meth:`~testfixtures.command.AbstractResult.setup_logging` hook installs a
 :class:`~testfixtures.LogCapture` for the standard-library :mod:`logging` module.
 Expected entries can be passed straight to :meth:`~testfixtures.command.Result.check`:
 
@@ -78,43 +78,49 @@ Expected entries can be passed straight to :meth:`~testfixtures.command.Result.c
   )
 
 To capture a different logging source — `loguru`__ for example —
-subclass :class:`Command` and override the :meth:`~testfixtures.command.Command.logging`
-hook:
+subclass :class:`Result` and override
+:meth:`~testfixtures.command.AbstractResult.setup_logging`, then pass the subclass as
+``result_type``:
 
 __ https://github.com/Delgan/loguru
 
 .. code-block:: python
 
   from loguru import logger
-  from testfixtures import Command, LogCapture
+  from testfixtures import Command, LogCapture, Result
   from testfixtures.loguru import LoguruSource
 
-  class LoguruCommand(Command):
-      def logging(self) -> LogCapture:
+  class LoguruResult(Result):
+      @classmethod
+      def setup_logging(cls) -> LogCapture:
           return LogCapture(LoguruSource())
 
   def main() -> None:
       logger.info('hello loguru')
 
-  LoguruCommand(main).run().check(logging=[('INFO', 'hello loguru')])
+  Command(main, result_type=LoguruResult).run().check(
+      logging=[('INFO', 'hello loguru')],
+  )
 
 Mocking collaborators
 ---------------------
 
-The :meth:`~testfixtures.command.Command.mocks` hook is given the :class:`~testfixtures.Replacer` that is
-already active for the duration of the run; install whatever
-replacements you need and return them so :meth:`~testfixtures.command.Result.check` can
-assert their ``mock_calls``. The sample function ``tests.sample1.z``
-stands in for any collaborator you might want to replace:
+:meth:`~testfixtures.command.AbstractResult.setup_mocks` is given the
+:class:`~testfixtures.Replacer` that is already active for the duration of the run;
+install whatever replacements you need on a root :class:`~unittest.mock.Mock`
+and return that root so :meth:`~testfixtures.command.Result.check` can assert their
+``mock_calls``. The sample function ``tests.sample1.z`` stands in for any
+collaborator you might want to replace:
 
 .. code-block:: python
 
   from unittest.mock import Mock, call
-  from testfixtures import Command, Replacer
+  from testfixtures import Command, Replacer, Result
   from tests import sample1
 
-  class MyCommand(Command):
-      def mocks(self, replace: Replacer) -> Mock:
+  class MockedZResult(Result):
+      @classmethod
+      def setup_mocks(cls, replace: Replacer) -> Mock:
           mock = Mock(return_value='mocked z')
           replace.in_module(sample1.z, mock)
           return mock
@@ -122,32 +128,66 @@ stands in for any collaborator you might want to replace:
   def main() -> None:
       print(sample1.z())
 
-  MyCommand(main).run().check(
+  Command(main, result_type=MockedZResult).run().check(
       output='mocked z',
       mock_calls=[call()],
   )
 
+Reusing a customised result
+---------------------------
+
+When several tests share the same custom :class:`Result` but exercise
+different ``main`` callables, a one-line helper function keeps the
+boilerplate down and the wiring obvious at every call site. Reusing
+the ``MockedZResult`` from above:
+
+.. code-block:: python
+
+  from typing import Callable
+  from testfixtures import Command
+
+  def mocked_z(main: Callable[[], None]) -> Command[MockedZResult]:
+      return Command(main, result_type=MockedZResult)
+
+  def main_one() -> None:
+      print(f'one: {sample1.z()}')
+
+  def main_two() -> None:
+      print(f'two: {sample1.z()}')
+
+  mocked_z(main_one).run().check(output='one: mocked z', mock_calls=[call()])
+  mocked_z(main_two).run().check(output='two: mocked z', mock_calls=[call()])
+
+The same approach works for any pattern of customisation — split
+stdout/stderr, a particular ``LogCapture`` configuration, a standard
+set of mocks. Define the :class:`Result` subclass once, define a thin
+helper that binds it, and tests across the codebase compose by passing
+their ``main`` callable.
+
 Splitting stdout and stderr
 ---------------------------
 
-The default :meth:`~testfixtures.command.Command.output` hook captures stdout and stderr
-into a single combined stream — :meth:`~testfixtures.command.Result.check` asserts that
-combined stream with its ``output`` argument. When you need to assert
-them separately, override :meth:`~testfixtures.command.Command.output` to return an
-:class:`~testfixtures.OutputCapture` with ``separate=True``, define an
-:class:`~testfixtures.command.AbstractResult` subclass whose ``check`` accepts
-``stdout`` and ``stderr``, then specialise ``Command`` to that subclass
-via the generic parameter:
+The default :meth:`~testfixtures.command.AbstractResult.setup_output` hook captures stdout
+and stderr into a single combined stream — :meth:`~testfixtures.command.Result.check`
+asserts that combined stream with its ``output`` argument. When you need to
+assert them separately, subclass :class:`AbstractResult` and override
+:meth:`~testfixtures.command.AbstractResult.setup_output` to return an
+:class:`~testfixtures.OutputCapture` with ``separate=True``, then implement a
+``check`` whose signature takes ``stdout`` and ``stderr``:
 
 .. code-block:: python
 
   import sys
   from dataclasses import dataclass
-  from testfixtures import Command, OutputCapture, compare
+  from testfixtures import Command, OutputCapture
   from testfixtures.command import AbstractResult, CheckResult, check_return_code
 
   @dataclass
   class SeparateResult(AbstractResult):
+      @classmethod
+      def setup_output(cls) -> OutputCapture:
+          return OutputCapture(separate=True)
+
       def check(self, stdout: str = '', stderr: str = '', return_code: int = 0) -> None:
           __tracebackhide__ = True
           self.assert_check_results(
@@ -155,15 +195,11 @@ via the generic parameter:
               check_return_code(return_code, self.return_code),
           )
 
-  class SeparateCommand(Command[SeparateResult]):
-      def output(self) -> OutputCapture:
-          return OutputCapture(separate=True)
-
   def main() -> None:
       print('on stdout')
       print('on stderr', file=sys.stderr)
 
-  SeparateCommand(main).run().check(
+  Command(main, result_type=SeparateResult).run().check(
       stdout='on stdout',
       stderr='on stderr',
   )

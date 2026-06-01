@@ -100,14 +100,15 @@ def test_output_fails() -> None:
 
 
 def test_text_systemexit() -> None:
-    class SplitCapture(Command):
-        def output(self) -> OutputCapture:
+    class SplitResult(DefaultResult):
+        @classmethod
+        def setup_output(cls) -> OutputCapture:
             return OutputCapture(separate=True)
 
     def main() -> None:
         raise SystemExit("foo!")
 
-    result = SplitCapture(main)()
+    result = Command(main, result_type=SplitResult)()
     result.output.compare(stdout="", stderr="foo!")
     compare(result.return_code, expected=1)
 
@@ -140,8 +141,9 @@ def test_multi_line_output_fails() -> None:
         Command(main)().check(output="line 1\nline 2\nline X")
 
 
-class StrictCommand(Command):
-    def output(self) -> OutputCapture:
+class StrictResult(DefaultResult):
+    @classmethod
+    def setup_output(cls) -> OutputCapture:
         return OutputCapture(strip_whitespace=False)
 
 
@@ -150,7 +152,7 @@ def test_multi_line_output_strict_matches() -> None:
         print("line 1")
         print("line 2")
 
-    StrictCommand(main)().check(output="line 1\nline 2\n")
+    Command(main, result_type=StrictResult)().check(output="line 1\nline 2\n")
 
 
 def test_multi_line_output_strict_fails() -> None:
@@ -167,7 +169,7 @@ def test_multi_line_output_strict_fails() -> None:
         ' line 2\n'
         '+'
     ):
-        StrictCommand(main)().check(output="line 1\nline 2")
+        Command(main, result_type=StrictResult)().check(output="line 1\nline 2")
 
 
 def test_return_code_failure() -> None:
@@ -229,13 +231,14 @@ def test_stdlib_logging() -> None:
 
 
 def test_capture_setup_logging_call() -> None:
-    class MyCommand(Command):
-        def mocks(self, replace: Replacer) -> Mock:
+    class MockingResult(DefaultResult):
+        @classmethod
+        def setup_mocks(cls, replace: Replacer) -> Mock:
             mock = Mock()
             replace.in_module(setup_logging, mock)
             return mock
 
-    MyCommand(sample_main_logging).run('-l', '10').check(
+    Command(sample_main_logging, result_type=MockingResult).run('-l', '10').check(
         logging=[
             ('INFO', "argv: ['sample_main_logging', '-l', '10']"),
         ],
@@ -256,11 +259,12 @@ def test_callable_without_name() -> None:
 
 
 def test_loguru_logging() -> None:
-    class LoguruCommand(Command):
-        def logging(self) -> LogCapture:
+    class LoguruResult(DefaultResult):
+        @classmethod
+        def setup_logging(cls) -> LogCapture:
             return LogCapture(LoguruSource())
 
-    LoguruCommand(sample_main_loguru)().check(
+    Command(sample_main_loguru, result_type=LoguruResult)().check(
         logging=[('INFO', 'hello loguru')],
     )
 
@@ -283,6 +287,20 @@ def test_argparse() -> None:
 def test_maximal_override() -> None:
     @dataclass
     class Result(AbstractResult):
+        @classmethod
+        def setup_output(cls) -> OutputCapture:
+            return OutputCapture(separate=True)
+
+        @classmethod
+        def setup_logging(cls) -> LogCapture:
+            return LogCapture(LoggingSource('getMessage', level=logging.WARNING))
+
+        @classmethod
+        def setup_mocks(cls, replace: Replacer) -> Mock:
+            mocks = Mock()
+            replace.in_module(setup_logging, mocks.setup_logging)
+            return mocks
+
         def check(
             self,
             stdout: str = '',
@@ -297,19 +315,6 @@ def test_maximal_override() -> None:
                 check_mock_calls([call.setup_logging(logging.WARNING)], self.mocks),
             )
 
-    class MyCommand(Command[Result]):
-
-        def output(self) -> OutputCapture:
-            return OutputCapture(separate=True)
-
-        def logging(self) -> LogCapture:
-            return LogCapture(LoggingSource('getMessage', level=logging.WARNING))
-
-        def mocks(self, replace: Replacer) -> Mock:
-            mocks = Mock()
-            replace.in_module(setup_logging, mocks.setup_logging)
-            return mocks
-
     def sample_main() -> None:
         setup_logging(int(sys.argv[2]))
         print('stdout', file=sys.stdout)
@@ -318,7 +323,7 @@ def test_maximal_override() -> None:
         logging.warning('warning message')
         sys.exit(int(sys.argv[1]))
 
-    command = MyCommand(sample_main)
+    command = Command(sample_main, result_type=Result)
     # happy path:
     result = command('0', str(logging.WARNING))
     result.check(stdout='stdout', stderr='stderr')
