@@ -100,7 +100,7 @@ class LogCapture:
         See :meth:`ensure_checked`.
 
     For compatibility with earlier versions, capturing only
-    :any:`standard library logging <logging>` is supported by instantiating using these parameters:
+    standard library :mod:`logging` is supported by instantiating using these parameters:
 
     :param names:
         A string (or tuple of strings) containing the dotted name(s) of loggers to capture.
