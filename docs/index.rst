@@ -10,6 +10,7 @@ The sections below describe the use of the various tools included:
    datetime.rst
    logging.rst
    streams.rst
+   command.rst
    files.rst
    exceptions.rst
    warnings.rst
