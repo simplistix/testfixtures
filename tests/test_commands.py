@@ -3,8 +3,8 @@ import sys
 from argparse import ArgumentParser
 from dataclasses import dataclass
 from functools import partial
-from typing import assert_type
-from testfixtures.mock import Mock, call
+from typing import assert_type, Sequence
+from testfixtures.mock import Mock, call, _Call as Call
 
 import click
 import pytest
@@ -19,10 +19,10 @@ from testfixtures import (
     compare,
 )
 from testfixtures.command import (
-    AbstractResult,
+    AbstractRun,
     CheckResult,
     Command,
-    Result as DefaultResult,
+    Run as DefaultRun,
     check_logging,
     check_mock_calls,
     check_return_code,
@@ -76,12 +76,12 @@ def test_minimal_success() -> None:
 def test_result_typing() -> None:
     result = Command(sample_main_minimal)()
     # check __call__ type
-    assert_type(result, DefaultResult)
-    assert isinstance(result, DefaultResult)
+    assert_type(result, DefaultRun)
+    assert isinstance(result, DefaultRun)
     # check run type
     result = Command(sample_main_minimal).run()
-    assert_type(result, DefaultResult)
-    assert isinstance(result, DefaultResult)
+    assert_type(result, DefaultRun)
+    assert isinstance(result, DefaultRun)
 
 
 def test_output_matches() -> None:
@@ -100,7 +100,7 @@ def test_output_fails() -> None:
 
 
 def test_text_systemexit() -> None:
-    class SplitResult(DefaultResult):
+    class SplitOutput(DefaultRun):
         @classmethod
         def setup_output(cls) -> OutputCapture:
             return OutputCapture(separate=True)
@@ -108,7 +108,7 @@ def test_text_systemexit() -> None:
     def main() -> None:
         raise SystemExit("foo!")
 
-    result = Command(main, result_type=SplitResult)()
+    result = Command(main, runner=SplitOutput)()
     result.output.compare(stdout="", stderr="foo!")
     compare(result.return_code, expected=1)
 
@@ -129,19 +129,12 @@ def test_multi_line_output_fails() -> None:
         print("line 3")
 
     with ShouldAssert(
-        'output: \n'
-        '--- expected\n'
-        '+++ actual\n'
-        '@@ -1,3 +1,3 @@\n'
-        ' line 1\n'
-        ' line 2\n'
-        '-line X\n'
-        '+line 3'
+        'output: \n--- expected\n+++ actual\n@@ -1,3 +1,3 @@\n line 1\n line 2\n-line X\n+line 3'
     ):
         Command(main)().check(output="line 1\nline 2\nline X")
 
 
-class StrictResult(DefaultResult):
+class KeepWhitespaceRun(DefaultRun):
     @classmethod
     def setup_output(cls) -> OutputCapture:
         return OutputCapture(strip_whitespace=False)
@@ -152,7 +145,7 @@ def test_multi_line_output_strict_matches() -> None:
         print("line 1")
         print("line 2")
 
-    Command(main, result_type=StrictResult)().check(output="line 1\nline 2\n")
+    Command(main, runner=KeepWhitespaceRun)().check(output="line 1\nline 2\n")
 
 
 def test_multi_line_output_strict_fails() -> None:
@@ -160,16 +153,8 @@ def test_multi_line_output_strict_fails() -> None:
         print("line 1")
         print("line 2")
 
-    with ShouldAssert(
-        'output: \n'
-        '--- expected\n'
-        '+++ actual\n'
-        '@@ -1,2 +1,3 @@\n'
-        ' line 1\n'
-        ' line 2\n'
-        '+'
-    ):
-        Command(main, result_type=StrictResult)().check(output="line 1\nline 2")
+    with ShouldAssert('output: \n--- expected\n+++ actual\n@@ -1,2 +1,3 @@\n line 1\n line 2\n+'):
+        Command(main, runner=KeepWhitespaceRun)().check(output="line 1\nline 2")
 
 
 def test_return_code_failure() -> None:
@@ -231,18 +216,18 @@ def test_stdlib_logging() -> None:
 
 
 def test_capture_setup_logging_call() -> None:
-    class MockingResult(DefaultResult):
+    class MockingResult(DefaultRun):
         @classmethod
         def setup_mocks(cls, replace: Replacer) -> Mock:
             mock = Mock()
-            replace.in_module(setup_logging, mock)
+            replace.in_module(setup_logging, mock.setup_logging)
             return mock
 
-    Command(sample_main_logging, result_type=MockingResult).run('-l', '10').check(
+    Command(sample_main_logging, runner=MockingResult).run('-l', '10').check(
         logging=[
             ('INFO', "argv: ['sample_main_logging', '-l', '10']"),
         ],
-        mock_calls=[call(10)],
+        mock_calls=[call.setup_logging(10)],
     )
 
 
@@ -259,12 +244,12 @@ def test_callable_without_name() -> None:
 
 
 def test_loguru_logging() -> None:
-    class LoguruResult(DefaultResult):
+    class LoguruRun(DefaultRun):
         @classmethod
         def setup_logging(cls) -> LogCapture:
             return LogCapture(LoguruSource())
 
-    Command(sample_main_loguru, result_type=LoguruResult)().check(
+    Command(sample_main_loguru, runner=LoguruRun)().check(
         logging=[('INFO', 'hello loguru')],
     )
 
@@ -284,9 +269,9 @@ def test_argparse() -> None:
     Command(sample_argparse_main).run('--name', 'chris').check(output='hello chris')
 
 
-def test_maximal_override() -> None:
+def test_customise_by_overriding_setup_and_check() -> None:
     @dataclass
-    class Result(AbstractResult):
+    class Run(AbstractRun):
         @classmethod
         def setup_output(cls) -> OutputCapture:
             return OutputCapture(separate=True)
@@ -308,7 +293,7 @@ def test_maximal_override() -> None:
             return_code: int = 0,
         ) -> None:
             output = self.output.compare(stdout=stdout, stderr=stderr, raises=False)
-            self.assert_check_results(
+            self.check_results(
                 CheckResult('output', output),
                 check_return_code(return_code, self.return_code),
                 check_logging(['warning message'], self.logging),
@@ -323,14 +308,15 @@ def test_maximal_override() -> None:
         logging.warning('warning message')
         sys.exit(int(sys.argv[1]))
 
-    command = Command(sample_main, result_type=Result)
+    command = Command(sample_main, runner=Run)
+
     # happy path:
     result = command('0', str(logging.WARNING))
     result.check(stdout='stdout', stderr='stderr')
 
     # check typing for call:
-    assert_type(result, Result)
-    assert isinstance(result, Result)
+    assert_type(result, Run)
+    assert isinstance(result, Run)
 
     # sad path:
     result = command.run('1', str(logging.INFO))
@@ -357,5 +343,75 @@ def test_maximal_override() -> None:
         result.check()
 
     # check typing for run:
-    assert_type(result, Result)
-    assert isinstance(result, Result)
+    assert_type(result, Run)
+    assert isinstance(result, Run)
+
+
+def test_customise_checking_by_changing_check_defaults() -> None:
+    @dataclass
+    class Run(DefaultRun):
+        @classmethod
+        def setup_mocks(cls, replace: Replacer) -> Mock:
+            mocks = Mock()
+            replace.in_module(setup_logging, mocks.setup_logging)
+            return mocks
+
+        def check(
+            self,
+            output: str = 'default output',
+            return_code: int = 1,
+            logging: Sequence[tuple[str, str]] = (('INFO', 'default logging'),),
+            mock_calls: Sequence[Call] = (call.setup_logging(logging.WARNING),),
+        ) -> None:
+            return super().check(output, return_code, logging, mock_calls)
+
+    def sample_main() -> None:
+        setup_logging(int(sys.argv[2]))
+        print('default', file=sys.stdout, end=' ')
+        print('output', file=sys.stderr)
+        logging.info('default logging')
+        sys.exit(int(sys.argv[1]))
+
+    Command(sample_main, runner=Run).run('1', str(logging.WARNING)).check()
+
+
+def test_customise_by_overriding_check_methods() -> None:
+    @dataclass
+    class Run(DefaultRun):
+        @classmethod
+        def setup_mocks(cls, replace: Replacer) -> Mock:
+            mocks = Mock()
+            replace.in_module(setup_logging, mocks.setup_logging)
+            return mocks
+
+        @classmethod
+        def setup_output(cls) -> OutputCapture:
+            return OutputCapture(separate=True)
+
+        @staticmethod
+        def check_output(expected: str, output: OutputCapture) -> CheckResult:
+            return CheckResult('output', output.compare(stdout=expected, stderr='', raises=False))
+
+        @staticmethod
+        def check_return_code(expected: int, return_code: int) -> CheckResult:
+            return check_return_code(expected, actual=return_code + 10)
+
+        @staticmethod
+        def check_logging(
+                expected: Sequence[tuple[str, ...] | str], logging: LogCapture
+        ) -> CheckResult:
+            return check_logging((('INFO', 'command starting'),) + tuple(expected), logging)
+
+        @staticmethod
+        def check_mock_calls(expected: Sequence[Call], mocks: Mock) -> CheckResult:
+            return check_mock_calls([call.setup_logging(logging.INFO), *expected], mocks)
+
+    def sample_main() -> None:
+        setup_logging(logging.INFO)
+        logging.info('command starting')
+        print('some output')
+        sys.exit(int(sys.argv[1]))
+
+    command = Command(sample_main, runner=Run)
+    result = command('42', str(logging.WARNING))
+    result.check(output='some output', return_code=52)

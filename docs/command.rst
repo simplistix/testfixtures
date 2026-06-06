@@ -87,10 +87,10 @@ __ https://github.com/Delgan/loguru
 .. code-block:: python
 
   from loguru import logger
-  from testfixtures import Command, LogCapture, Result
+  from testfixtures import Command, LogCapture, Run
   from testfixtures.loguru import LoguruSource
 
-  class LoguruResult(Result):
+  class LoguruRun(Run):
       @classmethod
       def setup_logging(cls) -> LogCapture:
           return LogCapture(LoguruSource())
@@ -98,7 +98,7 @@ __ https://github.com/Delgan/loguru
   def main() -> None:
       logger.info('hello loguru')
 
-  Command(main, result_type=LoguruResult).run().check(
+  Command(main, runner=LoguruRun).run().check(
       logging=[('INFO', 'hello loguru')],
   )
 
@@ -115,10 +115,10 @@ collaborator you might want to replace:
 .. code-block:: python
 
   from unittest.mock import Mock, call
-  from testfixtures import Command, Replacer, Result
+  from testfixtures import Command, Replacer, Run
   from tests import sample1
 
-  class MockedZResult(Result):
+  class MockedZResult(Run):
       @classmethod
       def setup_mocks(cls, replace: Replacer) -> Mock:
           mock = Mock(return_value='mocked z')
@@ -128,7 +128,7 @@ collaborator you might want to replace:
   def main() -> None:
       print(sample1.z())
 
-  Command(main, result_type=MockedZResult).run().check(
+  Command(main, runner=MockedZResult).run().check(
       output='mocked z',
       mock_calls=[call()],
   )
@@ -147,7 +147,7 @@ the ``MockedZResult`` from above:
   from testfixtures import Command
 
   def mocked_z(main: Callable[[], None]) -> Command[MockedZResult]:
-      return Command(main, result_type=MockedZResult)
+      return Command(main, runner=MockedZResult)
 
   def main_one() -> None:
       print(f'one: {sample1.z()}')
@@ -180,17 +180,17 @@ assert them separately, subclass :class:`AbstractResult` and override
   import sys
   from dataclasses import dataclass
   from testfixtures import Command, OutputCapture
-  from testfixtures.command import AbstractResult, CheckResult, check_return_code
+  from testfixtures.command import AbstractRun, CheckResult, check_return_code
 
   @dataclass
-  class SeparateResult(AbstractResult):
+  class SeparateResult(AbstractRun):
       @classmethod
       def setup_output(cls) -> OutputCapture:
           return OutputCapture(separate=True)
 
       def check(self, stdout: str = '', stderr: str = '', return_code: int = 0) -> None:
           __tracebackhide__ = True
-          self.assert_check_results(
+          self.check_results(
               CheckResult('output', self.output.compare(stdout=stdout, stderr=stderr, raises=False)),
               check_return_code(return_code, self.return_code),
           )
@@ -199,7 +199,7 @@ assert them separately, subclass :class:`AbstractResult` and override
       print('on stdout')
       print('on stderr', file=sys.stderr)
 
-  Command(main, result_type=SeparateResult).run().check(
+  Command(main, runner=SeparateResult).run().check(
       stdout='on stdout',
       stderr='on stderr',
   )
