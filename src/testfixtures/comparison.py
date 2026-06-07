@@ -95,6 +95,10 @@ class Registry:
         if strict and type(x) is not type(y):
             return compare_with_type
 
+        # special handling for Comparisons:
+        if isinstance(x, StatefulComparison) or isinstance(y, StatefulComparison):
+            return compare_simple
+
         for class_ in self._shared_mro(x, y):
             comparer = self.comparers.get(class_)
             if comparer:
@@ -105,10 +109,6 @@ class Registry:
             (isinstance(x, UNSAFE_ITERABLES) or
              isinstance(y, UNSAFE_ITERABLES))):
             return compare_generator
-
-        # special handling for Comparisons:
-        if isinstance(x, Comparison) or isinstance(y, Comparison):
-            return compare_simple
 
         return compare_object
 

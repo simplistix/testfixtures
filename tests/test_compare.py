@@ -313,6 +313,26 @@ class TestCompare(CompareHelper, TestCase):
              )
         )
 
+    def test_two_c_wrappers(self):
+        self.check_raises(
+            C(ValueError, args=(1,)), C(TypeError, args=(2,)),
+            ("not equal:\n"
+             "<C:builtins.ValueError(failed)>"
+             "wrong type: testfixtures.comparison.Comparison</>\n"
+             "<C:builtins.TypeError>args: (2,)</>"
+             )
+        )
+
+    def test_two_sequence_comparisons(self):
+        self.check_raises(
+            SequenceComparison(1, 2), SequenceComparison(1, 3),
+            ("not equal:\n"
+             "<SequenceComparison(ordered=True, partial=False)(failed)>"
+             "bad type</>\n"
+             "<SequenceComparison(ordered=True, partial=False)>1, 3</>"
+             )
+        )
+
     def test_sequence_long(self):
         self.check_raises(
             ['quite a long string 1', 'quite a long string 2',
