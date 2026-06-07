@@ -524,7 +524,7 @@ don't compare as equal.
 
 .. invisible-code-block: python
 
-  from testfixtures.comparison import Registry
+  from testfixtures.comparing import Registry
   from testfixtures.comparers import compare_sequence
   registry = Registry.initial({list: compare_sequence}).install()
 

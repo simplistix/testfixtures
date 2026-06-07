@@ -12,7 +12,8 @@ from typing import (
 )
 from warnings import warn
 
-from .comparison import SequenceComparison, compare
+from .comparing import compare
+from .comparison import SequenceComparison
 from .utils import wrap
 
 

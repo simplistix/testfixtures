@@ -11,17 +11,17 @@ from functools import partial
 from re import compile
 from typing import TypeVar, Generic, Any
 from unittest import TestCase
-from uuid import uuid4, UUID
+from uuid import uuid4
 
 from testfixtures import (
     Comparison as C,
     MappingComparison,
     Replace,
-    Replacer,
     SequenceComparison,
     ShouldRaise,
     compare,
     generator,
+    register,
     safe_pformat,
     safe_repr,
     singleton,
@@ -32,7 +32,8 @@ from testfixtures.comparers import (
     compare_text,
     merge_ignored_attributes,
 )
-from testfixtures.comparison import Registry, _registry, like, register, registry
+from testfixtures.comparing import registry
+from testfixtures.comparison import like
 from testfixtures.compat import PY_312_PLUS
 from testfixtures.mock import Mock, call
 from testfixtures.shouldraise import ShouldAssert
@@ -1736,9 +1737,7 @@ b
         compare(self.OrmObj(1), self.OrmObj(2))
 
     def test_ignore_eq_registered_by_type(self):
-        mock = type(_registry.ignore_eq_types)()
-        # Should have an empty registry primitive?
-        with Replace(_registry.ignore_eq_types, mock, container=_registry, name='ignore_eq_types'):
+        with registry():
             register(self.OrmObj, ignore_eq=True)
             self.check_raises(
                 message=(
@@ -3036,7 +3035,7 @@ class BrokenStr(Broken):
         raise self._exc
 
 
-class TestSafeRenderingInComparison:
+class TestSafeRenderingOfLazyPrefixSuffix:
 
     def test_resolve_lazy_prefix_str_raises(self):
         # prefix is a callable whose return value's __str__ raises;
@@ -3056,35 +3055,6 @@ class TestSafeRenderingInComparison:
             message=(
                 '1 != 2\n'
                 '<unrepresentable tests.test_compare.BrokenStr: ValueError: boom!>'
-            ),
-        )
-
-    def test_comparison_body_broken_attribute_value(self):
-        # Comparison.body is hit when repr() is called on a fresh Comparison
-        # whose comparison hasn't run yet (self.failed empty).
-        class Holder:
-            pass
-
-        compare(
-            repr(C(Holder, attr=Broken())),
-            expected=f'<C:tests.test_compare.Holder>attr: {Broken.marker}</>',
-        )
-
-    def test_mapping_comparison_body_broken_value(self):
-        compare(
-            repr(MappingComparison(k=Broken())),
-            expected=(
-                '<MappingComparison(ordered=False, partial=False)>'
-                f"'k': {Broken.marker}</>"
-            ),
-        )
-
-    def test_sequence_comparison_body_broken_value(self):
-        compare(
-            repr(SequenceComparison(Broken())),
-            expected=(
-                '<SequenceComparison(ordered=True, partial=False)>'
-                f'{Broken.marker},</>'
             ),
         )
 

@@ -8,7 +8,7 @@ from pandas import DataFrame
 from pandas.testing import assert_frame_equal
 
 if TYPE_CHECKING:
-    from .comparison import CompareContext
+    from .comparing import CompareContext
 
 
 def compare_dataframe(

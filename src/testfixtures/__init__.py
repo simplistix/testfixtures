@@ -13,10 +13,11 @@ not_there: singleton = singleton('not_there')
 
 
 from testfixtures.comparers import diff, safe_pformat, safe_repr
+from testfixtures.comparing import compare, register
 from testfixtures.comparison import (
-    Comparison, StringComparison, RoundComparison, compare, RangeComparison,
+    Comparison, StringComparison, RoundComparison, RangeComparison,
     SequenceComparison, Subset, Permutation, MappingComparison, like, sequence,
-    contains, unordered, register
+    contains, unordered
 )
 from testfixtures.command import Command, Run
 from testfixtures.datetime import mock_datetime, mock_date, mock_time

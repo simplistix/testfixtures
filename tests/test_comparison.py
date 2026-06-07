@@ -2,7 +2,16 @@ import sys
 from unittest import TestCase
 from uuid import UUID, uuid4
 
-from testfixtures import Comparison as C, TempDirectory, diff, Comparison, compare, like
+from testfixtures import (
+    Comparison as C,
+    TempDirectory,
+    diff,
+    Comparison,
+    MappingComparison,
+    SequenceComparison,
+    compare,
+    like,
+)
 from tests.sample1 import SampleClassA, a_function
 
 
@@ -43,6 +52,18 @@ class FussyDefineComparison:
 
     def __ne__(self, other):
         return not self == other  # pragma: no cover
+
+
+class Broken:
+    # An object whose __repr__ raises on demand.
+    marker = '<unrepresentable tests.test_comparison.Broken: ValueError: boom!>'
+
+    def __init__(self, label='broken', exc=None):
+        self.label = label
+        self._exc = ValueError('boom!') if exc is None else exc
+
+    def __repr__(self):
+        raise self._exc
 
 
 def compare_repr(obj, expected):
@@ -706,3 +727,35 @@ class TestC(TestCase):
         c = Comparison(UUID)
         uuid = uuid4()
         compare(expected={'1': c, '2': c}, actual={'1': uuid, '2': uuid})
+
+
+class TestSafeRendering:
+
+    def test_comparison_body_broken_attribute_value(self):
+        # Comparison.body is hit when repr() is called on a fresh Comparison
+        # whose comparison hasn't run yet (self.failed empty).
+        class Holder:
+            pass
+
+        compare(
+            repr(C(Holder, attr=Broken())),
+            expected=f'<C:tests.test_comparison.Holder>attr: {Broken.marker}</>',
+        )
+
+    def test_mapping_comparison_body_broken_value(self):
+        compare(
+            repr(MappingComparison(k=Broken())),
+            expected=(
+                '<MappingComparison(ordered=False, partial=False)>'
+                f"'k': {Broken.marker}</>"
+            ),
+        )
+
+    def test_sequence_comparison_body_broken_value(self):
+        compare(
+            repr(SequenceComparison(Broken())),
+            expected=(
+                '<SequenceComparison(ordered=True, partial=False)>'
+                f'{Broken.marker},</>'
+            ),
+        )
