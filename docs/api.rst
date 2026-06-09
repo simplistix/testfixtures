@@ -25,6 +25,9 @@ Comparisons
 .. autoclass:: RangeComparison
    :members:
 
+.. autoclass:: ReprComparison
+   :members:
+
 .. autoclass:: SequenceComparison
    :members:
 

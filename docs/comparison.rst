@@ -622,6 +622,25 @@ Here's an example with dates:
 
   :class:`RangeComparison` is inclusive of both the lower and upper bound.
 
+.. _reprcomparison:
+
+``ReprComparison``
+~~~~~~~~~~~~~~~~~~
+
+Sometimes the easiest way to assert that an object is correct is to check that
+it is of the expected type and has the expected :func:`repr`, particularly when
+the object's type doesn't support meaningful equality.
+
+For these situations, you can use :class:`ReprComparison` objects, which compare
+equal to any object that is an instance of the supplied type and whose
+:func:`repr` matches the supplied string:
+
+.. code-block:: python
+
+  from testfixtures import compare, ReprComparison
+
+  compare(expected=ReprComparison(KeyError, "KeyError('foo')"), actual=KeyError('foo'))
+
 .. _stringcomparison:
 
 ``StringComparison``
