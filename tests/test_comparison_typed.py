@@ -1,4 +1,5 @@
 # Tests that ensure compare and Comparison work correctly in strictly type checked environments
+import re
 from collections import OrderedDict
 from dataclasses import dataclass
 from uuid import UUID, uuid4
@@ -65,6 +66,16 @@ def test_uuid_already_seen_like():
     comparison = Comparison(UUID)
     uuid = uuid4()
     compare(uuid, expected=like(UUID))
+
+
+def test_like_str_pattern() -> None:
+    expected: str = like(r'on \d+')
+    compare(expected, actual='on 40220')
+
+
+def test_like_compiled_pattern() -> None:
+    expected: str = like(re.compile(r'on \d+'))
+    compare(expected, actual='on 40220')
 
 
 class TestSequence:

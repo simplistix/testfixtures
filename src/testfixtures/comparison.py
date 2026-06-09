@@ -520,7 +520,15 @@ class RangeComparison:
 
 T = TypeVar('T')
 
-def like(t: type[T], **attributes: Any) -> T:
+@overload
+def like(t: str | re.Pattern[str]) -> str: ...
+
+
+@overload
+def like(t: type[T], **attributes: Any) -> T: ...
+
+
+def like(t: type[T] | str | re.Pattern[str], **attributes: Any) -> T | str:
     """
     Create a type-safe partial comparison for use in strictly typed code.
 
@@ -528,10 +536,16 @@ def like(t: type[T], **attributes: Any) -> T:
     ``partial=True`` but is typed to return the type being compared, making it
     compatible with strict type checkers like mypy.
 
-    :param t: The type to compare against.
+    If passed a :class:`str` pattern or a compiled :class:`re.Pattern`, a
+    :class:`StringComparison` typed as a :class:`str` is returned instead.
+
+    :param t: The type to compare against, or a regular expression pattern.
     :param attributes: Keyword arguments specifying the attributes to check.
-    :return: A :class:`Comparison` object typed as the input type.
+    :return: A :class:`Comparison` typed as the input type, or a
+             :class:`StringComparison` typed as a :class:`str`.
     """
+    if isinstance(t, (str, re.Pattern)):
+        return cast(str, StringComparison(t))
     return Comparison(t, attribute_dict=attributes, partial=True)  # type: ignore[return-value]
 
 

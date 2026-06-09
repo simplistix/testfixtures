@@ -66,10 +66,17 @@ including in assertions:
 >>> assert expected == SampleClass(1, '2')
 >>> assert expected == SampleClass(3, '4')
 
-``like()`` always builds a partial :ref:`Comparison <comparison>`. Reach for a
-:ref:`Comparison <comparison>` directly when you need to match by type alone, by
-dotted import path, against an existing instance, or matching exactly rather than
-partially.
+When passed a type and, optionally, attributeds, ``like()`` builds a partial
+:ref:`Comparison <comparison>`. Reach for a :ref:`Comparison <comparison>` directly when you need to
+match by type alone, by dotted import path, against an existing instance, or matching exactly rather
+than partially.
+
+When passed a regular expression pattern, either as a string or an already
+compiled :class:`re.Pattern`, :func:`~testfixtures.like` returns a
+:class:`StringComparison` typed as a :class:`str`:
+
+>>> expected_str: str = like(r'Starting thread \d+')
+>>> compare(expected_str, actual='Starting thread 132356')
 
 Sequence helpers
 ----------------
