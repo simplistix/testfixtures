@@ -59,3 +59,9 @@ class Tests(TestCase):
 
     def test_flags_names(self):
         compare(S(".*BaR", dotall=True, ignorecase=True), actual="foo\nbar")
+
+    def test_compiled_pattern(self):
+        compare(S(re.compile(r'on \d+')), actual='on 40220')
+
+    def test_compiled_pattern_with_flags(self):
+        compare(S(re.compile(".*BaR", re.DOTALL | re.IGNORECASE)), actual="foo\nbar")

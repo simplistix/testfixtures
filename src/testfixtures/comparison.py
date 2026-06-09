@@ -419,13 +419,30 @@ class StringComparison:
     :param regex_source: A string containing the source for a regular
                          expression that will be used whenever this
                          :class:`StringComparison` is compared with
-                         any :class:`str` instance.
+                         any :class:`str` instance, or an already compiled
+                         :class:`re.Pattern`.
 
     :param flags: Flags passed to :func:`re.compile`.
 
     :param flag_names: See the :ref:`examples <stringcomparison>`.
     """
-    def __init__(self, regex_source: str, flags: int | None = None, **flag_names: str):
+
+    @overload
+    def __init__(self, regex_source: re.Pattern[str]): ...
+
+    @overload
+    def __init__(self, regex_source: str, flags: int | None = None, **flag_names: bool): ...
+
+    def __init__(
+        self,
+        regex_source: str | re.Pattern[str],
+        flags: int | None = None,
+        **flag_names: bool,
+    ):
+        if isinstance(regex_source, re.Pattern):
+            self.re = regex_source
+            return
+
         args: list[Any] = [regex_source]
 
         flags_ = []

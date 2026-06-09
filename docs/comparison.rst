@@ -670,3 +670,14 @@ If you need to specify flags, this can be done in one of three ways:
         expected=StringComparison("(?s:.*bar)"),
         actual="foo\nbar",
     )
+
+You can also construct a :class:`StringComparison` from an already compiled
+:class:`re.Pattern`:
+
+.. code-block:: python
+
+  import re
+  compare(
+      expected=StringComparison(re.compile(".*BaR", re.DOTALL|re.IGNORECASE)),
+      actual="foo\nbar",
+  )
