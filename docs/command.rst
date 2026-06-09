@@ -1,205 +1,266 @@
-Testing command-line entry points
-=================================
+Testing command-line scripts
+============================
+
+.. invisible-code-block: python
+
+    try:
+        import loguru
+    except ImportError:
+        loguru = None
+    try:
+        import click
+    except ImportError:
+        click = None
 
 .. currentmodule:: testfixtures.command
 
-When the unit under test is a ``main`` function — the kind of callable
-you'd register as a console script — the things you usually want to
-assert about it are a mix of process-level concerns: what it printed,
-what it logged, what exit code it returned, and which collaborators it
-called. :class:`Command` wraps your callable in :class:`~testfixtures.OutputCapture`,
-:class:`~testfixtures.LogCapture` and :class:`~testfixtures.Replacer`, runs it with a
-:any:`sys.argv` of your choosing, and hands back a :class:`Result` you
-can make a single combined assertion against with
-:meth:`~testfixtures.command.Result.check`.
+Command line scripts always parse :data:`sys.argv` and exit with an integer return code.
+Along the way, they often configurate loggers and other services, log their progress or send it to
+a stream such :data:`~sys.stderr` or :data:`~sys.stdout`.
 
-Minimal example
----------------
+This often involves testing boilerplate which needs to vary slightly across projects, but which
+has some intricacies that are easy to miss. :class:`Command` aims to make this testing easy and
+flexible.
 
-A ``main`` that prints a line and exits cleanly:
+Take a simple :class:`~argparse.ArgumentParser` script:
 
 .. code-block:: python
 
-  from testfixtures import Command
+    from argparse import ArgumentParser
 
-  def main() -> None:
-      print('hello world')
+    def main() -> None:
+        parser = ArgumentParser()
+        parser.add_argument('message')
+        args = parser.parse_args()
+        print(f"Your message: {args.message}")
 
-  Command(main).run().check(output='hello world')
 
-If the call needs argv, pass it to :meth:`~testfixtures.command.Command.run`:
+This can be tested as follows:
+
+>>> from testfixtures import Command
+>>> Command(main).run('my message').check(output='Your message: my message')
+
+We can also test what happens if the required argument is not provided:
+
+>>> Command(main).run().check(
+...     output='\n'.join((
+...            "usage: main [-h] message",
+...            "main: error: the following arguments are required: message",
+...     )),
+...     return_code=2,
+... )
+
+.. skip: start if(click is None, reason="No click installed")
+
+If we now implement our entrypoint with Click instead:
 
 .. code-block:: python
 
-  import sys
-  from testfixtures import Command
+    import click
 
-  def main() -> None:
-      print(f'hello {sys.argv[1]}')
+    @click.command()
+    @click.argument('message')
+    def main(message: str) -> None:
+        click.echo(f"Your message: {message}")
 
-  Command(main).run('chris').check(output='hello chris')
+Our test doesn't change:
 
-A non-zero exit
----------------
+>>> Command(main).run('my message').check(output='Your message: my message')
 
-:class:`SystemExit` is caught and translated: ``int`` codes pass
-through to :attr:`~testfixtures.command.AbstractResult.return_code`, ``str`` codes are printed to
-stderr and reported as ``1``, and a bare :class:`SystemExit` is
-reported as ``1``:
+.. skip: end
+
+If logging is used instead of :func:`print`:
 
 .. code-block:: python
 
-  import sys
-  from testfixtures import Command
+    from argparse import ArgumentParser
+    import logging
 
-  def main() -> None:
-      print('looking good', file=sys.stderr)
-      sys.exit(2)
+    def main() -> None:
+        parser = ArgumentParser()
+        parser.add_argument('message')
+        args = parser.parse_args()
+        logging.info(f"Your message: %s", args.message)
 
-  Command(main).run().check(output='looking good', return_code=2)
+Testing is just as simple:
 
-Asserting logging
+>>> Command(main).run('my message').check(logging=[('INFO', 'Your message: my message')])
+
+Customising setup
 -----------------
 
-The default :meth:`~testfixtures.command.AbstractResult.setup_logging` hook installs a
-:class:`~testfixtures.LogCapture` for the standard-library :mod:`logging` module.
-Expected entries can be passed straight to :meth:`~testfixtures.command.Result.check`:
+Most scripts that log instead of print will configure their logging framework and often offer
+a way of specifying the log level on the command line:
 
 .. code-block:: python
 
-  import logging
-  from testfixtures import Command
+    from argparse import ArgumentParser
+    import logging
 
-  def main() -> None:
-      logging.info('starting up')
+    def main() -> None:
+        parser = ArgumentParser()
+        parser.add_argument('message')
+        parser.add_argument('-l', '--log-level', default='INFO')
+        args = parser.parse_args()
+        logging.basicConfig(level=getattr(logging, args.log_level.upper()))
+        logging.info(f"Your message: %s", args.message)
 
-  Command(main).run().check(
-      logging=[('INFO', 'starting up')],
-  )
-
-To capture a different logging source — `loguru`__ for example —
-subclass :class:`Result` and override
-:meth:`~testfixtures.command.AbstractResult.setup_logging`, then pass the subclass as
-``result_type``:
-
-__ https://github.com/Delgan/loguru
+To test this, we can override :meth:`~AbstractRun.setup_mocks` to intercept and record the
+configuration call:
 
 .. code-block:: python
 
-  from loguru import logger
-  from testfixtures import Command, LogCapture, Run
-  from testfixtures.loguru import LoguruSource
+    from testfixtures import Run as DefaultRun
+    from testfixtures.mock import Mock, call
 
-  class LoguruRun(Run):
-      @classmethod
-      def setup_logging(cls) -> LogCapture:
-          return LogCapture(LoguruSource())
+    class Run(DefaultRun):
+        @classmethod
+        def setup_mocks(cls, replace: Replacer) -> Mock:
+            mocks = Mock()
+            replace.in_module(logging.basicConfig, mocks.basicConfig)
+            return mocks
 
-  def main() -> None:
-      logger.info('hello loguru')
+Now we can check that logging is set up correctly, as well as preventing the configuration call from
+getting in the way of the logging capture:
 
-  Command(main, runner=LoguruRun).run().check(
-      logging=[('INFO', 'hello loguru')],
-  )
+>>> Command(main, Run).run('my message').check(
+...    logging=[('INFO', 'Your message: my message')],
+...    mock_calls=[call.basicConfig(level=20)],
+... )
 
-Mocking collaborators
----------------------
+We can also check that the log level option works as intended:
 
-:meth:`~testfixtures.command.AbstractResult.setup_mocks` is given the
-:class:`~testfixtures.Replacer` that is already active for the duration of the run;
-install whatever replacements you need on a root :class:`~unittest.mock.Mock`
-and return that root so :meth:`~testfixtures.command.Result.check` can assert their
-``mock_calls``. The sample function ``tests.sample1.z`` stands in for any
-collaborator you might want to replace:
+>>> Command(main, Run).run('-l', 'warning', 'would not be logged').check(
+...    logging=[('INFO', 'Your message: would not be logged')],
+...    mock_calls=[call.basicConfig(level=30)],
+... )
 
-.. code-block:: python
-
-  from unittest.mock import Mock, call
-  from testfixtures import Command, Replacer, Run
-  from tests import sample1
-
-  class MockedZResult(Run):
-      @classmethod
-      def setup_mocks(cls, replace: Replacer) -> Mock:
-          mock = Mock(return_value='mocked z')
-          replace.in_module(sample1.z, mock)
-          return mock
-
-  def main() -> None:
-      print(sample1.z())
-
-  Command(main, runner=MockedZResult).run().check(
-      output='mocked z',
-      mock_calls=[call()],
-  )
-
-Reusing a customised result
----------------------------
-
-When several tests share the same custom :class:`Result` but exercise
-different ``main`` callables, a one-line helper function keeps the
-boilerplate down and the wiring obvious at every call site. Reusing
-the ``MockedZResult`` from above:
+If we decided to switch to :doc:`loguru <loguru>` for our logging:
 
 .. code-block:: python
 
-  from typing import Callable
-  from testfixtures import Command
+    from argparse import ArgumentParser
+    from loguru import logger
+    import sys
 
-  def mocked_z(main: Callable[[], None]) -> Command[MockedZResult]:
-      return Command(main, runner=MockedZResult)
+    def main() -> None:
+        parser = ArgumentParser()
+        parser.add_argument('message')
+        parser.add_argument('-l', '--log-level', default='INFO')
+        args = parser.parse_args()
+        logger.add(sys.stderr, format="{time} {level} {message}", level=args.log_level)
+        logger.info(f"Your message: {args.message}")
 
-  def main_one() -> None:
-      print(f'one: {sample1.z()}')
 
-  def main_two() -> None:
-      print(f'two: {sample1.z()}')
-
-  mocked_z(main_one).run().check(output='one: mocked z', mock_calls=[call()])
-  mocked_z(main_two).run().check(output='two: mocked z', mock_calls=[call()])
-
-The same approach works for any pattern of customisation — split
-stdout/stderr, a particular ``LogCapture`` configuration, a standard
-set of mocks. Define the :class:`Result` subclass once, define a thin
-helper that binds it, and tests across the codebase compose by passing
-their ``main`` callable.
-
-Splitting stdout and stderr
----------------------------
-
-The default :meth:`~testfixtures.command.AbstractResult.setup_output` hook captures stdout
-and stderr into a single combined stream — :meth:`~testfixtures.command.Result.check`
-asserts that combined stream with its ``output`` argument. When you need to
-assert them separately, subclass :class:`AbstractResult` and override
-:meth:`~testfixtures.command.AbstractResult.setup_output` to return an
-:class:`~testfixtures.OutputCapture` with ``separate=True``, then implement a
-``check`` whose signature takes ``stdout`` and ``stderr``:
+We can additionally override :meth:`~AbstractRun.setup_logging`:
 
 .. code-block:: python
 
-  import sys
-  from dataclasses import dataclass
-  from testfixtures import Command, OutputCapture
-  from testfixtures.command import AbstractRun, CheckResult, check_return_code
+    from testfixtures import Run as DefaultRun, LogCapture, like
+    from testfixtures.mock import Mock, call
+    from testfixtures.loguru import LoguruSource
+    from io import StringIO
+    from loguru._logger import Logger
 
-  @dataclass
-  class SeparateResult(AbstractRun):
-      @classmethod
-      def setup_output(cls) -> OutputCapture:
-          return OutputCapture(separate=True)
+    class Run(DefaultRun):
+        @classmethod
+        def setup_mocks(cls, replace: Replacer) -> Mock:
+            mocks = Mock()
+            replace.on_class(Logger.add, mocks.logger.add)
+            return mocks
 
-      def check(self, stdout: str = '', stderr: str = '', return_code: int = 0) -> None:
-          __tracebackhide__ = True
-          self.check_results(
-              CheckResult('output', self.output.compare(stdout=stdout, stderr=stderr, raises=False)),
-              check_return_code(return_code, self.return_code),
-          )
+        @classmethod
+        def setup_logging(cls) -> LogCapture:
+            return LogCapture(LoguruSource())
 
-  def main() -> None:
-      print('on stdout')
-      print('on stderr', file=sys.stderr)
+The checking of logging doesn't change, but the mock calls do:
 
-  Command(main, runner=SeparateResult).run().check(
-      stdout='on stdout',
-      stderr='on stderr',
-  )
+>>> Command(main, Run).run('my message').check(
+...    logging=[('INFO', 'Your message: my message')],
+...    mock_calls=[
+...        call.logger.add(like(StringIO), format='{time} {level} {message}', level='INFO')
+...    ],
+... )
+
+.. note::
+    The ``like(StringIO)`` is necessary because by the time the script's :meth:`!logger.add` call is
+    reached, :class:`Command` has already mocked :data:`sys.stderr` with an
+    :class:`~testfixtures.OutputCapture`.
+
+Customising checks
+------------------
+If we have a script that always logs a debug message on startup:
+
+.. code-block:: python
+
+    import logging, sys
+
+    def main() -> None:
+        logging.debug('starting')
+        logging.info(f'action: {sys.argv[1]}')
+
+Our testing can be made more succinct by overriding :meth:`~AbstractRun.check_logging`:
+
+.. code-block:: python
+
+    from testfixtures import Run as DefaultRun, LogCapture, like
+    from testfixtures.command import check_logging
+
+    class Run(DefaultRun):
+        @staticmethod
+        def check_logging(
+                expected: Sequence[tuple[str, ...] | str], logging: LogCapture
+        ) -> CheckResult:
+            return check_logging((('DEBUG', 'starting'),) + tuple(expected), logging)
+
+Now we only need to specify the action logging in each test:
+
+>>> Command(main, Run).run('wave').check(logging=[('INFO', 'action: wave')])
+
+Similarly, if we have a script that should only ever write to :data:`stdout`:
+
+.. code-block:: python
+
+    import logging, sys
+
+    def main() -> None:
+        action = sys.argv[1]
+        print(f'action: {action}', file=sys.stderr if action == 'error' else sys.stdout)
+
+We can override both :meth:`~AbstractRun.setup_output` and :meth:`~AbstractRun.check_output`:
+
+.. code-block:: python
+
+    from testfixtures import Run as DefaultRun, OutputCapture, like
+    from testfixtures.command import CheckResult, check_logging
+
+    class Run(DefaultRun):
+        @classmethod
+        def setup_output(cls) -> OutputCapture:
+            return OutputCapture(separate=True)
+
+        @staticmethod
+        def check_output(expected: str, output: OutputCapture) -> CheckResult:
+            return CheckResult('output', output.compare(stdout=expected, stderr='', raises=False))
+
+Now we can check our script as follows:
+
+>>> Command(main, Run).run('wave').check(output='action: wave')
+
+But if there is an error, we will be able to see the output in the failure:
+
+>>> Command(main, Run).run('error').check(output='action: ?')
+Traceback (most recent call last):
+...
+AssertionError: output: dict not as expected:
+<BLANKLINE>
+values differ:
+'stderr': '' (expected) != 'action: error' (actual)
+'stdout': 'action: ?' (expected) != '' (actual)
+<BLANKLINE>
+While comparing ['stderr']:
+'' (expected)
+!=
+'action: error' (actual)
+<BLANKLINE>
+While comparing ['stdout']: 'action: ?' (expected) != '' (actual)
