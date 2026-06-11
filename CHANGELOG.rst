@@ -3,6 +3,12 @@
 Changes
 =======
 
+12.0.1 (11 Jun 2026)
+--------------------
+
+- Fix bug where :class:`frozensets <frozenset>` would not :func:`compare` equal when a library
+  requiring ``ignore_eq`` for its types, such as :doc:`polars <polars>`, was present.
+
 12.0.0 (23 May 2026)
 --------------------
 
@@ -19,7 +25,7 @@ Changes
 
 - :func:`compare` now supports both :doc:`polars <polars>` and :doc:`pandas <pandas>` dataframes.
 
-- :func:`compare` now provides better feedback when objects being compared raised exceptipns in
+- :func:`compare` now provides better feedback when objects being compared raised exceptions in
   their :any:`str` or :any:`repr`.
 
 - Added ``raises`` parameter to :meth:`OutputCapture.compare`, :meth:`LogCapture.check` and

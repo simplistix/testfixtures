@@ -1,6 +1,6 @@
 [project]
 name = "testfixtures"
-version = "12.0.0"
+version = "12.0.1"
 description = "A collection of helpers and mock objects for unit tests and doc tests."
 readme = "README.rst"
 authors = [
