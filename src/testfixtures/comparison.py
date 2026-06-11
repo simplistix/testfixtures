@@ -56,6 +56,7 @@ Comparers: TypeAlias = dict[type, Comparer]
 DEFAULT_COMPARERS: Comparers = {
     dict: compare_dict,
     set: compare_set,
+    frozenset: compare_set,
     list: compare_sequence,
     tuple: compare_tuple,
     str: compare_text,
