@@ -65,6 +65,8 @@ with the version of these packages that your project is using:
 
 - ``[pandas]``: Pandas DataFrame helpers. See :doc:`pandas`.
 
+- ``[numpy]``: NumPy array helpers. See :doc:`numpy`.
+
 - ``[twisted]``: Twisted framework logging support. See :doc:`twisted`.
 
 - ``[sybil]``: Sybil documentation testing framework. See :ref:`sybil`.
