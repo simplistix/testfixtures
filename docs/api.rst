@@ -238,6 +238,12 @@ testfixtures.loguru
 .. automodule:: testfixtures.loguru
    :members:
 
+testfixtures.numpy
+~~~~~~~~~~~~~~~~~~
+
+.. automodule:: testfixtures.numpy
+   :members:
+
 testfixtures.pandas
 ~~~~~~~~~~~~~~~~~~~
 

@@ -15,6 +15,7 @@ intersphinx_mapping = {
     'loguru': ('https://loguru.readthedocs.io/en/stable/', None),
     'structlog': ('https://www.structlog.org/en/stable/', None),
     'sybil': ('https://sybil.readthedocs.io/en/latest/', None),
+    'numpy': ('https://numpy.org/doc/stable/', None),
     'pandas': ('https://pandas.pydata.org/docs/', None),
     'polars': ('https://docs.pola.rs/api/python/stable/', None),
 }

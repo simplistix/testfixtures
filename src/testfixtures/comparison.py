@@ -1137,3 +1137,14 @@ except ImportError:
     pass
 else:
     register(PolarsDataFrame, compare_polars_dataframe, ignore_eq=True)
+
+
+try:
+    from numpy import ndarray
+    from numpy.ma import MaskedArray
+    from .numpy import compare_masked_array, compare_ndarray
+except ImportError:
+    pass
+else:
+    register(ndarray, compare_ndarray, ignore_eq=True)
+    register(MaskedArray, compare_masked_array, ignore_eq=True)
