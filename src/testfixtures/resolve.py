@@ -65,6 +65,13 @@ def resolve(dotted_name: str, container: Any | None = None, sep: str = '.') -> R
     return Resolved(container, setter, name, found)
 
 
+def type_name(type_: Any) -> str:
+    module = getattr(type_, '__module__', None)
+    prefix = module + '.' if module else ''
+    name = getattr(type_, '__qualname__', None) or getattr(type_, '__name__', None)
+    return prefix + (name or repr(type_))
+
+
 class _Reference:
 
     @classmethod

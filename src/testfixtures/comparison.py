@@ -1,4 +1,5 @@
 import re
+from abc import ABC, abstractmethod
 from collections import OrderedDict
 from functools import reduce
 from operator import __or__
@@ -20,7 +21,7 @@ from testfixtures.comparers import (
     _extract_attrs, AlreadySeen, _compare_mapping, safe_repr, compare_simple
 )
 from testfixtures.comparing import CompareContext, compare, register
-from testfixtures.resolve import resolve
+from testfixtures.resolve import resolve, type_name
 from testfixtures.utils import indent
 
 
@@ -109,7 +110,7 @@ class Comparison(StatefulComparison):
 
         other_type = type(other)
         if self.expected_type is not other_type:
-            self.failed = f'wrong type: {other_type.__module__}.{other_type.__qualname__}'
+            self.failed = 'wrong type: ' + type_name(other_type)
             return True
 
         if self.expected_attributes is None:
@@ -140,12 +141,7 @@ class Comparison(StatefulComparison):
         return bool(self.failed)
 
     def name(self) -> str:
-        name = 'C:'
-        module = getattr(self.expected_type, '__module__', None)
-        if module:
-            name = name + module + '.'
-        name += (getattr(self.expected_type, '__name__', None) or repr(self.expected_type))
-        return name
+        return 'C:' + type_name(self.expected_type)
 
     def body(self) -> str:
         if self.expected_attributes:
@@ -524,104 +520,81 @@ class RangeComparison:
         return '<Range: [%s, %s]>' % (self.lower_bound, self.upper_bound)
 
 
-class ReprComparison:
+class RenderingComparison(ABC):
+    """
+    A base for comparisons that check an object's type and a string rendering
+    of it produced by :attr:`render`.
+    """
+
+    @staticmethod
+    @abstractmethod
+    def render(other: object, /) -> str:
+        """The callable used to render the compared object as a string."""
+
+    @overload
+    def __init__(self, type_: type, expected: str): ...
+    @overload
+    def __init__(self, type_: type, *, match: str | re.Pattern[str]): ...
+
+    def __init__(
+        self,
+        type_: type,
+        expected: str | None = None,
+        *,
+        match: str | re.Pattern[str] | None = None,
+    ):
+        if (expected is None) == (match is None):
+            raise TypeError('provide either expected or match')
+        self.type = type_
+        self.expected = expected
+        self.match = match
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, self.type):
+            return False
+        rendered = self.render(other)
+        if self.match is not None:
+            return re.search(self.match, rendered) is not None
+        return rendered == self.expected
+
+    def __ne__(self, other: Any) -> bool:
+        return not self == other
+
+    def __repr__(self) -> str:
+        detail = self.expected if self.expected is not None else f'match={self.match!r}'
+        return f'<{type(self).__name__}: {type_name(self.type)}: {detail}>'
+
+
+class ReprComparison(RenderingComparison):
     """
     An object that can be used in comparisons to check that an object is both
     of an expected type and has an expected :func:`repr`.
 
     :param type_: the type the compared object must be an instance of.
 
-    :param repr_: the :func:`repr` the compared object must have exactly.
+    :param expected: the :func:`repr` the compared object must have exactly.
 
     :param match: a regular expression, as either a :class:`str` or a compiled
                   :class:`re.Pattern`, that the compared object's :func:`repr`
-                  must match. Mutually exclusive with ``repr_``.
+                  must match. Mutually exclusive with ``expected``.
     """
-    @overload
-    def __init__(self, type_: type, repr_: str): ...
-    @overload
-    def __init__(self, type_: type, *, match: str | re.Pattern[str]): ...
-
-    def __init__(
-        self,
-        type_: type,
-        repr_: str | None = None,
-        *,
-        match: str | re.Pattern[str] | None = None,
-    ):
-        if (repr_ is None) == (match is None):
-            raise TypeError('provide either repr_ or match')
-        self.type = type_
-        self.repr = repr_
-        self.match = match
-
-    def __eq__(self, other: Any) -> bool:
-        if not isinstance(other, self.type):
-            return False
-        if self.match is not None:
-            return re.search(self.match, repr(other)) is not None
-        return repr(other) == self.repr
-
-    def __ne__(self, other: Any) -> bool:
-        return not self == other
-
-    def __repr__(self) -> str:
-        module = getattr(self.type, '__module__', None)
-        name = (module + '.' if module else '') + (
-            getattr(self.type, '__name__', None) or repr(self.type)
-        )
-        detail = self.repr if self.repr is not None else f'match={self.match!r}'
-        return f'<ReprComparison: {name}: {detail}>'
+    render = staticmethod(repr)
 
 
-class StrComparison:
+class StrComparison(RenderingComparison):
     """
     An object that can be used in comparisons to check that an object is both
     of an expected type and has an expected :class:`str`.
 
     :param type_: the type the compared object must be an instance of.
 
-    :param str_: the :class:`str` the compared object must have exactly.
+    :param expected: the :class:`str` the compared object must have exactly.
 
     :param match: a regular expression, as either a :class:`str` or a compiled
                   :class:`re.Pattern`, that the compared object's :class:`str`
-                  must match. Mutually exclusive with ``str_``.
+                  must match. Mutually exclusive with ``expected``.
     """
-    @overload
-    def __init__(self, type_: type, str_: str): ...
-    @overload
-    def __init__(self, type_: type, *, match: str | re.Pattern[str]): ...
-
-    def __init__(
-        self,
-        type_: type,
-        str_: str | None = None,
-        *,
-        match: str | re.Pattern[str] | None = None,
-    ):
-        if (str_ is None) == (match is None):
-            raise TypeError('provide either str_ or match')
-        self.type = type_
-        self.str = str_
-        self.match = match
-
-    def __eq__(self, other: Any) -> bool:
-        if not isinstance(other, self.type):
-            return False
-        if self.match is not None:
-            return re.search(self.match, str(other)) is not None
-        return str(other) == self.str
-
-    def __ne__(self, other: Any) -> bool:
-        return not self == other
-
-    def __repr__(self) -> str:
-        module = getattr(self.type, '__module__', None)
-        name = (module + '.' if module else '') + (
-            getattr(self.type, '__name__', None) or repr(self.type)
-        )
-        detail = self.str if self.str is not None else f'match={self.match!r}'
-        return f'<StrComparison: {name}: {detail}>'
+    render = staticmethod(str)
 
 
 T = TypeVar('T')
