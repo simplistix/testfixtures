@@ -3,6 +3,13 @@
 Changes
 =======
 
+12.1.0 (15 Jun 2026)
+--------------------
+
+- :func:`compare` now supports :doc:`numpy <numpy>` arrays.
+
+- Added a helper for :doc:`testing command-line scripts <command>`.
+
 12.0.1 (11 Jun 2026)
 --------------------
 
