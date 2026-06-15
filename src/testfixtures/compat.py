@@ -6,3 +6,8 @@ PY_VERSION: Tuple[int, int] = sys.version_info[:2]
 
 PY_312_PLUS: bool = PY_VERSION >= (3, 12)
 PY_313_PLUS: bool = PY_VERSION >= (3, 13)
+
+if PY_313_PLUS:
+    from typing import TypeVar as TypeVar
+else:
+    from typing_extensions import TypeVar as TypeVar  # type: ignore[assignment, unused-ignore]

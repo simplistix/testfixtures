@@ -18,6 +18,7 @@ from testfixtures.comparison import (
     SequenceComparison, Subset, Permutation, MappingComparison, like, sequence,
     contains, unordered, register
 )
+from testfixtures.command import Command, Run
 from testfixtures.datetime import mock_datetime, mock_date, mock_time
 from testfixtures.logcapture import LogCapture, log_capture, LoggingSource
 from testfixtures.outputcapture import OutputCapture
@@ -45,6 +46,7 @@ test_time = mock_time
 test_time.__test__ = False  # type: ignore[attr-defined]
 
 __all__ = [
+    'Command',
     'Comparison',
     'LogCapture',
     'LoggingSource',
@@ -54,6 +56,7 @@ __all__ = [
     'RangeComparison',
     'Replace',
     'Replacer',
+    'Run',
     'RoundComparison',
     'SequenceComparison',
     'ShouldAssert',
