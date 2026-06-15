@@ -39,7 +39,7 @@ uv build                                           # build sdist + wheel
 
 `src/testfixtures/`: all source. Key modules:
 
-- `comparison.py`: `compare()`, `diff()`, `Comparison`, `StringComparison`, `RoundComparison`, etc.
+- `comparison.py`: `compare()`, `diff()`, `Comparison`, `TextComparison`, `RoundComparison`, etc.
 - `replace.py`: `Replacer`, `replace()` decorators
 - `logcapture.py`: `LogCapture`
 - `datetime.py`: `mock_datetime`, `mock_date`, `mock_time`

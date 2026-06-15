@@ -624,7 +624,7 @@ following:
       trailing_whitespace=False
   )
 
-See :ref:`StringComparison <stringcomparison>` to assert that a string matches a
+See :ref:`TextComparison <textcomparison>` to assert that a string matches a
 regular expression instead of comparing it exactly.
 
 .. _compare-datetime:

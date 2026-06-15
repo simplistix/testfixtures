@@ -27,7 +27,7 @@ __ https://mypy-lang.org/
 
 Some expectations have no helper and are used as objects directly:
 :ref:`RangeComparison <rangecomparison>` and :ref:`RoundComparison <roundcomparison>`
-for numbers, and :ref:`StringComparison <stringcomparison>` for matching against a
+for numbers, and :ref:`TextComparison <textcomparison>` for matching against a
 regular expression.
 
 The examples below use these dataclasses:
@@ -73,7 +73,7 @@ than partially.
 
 When passed a regular expression pattern, either as a string or an already
 compiled :class:`re.Pattern`, :func:`~testfixtures.like` returns a
-:class:`StringComparison` typed as a :class:`str`:
+:class:`TextComparison` typed as a :class:`str`:
 
 >>> expected_str: str = like(r'Starting thread \d+')
 >>> compare(expected_str, actual='Starting thread 132356')
@@ -641,17 +641,17 @@ equal to any object that is an instance of the supplied type and whose
 
   compare(expected=ReprComparison(KeyError, "KeyError('foo')"), actual=KeyError('foo'))
 
-.. _stringcomparison:
+.. _textcomparison:
 
-``StringComparison``
-~~~~~~~~~~~~~~~~~~~~
+``TextComparison``
+~~~~~~~~~~~~~~~~~~
 
 When comparing sequences of strings, particularly those coming from
 things like the python logging package, you often end up wanting to
 express a requirement that one string should be almost like another,
 or maybe fit a particular pattern expressed as a regular expression.
 
-For these situations, you can use :class:`StringComparison` objects
+For these situations, you can use :class:`TextComparison` objects
 wherever you would use normal strings, and they will compare equal to
 any string that matches the regular expression they are created with.
 
@@ -659,10 +659,10 @@ Here's an example:
 
 .. code-block:: python
 
-  from testfixtures import compare, StringComparison
+  from testfixtures import compare, TextComparison
 
   compare(
-      expected=StringComparison(r'Starting thread \d+'),
+      expected=TextComparison(r'Starting thread \d+'),
       actual='Starting thread 132356',
   )
 
@@ -673,7 +673,7 @@ If you need to specify flags, this can be done in one of three ways:
   .. code-block:: python
 
     compare(
-        expected=StringComparison(".*BaR", dotall=True, ignorecase=True),
+        expected=TextComparison(".*BaR", dotall=True, ignorecase=True),
         actual="foo\nbar",
     )
 
@@ -684,7 +684,7 @@ If you need to specify flags, this can be done in one of three ways:
 
     import re
     compare(
-        expected=StringComparison(".*BaR", re.DOTALL|re.IGNORECASE),
+        expected=TextComparison(".*BaR", re.DOTALL|re.IGNORECASE),
         actual="foo\nbar",
     )
 
@@ -693,17 +693,17 @@ If you need to specify flags, this can be done in one of three ways:
   .. code-block:: python
 
     compare(
-        expected=StringComparison("(?s:.*bar)"),
+        expected=TextComparison("(?s:.*bar)"),
         actual="foo\nbar",
     )
 
-You can also construct a :class:`StringComparison` from an already compiled
+You can also construct a :class:`TextComparison` from an already compiled
 :class:`re.Pattern`:
 
 .. code-block:: python
 
   import re
   compare(
-      expected=StringComparison(re.compile(".*BaR", re.DOTALL|re.IGNORECASE)),
+      expected=TextComparison(re.compile(".*BaR", re.DOTALL|re.IGNORECASE)),
       actual="foo\nbar",
   )

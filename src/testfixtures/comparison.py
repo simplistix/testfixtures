@@ -410,7 +410,7 @@ class MappingComparison(StatefulComparison):
         return False
 
 
-class StringComparison:
+class TextComparison:
     """
     An object that can be used in comparisons of expected and actual
     strings where the string expected matches a pattern rather than a
@@ -418,13 +418,13 @@ class StringComparison:
 
     :param regex_source: A string containing the source for a regular
                          expression that will be used whenever this
-                         :class:`StringComparison` is compared with
+                         :class:`TextComparison` is compared with
                          any :class:`str` instance, or an already compiled
                          :class:`re.Pattern`.
 
     :param flags: Flags passed to :func:`re.compile`.
 
-    :param flag_names: See the :ref:`examples <stringcomparison>`.
+    :param flag_names: See the :ref:`examples <textcomparison>`.
     """
 
     @overload
@@ -467,6 +467,11 @@ class StringComparison:
 
     def __gt__(self, other: Any) -> bool:
         return self.re.pattern > other
+
+
+# Deprecated alias for TextComparison. Note this is NOT the same as
+# StrComparison, which checks an object's type and its str().
+StringComparison = TextComparison
 
 
 class RoundComparison:
@@ -588,15 +593,15 @@ def like(t: type[T] | str | re.Pattern[str], **attributes: Any) -> T | str:
     compatible with strict type checkers like mypy.
 
     If passed a :class:`str` pattern or a compiled :class:`re.Pattern`, a
-    :class:`StringComparison` typed as a :class:`str` is returned instead.
+    :class:`TextComparison` typed as a :class:`str` is returned instead.
 
     :param t: The type to compare against, or a regular expression pattern.
     :param attributes: Keyword arguments specifying the attributes to check.
     :return: A :class:`Comparison` typed as the input type, or a
-             :class:`StringComparison` typed as a :class:`str`.
+             :class:`TextComparison` typed as a :class:`str`.
     """
     if isinstance(t, (str, re.Pattern)):
-        return cast(str, StringComparison(t))
+        return cast(str, TextComparison(t))
     return Comparison(t, attribute_dict=attributes, partial=True)  # type: ignore[return-value]
 
 

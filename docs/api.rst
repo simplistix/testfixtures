@@ -42,8 +42,13 @@ Comparisons
 .. autoclass:: Subset
    :members:
 
-.. autoclass:: StringComparison
+.. autoclass:: TextComparison
    :members:
+
+.. py:class:: StringComparison
+
+   Deprecated alias for :class:`TextComparison`. Note this is *not* the same as
+   ``StrComparison``.
 
 
 testfixtures.comparison

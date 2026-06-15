@@ -3,7 +3,7 @@ from subprocess import call
 from unittest import TestCase
 
 from _pytest.capture import CaptureFixture
-from testfixtures import OutputCapture, compare, StringComparison
+from testfixtures import OutputCapture, compare, TextComparison
 from .test_compare import CompareHelper
 
 
@@ -103,16 +103,16 @@ class TestOutputCapture(CompareHelper, TestCase):
         self.assertTrue(sys.stdout is o_out)
         self.assertTrue(sys.stderr is o_err)
 
-    def test_compare_expected_is_stringcomparison(self) -> None:
+    def test_compare_expected_is_textcomparison(self) -> None:
         with OutputCapture() as output:
             print('foo')
-        output.compare(StringComparison(r'^foo\Z'))
+        output.compare(TextComparison(r'^foo\Z'))
 
-    def test_compare_stdout_and_stdderr_are_stringcomparisons(self) -> None:
+    def test_compare_stdout_and_stdderr_are_textcomparisons(self) -> None:
         with OutputCapture(separate=True) as output:
             print('hello', file=sys.stdout)
             print('world', file=sys.stderr)
-        output.compare(stdout=StringComparison(r'^hello\Z'), stderr=StringComparison(r'^world\Z'))
+        output.compare(stdout=TextComparison(r'^hello\Z'), stderr=TextComparison(r'^world\Z'))
 
     def test_compare_raises_false_no_difference(self) -> None:
         with OutputCapture() as output:

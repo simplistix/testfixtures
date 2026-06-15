@@ -5,7 +5,7 @@ from tempfile import TemporaryFile
 from typing import Self, Any, IO
 
 from .comparing import compare
-from .comparison import StringComparison
+from .comparison import TextComparison
 
 
 class OutputCapture:
@@ -109,9 +109,9 @@ class OutputCapture:
 
     def compare(
             self,
-            expected: str | StringComparison = '',
-            stdout: str | StringComparison = '',
-            stderr: str | StringComparison = '',
+            expected: str | TextComparison = '',
+            stdout: str | TextComparison = '',
+            stderr: str | TextComparison = '',
             raises: bool = True,
     ) -> str | None:
         """

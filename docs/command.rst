@@ -42,9 +42,9 @@ This can be tested as follows:
 
 We can also test what happens if the required argument is not provided. The program name
 :mod:`argparse` puts in its messages varies with how the tests are run, so we use a
-:class:`~testfixtures.StringComparison` to match it:
+:class:`~testfixtures.TextComparison` to match it:
 
->>> from testfixtures import StringComparison as S
+>>> from testfixtures import TextComparison as S
 >>> Command(main).run().check(
 ...     output=S(
 ...         r'usage: .+ \[-h\] message\n'
