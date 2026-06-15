@@ -574,6 +574,56 @@ class ReprComparison:
         return f'<ReprComparison: {name}: {detail}>'
 
 
+class StrComparison:
+    """
+    An object that can be used in comparisons to check that an object is both
+    of an expected type and has an expected :class:`str`.
+
+    :param type_: the type the compared object must be an instance of.
+
+    :param str_: the :class:`str` the compared object must have exactly.
+
+    :param match: a regular expression, as either a :class:`str` or a compiled
+                  :class:`re.Pattern`, that the compared object's :class:`str`
+                  must match. Mutually exclusive with ``str_``.
+    """
+    @overload
+    def __init__(self, type_: type, str_: str): ...
+    @overload
+    def __init__(self, type_: type, *, match: str | re.Pattern[str]): ...
+
+    def __init__(
+        self,
+        type_: type,
+        str_: str | None = None,
+        *,
+        match: str | re.Pattern[str] | None = None,
+    ):
+        if (str_ is None) == (match is None):
+            raise TypeError('provide either str_ or match')
+        self.type = type_
+        self.str = str_
+        self.match = match
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, self.type):
+            return False
+        if self.match is not None:
+            return re.search(self.match, str(other)) is not None
+        return str(other) == self.str
+
+    def __ne__(self, other: Any) -> bool:
+        return not self == other
+
+    def __repr__(self) -> str:
+        module = getattr(self.type, '__module__', None)
+        name = (module + '.' if module else '') + (
+            getattr(self.type, '__name__', None) or repr(self.type)
+        )
+        detail = self.str if self.str is not None else f'match={self.match!r}'
+        return f'<StrComparison: {name}: {detail}>'
+
+
 T = TypeVar('T')
 
 @overload

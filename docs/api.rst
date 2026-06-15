@@ -28,6 +28,9 @@ Comparisons
 .. autoclass:: ReprComparison
    :members:
 
+.. autoclass:: StrComparison
+   :members:
+
 .. autoclass:: SequenceComparison
    :members:
 
@@ -48,7 +51,7 @@ Comparisons
 .. py:class:: StringComparison
 
    Deprecated alias for :class:`TextComparison`. Note this is *not* the same as
-   ``StrComparison``.
+   :class:`StrComparison`.
 
 
 testfixtures.comparison

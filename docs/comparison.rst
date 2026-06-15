@@ -641,6 +641,29 @@ equal to any object that is an instance of the supplied type and whose
 
   compare(expected=ReprComparison(KeyError, "KeyError('foo')"), actual=KeyError('foo'))
 
+.. _strcomparison:
+
+``StrComparison``
+~~~~~~~~~~~~~~~~~
+
+:class:`StrComparison` works just like :class:`ReprComparison`, but checks the
+object's :class:`str` instead of its :func:`repr`:
+
+.. code-block:: python
+
+  from testfixtures import compare, StrComparison
+
+  compare(expected=StrComparison(KeyError, "'foo'"), actual=KeyError('foo'))
+
+Both :class:`ReprComparison` and :class:`StrComparison` can also match against a
+regular expression instead of an exact string by passing ``match``:
+
+.. code-block:: python
+
+  from testfixtures import compare, StrComparison
+
+  compare(expected=StrComparison(KeyError, match=r"'\w+'"), actual=KeyError('foo'))
+
 .. _textcomparison:
 
 ``TextComparison``
