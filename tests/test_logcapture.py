@@ -1,5 +1,5 @@
 import atexit
-from logging import getLogger, INFO, ERROR, Filter, shutdown
+from logging import getLogger, INFO, WARNING, ERROR, Filter, shutdown
 from textwrap import dedent
 from unittest import TestCase
 
@@ -481,6 +481,58 @@ class TestCheck:
         )
         with ShouldAssert("Not asserted ERROR log(s): [('root', 'ERROR', 'boom')]"):
             log_capture.ensure_checked()
+
+
+class TestCheckEmpty:
+
+    def test_empty(self):
+        with LogCapture() as log:
+            pass
+        log.check_empty()
+
+    def test_not_empty(self):
+        with LogCapture() as log:
+            root.info('boom')
+        with ShouldAssert(
+            "sequence not as expected:\n\n"
+            "same:\n()\n\n"
+            "expected:\n()\n\n"
+            "actual:\n(('root', 'INFO', 'boom'),)"
+        ):
+            log.check_empty()
+
+    def test_level_excludes_lower(self):
+        with LogCapture() as log:
+            root.debug('noisy')
+            root.info('chatter')
+        log.check_empty(level=WARNING)
+
+    def test_level_not_empty(self):
+        with LogCapture() as log:
+            root.debug('noisy')
+            root.error('boom')
+        with ShouldAssert(
+            "sequence not as expected:\n\n"
+            "same:\n()\n\n"
+            "expected:\n()\n\n"
+            "actual:\n(('root', 'ERROR', 'boom'),)"
+        ):
+            log.check_empty(level=WARNING)
+
+    def test_predicate_excludes_all(self):
+        with LogCapture() as log:
+            root.info('chatter')
+            root.warning('still fine')
+        log.check_empty(predicate=lambda entry: entry.level is not None and entry.level >= ERROR)
+
+    def test_level_and_predicate_compose(self):
+        with LogCapture() as log:
+            root.debug('debug noise')
+            root.error('expected error')
+        log.check_empty(
+            level=WARNING,
+            predicate=lambda entry: 'expected' not in entry.actual[2],
+        )
 
 
 class TestCheckPresent:

@@ -147,6 +147,17 @@ including its ``raw`` framework object; only those for which it returns true are
 Both can be combined; entries excluded by either are left un-checked, so
 :meth:`~testfixtures.LogCapture.ensure_checked` still reports them.
 
+To assert that nothing was logged, :meth:`~testfixtures.LogCapture.check_empty` is
+clearer than :meth:`~testfixtures.LogCapture.check` with no expected entries. It
+takes the same ``level`` and ``predicate``, so you can assert that nothing was
+logged above a level:
+
+.. code-block:: python
+
+    with LogCapture() as quiet:
+        getLogger().debug('just debugging')
+    quiet.check_empty(level=logging.INFO)
+
 Inspecting
 ~~~~~~~~~~
 
