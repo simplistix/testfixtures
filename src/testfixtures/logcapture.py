@@ -2,12 +2,13 @@ import atexit
 import logging
 import warnings
 from collections import defaultdict
+from contextlib import contextmanager
 from dataclasses import dataclass
 from logging import LogRecord
 from pprint import pformat
 from types import TracebackType
 from typing import (
-    Any, Callable, Sequence, TypeAlias, TypeVar, List, Tuple, Self, Protocol, overload
+    Any, Callable, Iterator, Sequence, TypeAlias, TypeVar, List, Tuple, Self, Protocol, overload
 )
 from warnings import warn
 
@@ -191,6 +192,7 @@ class LogCapture:
                 names = (names,)
             self._sources = [LoggingSource(attributes, level, names=names, propagate=propagate)]
         self.recursive_check = recursive_check
+        self._disabled = False
         if ensure_checks_above is None:
             self.ensure_checks_above = self.default_ensure_checks_above
         else:
@@ -254,6 +256,20 @@ class LogCapture:
 
     def _collect_entry(self, entry: Entry) -> None:
         self.entries.append(entry)
+
+    @contextmanager
+    def disabled(self) -> Iterator[None]:
+        """
+        A context manager that stops capturing for the duration of the ``with`` block by
+        uninstalling the capture and reinstalling it on exit. Anything logged while it is
+        active is handled as if the capture were not present, which is useful for ignoring
+        noisy setup in a test.
+        """
+        self.uninstall()
+        try:
+            yield
+        finally:
+            self.install()
 
     def install(self) -> Self | None:
         """

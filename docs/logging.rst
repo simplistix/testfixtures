@@ -266,6 +266,18 @@ Capturing can also be disabled and enabled during a test by only having the
 
 >>> logs.check(('INFO', 'something we care about'))
 
+To ignore noisy setup, use the :meth:`~testfixtures.LogCapture.disabled` context
+manager, which uninstalls the capture for the duration of the ``with`` block:
+
+.. code-block:: python
+
+    with LogCapture(LoggingSource()) as logs:
+        with logs.disabled():
+            logger.warning('noisy setup output')
+        logger.info('what we care about')
+
+    logs.check(('INFO', 'what we care about'))
+
 You can also capture different attributes by specifying their names; if the attribute is
 callable, as with ``getMessage`` here, it will be called:
 
