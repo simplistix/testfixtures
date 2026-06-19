@@ -363,6 +363,30 @@ class LogCapture:
             raise AssertionError(result)
         return result
 
+    def check_empty(
+        self,
+        level: int | None = None,
+        predicate: Callable[[Entry], bool] | None = None,
+    ) -> None:
+        """
+        Assert that nothing was logged, raising an :class:`AssertionError` if it was.
+        This is a clearer way of writing :meth:`check` with no expected entries.
+
+        :param level:
+
+          If provided, only entries with a numeric
+          :attr:`~testfixtures.logcapture.Entry.level` at or above it are considered.
+          Entries with a ``level`` of ``None`` are always considered.
+
+        :param predicate:
+
+          If provided, it is called with each captured
+          :class:`~testfixtures.logcapture.Entry`; only those for which it returns
+          a true value are considered.
+        """
+        __tracebackhide__ = True
+        self.check(level=level, predicate=predicate)
+
     def raise_first_exception(self, start_index: int = 0) -> None:
         """
         Raise the first captured exception from ``start_index`` onwards.
