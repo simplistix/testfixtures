@@ -127,6 +127,26 @@ no unexpected logging, :meth:`~testfixtures.LogCapture.check` also support ``ord
 ...     order_matters=False
 ... )
 
+Pass ``level`` to exclude entries below it, such as debugging output:
+
+>>> import logging
+>>> log.check(
+...     ('INFO', 'start of block number 1'),
+...     ('ERROR', 'error occurred'),
+...     level=logging.INFO,
+... )
+
+Pass ``predicate`` to filter on each captured :class:`~testfixtures.logcapture.Entry`,
+including its ``raw`` framework object; only those for which it returns true are compared:
+
+>>> log.check(
+...     ('ERROR', 'error occurred'),
+...     predicate=lambda entry: entry.exception is not None,
+... )
+
+Both can be combined; entries excluded by either are left un-checked, so
+:meth:`~testfixtures.LogCapture.ensure_checked` still reports them.
+
 Inspecting
 ~~~~~~~~~~
 

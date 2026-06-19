@@ -82,6 +82,28 @@ class TestLogCapture:
             structlog.get_logger().warning('captured')
         log.check(('WARNING', 'captured'))
 
+    def test_check_level(self):
+        logger = structlog.get_logger()
+        with LogCapture(StructlogSource()) as log:
+            logger.debug('noisy')
+            logger.info('useful')
+            logger.error('boom')
+        log.check(
+            ('INFO', 'useful'),
+            ('ERROR', 'boom'),
+            level=logging.INFO,
+        )
+
+    def test_check_predicate_on_raw(self):
+        logger = structlog.get_logger()
+        with LogCapture(StructlogSource()) as log:
+            logger.info('request handled', path='/api/users')
+            logger.info('request handled', path='/health')
+        log.check(
+            ('INFO', 'request handled'),
+            predicate=lambda entry: entry.raw.get('path') != '/health',
+        )
+
     def test_broken_attribute_method(self):
         def bad(event_dict):
             raise ValueError('boom')
