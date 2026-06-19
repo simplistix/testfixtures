@@ -3,7 +3,7 @@ from logging import getLogger, INFO, WARNING, ERROR, Filter, shutdown
 from textwrap import dedent
 from unittest import TestCase
 
-from testfixtures import Replacer, LogCapture, compare, Replace, ShouldWarn
+from testfixtures import Replacer, LogCapture, compare, Replace, ShouldRaise, ShouldWarn
 from testfixtures.logcapture import Entry, LoggingSource
 from testfixtures.mock import Mock, call
 from testfixtures.shouldraise import ShouldAssert
@@ -832,3 +832,25 @@ class TestCheckPresent:
             "expected:\n[('root', 'INFO', 'world')]\n\n"
             "actual:\n[]"
         ))
+
+
+class TestDisabled:
+
+    def test_disabled(self):
+        with LogCapture() as log:
+            root.info('before')
+            with log.disabled():
+                root.info('noise')
+            root.info('after')
+        log.check(
+            ('root', 'INFO', 'before'),
+            ('root', 'INFO', 'after'),
+        )
+
+    def test_disabled_restores_on_exception(self):
+        with LogCapture() as log:
+            with ShouldRaise(ValueError('boom')):
+                with log.disabled():
+                    raise ValueError('boom')
+            root.info('after')
+        log.check(('root', 'INFO', 'after'))
