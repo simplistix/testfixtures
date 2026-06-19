@@ -99,6 +99,26 @@ class TestLogCapture:
             logger.warning('captured')
         log.check(('WARNING', 'captured'))
 
+    def test_check_level(self):
+        with LogCapture(LoguruSource()) as log:
+            logger.debug('noisy')
+            logger.info('useful')
+            logger.error('boom')
+        log.check(
+            ('INFO', 'useful'),
+            ('ERROR', 'boom'),
+            level=logging.INFO,
+        )
+
+    def test_check_predicate_on_raw(self):
+        with LogCapture(LoguruSource()) as log:
+            logger.bind(user='admin').warning('deleted a record')
+            logger.warning('cache expired')
+        log.check(
+            ('WARNING', 'deleted a record'),
+            predicate=lambda entry: 'user' in entry.raw['extra'],
+        )
+
     def test_str(self):
         with LogCapture(LoguruSource()) as log:
             logger.info('hello world')
