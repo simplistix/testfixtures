@@ -3,6 +3,15 @@
 Changes
 =======
 
+12.2.0 (20 Jun 2026)
+--------------------
+
+- Added :meth:`LogCapture.check_empty`.
+
+- Added :meth:`LogCapture.disabled` context manager.
+
+- Added ``level`` and ``predicate`` parameters to :meth:`LogCapture.check`.
+
 12.1.0 (15 Jun 2026)
 --------------------
 
