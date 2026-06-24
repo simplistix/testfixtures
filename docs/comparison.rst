@@ -17,8 +17,8 @@ string matches a pattern. Functions and objects are provided that express
 these expectations and slot into the expected side of :func:`compare`, or into a
 plain ``assert``.
 
-The typed helpers :func:`like`, :func:`sequence`, :func:`contains` and
-:func:`unordered` are the place to start. They are typed to match the values you
+The typed helpers :func:`like`, :func:`sequence`, :func:`contains`,
+:func:`unordered` and :func:`mapping` are the place to start. They are typed to match the values you
 compare against, so they keep type checkers such as `mypy`__ happy. Under the
 hood they build the comparison objects described below, which you can also
 construct directly when you need one that has no helper.
@@ -26,9 +26,9 @@ construct directly when you need one that has no helper.
 __ https://mypy-lang.org/
 
 Some expectations have no helper and are used as objects directly:
-:ref:`RangeComparison <rangecomparison>` and :ref:`RoundComparison <roundcomparison>` for numbers,
-:ref:`MappingComparison <mappingcomparison>` for mappings, and
-:ref:`StringComparison <stringcomparison>` for matching against a regular expression.
+:ref:`RangeComparison <rangecomparison>` and :ref:`RoundComparison <roundcomparison>`
+for numbers, and :ref:`StringComparison <stringcomparison>` for matching against a
+regular expression.
 
 The examples below use these dataclasses:
 
@@ -192,14 +192,60 @@ Use the ``returns`` parameter for type compatibility:
 ...     ),
 ... )
 
+Mapping helpers
+---------------
+
+The :func:`~testfixtures.mapping` function is the mapping equivalent of
+:func:`sequence`. It builds a typed :ref:`MappingComparison <mappingcomparison>`,
+so it slots into a dictionary-typed value while keeping type checkers happy.
+
+By default the keys and values must match exactly. Pass ``partial=True`` to
+ignore any additional keys:
+
+>>> from testfixtures import mapping
+>>> expected: dict[str, int] = mapping(partial=True)({'a': 1})
+>>> compare(expected, actual={'a': 1, 'b': 2})
+
+Pass ``ordered=True`` to also require the keys to appear in the given order:
+
+>>> compare(
+...     expected=mapping(ordered=True)({'a': 1, 'b': 2}),
+...     actual={'b': 2, 'a': 1},
+... )
+Traceback (most recent call last):
+ ...
+AssertionError: not equal:
+<BLANKLINE>
+<MappingComparison(ordered=True, partial=False)(failed)>
+wrong key order:
+<BLANKLINE>
+same:
+[]
+<BLANKLINE>
+expected:
+['a', 'b']
+<BLANKLINE>
+actual:
+['b', 'a']
+<BLANKLINE>
+While comparing [0]: 'a' (expected) != 'b' (actual)
+</MappingComparison(ordered=True, partial=False)> (expected)
+{'b': 2, 'a': 1} (actual)
+
+As with :func:`sequence`, use the ``returns`` parameter when the mapping is of a
+different type. See :ref:`MappingComparison <mappingcomparison>` for the full
+behaviour.
+
 Comparison objects
 ------------------
 
 The helpers above build these objects, and you can construct them directly. A
-:ref:`Comparison <comparison>`, returned by :func:`like`, and a
+:ref:`Comparison <comparison>`, returned by :func:`like`, a
 :ref:`SequenceComparison <sequencecomparison>`, returned by :func:`sequence`,
-:func:`contains` and :func:`unordered`, are usually an implementation detail. The
-rest have no helper and are meant to be used directly.
+:func:`contains` and :func:`unordered`, and a
+:ref:`MappingComparison <mappingcomparison>`, returned by :func:`mapping`, are
+usually an implementation detail. The rest have no helper and are meant to be
+used directly.
 
 .. _comparison:
 

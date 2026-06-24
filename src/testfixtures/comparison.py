@@ -645,4 +645,61 @@ def unordered(
     )
 
 
+M = TypeVar("M", bound=Mapping[Any, Any])
+M_ = TypeVar("M_", bound=Mapping[Any, Any])
+
+
+@overload
+def mapping(
+    partial: bool = False,
+    ordered: bool = False,
+    recursive: bool = True,
+) -> Callable[[M], M]: ...
+
+
+@overload
+def mapping(
+    partial: bool = False,
+    ordered: bool = False,
+    recursive: bool = True,
+    *,
+    returns: type[M_],
+) -> Callable[[M], M_]: ...
+
+
+def mapping(
+    partial: bool = False,
+    ordered: bool = False,
+    recursive: bool = True,
+    *,
+    returns: type[M_] | None = None,
+) -> Callable[[M], M | M_]:
+    """
+    Create a type-safe mapping comparison with configurable key ordering and
+    partial matching.
+
+    This is the mapping equivalent of :func:`sequence`. It returns a callable
+    that wraps a mapping in a :class:`MappingComparison`, typed to match the
+    mapping being compared so that strict type checkers stay happy.
+
+    :param partial: If ``True``, any keys not expected are ignored.
+                    Defaults to ``False``.
+    :param ordered: If ``True``, the keys must appear in the order given.
+                    Defaults to ``False``.
+    :param recursive: If ``True``, provide detailed recursive comparison when
+                      differences are found. Defaults to ``True``.
+    :param returns: Optional type hint for the return type, used to satisfy type
+                    checkers when the comparison needs to appear as a different
+                    mapping type.
+    :return: A callable that takes a mapping and returns a comparison object
+             typed as a mapping.
+    """
+    def maker(items: M) -> M | M_:
+        return MappingComparison(  # type: ignore[return-value]
+            items, ordered=ordered, partial=partial, recursive=recursive
+        )
+
+    return maker
+
+
 register(StatefulComparison, compare_simple)

@@ -17,7 +17,7 @@ from testfixtures.comparing import compare, register
 from testfixtures.comparison import (
     Comparison, StringComparison, RoundComparison, RangeComparison,
     SequenceComparison, Subset, Permutation, MappingComparison, like, sequence,
-    contains, unordered
+    contains, unordered, mapping
 )
 from testfixtures.command import Command, Run
 from testfixtures.datetime import mock_datetime, mock_date, mock_time
@@ -74,6 +74,7 @@ __all__ = [
     'generator',
     'like',
     'log_capture',
+    'mapping',
     'mock_date',
     'mock_datetime',
     'mock_time',
