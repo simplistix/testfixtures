@@ -22,11 +22,12 @@ The areas of testing this package can help with are listed below:
 The ``compare`` function gives readable feedback when results aren't as expected,
 with clear diffs for deeply nested data structures and for objects that don't
 normally support comparison. This includes first-class support for pandas and
-polars dataframes and numpy arrays. Flexible placeholder objects and matchers
-such as ``like``, ``sequence``, ``generator``, ``Comparison``, ``RoundComparison``,
-``RangeComparison``, ``TextComparison`` and ``SequenceComparison`` let you assert that only part
-of a value matters, that a number is within a range or rounded to a precision, or
-that a string matches a pattern.
+polars dataframes, numpy arrays and pydantic models. Flexible placeholder
+objects and matchers such as ``like``, ``sequence``, ``generator``,
+``Comparison``, ``RoundComparison``, ``RangeComparison``, ``TextComparison``
+and ``SequenceComparison`` let you assert that only part of a value matters,
+that a number is within a range or rounded to a precision, or that a string
+matches a pattern.
 
 **Mocking out objects and methods**
 

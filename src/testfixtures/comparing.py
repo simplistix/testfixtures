@@ -510,3 +510,12 @@ except ImportError:
 else:
     register(ndarray, compare_ndarray, ignore_eq=True)
     register(MaskedArray, compare_masked_array, ignore_eq=True)
+
+
+try:
+    from pydantic import BaseModel as PydanticBaseModel
+    from .pydantic import compare_basemodel
+except ImportError:
+    pass
+else:
+    register(PydanticBaseModel, compare_basemodel, ignore_eq=True)
