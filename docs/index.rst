@@ -6,6 +6,7 @@ The sections below describe the use of the various tools included:
    :maxdepth: 1
 
    comparing.rst
+   comparison.rst
    mocking.rst
    datetime.rst
    logging.rst

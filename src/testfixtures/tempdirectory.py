@@ -12,7 +12,7 @@ from typing import (
     overload
 )
 
-from testfixtures.comparison import compare
+from testfixtures.comparing import compare
 from testfixtures.formats import Format, JSON, YAML, TOML
 from testfixtures.utils import wrap
 from .rmtree import rmtree

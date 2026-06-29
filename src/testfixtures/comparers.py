@@ -20,7 +20,7 @@ from testfixtures import not_there
 from testfixtures.mock import parent_name, _Call
 
 if TYPE_CHECKING:
-    from .comparison import CompareContext
+    from .comparing import CompareContext
 
 
 __all__ = [

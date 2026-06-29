@@ -1,9 +1,10 @@
 # Tests that ensure compare and Comparison work correctly in strictly type checked environments
+from collections import OrderedDict
 from dataclasses import dataclass
 from uuid import UUID, uuid4
 
 from testfixtures import compare, Comparison
-from testfixtures.comparison import like, sequence, contains, unordered
+from testfixtures.comparison import like, sequence, contains, unordered, mapping
 
 
 @dataclass
@@ -24,6 +25,16 @@ class ListCollection:
 @dataclass
 class TupleCollection:
     items: tuple[SampleClass, ...]
+
+
+@dataclass
+class DictCollection:
+    items: dict[str, SampleClass]
+
+
+@dataclass
+class OrderedDictCollection:
+    items: "OrderedDict[str, SampleClass]"
 
 
 def test_simple_compare() -> None:
@@ -145,6 +156,26 @@ class TestUnordered:
                 unordered(
                     [SampleClass(1, "x"), SampleClass(2, "x")],
                     returns=tuple[SampleClass, ...],
+                )
+            ),
+        )
+
+
+class TestMapping:
+    def test_it(self) -> None:
+        actual = DictCollection({"a": SampleClass(1, "2"), "b": SampleClass(3, "4")})
+        compare(
+            actual,
+            expected=DictCollection(mapping(partial=True)({"a": SampleClass(1, "2")})),
+        )
+
+    def test_type_override(self) -> None:
+        actual = OrderedDictCollection(OrderedDict(a=SampleClass(1, "2")))
+        compare(
+            actual,
+            expected=OrderedDictCollection(
+                mapping(returns=OrderedDict[str, SampleClass])(
+                    {"a": SampleClass(1, "2")}
                 )
             ),
         )

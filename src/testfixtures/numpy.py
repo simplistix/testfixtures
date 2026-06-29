@@ -9,7 +9,7 @@ from numpy.ma import MaskedArray, getmaskarray
 from numpy.testing import assert_allclose, assert_array_equal
 
 if TYPE_CHECKING:
-    from .comparison import CompareContext
+    from .comparing import CompareContext
 
 INEXACT_KINDS = 'fc'
 # The tolerances used by the pandas and polars frame comparers, rather than

@@ -4,7 +4,8 @@ from io import StringIO
 from tempfile import TemporaryFile
 from typing import Self, Any, IO
 
-from .comparison import StringComparison, compare
+from .comparing import compare
+from .comparison import StringComparison
 
 
 class OutputCapture:

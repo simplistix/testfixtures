@@ -5,7 +5,7 @@ from django.db.models import Model, Field
 from .comparers import _compare_mapping
 
 if TYPE_CHECKING:
-    from .comparison import CompareContext
+    from .comparing import CompareContext
 
 
 def instance_fields(instance: Model) -> Iterable[Field]:

@@ -2,13 +2,15 @@
 
 ## Principles
 
-- **Done means green** — a change is only complete when `./happy.sh` exits 0; do not commit until it does.
-- **No unrelated failures** — if `./happy.sh` fails on something unrelated to your changes, do NOT assume it is a pre-existing problem and proceed anyway. Stop immediately and ask the user how to proceed.
-- **Docs for everything public** — new functionality or public API changes must have accompanying docs in `docs/*.rst`
-- **Type-annotate public APIs** — all public functions and classes need type annotations; mypy is the gate
-- **Use `compare()` in tests** — never use bare `assert` statements; always use `compare(actual, expected=...)` for assertions
-- **No `noqa`, ever** — this project has zero linter suppressions; don't add them. Fix the underlying issue instead.
-- **No `CHANGELOG.rst` edits during development** — that file is updated at release time, not as part of feature work.
+- **Done means green**: a change is only complete when `./happy.sh` exits 0; do not commit until it does.
+- **No unrelated failures**: if `./happy.sh` fails on something unrelated to your changes, do NOT assume it is a pre-existing problem and proceed anyway. Stop immediately and ask the user how to proceed.
+- **Docs for everything public**: new functionality or public API changes must have accompanying docs in `docs/*.rst`
+- **No em-dashes or parenthetical asides in prose**: in `docs/*.rst` prose and Python docstrings, never use em-dashes, and never tuck a clause inside parentheses; rephrase with commas or separate sentences. This does not apply to code comments or agent-facing notes such as this file, where both are fine.
+- **No stacked headings in docs**: a heading in `docs/*.rst` must be followed by prose, never immediately by a sub-heading. Add a short lead-in or merge the levels.
+- **Type-annotate public APIs**: all public functions and classes need type annotations; mypy is the gate
+- **Use `compare()` in tests**: never use bare `assert` statements; always use `compare(actual, expected=...)` for assertions
+- **No `noqa`, ever**: this project has zero linter suppressions; don't add them. Fix the underlying issue instead.
+- **No `CHANGELOG.rst` edits during development**: that file is updated at release time, not as part of feature work.
 
 ## Project Overview
 
@@ -24,7 +26,7 @@ rm -rf .venv && uv sync --all-extras --all-groups  # full reset
 ## Commands
 
 ```bash
-./happy.sh                                         # all checks — required before commit
+./happy.sh                                         # all checks: required before commit
 uv run pytest                                      # all tests + doctests
 uv run pytest tests/test_comparison.py             # single file
 uv run pytest --cov=testfixtures --cov-report=term-missing  # with coverage
@@ -35,16 +37,16 @@ uv build                                           # build sdist + wheel
 
 ## Architecture
 
-`src/testfixtures/` — all source. Key modules:
+`src/testfixtures/`: all source. Key modules:
 
-- `comparison.py` — `compare()`, `diff()`, `Comparison`, `StringComparison`, `RoundComparison`, etc.
-- `replace.py` — `Replacer`, `replace()` decorators
-- `logcapture.py` — `LogCapture`
-- `datetime.py` — `mock_datetime`, `mock_date`, `mock_time`
-- `tempdirectory.py` — temporary directory management
-- `shouldraise.py` — `ShouldRaise`, `should_raise`
-- `shouldwarn.py` — `ShouldWarn`, `ShouldNotWarn`
-- `django.py`, `twisted.py` — framework-specific support
-- `__init__.py` — main API exports
+- `comparison.py`: `compare()`, `diff()`, `Comparison`, `StringComparison`, `RoundComparison`, etc.
+- `replace.py`: `Replacer`, `replace()` decorators
+- `logcapture.py`: `LogCapture`
+- `datetime.py`: `mock_datetime`, `mock_date`, `mock_time`
+- `tempdirectory.py`: temporary directory management
+- `shouldraise.py`: `ShouldRaise`, `should_raise`
+- `shouldwarn.py`: `ShouldWarn`, `ShouldNotWarn`
+- `django.py`, `twisted.py`: framework-specific support
+- `__init__.py`: main API exports
 
 Config: `pyproject.toml` (optional deps for Django, Sybil, Twisted).

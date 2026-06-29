@@ -53,6 +53,8 @@ nitpick_ignore = [
     ('py:class', 'tempfile.TemporaryFile'),  # not documented as a class so type annotation broken
     ('py:class', 'testfixtures.comparison.S'),  # type var
     ('py:class', 'testfixtures.comparison.S_'),  # type var
+    ('py:class', 'testfixtures.comparison.M'),  # type var
+    ('py:class', 'testfixtures.comparison.M_'),  # type var
     ('py:class', 'testfixtures.comparison.T'),  # type var
     ('py:class', 'testfixtures.datetime.MockedCurrent'),  # internal class that shouldn't be doc'ed
     ('py:class', 'testfixtures.command.RunT'),  # type var

@@ -3,7 +3,7 @@ from unittest import TestCase
 import pytest
 from django.contrib.auth.models import User
 from testfixtures import OutputCapture, Replacer
-from testfixtures.comparison import registry
+from testfixtures.comparing import registry
 from .models import SampleModel
 from tests.test_django.manage import main
 

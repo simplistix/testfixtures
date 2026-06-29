@@ -34,6 +34,8 @@ Comparisons
 
 .. autofunction:: testfixtures.unordered
 
+.. autofunction:: testfixtures.mapping
+
 .. autoclass:: Subset
    :members:
 

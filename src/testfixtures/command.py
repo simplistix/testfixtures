@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Callable, Generic, Sequence, Self
 
 from testfixtures.compat import TypeVar
-from testfixtures.comparison import compare
+from testfixtures.comparing import compare
 from testfixtures.logcapture import LogCapture, LoggingSource
 from testfixtures.mock import Mock, _Call as Call
 from testfixtures.outputcapture import OutputCapture
