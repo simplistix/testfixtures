@@ -36,26 +36,35 @@ attributes same:
 attributes differ:
 'y': 3 (expected) != 2 (actual)
 
-The ``ignore_eq=True`` registration is also what makes it possible to correctly
-compare models that contain a :doc:`Polars <polars>` :class:`~polars.DataFrame`
-attribute. Without it, pydantic's built-in ``__eq__`` calls ``==`` on the
-:class:`~polars.DataFrame` values, which raises a :exc:`TypeError`:
+The ``ignore_eq=True`` registration is also needed whenever a model contains
+attributes whose type has a custom ``__eq__`` that :func:`~testfixtures.compare`
+has a registered comparer for, such as :doc:`Polars <polars>` or
+:doc:`Pandas <pandas>` DataFrames. Without it, pydantic's ``__eq__``
+calls ``==`` on each attribute value before testfixtures can intercept it,
+which for many such types raises an error or gives a misleading result.
+
+For example, consider a model with a :class:`~polars.DataFrame` attribute:
+
+.. code-block:: python
+
+  import polars as pl
+  from pydantic import BaseModel, ConfigDict
+
+  class Report(BaseModel):
+      model_config = ConfigDict(arbitrary_types_allowed=True)
+      name: str
+      data: pl.DataFrame
+
+  r1 = Report(name='sales', data=pl.DataFrame({'x': [1, 2], 'y': [3, 4]}))
+  r2 = Report(name='sales', data=pl.DataFrame({'x': [1, 2], 'y': [3, 5]}))
+
+Without the ``BaseModel`` registration, pydantic's ``__eq__`` fires first and
+raises a :exc:`TypeError`:
 
 .. invisible-code-block: python
 
-    import polars as pl
-    from pydantic import ConfigDict
-    from testfixtures.comparing import Registry
-
-    class Report(BaseModel):
-        model_config = ConfigDict(arbitrary_types_allowed=True)
-        name: str
-        data: pl.DataFrame
-
-    r1 = Report(name='sales', data=pl.DataFrame({'x': [1, 2], 'y': [3, 4]}))
-    r2 = Report(name='sales', data=pl.DataFrame({'x': [1, 2], 'y': [3, 5]}))
-
-    _registry = Registry.initial().install()
+  from testfixtures.comparing import Registry
+  registry = Registry.initial().install()
 
 >>> compare(r1, expected=r2)
 Traceback (most recent call last):
@@ -66,7 +75,7 @@ Hint: to check if a DataFrame contains any values, use `is_empty()`.
 
 .. invisible-code-block: python
 
-    _registry.uninstall()
+  registry.uninstall()
 
 With the registration in place, :func:`~testfixtures.compare` hands off
 to the :doc:`Polars comparer <polars>` and produces a clear diff:

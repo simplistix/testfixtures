@@ -266,21 +266,23 @@ to ``ignore_eq``, you will find that ``ignore_eq`` for the inner type alone is n
 A real-world example is a :class:`pydantic.BaseModel <pydantic:pydantic.BaseModel>` with a
 :class:`pandas.DataFrame` attribute. :class:`~pandas.DataFrame` implements ``__eq__`` in a way
 that raises :exc:`ValueError` when used as a boolean, and pydantic's ``__eq__`` calls ``==`` on
-each field value directly — so if :class:`~pandas.DataFrame` is the only type passed to
+each field value directly, so if :class:`~pandas.DataFrame` is the only type passed to
 ``ignore_eq``, pydantic's ``__eq__`` still fires first and the comparison still raises:
+
+.. code-block:: python
+
+  import pandas as pd
+  from pydantic import BaseModel, ConfigDict
+
+  class Report(BaseModel):
+      model_config = ConfigDict(arbitrary_types_allowed=True)
+      name: str
+      data: pd.DataFrame
 
 .. invisible-code-block: python
 
-    import pandas as pd
-    from pydantic import BaseModel, ConfigDict
-    from testfixtures.comparing import Registry
-
-    class Report(BaseModel):
-        model_config = ConfigDict(arbitrary_types_allowed=True)
-        name: str
-        data: pd.DataFrame
-
-    _registry = Registry.initial().install()
+  from testfixtures.comparing import Registry
+  registry = Registry.initial().install()
 
 >>> compare(
 ...     Report(name='sales', data=pd.DataFrame({'x': [1, 2]})),
@@ -293,14 +295,14 @@ ValueError: The truth value of a DataFrame is ambiguous. Use a.empty, a.bool(), 
 
 .. invisible-code-block: python
 
-    _registry.uninstall()
+  registry.uninstall()
 
 Both types must be known to :func:`compare`. For broadly applicable types like
 :class:`~pydantic.BaseModel` and :class:`~pandas.DataFrame`, the right solution is to
-:ref:`register <comparer-register>` a comparer for each, which the ``testfixtures[pydantic]``
-and ``testfixtures[pandas]`` extras do automatically. Once those extras are installed,
-:func:`compare` handles :class:`~pydantic.BaseModel` instances containing
-:class:`~pandas.DataFrame` attributes without any extra arguments:
+:ref:`register <comparer-register>` a comparer for each. This happens automatically
+when both pydantic and pandas are installed, so :func:`compare` handles
+:class:`~pydantic.BaseModel` instances containing :class:`~pandas.DataFrame`
+attributes without any extra arguments:
 
 >>> compare(
 ...     Report(name='sales', data=pd.DataFrame({'x': [1, 2]})),
