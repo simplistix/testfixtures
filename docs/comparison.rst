@@ -632,7 +632,7 @@ it is of the expected type and has the expected :func:`repr`, particularly when
 the object's type doesn't support meaningful equality.
 
 For these situations, you can use :class:`ReprComparison` objects, which compare
-equal to any object that is an instance of the supplied type and whose
+equal to any object that is exactly of the supplied type and whose
 :func:`repr` matches the supplied string:
 
 .. code-block:: python

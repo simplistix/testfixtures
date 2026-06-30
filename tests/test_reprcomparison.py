@@ -47,10 +47,11 @@ def test_not_equal_no():
     assert not (AClass() != ReprComparison(AClass, '<AClass>'))
 
 
-def test_subclass_is_equal():
+def test_subclass_not_equal():
+    # The type must match exactly; a subclass is not enough.
     class SubClass(AClass):
         pass
-    assert SubClass() == ReprComparison(AClass, '<AClass>')
+    assert not (SubClass() == ReprComparison(AClass, '<AClass>'))
 
 
 def test_in_sequence():

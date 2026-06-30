@@ -47,10 +47,11 @@ def test_not_equal_no():
     assert not (AClass() != StrComparison(AClass, 'an A'))
 
 
-def test_subclass_is_equal():
+def test_subclass_not_equal():
+    # The type must match exactly; a subclass is not enough.
     class SubClass(AClass):
         pass
-    assert SubClass() == StrComparison(AClass, 'an A')
+    assert not (SubClass() == StrComparison(AClass, 'an A'))
 
 
 def test_in_sequence():

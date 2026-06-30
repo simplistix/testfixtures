@@ -550,7 +550,7 @@ class RenderingComparison(ABC):
         self.match = match
 
     def __eq__(self, other: Any) -> bool:
-        if not isinstance(other, self.type):
+        if type(other) is not self.type:
             return False
         rendered = self.render(other)
         if self.match is not None:
@@ -570,7 +570,8 @@ class ReprComparison(RenderingComparison):
     An object that can be used in comparisons to check that an object is both
     of an expected type and has an expected :func:`repr`.
 
-    :param type_: the type the compared object must be an instance of.
+    :param type_: the type the compared object must be exactly; subclasses do
+                  not match.
 
     :param expected: the :func:`repr` the compared object must have exactly.
 
@@ -586,7 +587,8 @@ class StrComparison(RenderingComparison):
     An object that can be used in comparisons to check that an object is both
     of an expected type and has an expected :class:`str`.
 
-    :param type_: the type the compared object must be an instance of.
+    :param type_: the type the compared object must be exactly; subclasses do
+                  not match.
 
     :param expected: the :class:`str` the compared object must have exactly.
 
