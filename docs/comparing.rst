@@ -24,7 +24,7 @@ text instead of raising it.
 If, instead of checking for *exact* equality, you want to assert that a value
 merely *matches* a specification, such as a partial object, a number within a range, a
 string matching a pattern, or a sequence in any order, use the flexible
-:ref:`comparison objects and helpers <comparison-objects>`. They slot into the
+:ref:`comparison objects and matchers <comparison-objects>`. They slot into the
 expected side of :func:`compare`, and into plain ``assert`` statements.
 
 Comparing expected and actual
@@ -720,7 +720,8 @@ While comparing .name: 'bar' (expected) != 'foo' (actual)
 
 This type of comparison is also used on objects that make use of ``__slots__``.
 
-To compare only some of an object's attributes, see :ref:`ignore-attributes`, or use the partial :func:`like` helper described in :ref:`comparison-objects`.
+To compare only some of an object's attributes, see :ref:`ignore-attributes`, or use the partial
+:func:`like` matcher described in :ref:`comparison-objects`.
 
 .. _comparer-register:
 

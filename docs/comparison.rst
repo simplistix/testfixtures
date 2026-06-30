@@ -17,15 +17,15 @@ string matches a pattern. Functions and objects are provided that express
 these expectations and slot into the expected side of :func:`compare`, or into a
 plain ``assert``.
 
-The typed helpers :func:`like`, :func:`sequence`, :func:`contains`,
+The typed matchers :func:`like`, :func:`sequence`, :func:`contains`,
 :func:`unordered` and :func:`mapping` are the place to start. They are typed to match the values you
 compare against, so they keep type checkers such as `mypy`__ happy. Under the
 hood they build the comparison objects described below, which you can also
-construct directly when you need one that has no helper.
+construct directly when you need one that has no matcher.
 
 __ https://mypy-lang.org/
 
-Some expectations have no helper and are used as objects directly:
+Some expectations have no matcher and are used as objects directly:
 :ref:`RangeComparison <rangecomparison>` and :ref:`RoundComparison <roundcomparison>`
 for numbers, and :ref:`TextComparison <textcomparison>` for matching against a
 regular expression.
@@ -49,8 +49,16 @@ The examples below use these dataclasses:
   class TupleContainer:
       items: tuple[SampleClass, ...]
 
-Partial object comparisons with ``like()``
-------------------------------------------
+Instance matchers
+-----------------
+
+The :func:`~testfixtures.like`, :func:`~testfixtures.repr_like` and
+:func:`~testfixtures.str_like` functions check an object's type along with its
+attributes, :func:`repr` or :class:`str`, and are typed to match the value being
+compared so they slot into strictly typed code.
+
+Partial comparisons with ``like()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The :func:`~testfixtures.like` function creates partial object comparisons
 that are typed to match the class being compared:
@@ -66,7 +74,7 @@ including in assertions:
 >>> assert expected == SampleClass(1, '2')
 >>> assert expected == SampleClass(3, '4')
 
-When passed a type and, optionally, attributeds, ``like()`` builds a partial
+When passed a type and, optionally, attributes, ``like()`` builds a partial
 :ref:`Comparison <comparison>`. Reach for a :ref:`Comparison <comparison>` directly when you need to
 match by type alone, by dotted import path, against an existing instance, or matching exactly rather
 than partially.
@@ -77,6 +85,9 @@ compiled :class:`re.Pattern`, :func:`~testfixtures.like` returns a
 
 >>> expected_str: str = like(r'Starting thread \d+')
 >>> compare(expected_str, actual='Starting thread 132356')
+
+Matching ``repr()`` or ``str()`` with ``repr_like()`` and ``str_like()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The :func:`~testfixtures.repr_like` and :func:`~testfixtures.str_like` functions
 do the same for :class:`ReprComparison` and :class:`StrComparison`, returning a
@@ -89,8 +100,8 @@ value typed as the compared type while checking its :func:`repr` or
 >>> by_str: KeyError = str_like(KeyError, "'foo'")
 >>> compare(by_str, actual=KeyError('foo'))
 
-Sequence helpers
-----------------
+Sequence matchers
+-----------------
 
 :func:`sequence`, :func:`contains` and :func:`unordered` compare sequences
 flexibly and all return :ref:`SequenceComparison <sequencecomparison>` objects.
@@ -210,8 +221,8 @@ Use the ``returns`` parameter for type compatibility:
 ...     ),
 ... )
 
-Mapping helpers
----------------
+Mapping matchers
+----------------
 
 The :func:`~testfixtures.mapping` function is the mapping equivalent of
 :func:`sequence`. It builds a typed :ref:`MappingComparison <mappingcomparison>`,
@@ -257,12 +268,12 @@ behaviour.
 Comparison objects
 ------------------
 
-The helpers above build these objects, and you can construct them directly. A
+The matchers above build these objects, and you can construct them directly. A
 :ref:`Comparison <comparison>`, returned by :func:`like`, a
 :ref:`SequenceComparison <sequencecomparison>`, returned by :func:`sequence`,
 :func:`contains` and :func:`unordered`, and a
 :ref:`MappingComparison <mappingcomparison>`, returned by :func:`mapping`, are
-usually an implementation detail. The rest have no helper and are meant to be
+usually an implementation detail. The rest have no matcher and are meant to be
 used directly.
 
 .. _comparison:
