@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from .comparers import _compare_mapping, compare_simple
 
 if TYPE_CHECKING:
-    from .comparison import CompareContext
+    from .comparing import CompareContext
 
 
 def compare_basemodel(

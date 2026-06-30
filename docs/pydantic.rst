@@ -45,7 +45,7 @@ attribute. Without it, pydantic's built-in ``__eq__`` calls ``==`` on the
 
     import polars as pl
     from pydantic import ConfigDict
-    from testfixtures.comparison import Registry
+    from testfixtures.comparing import Registry
 
     class Report(BaseModel):
         model_config = ConfigDict(arbitrary_types_allowed=True)
