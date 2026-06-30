@@ -28,8 +28,12 @@ Comparisons
 .. autoclass:: ReprComparison
    :members:
 
+.. autofunction:: testfixtures.repr_like
+
 .. autoclass:: StrComparison
    :members:
+
+.. autofunction:: testfixtures.str_like
 
 .. autoclass:: SequenceComparison
    :members:

@@ -630,6 +630,70 @@ def like(t: type[T] | str | re.Pattern[str], **attributes: Any) -> T | str:
     return Comparison(t, attribute_dict=attributes, partial=True)  # type: ignore[return-value]
 
 
+@overload
+def repr_like(type_: type[T], expected: str) -> T: ...
+
+
+@overload
+def repr_like(type_: type[T], *, match: str | re.Pattern[str]) -> T: ...
+
+
+def repr_like(
+    type_: type[T],
+    expected: str | None = None,
+    *,
+    match: str | re.Pattern[str] | None = None,
+) -> T:
+    """
+    Create a type-safe :class:`ReprComparison` for use in strictly typed code.
+
+    This is a convenience function that creates a :class:`ReprComparison` but is
+    typed to return the type being compared, making it compatible with strict
+    type checkers like mypy.
+
+    :param type_: the type the compared object must be exactly; subclasses do
+                  not match.
+    :param expected: the :func:`repr` the compared object must have exactly.
+    :param match: a regular expression, as either a :class:`str` or a compiled
+                  :class:`re.Pattern`, that the compared object's :func:`repr`
+                  must match. Mutually exclusive with ``expected``.
+    :return: A :class:`ReprComparison` typed as the input type.
+    """
+    return cast(T, ReprComparison(type_, expected, match=match))  # type: ignore[call-overload]
+
+
+@overload
+def str_like(type_: type[T], expected: str) -> T: ...
+
+
+@overload
+def str_like(type_: type[T], *, match: str | re.Pattern[str]) -> T: ...
+
+
+def str_like(
+    type_: type[T],
+    expected: str | None = None,
+    *,
+    match: str | re.Pattern[str] | None = None,
+) -> T:
+    """
+    Create a type-safe :class:`StrComparison` for use in strictly typed code.
+
+    This is a convenience function that creates a :class:`StrComparison` but is
+    typed to return the type being compared, making it compatible with strict
+    type checkers like mypy.
+
+    :param type_: the type the compared object must be exactly; subclasses do
+                  not match.
+    :param expected: the :class:`str` the compared object must have exactly.
+    :param match: a regular expression, as either a :class:`str` or a compiled
+                  :class:`re.Pattern`, that the compared object's :class:`str`
+                  must match. Mutually exclusive with ``expected``.
+    :return: A :class:`StrComparison` typed as the input type.
+    """
+    return cast(T, StrComparison(type_, expected, match=match))  # type: ignore[call-overload]
+
+
 S = TypeVar("S", bound=Sequence[Any])
 S_ = TypeVar("S_", bound=Sequence[Any])
 

@@ -17,7 +17,8 @@ from testfixtures.comparing import compare, register
 from testfixtures.comparison import (
     Comparison, TextComparison, StringComparison, RoundComparison,
     RangeComparison, ReprComparison, StrComparison, SequenceComparison, Subset,
-    Permutation, MappingComparison, like, sequence, contains, unordered, mapping
+    Permutation, MappingComparison, like, repr_like, str_like, sequence,
+    contains, unordered, mapping
 )
 from testfixtures.command import Command, Run
 from testfixtures.datetime import mock_datetime, mock_date, mock_time
@@ -87,12 +88,14 @@ __all__ = [
     'replace_in_environ',
     'replace_on_class',
     'replace_in_module',
+    'repr_like',
     'resolve',
     'safe_pformat',
     'safe_repr',
     'sequence',
     'should_raise',
     'singleton',
+    'str_like',
     'tempdir',
     'test_date',
     'test_datetime',

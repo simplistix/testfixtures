@@ -78,6 +78,17 @@ compiled :class:`re.Pattern`, :func:`~testfixtures.like` returns a
 >>> expected_str: str = like(r'Starting thread \d+')
 >>> compare(expected_str, actual='Starting thread 132356')
 
+The :func:`~testfixtures.repr_like` and :func:`~testfixtures.str_like` functions
+do the same for :class:`ReprComparison` and :class:`StrComparison`, returning a
+value typed as the compared type while checking its :func:`repr` or
+:class:`str`:
+
+>>> from testfixtures import repr_like, str_like
+>>> by_repr: KeyError = repr_like(KeyError, "KeyError('foo')")
+>>> compare(by_repr, actual=KeyError('foo'))
+>>> by_str: KeyError = str_like(KeyError, "'foo'")
+>>> compare(by_str, actual=KeyError('foo'))
+
 Sequence helpers
 ----------------
 

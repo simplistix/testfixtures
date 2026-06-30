@@ -5,7 +5,9 @@ from dataclasses import dataclass
 from uuid import UUID, uuid4
 
 from testfixtures import compare, Comparison
-from testfixtures.comparison import like, sequence, contains, unordered, mapping
+from testfixtures.comparison import (
+    like, repr_like, str_like, sequence, contains, unordered, mapping
+)
 
 
 @dataclass
@@ -76,6 +78,26 @@ def test_like_str_pattern() -> None:
 def test_like_compiled_pattern() -> None:
     expected: str = like(re.compile(r'on \d+'))
     compare(expected, actual='on 40220')
+
+
+def test_repr_like() -> None:
+    expected: SampleClass = repr_like(SampleClass, "SampleClass(x=1, y='2')")
+    compare(expected, actual=SampleClass(1, '2'))
+
+
+def test_repr_like_match() -> None:
+    expected: SampleClass = repr_like(SampleClass, match=re.compile(r'SampleClass\('))
+    compare(expected, actual=SampleClass(1, '2'))
+
+
+def test_str_like() -> None:
+    expected: SampleClass = str_like(SampleClass, "SampleClass(x=1, y='2')")
+    compare(expected, actual=SampleClass(1, '2'))
+
+
+def test_str_like_match() -> None:
+    expected: SampleClass = str_like(SampleClass, match=r'SampleClass\(')
+    compare(expected, actual=SampleClass(1, '2'))
 
 
 class TestSequence:
