@@ -3,75 +3,27 @@ API Reference
 
 .. currentmodule:: testfixtures
 
+.. Register module targets that docstrings and the changelog cross-reference,
+   without rendering their (empty) module docstrings.
+.. module:: testfixtures.comparison
 
-Comparisons
------------
+.. module:: testfixtures.comparers
+
+.. currentmodule:: testfixtures
+
+
+Comparing
+---------
 
 .. autofunction:: compare
-
-.. autoclass:: Comparison
-
-.. autofunction:: testfixtures.like
-
-.. autoclass:: MappingComparison
-   :members:
-
-.. autoclass:: Permutation
-   :members:
-
-.. autoclass:: RoundComparison
-   :members:
-
-.. autoclass:: RangeComparison
-   :members:
-
-.. autoclass:: ReprComparison
-   :members:
-
-.. autofunction:: testfixtures.repr_like
-
-.. autoclass:: StrComparison
-   :members:
-
-.. autofunction:: testfixtures.str_like
-
-.. autoclass:: SequenceComparison
-   :members:
-
-.. autofunction:: testfixtures.sequence
-
-.. autofunction:: testfixtures.contains
-
-.. autofunction:: testfixtures.unordered
-
-.. autofunction:: testfixtures.mapping
-
-.. autoclass:: Subset
-   :members:
-
-.. autoclass:: TextComparison
-   :members:
-
-.. py:class:: StringComparison
-
-   Deprecated alias for :class:`TextComparison`. Note this is *not* the same as
-   :class:`StrComparison`.
-
-
-testfixtures.comparison
-~~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: testfixtures.comparison
 
 .. autofunction:: testfixtures.comparison.register
 
 .. autoclass:: testfixtures.comparison.CompareContext
    :members:
 
-testfixtures.comparers
-~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: testfixtures.comparers
+Comparers
+~~~~~~~~~
 
 .. autofunction:: testfixtures.comparers.compare_simple
 
@@ -97,6 +49,16 @@ testfixtures.comparers
 
 .. autofunction:: testfixtures.comparers.compare_text
 
+.. autofunction:: testfixtures.comparers.compare_bytes
+
+.. autofunction:: testfixtures.comparers.compare_call
+
+.. autofunction:: testfixtures.comparers.compare_partial
+
+.. autofunction:: testfixtures.comparers.compare_path
+
+.. autofunction:: testfixtures.comparers.compare_with_fold
+
 .. autofunction:: testfixtures.comparers.safe_repr
 
 .. autofunction:: testfixtures.comparers.safe_pformat
@@ -104,6 +66,58 @@ testfixtures.comparers
 .. autoclass:: testfixtures.comparers.AlreadySeen
 
 .. currentmodule:: testfixtures
+
+Matchers
+--------
+
+.. autofunction:: testfixtures.like
+
+.. autofunction:: testfixtures.repr_like
+
+.. autofunction:: testfixtures.str_like
+
+.. autofunction:: testfixtures.sequence
+
+.. autofunction:: testfixtures.contains
+
+.. autofunction:: testfixtures.unordered
+
+.. autofunction:: testfixtures.mapping
+
+Comparison objects
+------------------
+
+.. autoclass:: Comparison
+
+.. autoclass:: ReprComparison
+
+.. autoclass:: StrComparison
+
+.. autoclass:: TextComparison
+   :members:
+
+.. autoclass:: SequenceComparison
+   :members:
+
+.. autoclass:: Subset
+   :members:
+
+.. autoclass:: Permutation
+   :members:
+
+.. autoclass:: MappingComparison
+   :members:
+
+.. autoclass:: RangeComparison
+   :members:
+
+.. autoclass:: RoundComparison
+   :members:
+
+.. py:class:: StringComparison
+
+   Deprecated alias for :class:`TextComparison`. Note this is *not* the same as
+   :class:`StrComparison`.
 
 Capturing
 ---------
