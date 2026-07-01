@@ -120,3 +120,69 @@ Series: 'y' [i64]
 	3
 	4
 ]
+
+Testing validation errors
+--------------------------
+
+When a :class:`~pydantic.BaseModel` is given invalid data, pydantic raises
+:class:`pydantic.ValidationError <pydantic:pydantic_core.ValidationError>`. This type has no public constructor that
+takes a plain message, so building an instance to hand to :class:`~testfixtures.ShouldRaise`
+for a full comparison is impractical.
+
+Even setting aside how hard it is to construct one, comparing full instances
+would not catch anything useful anyway. Pydantic stores the details of what
+went wrong outside the ``args`` and ``__dict__`` that :func:`~testfixtures.compare` inspects
+for exceptions, so any two naturally raised :class:`pydantic.ValidationError <pydantic:pydantic_core.ValidationError>`
+instances compare equal regardless of what actually failed:
+
+.. invisible-code-block: python
+
+  from pydantic import ValidationError
+
+  errors = []
+  for bad in ({'x': 'not-an-int', 'y': 2}, {'x': 2, 'y': 'also-not-an-int'}):
+      try:
+          Point(**bad)
+      except ValidationError as e:
+          errors.append(e)
+
+>>> compare(errors[0], expected=errors[1])
+
+The way to check a raised :class:`pydantic.ValidationError <pydantic:pydantic_core.ValidationError>` is therefore to
+match its :func:`repr` or :class:`str` rendering with
+:func:`~testfixtures.repr_like` or :func:`~testfixtures.str_like`. Use
+``match`` rather than ``expected``, since the rendering includes a
+pydantic-version-specific URL:
+
+>>> from testfixtures import ShouldRaise, repr_like
+>>> with ShouldRaise(repr_like(ValidationError, match='validation error for Point')):
+...     Point(x='not-an-int', y=2)
+
+>>> from testfixtures import str_like
+>>> with ShouldRaise(str_like(ValidationError, match='validation error for Point')):
+...     Point(x='not-an-int', y=2)
+
+``repr_like`` and ``str_like`` can also compare the whole rendering exactly,
+rather than matching a pattern within it. If the rendering doesn't match, an
+:class:`AssertionError` explains the difference:
+
+.. invisible-code-block: python
+
+  try:
+      Point(x='not-an-int', y=2)
+  except ValidationError as e:
+      wrong_text = str(e).replace('\nx\n', '\ny\n', 1)
+
+>>> with ShouldRaise(repr_like(ValidationError, wrong_text)):
+...     Point(x='not-an-int', y=2)
+Traceback (most recent call last):
+...
+AssertionError: not equal:
+<ReprComparison: pydantic_core._pydantic_core.ValidationError: 1 validation error for Point
+y
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='not-an-int', input_type=str]
+    For further information visit https://errors.pydantic.dev/.../v/int_parsing> (expected)
+1 validation error for Point
+x
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='not-an-int', input_type=str]
+    For further information visit https://errors.pydantic.dev/.../v/int_parsing (raised)

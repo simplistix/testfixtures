@@ -3,6 +3,13 @@ Testing exceptions
 
 .. currentmodule:: testfixtures
 
+.. invisible-code-block: python
+
+    try:
+        import pydantic
+    except ImportError:
+        pydantic = None
+
 Testfixtures has tools to help when making assertions about exceptions that should be raised by
 a piece of code.
 
@@ -174,31 +181,56 @@ Matching the type and ``repr()`` or ``str()``
 Sometimes you want to assert both the type of the exception and its
 :func:`repr` or :class:`str` without constructing the exception instance
 yourself. The :func:`repr_like` and :func:`str_like` matchers do this and are
-typed to stand in for the exception:
+typed to stand in for the exception.
+
+This is particularly useful for exceptions such as
+:class:`pydantic.ValidationError <pydantic:pydantic_core.ValidationError>`, which has no public
+constructor that accepts a plain message:
+
+.. skip: start if(pydantic is None, reason="No pydantic installed")
+
+.. code-block:: python
+
+  from pydantic import BaseModel, ValidationError
+
+  class Point(BaseModel):
+      x: int
+      y: int
 
 >>> from testfixtures import repr_like
->>> with ShouldRaise(repr_like(ValueError, "ValueError('Not good!')")):
-...     the_thrower()
+>>> with ShouldRaise(repr_like(ValidationError, match='validation error for Point')):
+...     Point(x='not-an-int', y=2)
 
 >>> from testfixtures import str_like
->>> with ShouldRaise(str_like(ValueError, 'Not good!')):
-...     the_thrower()
+>>> with ShouldRaise(str_like(ValidationError, match='validation error for Point')):
+...     Point(x='not-an-int', y=2)
 
-Both can take a ``match`` regular expression instead of an exact string:
+Both matchers can also compare the whole rendering exactly, rather than
+matching a pattern within it. If the type matches but the rendering does not,
+an :class:`AssertionError` explains the difference:
 
->>> with ShouldRaise(repr_like(ValueError, match=r'good')):
-...     the_thrower()
+.. invisible-code-block: python
 
-If the type matches but the rendering does not, an :class:`AssertionError`
-explains the difference:
+  try:
+      Point(x='not-an-int', y=2)
+  except ValidationError as e:
+      wrong_text = str(e).replace('\nx\n', '\ny\n', 1)
 
->>> with ShouldRaise(str_like(ValueError, 'All good!')):
-...     the_thrower()
+>>> with ShouldRaise(str_like(ValidationError, wrong_text)):
+...     Point(x='not-an-int', y=2)
 Traceback (most recent call last):
 ...
 AssertionError: not equal:
-<StrComparison: builtins.ValueError: All good!> (expected)
-ValueError('Not good!') (raised)
+<StrComparison: pydantic_core._pydantic_core.ValidationError: 1 validation error for Point
+y
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='not-an-int', input_type=str]
+    For further information visit https://errors.pydantic.dev/.../v/int_parsing> (expected)
+1 validation error for Point
+x
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='not-an-int', input_type=str]
+    For further information visit https://errors.pydantic.dev/.../v/int_parsing (raised)
+
+.. skip: end
 
 The type must match exactly, so a subclass of the expected exception will not
 match. See :ref:`comparison-objects` for more about :func:`repr_like` and
