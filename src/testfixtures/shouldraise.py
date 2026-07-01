@@ -6,6 +6,7 @@ from typing import Callable, TypeAlias, Iterator, Self, ParamSpec, TypeVar, Gene
 
 from testfixtures import diff, compare, not_there, singleton
 from .comparers import split_repr
+from .comparison import RenderingComparison
 
 
 param_docs = """
@@ -26,6 +27,12 @@ param_docs = """
                       * An exception instance, indicating that an
                         exception exactly matching the one supplied
                         should be raised.
+
+                      * A :class:`ReprComparison` or :class:`StrComparison`,
+                        such as those returned by :func:`repr_like` and
+                        :func:`str_like`, indicating that a raised exception
+                        must be of the expected type and have the expected
+                        :func:`repr` or :class:`str`.
 
     :param unless: Can be passed a boolean that, when ``True`` indicates that
                    no exception is expected. This is useful when checking
@@ -111,6 +118,9 @@ class ShouldRaise(Generic[E]):
                         if self.exception is not actual_:
                             return False
                         self._check_match(actual)
+                    elif isinstance(self.exception, RenderingComparison):
+                        if self.exception.type is not type(actual):
+                            return False
                     else:
                         if type(self.exception) is not type(actual):
                             return False

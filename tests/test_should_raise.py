@@ -2,7 +2,9 @@ import re
 from textwrap import dedent
 
 
-from testfixtures import Comparison as C, ShouldRaise, should_raise, compare
+from testfixtures import (
+    Comparison as C, ShouldRaise, should_raise, compare, repr_like, str_like
+)
 from unittest import TestCase
 
 from testfixtures.shouldraise import ShouldAssert, NoException
@@ -414,3 +416,51 @@ class TestMatch:
     def test_pattern_object(self) -> None:
         with ShouldRaise(ValueError, match=re.compile(r'bad')):
             raise ValueError('bad value')
+
+
+class TestRenderingComparison:
+
+    def test_repr_like_passes(self) -> None:
+        with ShouldRaise(repr_like(KeyError, "KeyError('foo')")):
+            raise KeyError('foo')
+
+    def test_str_like_passes(self) -> None:
+        with ShouldRaise(str_like(ValueError, 'boom')):
+            raise ValueError('boom')
+
+    def test_repr_like_match_regex(self) -> None:
+        with ShouldRaise(repr_like(KeyError, match=r"KeyError\('\w+'\)")):
+            raise KeyError('foo')
+
+    def test_str_like_match_regex(self) -> None:
+        with ShouldRaise(str_like(ValueError, match=r'^bo')):
+            raise ValueError('boom')
+
+    def test_repr_like_wrong_value_fails(self) -> None:
+        with ShouldAssert(
+            "not equal:\n"
+            "<ReprComparison: builtins.KeyError: KeyError('other')> (expected)\n"
+            "KeyError('foo') (raised)"
+        ):
+            with ShouldRaise(repr_like(KeyError, "KeyError('other')")):
+                raise KeyError('foo')
+
+    def test_str_like_wrong_value_fails(self) -> None:
+        with ShouldAssert(
+            "not equal:\n"
+            "<StrComparison: builtins.ValueError: nope> (expected)\n"
+            "ValueError('boom') (raised)"
+        ):
+            with ShouldRaise(str_like(ValueError, 'nope')):
+                raise ValueError('boom')
+
+    def test_wrong_type_propagates(self) -> None:
+        with ShouldRaise(ValueError('boom')):
+            with ShouldRaise(repr_like(KeyError, "KeyError('foo')")):
+                raise ValueError('boom')
+
+    def test_via_decorator(self) -> None:
+        @should_raise(repr_like(KeyError, "KeyError('foo')"))
+        def raiser() -> None:
+            raise KeyError('foo')
+        raiser()
