@@ -7,6 +7,11 @@ Finding and explaining differences
 
     from collections import namedtuple
 
+    try:
+        import polars
+    except ImportError:
+        polars = None
+
 The :func:`compare` function checks that two values are equal and, when they are
 not, explains *how* they differ. Reach for it instead of
 :meth:`~unittest.TestCase.assertEqual` or a plain ``assert``: it offers much more
@@ -263,72 +268,153 @@ For custom container or wrapper types that implement ``__eq__`` and don't subcla
 of these standard container types, *and* which can contain instances of a type for which you'd like
 to ``ignore_eq``, you will find that ``ignore_eq`` for the inner type alone is not sufficient.
 
-A real-world example is a :class:`pydantic.BaseModel <pydantic:pydantic.BaseModel>` with a
-:class:`pandas.DataFrame` attribute. :class:`~pandas.DataFrame` implements ``__eq__`` in a way
-that raises :exc:`ValueError` when used as a boolean, and pydantic's ``__eq__`` calls ``==`` on
-each field value directly, so if :class:`~pandas.DataFrame` is the only type passed to
-``ignore_eq``, pydantic's ``__eq__`` still fires first and the comparison still raises:
+For example, consider a class that groups together the two dataframes used
+for an evaluation, with an ``__eq__`` that looks reasonable enough:
+
+.. skip: start if(polars is None, reason="No polars installed")
 
 .. code-block:: python
 
-  import pandas as pd
-  from pydantic import BaseModel, ConfigDict
+  import polars as pl
 
-  class Report(BaseModel):
-      model_config = ConfigDict(arbitrary_types_allowed=True)
-      name: str
-      data: pd.DataFrame
+  class Eval:
+      def __init__(self, test, train):
+          self.test = test
+          self.train = train
+      def __eq__(self, other):
+          return self.test == other.test and self.train == other.train
+
+  e1 = Eval(pl.DataFrame({'x': [1, 2]}), pl.DataFrame({'y': [3, 4]}))
+  e2 = Eval(pl.DataFrame({'x': [1, 3]}), pl.DataFrame({'y': [3, 4]}))
+
+:class:`~polars.DataFrame` implements ``__eq__`` in a way that returns another
+:class:`~polars.DataFrame` of element-wise results rather than a single
+:class:`bool`, so ``Eval.__eq__`` raises :exc:`TypeError` as soon as it tries
+to use that result in the ``and``:
+
+>>> compare(e1, expected=e2)
+Traceback (most recent call last):
+...
+TypeError: the truth value of a DataFrame is ambiguous
+<BLANKLINE>
+Hint: to check if a DataFrame contains any values, use `is_empty()`.
+
+If we only pass :class:`~polars.DataFrame` to ``ignore_eq``, ``Eval.__eq__`` still
+fires first and the comparison still raises:
+
+>>> compare(e1, expected=e2, ignore_eq=pl.DataFrame)
+Traceback (most recent call last):
+...
+TypeError: the truth value of a DataFrame is ambiguous
+<BLANKLINE>
+Hint: to check if a DataFrame contains any values, use `is_empty()`.
+
+We need to pass both the inner type and :class:`!Eval` to ``ignore_eq``:
+
+>>> compare(e1, expected=e2, ignore_eq=[pl.DataFrame, Eval])
+Traceback (most recent call last):
+...
+AssertionError: Eval not as expected:
+<BLANKLINE>
+attributes same:
+['train']
+<BLANKLINE>
+attributes differ:
+'test': shape: (2, 1)
+┌─────┐
+│ x   │
+│ --- │
+│ i64 │
+╞═════╡
+│ 1   │
+│ 3   │
+└─────┘ (expected) != shape: (2, 1)
+┌─────┐
+│ x   │
+│ --- │
+│ i64 │
+╞═════╡
+│ 1   │
+│ 2   │
+└─────┘ (actual)
+<BLANKLINE>
+While comparing .test: DataFrames are different (value mismatch for column "x")
+[left]: shape: (2,)
+Series: 'x' [i64]
+[
+	1
+	3
+]
+[right]: shape: (2,)
+Series: 'x' [i64]
+[
+	1
+	2
+]
+
+:class:`~polars.DataFrame` is already registered with ``ignore_eq=True`` if
+Polars is installed, so if :class:`!Eval` is used a lot, the only
+registration you need to add yourself is for :class:`!Eval` itself:
 
 .. invisible-code-block: python
 
   from testfixtures.comparing import Registry
+  from testfixtures.polars import compare_dataframe
   registry = Registry.initial().install()
+  register(pl.DataFrame, compare_dataframe, ignore_eq=True)
 
->>> compare(
-...     Report(name='sales', data=pd.DataFrame({'x': [1, 2]})),
-...     expected=Report(name='sales', data=pd.DataFrame({'x': [1, 3]})),
-...     ignore_eq=pd.DataFrame,
-... )
+.. code-block:: python
+
+  from testfixtures import register
+
+  register(Eval, ignore_eq=True)
+
+>>> compare(e1, expected=e2)
 Traceback (most recent call last):
 ...
-ValueError: The truth value of a DataFrame is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all().
+AssertionError: Eval not as expected:
+<BLANKLINE>
+attributes same:
+['train']
+<BLANKLINE>
+attributes differ:
+'test': shape: (2, 1)
+┌─────┐
+│ x   │
+│ --- │
+│ i64 │
+╞═════╡
+│ 1   │
+│ 3   │
+└─────┘ (expected) != shape: (2, 1)
+┌─────┐
+│ x   │
+│ --- │
+│ i64 │
+╞═════╡
+│ 1   │
+│ 2   │
+└─────┘ (actual)
+<BLANKLINE>
+While comparing .test: DataFrames are different (value mismatch for column "x")
+[left]: shape: (2,)
+Series: 'x' [i64]
+[
+	1
+	3
+]
+[right]: shape: (2,)
+Series: 'x' [i64]
+[
+	1
+	2
+]
 
 .. invisible-code-block: python
 
   registry.uninstall()
 
-Both types must be known to :func:`compare`. For broadly applicable types like
-:class:`~pydantic.BaseModel` and :class:`~pandas.DataFrame`, the right solution is to
-:ref:`register <comparer-register>` a comparer for each. This happens automatically
-when both pydantic and pandas are installed, so :func:`compare` handles
-:class:`~pydantic.BaseModel` instances containing :class:`~pandas.DataFrame`
-attributes without any extra arguments:
-
->>> compare(
-...     Report(name='sales', data=pd.DataFrame({'x': [1, 2]})),
-...     expected=Report(name='sales', data=pd.DataFrame({'x': [1, 3]})),
-... )
-Traceback (most recent call last):
-...
-AssertionError: Report not as expected:
-<BLANKLINE>
-attributes same:
-['name']
-<BLANKLINE>
-attributes differ:
-'data':    x
-0  1
-1  3 (expected) !=    x
-0  1
-1  2 (actual)
-<BLANKLINE>
-While comparing .data: DataFrame.iloc[:, 0] (column name="x") are different
-<BLANKLINE>
-DataFrame.iloc[:, 0] (column name="x") values are different (50.0 %)
-[index]: [0, 1]
-[left]:  [1, 3]
-[right]: [1, 2]
-At positional index 1, first diff: 3 != 2
+.. skip: end
 
 .. _recursion:
 

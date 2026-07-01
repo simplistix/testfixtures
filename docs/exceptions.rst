@@ -183,7 +183,52 @@ Sometimes you want to assert both the type of the exception and its
 yourself. The :func:`repr_like` and :func:`str_like` matchers do this and are
 typed to stand in for the exception.
 
-This is particularly useful for exceptions such as
+This is useful for exceptions that carry structured parameters rather than a
+plain message, where it isn't obvious what ends up in the rendered text:
+
+.. code-block:: python
+
+  class InvalidRecord(Exception):
+      def __init__(self, id, reason):
+          self.id = id
+          self.reason = reason
+          super().__init__(f'record {id} invalid: {reason}')
+
+  class SpecialInvalidRecord(InvalidRecord):
+      pass
+
+>>> from testfixtures import repr_like
+>>> with ShouldRaise(
+...     repr_like(InvalidRecord, "InvalidRecord('record 42 invalid: missing name')")
+... ):
+...     raise InvalidRecord(42, 'missing name')
+
+If a subclass is raised instead, :class:`ShouldRaise` lets it propagate,
+since the type must match exactly:
+
+>>> with ShouldRaise(
+...     repr_like(InvalidRecord, "InvalidRecord('record 42 invalid: missing name')")
+... ):
+...     raise SpecialInvalidRecord(42, 'missing name')
+Traceback (most recent call last):
+...
+SpecialInvalidRecord: record 42 invalid: missing name
+
+If the type matches but the rendering does not, an :class:`AssertionError`
+explains the difference:
+
+>>> with ShouldRaise(
+...     repr_like(InvalidRecord, "InvalidRecord('record 42 invalid: missing surname')")
+... ):
+...     raise InvalidRecord(42, 'missing name')
+Traceback (most recent call last):
+...
+AssertionError: not equal:
+<ReprComparison: builtins.InvalidRecord: InvalidRecord('record 42 invalid: missing surname')> (expected)
+InvalidRecord('record 42 invalid: missing name') (raised)
+
+:func:`str_like` works the same way but checks :class:`str` instead of
+:func:`repr`. This is particularly useful for exceptions such as
 :class:`pydantic.ValidationError <pydantic:pydantic_core.ValidationError>`, which has no public
 constructor that accepts a plain message:
 
@@ -197,38 +242,21 @@ constructor that accepts a plain message:
       x: int
       y: int
 
->>> from testfixtures import repr_like
->>> with ShouldRaise(repr_like(ValidationError, match='validation error for Point')):
-...     Point(x='not-an-int', y=2)
+``match`` is a regular expression, so literal square brackets in pydantic's
+rendering need escaping:
 
 >>> from testfixtures import str_like
->>> with ShouldRaise(str_like(ValidationError, match='validation error for Point')):
+>>> with ShouldRaise(
+...     str_like(
+...         ValidationError,
+...         match=(
+...             "Input should be a valid integer, "
+...             "unable to parse string as an integer "
+...             r"\[type=int_parsing, input_value='not-an-int', input_type=str\]"
+...         )
+...     )
+... ):
 ...     Point(x='not-an-int', y=2)
-
-Both matchers can also compare the whole rendering exactly, rather than
-matching a pattern within it. If the type matches but the rendering does not,
-an :class:`AssertionError` explains the difference:
-
-.. invisible-code-block: python
-
-  try:
-      Point(x='not-an-int', y=2)
-  except ValidationError as e:
-      wrong_text = str(e).replace('\nx\n', '\ny\n', 1)
-
->>> with ShouldRaise(str_like(ValidationError, wrong_text)):
-...     Point(x='not-an-int', y=2)
-Traceback (most recent call last):
-...
-AssertionError: not equal:
-<StrComparison: pydantic_core._pydantic_core.ValidationError: 1 validation error for Point
-y
-  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='not-an-int', input_type=str]
-    For further information visit https://errors.pydantic.dev/.../v/int_parsing> (expected)
-1 validation error for Point
-x
-  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='not-an-int', input_type=str]
-    For further information visit https://errors.pydantic.dev/.../v/int_parsing (raised)
 
 .. skip: end
 
