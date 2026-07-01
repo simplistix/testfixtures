@@ -260,50 +260,75 @@ This is handled for standard container types and their subclasses, specifically 
 :class:`tuple`, :class:`dict`, :class:`set`, and :class:`frozenset`.
 
 For custom container or wrapper types that implement ``__eq__`` and don't subclass one
-of these standard container types, *and* which can contain instance of a type for which you'd like
-to ``ignore_eq``, you will find that ``ignore_eq`` for that type alone is not sufficient.
+of these standard container types, *and* which can contain instances of a type for which you'd like
+to ``ignore_eq``, you will find that ``ignore_eq`` for the inner type alone is not sufficient.
 
-For example, consider this container type:
+A real-world example is a :class:`pydantic.BaseModel <pydantic:pydantic.BaseModel>` with a
+:class:`pandas.DataFrame` attribute. :class:`~pandas.DataFrame` implements ``__eq__`` in a way
+that raises :exc:`ValueError` when used as a boolean, and pydantic's ``__eq__`` calls ``==`` on
+each field value directly, so if :class:`~pandas.DataFrame` is the only type passed to
+``ignore_eq``, pydantic's ``__eq__`` still fires first and the comparison still raises:
 
 .. code-block:: python
 
-  class OrmObjBox:
-      def __init__(self, *items: OrmObj):
-          self.items = list(items)
-      def __eq__(self, other: "OrmObjBox") -> bool:
-          return self.items == other.items
+  import pandas as pd
+  from pydantic import BaseModel, ConfigDict
 
-If we only pass :class:`!OrmObj` to ``ignore_eq``, the :class:`!OrmObjBox` instances will still
-erroneously appear to be equal:
+  class Report(BaseModel):
+      model_config = ConfigDict(arbitrary_types_allowed=True)
+      name: str
+      data: pd.DataFrame
 
->>> compare(OrmObjBox(OrmObj(1)), OrmObjBox(OrmObj(2)), ignore_eq=OrmObj)
+.. invisible-code-block: python
 
-To successfully ignore the ``__eq__`` of :class:`!OrmObj`, we need to pass both the type and
-any custom container or wrapper types to ``ignore_eq``:
+  from testfixtures.comparing import Registry
+  registry = Registry.initial().install()
 
->>> compare(OrmObjBox(OrmObj(1)), OrmObjBox(OrmObj(2)), ignore_eq=[OrmObj, OrmObjBox])
+>>> compare(
+...     Report(name='sales', data=pd.DataFrame({'x': [1, 2]})),
+...     expected=Report(name='sales', data=pd.DataFrame({'x': [1, 3]})),
+...     ignore_eq=pd.DataFrame,
+... )
 Traceback (most recent call last):
 ...
-AssertionError: OrmObjBox not as expected:
+ValueError: The truth value of a DataFrame is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all().
+
+.. invisible-code-block: python
+
+  registry.uninstall()
+
+Both types must be known to :func:`compare`. For broadly applicable types like
+:class:`~pydantic.BaseModel` and :class:`~pandas.DataFrame`, the right solution is to
+:ref:`register <comparer-register>` a comparer for each. This happens automatically
+when both pydantic and pandas are installed, so :func:`compare` handles
+:class:`~pydantic.BaseModel` instances containing :class:`~pandas.DataFrame`
+attributes without any extra arguments:
+
+>>> compare(
+...     Report(name='sales', data=pd.DataFrame({'x': [1, 2]})),
+...     expected=Report(name='sales', data=pd.DataFrame({'x': [1, 3]})),
+... )
+Traceback (most recent call last):
+...
+AssertionError: Report not as expected:
+<BLANKLINE>
+attributes same:
+['name']
 <BLANKLINE>
 attributes differ:
-'items': [OrmObj: 1] != [OrmObj: 2]
+'data':    x
+0  1
+1  3 (expected) !=    x
+0  1
+1  2 (actual)
 <BLANKLINE>
-While comparing .items: sequence not as expected:
+While comparing .data: DataFrame.iloc[:, 0] (column name="x") are different
 <BLANKLINE>
-same:
-[]
-<BLANKLINE>
-first:
-[OrmObj: 1]
-<BLANKLINE>
-second:
-[OrmObj: 2]
-<BLANKLINE>
-While comparing .items[0]: OrmObj not as expected:
-<BLANKLINE>
-attributes differ:
-'a': 1 != 2
+DataFrame.iloc[:, 0] (column name="x") values are different (50.0 %)
+[index]: [0, 1]
+[left]:  [1, 3]
+[right]: [1, 2]
+At positional index 1, first diff: 3 != 2
 
 .. _recursion:
 

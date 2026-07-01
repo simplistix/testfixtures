@@ -296,6 +296,12 @@ testfixtures.polars
 .. automodule:: testfixtures.polars
    :members:
 
+testfixtures.pydantic
+~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: testfixtures.pydantic
+   :members:
+
 testfixtures.structlog
 ~~~~~~~~~~~~~~~~~~~~~~
 
