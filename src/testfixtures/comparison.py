@@ -1,4 +1,5 @@
 import re
+from abc import ABC, abstractmethod
 from collections import OrderedDict
 from functools import reduce
 from operator import __or__
@@ -20,7 +21,7 @@ from testfixtures.comparers import (
     _extract_attrs, AlreadySeen, _compare_mapping, safe_repr, compare_simple
 )
 from testfixtures.comparing import CompareContext, compare, register
-from testfixtures.resolve import resolve
+from testfixtures.resolve import resolve, type_name
 from testfixtures.utils import indent
 
 
@@ -109,7 +110,7 @@ class Comparison(StatefulComparison):
 
         other_type = type(other)
         if self.expected_type is not other_type:
-            self.failed = f'wrong type: {other_type.__module__}.{other_type.__qualname__}'
+            self.failed = 'wrong type: ' + type_name(other_type)
             return True
 
         if self.expected_attributes is None:
@@ -140,12 +141,7 @@ class Comparison(StatefulComparison):
         return bool(self.failed)
 
     def name(self) -> str:
-        name = 'C:'
-        module = getattr(self.expected_type, '__module__', None)
-        if module:
-            name = name + module + '.'
-        name += (getattr(self.expected_type, '__name__', None) or repr(self.expected_type))
-        return name
+        return 'C:' + type_name(self.expected_type)
 
     def body(self) -> str:
         if self.expected_attributes:
@@ -410,7 +406,7 @@ class MappingComparison(StatefulComparison):
         return False
 
 
-class StringComparison:
+class TextComparison:
     """
     An object that can be used in comparisons of expected and actual
     strings where the string expected matches a pattern rather than a
@@ -418,14 +414,31 @@ class StringComparison:
 
     :param regex_source: A string containing the source for a regular
                          expression that will be used whenever this
-                         :class:`StringComparison` is compared with
-                         any :class:`str` instance.
+                         :class:`TextComparison` is compared with
+                         any :class:`str` instance, or an already compiled
+                         :class:`re.Pattern`.
 
     :param flags: Flags passed to :func:`re.compile`.
 
-    :param flag_names: See the :ref:`examples <stringcomparison>`.
+    :param flag_names: See the :ref:`examples <textcomparison>`.
     """
-    def __init__(self, regex_source: str, flags: int | None = None, **flag_names: str):
+
+    @overload
+    def __init__(self, regex_source: re.Pattern[str]): ...
+
+    @overload
+    def __init__(self, regex_source: str, flags: int | None = None, **flag_names: bool): ...
+
+    def __init__(
+        self,
+        regex_source: str | re.Pattern[str],
+        flags: int | None = None,
+        **flag_names: bool,
+    ):
+        if isinstance(regex_source, re.Pattern):
+            self.re = regex_source
+            return
+
         args: list[Any] = [regex_source]
 
         flags_ = []
@@ -450,6 +463,11 @@ class StringComparison:
 
     def __gt__(self, other: Any) -> bool:
         return self.re.pattern > other
+
+
+# Deprecated alias for TextComparison. Note this is NOT the same as
+# StrComparison, which checks an object's type and its str().
+StringComparison = TextComparison
 
 
 class RoundComparison:
@@ -501,9 +519,97 @@ class RangeComparison:
     def __repr__(self) -> str:
         return '<Range: [%s, %s]>' % (self.lower_bound, self.upper_bound)
 
+
+class RenderingComparison(ABC):
+    """
+    A base for comparisons that check an object's type and a string rendering
+    of it produced by :attr:`render`.
+    """
+
+    @staticmethod
+    @abstractmethod
+    def render(other: object, /) -> str:
+        """The callable used to render the compared object as a string."""
+
+    @overload
+    def __init__(self, type_: type, expected: str): ...
+    @overload
+    def __init__(self, type_: type, *, match: str | re.Pattern[str]): ...
+
+    def __init__(
+        self,
+        type_: type,
+        expected: str | None = None,
+        *,
+        match: str | re.Pattern[str] | None = None,
+    ):
+        if (expected is None) == (match is None):
+            raise TypeError('provide either expected or match')
+        self.type = type_
+        self.expected = expected
+        self.match = match
+
+    def __eq__(self, other: Any) -> bool:
+        if type(other) is not self.type:
+            return False
+        rendered = self.render(other)
+        if self.match is not None:
+            return re.search(self.match, rendered) is not None
+        return rendered == self.expected
+
+    def __ne__(self, other: Any) -> bool:
+        return not self == other
+
+    def __repr__(self) -> str:
+        detail = self.expected if self.expected is not None else f'match={self.match!r}'
+        return f'<{type(self).__name__}: {type_name(self.type)}: {detail}>'
+
+
+class ReprComparison(RenderingComparison):
+    """
+    An object that can be used in comparisons to check that an object is both
+    of an expected type and has an expected :func:`repr`.
+
+    :param type_: the type the compared object must be exactly; subclasses do
+                  not match.
+
+    :param expected: the :func:`repr` the compared object must have exactly.
+
+    :param match: a regular expression, as either a :class:`str` or a compiled
+                  :class:`re.Pattern`, that the compared object's :func:`repr`
+                  must match. Mutually exclusive with ``expected``.
+    """
+    render = staticmethod(repr)
+
+
+class StrComparison(RenderingComparison):
+    """
+    An object that can be used in comparisons to check that an object is both
+    of an expected type and has an expected :class:`str`.
+
+    :param type_: the type the compared object must be exactly; subclasses do
+                  not match.
+
+    :param expected: the :class:`str` the compared object must have exactly.
+
+    :param match: a regular expression, as either a :class:`str` or a compiled
+                  :class:`re.Pattern`, that the compared object's :class:`str`
+                  must match. Mutually exclusive with ``expected``.
+    """
+    render = staticmethod(str)
+
+
 T = TypeVar('T')
 
-def like(t: type[T], **attributes: Any) -> T:
+@overload
+def like(t: str | re.Pattern[str]) -> str: ...
+
+
+@overload
+def like(t: type[T], **attributes: Any) -> T: ...
+
+
+def like(t: type[T] | str | re.Pattern[str], **attributes: Any) -> T | str:
     """
     Create a type-safe partial comparison for use in strictly typed code.
 
@@ -511,11 +617,81 @@ def like(t: type[T], **attributes: Any) -> T:
     ``partial=True`` but is typed to return the type being compared, making it
     compatible with strict type checkers like mypy.
 
-    :param t: The type to compare against.
+    If passed a :class:`str` pattern or a compiled :class:`re.Pattern`, a
+    :class:`TextComparison` typed as a :class:`str` is returned instead.
+
+    :param t: The type to compare against, or a regular expression pattern.
     :param attributes: Keyword arguments specifying the attributes to check.
-    :return: A :class:`Comparison` object typed as the input type.
+    :return: A :class:`Comparison` typed as the input type, or a
+             :class:`TextComparison` typed as a :class:`str`.
     """
+    if isinstance(t, (str, re.Pattern)):
+        return cast(str, TextComparison(t))
     return Comparison(t, attribute_dict=attributes, partial=True)  # type: ignore[return-value]
+
+
+@overload
+def repr_like(type_: type[T], expected: str) -> T: ...
+
+
+@overload
+def repr_like(type_: type[T], *, match: str | re.Pattern[str]) -> T: ...
+
+
+def repr_like(
+    type_: type[T],
+    expected: str | None = None,
+    *,
+    match: str | re.Pattern[str] | None = None,
+) -> T:
+    """
+    Create a type-safe :class:`ReprComparison` for use in strictly typed code.
+
+    This is a convenience function that creates a :class:`ReprComparison` but is
+    typed to return the type being compared, making it compatible with strict
+    type checkers like mypy.
+
+    :param type_: the type the compared object must be exactly; subclasses do
+                  not match.
+    :param expected: the :func:`repr` the compared object must have exactly.
+    :param match: a regular expression, as either a :class:`str` or a compiled
+                  :class:`re.Pattern`, that the compared object's :func:`repr`
+                  must match. Mutually exclusive with ``expected``.
+    :return: A :class:`ReprComparison` typed as the input type.
+    """
+    return cast(T, ReprComparison(type_, expected, match=match))  # type: ignore[call-overload]
+
+
+@overload
+def str_like(type_: type[T], expected: str) -> T: ...
+
+
+@overload
+def str_like(type_: type[T], *, match: str | re.Pattern[str]) -> T: ...
+
+
+def str_like(
+    type_: type[T],
+    expected: str | None = None,
+    *,
+    match: str | re.Pattern[str] | None = None,
+) -> T:
+    """
+    Create a type-safe :class:`StrComparison` for use in strictly typed code.
+
+    This is a convenience function that creates a :class:`StrComparison` but is
+    typed to return the type being compared, making it compatible with strict
+    type checkers like mypy.
+
+    :param type_: the type the compared object must be exactly; subclasses do
+                  not match.
+    :param expected: the :class:`str` the compared object must have exactly.
+    :param match: a regular expression, as either a :class:`str` or a compiled
+                  :class:`re.Pattern`, that the compared object's :class:`str`
+                  must match. Mutually exclusive with ``expected``.
+    :return: A :class:`StrComparison` typed as the input type.
+    """
+    return cast(T, StrComparison(type_, expected, match=match))  # type: ignore[call-overload]
 
 
 S = TypeVar("S", bound=Sequence[Any])

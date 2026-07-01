@@ -18,6 +18,7 @@ from typing import (
 
 from testfixtures import not_there
 from testfixtures.mock import parent_name, _Call
+from testfixtures.resolve import type_name
 
 if TYPE_CHECKING:
     from .comparing import CompareContext
@@ -62,7 +63,7 @@ def safe_repr(obj: Any) -> str:
         return repr(obj)
     except Exception as e:
         type_ = type(obj)
-        type_name = type_.__name__
+        cls_name = type_.__name__
         match obj:
             case list():
                 return '[' + ', '.join(safe_repr(e) for e in obj) + ']'
@@ -75,18 +76,18 @@ def safe_repr(obj: Any) -> str:
                 return '{' + body + '}'
             case frozenset():
                 if not obj:
-                    return type_name
-                return type_name + '({' + ', '.join(safe_repr(e) for e in obj) + '})'
+                    return cls_name
+                return cls_name + '({' + ', '.join(safe_repr(e) for e in obj) + '})'
             case set():
                 if not obj:
-                    return type_name + '()'
+                    return cls_name + '()'
                 return '{' + ', '.join(safe_repr(e) for e in obj) + '}'
             case _:
                 try:
                     detail = f'{type(e).__name__}: {e}'
                 except:
                     detail = type(e).__name__
-                return f'<unrepresentable {type_.__module__}.{type_.__qualname__}: {detail}>'
+                return f'<unrepresentable {type_name(type_)}: {detail}>'
 
 
 def safe_pformat(obj: Any) -> str:

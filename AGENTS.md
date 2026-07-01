@@ -5,6 +5,7 @@
 - **Done means green**: a change is only complete when `./happy.sh` exits 0; do not commit until it does.
 - **No unrelated failures**: if `./happy.sh` fails on something unrelated to your changes, do NOT assume it is a pre-existing problem and proceed anyway. Stop immediately and ask the user how to proceed.
 - **Docs for everything public**: new functionality or public API changes must have accompanying docs in `docs/*.rst`
+- **Keep the api.rst comparers list current**: the `Comparing` > `Comparers` list in `docs/api.rst` is hand-curated (not an `automodule`). When you add a `compare_*` comparer to `comparers.py`, add a matching `.. autofunction::` entry there, otherwise it silently goes undocumented.
 - **No em-dashes or parenthetical asides in prose**: in `docs/*.rst` prose and Python docstrings, never use em-dashes, and never tuck a clause inside parentheses; rephrase with commas or separate sentences. This does not apply to code comments or agent-facing notes such as this file, where both are fine.
 - **No stacked headings in docs**: a heading in `docs/*.rst` must be followed by prose, never immediately by a sub-heading. Add a short lead-in or merge the levels.
 - **Type-annotate public APIs**: all public functions and classes need type annotations; mypy is the gate
@@ -39,7 +40,7 @@ uv build                                           # build sdist + wheel
 
 `src/testfixtures/`: all source. Key modules:
 
-- `comparison.py`: `compare()`, `diff()`, `Comparison`, `StringComparison`, `RoundComparison`, etc.
+- `comparison.py`: `compare()`, `diff()`, `Comparison`, `TextComparison`, `RoundComparison`, etc.
 - `replace.py`: `Replacer`, `replace()` decorators
 - `logcapture.py`: `LogCapture`
 - `datetime.py`: `mock_datetime`, `mock_date`, `mock_time`

@@ -6,7 +6,7 @@ from twisted.logger import Logger, LogLevel, formatEvent
 from twisted.python.failure import Failure
 from twisted.trial.unittest import TestCase
 
-from testfixtures import compare, ShouldRaise, StringComparison as S, ShouldAssert
+from testfixtures import compare, ShouldRaise, TextComparison as S, ShouldAssert
 from testfixtures import LogCapture
 from testfixtures.twisted import LogCapture as TwistedLogCapture, INFO, WARN, TwistedSource
 

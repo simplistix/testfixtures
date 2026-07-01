@@ -17,17 +17,17 @@ string matches a pattern. Functions and objects are provided that express
 these expectations and slot into the expected side of :func:`compare`, or into a
 plain ``assert``.
 
-The typed helpers :func:`like`, :func:`sequence`, :func:`contains`,
+The typed matchers :func:`like`, :func:`sequence`, :func:`contains`,
 :func:`unordered` and :func:`mapping` are the place to start. They are typed to match the values you
 compare against, so they keep type checkers such as `mypy`__ happy. Under the
 hood they build the comparison objects described below, which you can also
-construct directly when you need one that has no helper.
+construct directly when you need one that has no matcher.
 
 __ https://mypy-lang.org/
 
-Some expectations have no helper and are used as objects directly:
+Some expectations have no matcher and are used as objects directly:
 :ref:`RangeComparison <rangecomparison>` and :ref:`RoundComparison <roundcomparison>`
-for numbers, and :ref:`StringComparison <stringcomparison>` for matching against a
+for numbers, and :ref:`TextComparison <textcomparison>` for matching against a
 regular expression.
 
 The examples below use these dataclasses:
@@ -49,8 +49,16 @@ The examples below use these dataclasses:
   class TupleContainer:
       items: tuple[SampleClass, ...]
 
-Partial object comparisons with ``like()``
-------------------------------------------
+Instance matchers
+-----------------
+
+The :func:`~testfixtures.like`, :func:`~testfixtures.repr_like` and
+:func:`~testfixtures.str_like` functions check an object's type along with its
+attributes, :func:`repr` or :class:`str`, and are typed to match the value being
+compared so they slot into strictly typed code.
+
+Partial comparisons with ``like()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The :func:`~testfixtures.like` function creates partial object comparisons
 that are typed to match the class being compared:
@@ -66,13 +74,34 @@ including in assertions:
 >>> assert expected == SampleClass(1, '2')
 >>> assert expected == SampleClass(3, '4')
 
-``like()`` always builds a partial :ref:`Comparison <comparison>`. Reach for a
-:ref:`Comparison <comparison>` directly when you need to match by type alone, by
-dotted import path, against an existing instance, or matching exactly rather than
-partially.
+When passed a type and, optionally, attributes, ``like()`` builds a partial
+:ref:`Comparison <comparison>`. Reach for a :ref:`Comparison <comparison>` directly when you need to
+match by type alone, by dotted import path, against an existing instance, or matching exactly rather
+than partially.
 
-Sequence helpers
-----------------
+When passed a regular expression pattern, either as a string or an already
+compiled :class:`re.Pattern`, :func:`~testfixtures.like` returns a
+:class:`TextComparison` typed as a :class:`str`:
+
+>>> expected_str: str = like(r'Starting thread \d+')
+>>> compare(expected_str, actual='Starting thread 132356')
+
+Matching ``repr()`` or ``str()`` with ``repr_like()`` and ``str_like()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :func:`~testfixtures.repr_like` and :func:`~testfixtures.str_like` functions
+do the same for :class:`ReprComparison` and :class:`StrComparison`, returning a
+value typed as the compared type while checking its :func:`repr` or
+:class:`str`:
+
+>>> from testfixtures import repr_like, str_like
+>>> by_repr: KeyError = repr_like(KeyError, "KeyError('foo')")
+>>> compare(by_repr, actual=KeyError('foo'))
+>>> by_str: KeyError = str_like(KeyError, "'foo'")
+>>> compare(by_str, actual=KeyError('foo'))
+
+Sequence matchers
+-----------------
 
 :func:`sequence`, :func:`contains` and :func:`unordered` compare sequences
 flexibly and all return :ref:`SequenceComparison <sequencecomparison>` objects.
@@ -192,8 +221,8 @@ Use the ``returns`` parameter for type compatibility:
 ...     ),
 ... )
 
-Mapping helpers
----------------
+Mapping matchers
+----------------
 
 The :func:`~testfixtures.mapping` function is the mapping equivalent of
 :func:`sequence`. It builds a typed :ref:`MappingComparison <mappingcomparison>`,
@@ -239,12 +268,12 @@ behaviour.
 Comparison objects
 ------------------
 
-The helpers above build these objects, and you can construct them directly. A
+The matchers above build these objects, and you can construct them directly. A
 :ref:`Comparison <comparison>`, returned by :func:`like`, a
 :ref:`SequenceComparison <sequencecomparison>`, returned by :func:`sequence`,
 :func:`contains` and :func:`unordered`, and a
 :ref:`MappingComparison <mappingcomparison>`, returned by :func:`mapping`, are
-usually an implementation detail. The rest have no helper and are meant to be
+usually an implementation detail. The rest have no matcher and are meant to be
 used directly.
 
 .. _comparison:
@@ -615,17 +644,59 @@ Here's an example with dates:
 
   :class:`RangeComparison` is inclusive of both the lower and upper bound.
 
-.. _stringcomparison:
+.. _reprcomparison:
 
-``StringComparison``
-~~~~~~~~~~~~~~~~~~~~
+``ReprComparison``
+~~~~~~~~~~~~~~~~~~
+
+Sometimes the easiest way to assert that an object is correct is to check that
+it is of the expected type and has the expected :func:`repr`, particularly when
+the object's type doesn't support meaningful equality.
+
+For these situations, you can use :class:`ReprComparison` objects, which compare
+equal to any object that is exactly of the supplied type and whose
+:func:`repr` matches the supplied string:
+
+.. code-block:: python
+
+  from testfixtures import compare, ReprComparison
+
+  compare(expected=ReprComparison(KeyError, "KeyError('foo')"), actual=KeyError('foo'))
+
+.. _strcomparison:
+
+``StrComparison``
+~~~~~~~~~~~~~~~~~
+
+:class:`StrComparison` works just like :class:`ReprComparison`, but checks the
+object's :class:`str` instead of its :func:`repr`:
+
+.. code-block:: python
+
+  from testfixtures import compare, StrComparison
+
+  compare(expected=StrComparison(KeyError, "'foo'"), actual=KeyError('foo'))
+
+Both :class:`ReprComparison` and :class:`StrComparison` can also match against a
+regular expression instead of an exact string by passing ``match``:
+
+.. code-block:: python
+
+  from testfixtures import compare, StrComparison
+
+  compare(expected=StrComparison(KeyError, match=r"'\w+'"), actual=KeyError('foo'))
+
+.. _textcomparison:
+
+``TextComparison``
+~~~~~~~~~~~~~~~~~~
 
 When comparing sequences of strings, particularly those coming from
 things like the python logging package, you often end up wanting to
 express a requirement that one string should be almost like another,
 or maybe fit a particular pattern expressed as a regular expression.
 
-For these situations, you can use :class:`StringComparison` objects
+For these situations, you can use :class:`TextComparison` objects
 wherever you would use normal strings, and they will compare equal to
 any string that matches the regular expression they are created with.
 
@@ -633,10 +704,10 @@ Here's an example:
 
 .. code-block:: python
 
-  from testfixtures import compare, StringComparison
+  from testfixtures import compare, TextComparison
 
   compare(
-      expected=StringComparison(r'Starting thread \d+'),
+      expected=TextComparison(r'Starting thread \d+'),
       actual='Starting thread 132356',
   )
 
@@ -647,7 +718,7 @@ If you need to specify flags, this can be done in one of three ways:
   .. code-block:: python
 
     compare(
-        expected=StringComparison(".*BaR", dotall=True, ignorecase=True),
+        expected=TextComparison(".*BaR", dotall=True, ignorecase=True),
         actual="foo\nbar",
     )
 
@@ -658,7 +729,7 @@ If you need to specify flags, this can be done in one of three ways:
 
     import re
     compare(
-        expected=StringComparison(".*BaR", re.DOTALL|re.IGNORECASE),
+        expected=TextComparison(".*BaR", re.DOTALL|re.IGNORECASE),
         actual="foo\nbar",
     )
 
@@ -667,6 +738,17 @@ If you need to specify flags, this can be done in one of three ways:
   .. code-block:: python
 
     compare(
-        expected=StringComparison("(?s:.*bar)"),
+        expected=TextComparison("(?s:.*bar)"),
         actual="foo\nbar",
     )
+
+You can also construct a :class:`TextComparison` from an already compiled
+:class:`re.Pattern`:
+
+.. code-block:: python
+
+  import re
+  compare(
+      expected=TextComparison(re.compile(".*BaR", re.DOTALL|re.IGNORECASE)),
+      actual="foo\nbar",
+  )

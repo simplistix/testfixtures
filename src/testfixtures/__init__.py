@@ -15,8 +15,9 @@ not_there: singleton = singleton('not_there')
 from testfixtures.comparers import diff, safe_pformat, safe_repr
 from testfixtures.comparing import compare, register
 from testfixtures.comparison import (
-    Comparison, StringComparison, RoundComparison, RangeComparison,
-    SequenceComparison, Subset, Permutation, MappingComparison, like, sequence,
+    Comparison, TextComparison, StringComparison, RoundComparison,
+    RangeComparison, ReprComparison, StrComparison, SequenceComparison, Subset,
+    Permutation, MappingComparison, like, repr_like, str_like, sequence,
     contains, unordered, mapping
 )
 from testfixtures.command import Command, Run
@@ -55,6 +56,7 @@ __all__ = [
     'OutputCapture',
     'Permutation',
     'RangeComparison',
+    'ReprComparison',
     'Replace',
     'Replacer',
     'Run',
@@ -65,7 +67,9 @@ __all__ = [
     'ShouldNotWarn',
     'ShouldWarn',
     'Subset',
+    'StrComparison',
     'StringComparison',
+    'TextComparison',
     'TempDirectory',
     'TempDir',
     'compare',
@@ -84,12 +88,14 @@ __all__ = [
     'replace_in_environ',
     'replace_on_class',
     'replace_in_module',
+    'repr_like',
     'resolve',
     'safe_pformat',
     'safe_repr',
     'sequence',
     'should_raise',
     'singleton',
+    'str_like',
     'tempdir',
     'test_date',
     'test_datetime',

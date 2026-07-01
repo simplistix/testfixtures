@@ -461,10 +461,12 @@ class TestC(TestCase):
         compare_repr(
             c,
             "\n"
-            "<C:tests.test_comparison.SomeClass(failed)>\n"
+            "<C:tests.test_comparison.TestC.run_property_not_equal_test"
+            ".<locals>.SomeClass(failed)>\n"
             "attributes differ:\n"
             "'prop': 2 (Comparison) != 1 (actual)\n"
-            "</C:tests.test_comparison.SomeClass>")
+            "</C:tests.test_comparison.TestC.run_property_not_equal_test"
+            ".<locals>.SomeClass>")
 
     def test_property_not_equal(self):
         self.run_property_not_equal_test(partial=False)
@@ -499,11 +501,13 @@ class TestC(TestCase):
         compare_repr(
             c,
             "\n"
-            "<C:tests.test_comparison.SomeClass(failed)>\n"
+            "<C:tests.test_comparison.TestC.run_method_not_equal_test"
+            ".<locals>.SomeClass(failed)>\n"
             "attributes differ:\n"
             "'method': <built-in function max> (Comparison)"
             " != <built-in function min> (actual)\n"
-            "</C:tests.test_comparison.SomeClass>"
+            "</C:tests.test_comparison.TestC.run_method_not_equal_test"
+            ".<locals>.SomeClass>"
         )
 
     def test_method_not_equal(self):
@@ -650,10 +654,12 @@ class TestC(TestCase):
         c == Annoying()
         compare_repr(
             c,
-            '\n<C:tests.test_comparison.Annoying(failed)>\n'
+            '\n<C:tests.test_comparison.TestC.test_compared_object_defines_eq'
+            '.<locals>.Annoying(failed)>\n'
             'attributes differ:\n'
             "'eq_called': 1 (Comparison) != 0 (actual)\n"
-            '</C:tests.test_comparison.Annoying>'
+            '</C:tests.test_comparison.TestC.test_compared_object_defines_eq'
+            '.<locals>.Annoying>'
         )
 
     def test_importerror(self):
@@ -682,9 +688,10 @@ class TestC(TestCase):
         class NoName:
             pass
         NoName.__name__ = ''
+        NoName.__qualname__ = ''
         NoName.__module__ = ''
         c = C(NoName)
-        self.assertEqual(repr(c), "<C:<class '.TestC.test_no_name.<locals>.NoName'>>")
+        self.assertEqual(repr(c), "<C:<class '.'>>")
 
     def test_missing_expected_attribute_not_partial(self):
 
@@ -739,7 +746,11 @@ class TestSafeRendering:
 
         compare(
             repr(C(Holder, attr=Broken())),
-            expected=f'<C:tests.test_comparison.Holder>attr: {Broken.marker}</>',
+            expected=(
+                '<C:tests.test_comparison.TestSafeRendering'
+                '.test_comparison_body_broken_attribute_value.<locals>.Holder>'
+                f'attr: {Broken.marker}</>'
+            ),
         )
 
     def test_mapping_comparison_body_broken_value(self):

@@ -10,7 +10,7 @@ from testfixtures import (
     ShouldNotWarn,
     ShouldRaise,
     ShouldWarn,
-    StringComparison,
+    TextComparison,
     compare,
 )
 
@@ -169,7 +169,7 @@ class TestLogCapture:
 
         def write_call(message: str) -> Call:
             return call.write(
-                StringComparison(
+                TextComparison(
                     (
                         r'{"text": ".+ \| INFO +\| tests.test_loguru:test_serialize:\d+'
                         r' - MESSAGE\\n", "record": {"elapsed": {"repr": "0.+", "seconds": .+}, '

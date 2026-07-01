@@ -168,6 +168,42 @@ something was raised and its message matches:
 ``match`` is not permitted when passing an exception instance or ``None``, indicating exception is
 expected; both will raise a :class:`TypeError` at construction time.
 
+Matching the type and ``repr()`` or ``str()``
+---------------------------------------------
+
+Sometimes you want to assert both the type of the exception and its
+:func:`repr` or :class:`str` without constructing the exception instance
+yourself. The :func:`repr_like` and :func:`str_like` matchers do this and are
+typed to stand in for the exception:
+
+>>> from testfixtures import repr_like
+>>> with ShouldRaise(repr_like(ValueError, "ValueError('Not good!')")):
+...     the_thrower()
+
+>>> from testfixtures import str_like
+>>> with ShouldRaise(str_like(ValueError, 'Not good!')):
+...     the_thrower()
+
+Both can take a ``match`` regular expression instead of an exact string:
+
+>>> with ShouldRaise(repr_like(ValueError, match=r'good')):
+...     the_thrower()
+
+If the type matches but the rendering does not, an :class:`AssertionError`
+explains the difference:
+
+>>> with ShouldRaise(str_like(ValueError, 'All good!')):
+...     the_thrower()
+Traceback (most recent call last):
+...
+AssertionError: not equal:
+<StrComparison: builtins.ValueError: All good!> (expected)
+ValueError('Not good!') (raised)
+
+The type must match exactly, so a subclass of the expected exception will not
+match. See :ref:`comparison-objects` for more about :func:`repr_like` and
+:func:`str_like`.
+
 Exceptions that are conditionally raised
 ----------------------------------------
 
