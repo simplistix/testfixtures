@@ -174,14 +174,35 @@ has to be found somewhere in the rendering, so it can still pass even when a
 part of the message you care about isn't what you expect. Where that
 matters, compare the whole rendering instead:
 
->>> with ShouldRaise(
-...     str_like(
-...         ValidationError,
-...         "1 validation error for Point\n"
-...         "x\n"
-...         "  Input should be a valid integer, unable to parse string as an integer "
-...         "[type=int_parsing, input_value='not-an-int', input_type=str]\n"
-...         "    For further information visit https://errors.pydantic.dev/2.13/v/int_parsing"
-...     )
-... ):
-...     Point(x='not-an-int', y=2)
+.. the block below must stay ``python3`` rather than ``python``: Sybil then
+   renders it without executing it directly, the capture that follows grabs
+   its source and the invisible code block rewrites the version-pinned URL
+   for the installed pydantic before executing it for real.
+
+.. code-block:: python3
+
+  with ShouldRaise(
+      str_like(
+          ValidationError,
+          "1 validation error for Point\n"
+          "x\n"
+          "  Input should be a valid integer, unable to parse string as an integer "
+          "[type=int_parsing, input_value='not-an-int', input_type=str]\n"
+          "    For further information visit https://errors.pydantic.dev/2.13/v/int_parsing"
+      )
+  ):
+      Point(x='not-an-int', y=2)
+
+.. -> source
+
+.. invisible-code-block: python
+
+  import re
+  from pydantic.version import version_short
+
+  exec(re.sub(r'errors\.pydantic\.dev/\d+\.\d+/',
+              f'errors.pydantic.dev/{version_short()}/', source))
+
+The URL on the last line of the rendering is specific to the installed
+version of pydantic, so expect to update assertions like this when
+upgrading.
