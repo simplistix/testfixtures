@@ -3,6 +3,34 @@
 Changes
 =======
 
+12.3.0 (8 Jul 2026)
+--------------------
+
+- Added :doc:`pydantic <pydantic>` support: a :func:`comparer <testfixtures.pydantic.compare_basemodel>`
+  for :class:`~pydantic.BaseModel` is automatically registered, and the ``testfixtures[pydantic]``
+  extra installs a compatible version.
+
+- Added :class:`ReprComparison` and :func:`repr_like` for asserting an object's type along with its
+  :func:`repr`.
+
+- Added :class:`StrComparison` and :func:`str_like` for asserting an object's type along with its
+  :class:`str`.
+
+- Added :func:`mapping`, the typed helper for :class:`MappingComparison`.
+
+- :func:`like` now accepts a regular expression, as a string or a compiled :class:`re.Pattern`,
+  returning a :class:`TextComparison` typed as a :class:`str`. :class:`TextComparison` can also
+  now be built directly from a compiled :class:`re.Pattern`.
+
+- :class:`ShouldRaise` now accepts :func:`repr_like` and :func:`str_like` matchers, so a raised
+  exception's type and rendering can be checked without constructing the exception instance.
+
+- Renamed :class:`!StringComparison` to :class:`TextComparison`. :class:`!StringComparison` remains
+  as a deprecated alias.
+
+- Fixed a bug where comparing two matcher instances directly, such as two :class:`SequenceComparison`
+  objects, could produce a confusing diff instead of comparing them for equality.
+
 12.2.0 (20 Jun 2026)
 --------------------
 
