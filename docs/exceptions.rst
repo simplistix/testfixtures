@@ -3,6 +3,13 @@ Testing exceptions
 
 .. currentmodule:: testfixtures
 
+.. invisible-code-block: python
+
+    try:
+        import pydantic
+    except ImportError:
+        pydantic = None
+
 Testfixtures has tools to help when making assertions about exceptions that should be raised by
 a piece of code.
 
@@ -174,31 +181,84 @@ Matching the type and ``repr()`` or ``str()``
 Sometimes you want to assert both the type of the exception and its
 :func:`repr` or :class:`str` without constructing the exception instance
 yourself. The :func:`repr_like` and :func:`str_like` matchers do this and are
-typed to stand in for the exception:
+typed to stand in for the exception.
+
+This is useful for exceptions that carry structured parameters rather than a
+plain message, where it isn't obvious what ends up in the rendered text:
+
+.. code-block:: python
+
+  class InvalidRecord(Exception):
+      def __init__(self, id, reason):
+          self.id = id
+          self.reason = reason
+          super().__init__(f'record {id} invalid: {reason}')
+
+  class SpecialInvalidRecord(InvalidRecord):
+      pass
 
 >>> from testfixtures import repr_like
->>> with ShouldRaise(repr_like(ValueError, "ValueError('Not good!')")):
-...     the_thrower()
+>>> with ShouldRaise(
+...     repr_like(InvalidRecord, "InvalidRecord('record 42 invalid: missing name')")
+... ):
+...     raise InvalidRecord(42, 'missing name')
 
->>> from testfixtures import str_like
->>> with ShouldRaise(str_like(ValueError, 'Not good!')):
-...     the_thrower()
+If a subclass is raised instead, :class:`ShouldRaise` lets it propagate,
+since the type must match exactly:
 
-Both can take a ``match`` regular expression instead of an exact string:
-
->>> with ShouldRaise(repr_like(ValueError, match=r'good')):
-...     the_thrower()
+>>> with ShouldRaise(
+...     repr_like(InvalidRecord, "InvalidRecord('record 42 invalid: missing name')")
+... ):
+...     raise SpecialInvalidRecord(42, 'missing name')
+Traceback (most recent call last):
+...
+SpecialInvalidRecord: record 42 invalid: missing name
 
 If the type matches but the rendering does not, an :class:`AssertionError`
 explains the difference:
 
->>> with ShouldRaise(str_like(ValueError, 'All good!')):
-...     the_thrower()
+>>> with ShouldRaise(
+...     repr_like(InvalidRecord, "InvalidRecord('record 42 invalid: missing surname')")
+... ):
+...     raise InvalidRecord(42, 'missing name')
 Traceback (most recent call last):
 ...
 AssertionError: not equal:
-<StrComparison: builtins.ValueError: All good!> (expected)
-ValueError('Not good!') (raised)
+<ReprComparison: builtins.InvalidRecord: InvalidRecord('record 42 invalid: missing surname')> (expected)
+InvalidRecord('record 42 invalid: missing name') (raised)
+
+:func:`str_like` works the same way but checks :class:`str` instead of
+:func:`repr`. This is particularly useful for exceptions such as
+:class:`pydantic.ValidationError <pydantic:pydantic_core.ValidationError>`, which has no public
+constructor that accepts a plain message:
+
+.. skip: start if(pydantic is None, reason="No pydantic installed")
+
+.. code-block:: python
+
+  from pydantic import BaseModel, ValidationError
+
+  class Point(BaseModel):
+      x: int
+      y: int
+
+``match`` is a regular expression, so literal square brackets in pydantic's
+rendering need escaping:
+
+>>> from testfixtures import str_like
+>>> with ShouldRaise(
+...     str_like(
+...         ValidationError,
+...         match=(
+...             "Input should be a valid integer, "
+...             "unable to parse string as an integer "
+...             r"\[type=int_parsing, input_value='not-an-int', input_type=str\]"
+...         )
+...     )
+... ):
+...     Point(x='not-an-int', y=2)
+
+.. skip: end
 
 The type must match exactly, so a subclass of the expected exception will not
 match. See :ref:`comparison-objects` for more about :func:`repr_like` and

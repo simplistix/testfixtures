@@ -22,6 +22,7 @@ The sections below describe the use of the various tools included:
    pandas.rst
    numpy.rst
    structlog.rst
+   pydantic.rst
    twisted.rst
    utilities.rst
 

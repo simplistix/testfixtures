@@ -75,6 +75,8 @@ with the version of these packages that your project is using:
 
 - ``[structlog]``: Structlog logging framework support. See :doc:`structlog`.
 
+- ``[pydantic]``: Pydantic model helpers. See :doc:`pydantic`.
+
 - ``[yaml]``: YAML format support for :class:`~testfixtures.TempDir`. See :ref:`files`.
 
 - ``[toml]``: TOML format writing support for :class:`~testfixtures.TempDir`. See :ref:`files`.

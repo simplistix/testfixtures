@@ -17,18 +17,19 @@ string matches a pattern. Functions and objects are provided that express
 these expectations and slot into the expected side of :func:`compare`, or into a
 plain ``assert``.
 
-The typed matchers :func:`like`, :func:`sequence`, :func:`contains`,
-:func:`unordered` and :func:`mapping` are the place to start. They are typed to match the values you
-compare against, so they keep type checkers such as `mypy`__ happy. Under the
-hood they build the comparison objects described below, which you can also
-construct directly when you need one that has no matcher.
+The typed matchers :func:`like`, :func:`repr_like`, :func:`str_like`,
+:func:`sequence`, :func:`contains`, :func:`unordered` and :func:`mapping` are
+the place to start. They are typed to match the values you compare against, so
+they keep type checkers such as `mypy`__ happy. :func:`like` also accepts a
+string or compiled regular expression, for matching a string value against a
+pattern. Under the hood they build the comparison objects described below,
+which you can also construct directly when you need one that has no matcher.
 
 __ https://mypy-lang.org/
 
 Some expectations have no matcher and are used as objects directly:
 :ref:`RangeComparison <rangecomparison>` and :ref:`RoundComparison <roundcomparison>`
-for numbers, and :ref:`TextComparison <textcomparison>` for matching against a
-regular expression.
+for numbers.
 
 The examples below use these dataclasses:
 

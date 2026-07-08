@@ -7,6 +7,11 @@ Finding and explaining differences
 
     from collections import namedtuple
 
+    try:
+        import polars
+    except ImportError:
+        polars = None
+
 The :func:`compare` function checks that two values are equal and, when they are
 not, explains *how* they differ. Reach for it instead of
 :meth:`~unittest.TestCase.assertEqual` or a plain ``assert``: it offers much more
@@ -260,50 +265,156 @@ This is handled for standard container types and their subclasses, specifically 
 :class:`tuple`, :class:`dict`, :class:`set`, and :class:`frozenset`.
 
 For custom container or wrapper types that implement ``__eq__`` and don't subclass one
-of these standard container types, *and* which can contain instance of a type for which you'd like
-to ``ignore_eq``, you will find that ``ignore_eq`` for that type alone is not sufficient.
+of these standard container types, *and* which can contain instances of a type for which you'd like
+to ``ignore_eq``, you will find that ``ignore_eq`` for the inner type alone is not sufficient.
 
-For example, consider this container type:
+For example, consider a class that groups together the two dataframes used
+for an evaluation, with an ``__eq__`` that looks reasonable enough:
+
+.. skip: start if(polars is None, reason="No polars installed")
 
 .. code-block:: python
 
-  class OrmObjBox:
-      def __init__(self, *items: OrmObj):
-          self.items = list(items)
-      def __eq__(self, other: "OrmObjBox") -> bool:
-          return self.items == other.items
+  import polars as pl
 
-If we only pass :class:`!OrmObj` to ``ignore_eq``, the :class:`!OrmObjBox` instances will still
-erroneously appear to be equal:
+  class Eval:
+      def __init__(self, test, train):
+          self.test = test
+          self.train = train
+      def __eq__(self, other):
+          return self.test == other.test and self.train == other.train
 
->>> compare(OrmObjBox(OrmObj(1)), OrmObjBox(OrmObj(2)), ignore_eq=OrmObj)
+  e1 = Eval(pl.DataFrame({'x': [1, 2]}), pl.DataFrame({'y': [3, 4]}))
+  e2 = Eval(pl.DataFrame({'x': [1, 3]}), pl.DataFrame({'y': [3, 4]}))
 
-To successfully ignore the ``__eq__`` of :class:`!OrmObj`, we need to pass both the type and
-any custom container or wrapper types to ``ignore_eq``:
+:class:`~polars.DataFrame` implements ``__eq__`` in a way that returns another
+:class:`~polars.DataFrame` of element-wise results rather than a single
+:class:`bool`, so ``Eval.__eq__`` raises :exc:`TypeError` as soon as it tries
+to use that result in the ``and``:
 
->>> compare(OrmObjBox(OrmObj(1)), OrmObjBox(OrmObj(2)), ignore_eq=[OrmObj, OrmObjBox])
+>>> compare(e1, expected=e2)
 Traceback (most recent call last):
 ...
-AssertionError: OrmObjBox not as expected:
+TypeError: the truth value of a DataFrame is ambiguous
+<BLANKLINE>
+Hint: to check if a DataFrame contains any values, use `is_empty()`.
+
+If we only pass :class:`~polars.DataFrame` to ``ignore_eq``, ``Eval.__eq__`` still
+fires first and the comparison still raises:
+
+>>> compare(e1, expected=e2, ignore_eq=pl.DataFrame)
+Traceback (most recent call last):
+...
+TypeError: the truth value of a DataFrame is ambiguous
+<BLANKLINE>
+Hint: to check if a DataFrame contains any values, use `is_empty()`.
+
+We need to pass both the inner type and :class:`!Eval` to ``ignore_eq``:
+
+>>> compare(e1, expected=e2, ignore_eq=[pl.DataFrame, Eval])
+Traceback (most recent call last):
+...
+AssertionError: Eval not as expected:
+<BLANKLINE>
+attributes same:
+['train']
 <BLANKLINE>
 attributes differ:
-'items': [OrmObj: 1] != [OrmObj: 2]
+'test': shape: (2, 1)
+┌─────┐
+│ x   │
+│ --- │
+│ i64 │
+╞═════╡
+│ 1   │
+│ 3   │
+└─────┘ (expected) != shape: (2, 1)
+┌─────┐
+│ x   │
+│ --- │
+│ i64 │
+╞═════╡
+│ 1   │
+│ 2   │
+└─────┘ (actual)
 <BLANKLINE>
-While comparing .items: sequence not as expected:
+While comparing .test: DataFrames are different (value mismatch for column "x")
+[left]: shape: (2,)
+Series: 'x' [i64]
+[
+	1
+	3
+]
+[right]: shape: (2,)
+Series: 'x' [i64]
+[
+	1
+	2
+]
+
+:class:`~polars.DataFrame` is already registered with ``ignore_eq=True`` if
+Polars is installed, so if :class:`!Eval` is used a lot, the only
+registration you need to add yourself is for :class:`!Eval` itself:
+
+.. invisible-code-block: python
+
+  from testfixtures.comparing import Registry
+  from testfixtures.polars import compare_dataframe
+  registry = Registry.initial().install()
+  register(pl.DataFrame, compare_dataframe, ignore_eq=True)
+
+.. code-block:: python
+
+  from testfixtures import register
+
+  register(Eval, ignore_eq=True)
+
+>>> compare(e1, expected=e2)
+Traceback (most recent call last):
+...
+AssertionError: Eval not as expected:
 <BLANKLINE>
-same:
-[]
-<BLANKLINE>
-first:
-[OrmObj: 1]
-<BLANKLINE>
-second:
-[OrmObj: 2]
-<BLANKLINE>
-While comparing .items[0]: OrmObj not as expected:
+attributes same:
+['train']
 <BLANKLINE>
 attributes differ:
-'a': 1 != 2
+'test': shape: (2, 1)
+┌─────┐
+│ x   │
+│ --- │
+│ i64 │
+╞═════╡
+│ 1   │
+│ 3   │
+└─────┘ (expected) != shape: (2, 1)
+┌─────┐
+│ x   │
+│ --- │
+│ i64 │
+╞═════╡
+│ 1   │
+│ 2   │
+└─────┘ (actual)
+<BLANKLINE>
+While comparing .test: DataFrames are different (value mismatch for column "x")
+[left]: shape: (2,)
+Series: 'x' [i64]
+[
+	1
+	3
+]
+[right]: shape: (2,)
+Series: 'x' [i64]
+[
+	1
+	2
+]
+
+.. invisible-code-block: python
+
+  registry.uninstall()
+
+.. skip: end
 
 .. _recursion:
 
