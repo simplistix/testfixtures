@@ -1,5 +1,6 @@
 from unittest import TestCase
 
+import sys
 import warnings
 
 from testfixtures import (
@@ -147,6 +148,8 @@ class ShouldWarnTests(TestCase):
             message=C(DeprecationWarning('foo')),
             source=None
         )
+        if sys.version_info >= (3, 15):
+            expected_attrs['module']='bar_module'
 
         compare(expected=C(warnings.WarningMessage, **expected_attrs),
             actual=recorded[0])
