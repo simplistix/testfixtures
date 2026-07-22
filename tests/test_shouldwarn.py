@@ -6,6 +6,7 @@ from testfixtures import (
     ShouldWarn, compare, ShouldRaise, ShouldNotWarn,
     Comparison as C
 )
+from testfixtures.compat import PY_315_PLUS
 from testfixtures.shouldraise import ShouldAssert
 
 
@@ -147,6 +148,8 @@ class ShouldWarnTests(TestCase):
             message=C(DeprecationWarning('foo')),
             source=None
         )
+        if PY_315_PLUS:
+            expected_attrs['module'] = 'bar_module'
 
         compare(expected=C(warnings.WarningMessage, **expected_attrs),
             actual=recorded[0])
