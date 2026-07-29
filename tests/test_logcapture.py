@@ -1,4 +1,5 @@
 import atexit
+import logging
 from logging import getLogger, INFO, WARNING, ERROR, Filter, shutdown
 from textwrap import dedent
 from unittest import TestCase
@@ -124,6 +125,26 @@ class TestLogCapture(TestCase):
         assert str(l) == (
             "one INFO 2\n"
             "one.child INFO 4"
+        )
+
+    def test_minimum_level(self):
+        l = LogCapture(level=logging.WARNING)
+        root.info('at info')
+        root.warning('at warning')
+        root.critical('at critical')
+        assert str(l) == (
+            "root WARNING at warning\n"
+            "root CRITICAL at critical"
+        )
+
+    def test_minimum_level_logging_source(self):
+        l = LogCapture(LoggingSource(level=logging.WARNING))
+        root.info('at info')
+        root.warning('at warning')
+        root.critical('at critical')
+        assert str(l) == (
+            "WARNING at warning\n"
+            "CRITICAL at critical"
         )
 
     def test_multiple_loggers(self):
