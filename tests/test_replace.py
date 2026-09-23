@@ -1,4 +1,7 @@
+import importlib
+from functools import wraps
 from operator import getitem
+from typing import Any
 
 from testfixtures import (
     Replacer,
@@ -23,6 +26,7 @@ from tests import sample2
 from .sample1 import z, X
 from .sample3 import SOME_CONSTANT
 from testfixtures.compat import PY_313_PLUS
+replace_module = importlib.import_module('testfixtures.replace')
 
 from warnings import catch_warnings
 
@@ -994,6 +998,77 @@ class TestOnClass:
 
         assert X.y is original_y
         assert X.aMethod() is original_a_result
+
+    def test_module_level_method_does_not_scan_the_heap(self):
+        original_scan = replace_module.get_referrers
+        scan = Mock()
+        replace_module.get_referrers = scan
+        try:
+            with Replacer() as replace:
+                replace.on_class(X.y, lambda self: 'mock y')
+                replace.on_class(X.aMethod, lambda cls: 'mock method')
+                replace.on_class(X.bMethod, lambda: 3)
+                replace.on_class(_QualnameHost.Inner.method, lambda self: 'mock inner')
+                replace.on_class(_QualnameHost.Inner.static, lambda: 'mock static')
+                replace.on_class(_WrappedHost.method.__wrapped__, lambda self: 'mock wrapped')
+                compare(X().y(), expected='mock y')
+                compare(X().aMethod(), expected='mock method')
+                compare(X.bMethod(), expected=3)
+                compare(_QualnameHost.Inner().method(), expected='mock inner')
+                compare(_QualnameHost.Inner.static(), expected='mock static')
+                compare(_WrappedHost().method(), expected='mock wrapped')
+        finally:
+            replace_module.get_referrers = original_scan
+
+        compare(scan.call_count, expected=0)
+        compare(X().y(), expected='original y')
+        compare(X.aMethod(), expected=X)
+        compare(X.bMethod(), expected=2)
+        compare(_QualnameHost.Inner().method(), expected='original inner')
+        compare(_QualnameHost.Inner.static(), expected='original static')
+        compare(_WrappedHost().method(), expected='original wrapped')
+
+    def test_qualname_resolution_skips_unloaded_module(self):
+        impostor = Mock()
+        impostor.__qualname__ = 'X.y'
+        impostor.__module__ = 'tests.sample1.not_loaded'
+        compare(replace_module._class_from_qualname(impostor, 'y'), expected=None)
+
+    def test_qualname_resolution_requires_class_container(self):
+        impostor = Mock()
+        impostor.__qualname__ = 'some_dict.key'
+        impostor.__module__ = 'tests.sample1'
+        compare(replace_module._class_from_qualname(impostor, 'key'), expected=None)
+
+    def test_qualname_resolution_requires_matching_attribute(self):
+        impostor = Mock()
+        impostor.__qualname__ = 'X.y'
+        impostor.__module__ = 'tests.sample1'
+        compare(replace_module._class_from_qualname(impostor, 'y'), expected=None)
+
+
+def _wrap(fn: Any) -> Any:
+    @wraps(fn)
+    def inner(self: Any) -> Any:
+        return fn(self)
+    return inner
+
+
+class _WrappedHost:
+    @_wrap
+    def method(self) -> str:
+        return 'original wrapped'
+
+
+class _QualnameHost:
+    class Inner:
+        def method(self) -> str:
+            return 'original inner'
+
+        @staticmethod
+        def static() -> str:
+            return 'original static'
+
 
 
 class TestInModule:

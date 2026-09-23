@@ -1,4 +1,5 @@
 import os
+import sys
 import warnings
 from contextlib import contextmanager
 from functools import partial
@@ -12,6 +13,37 @@ from testfixtures.utils import wrap, extend_docstring
 from .resolve import resolve, Resolved, classmethod_type, class_type, Key
 
 Accessor = Callable[[Any, str], Any]
+
+
+def _class_from_qualname(attribute: Any, name: str | None) -> type | None:
+    # get_referrers walks every live object. A method whose class can be
+    # reached from its module is named by __qualname__, so resolve that class
+    # directly and leave the heap scan for classes defined inside functions.
+    qualname = getattr(attribute, '__qualname__', None)
+    module_name = getattr(attribute, '__module__', None)
+    if (
+            not isinstance(name, str)
+            or not isinstance(qualname, str)
+            or not isinstance(module_name, str)
+            or '<locals>' in qualname
+            or '.' not in qualname
+    ):
+        return None
+    if module_name not in sys.modules:
+        return None
+    obj = resolve(f'{module_name}.{qualname}').container
+    if not isinstance(obj, type):
+        return None
+    found = obj.__dict__.get(name)
+    if found is attribute or getattr(found, '__func__', None) is attribute:
+        return obj
+    seen: set[int] = set()
+    while found is not None and id(found) not in seen:
+        seen.add(id(found))
+        found = getattr(found, '__wrapped__', None)
+        if found is attribute:
+            return obj
+    return None
 
 
 def not_same_descriptor(x: Any, y: Any, descriptor: type[classmethod] | type[staticmethod]) -> bool:
@@ -189,15 +221,17 @@ class Replacer:
         if not callable(attribute):
             name_text = f' named {name!r} ' if name else ' '
             raise TypeError(f'attribute{name_text}must be a method')
-        container = None
+        container: Any = None
         if isinstance(attribute, classmethod_type):
             for referred in get_referents(attribute):
                 if isinstance(referred, class_type):
                     container = referred
         else:
-            container, staticmethod_ = self._find_container(attribute, name, break_on_static=True)
-            if staticmethod_ is not None:
-                container, _ = self._find_container(staticmethod_, name, break_on_static=False)
+            container = _class_from_qualname(attribute, name)
+            if container is None:
+                container, staticmethod_ = self._find_container(attribute, name, break_on_static=True)
+                if staticmethod_ is not None:
+                    container, _ = self._find_container(staticmethod_, name, break_on_static=False)
 
         if container is None:
             raise AttributeError(f'could not find container of {attribute!r} using name {name!r}')
