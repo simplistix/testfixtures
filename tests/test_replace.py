@@ -1030,6 +1030,10 @@ class TestOnClass:
         compare(_WrappedHost().method(), expected='original wrapped')
 
     def test_method_on_class_from_module_no_longer_in_sys_modules(self):
+        # The method's __module__ names a module that has been dropped from
+        # sys.modules. Resolving its __qualname__ would import that module
+        # again, so on_class must fall back to the heap scan and leave
+        # sys.modules alone.
         with TempDirectory() as dir:
             dir.write('unloaded_sample.py', b"class Sample:\n"
                                             b"    def method(self):\n"
@@ -1046,12 +1050,19 @@ class TestOnClass:
             compare(Sample().method(), expected='original')
 
     def test_method_on_class_whose_name_is_bound_to_an_instance(self):
+        # _Singleton.method has __qualname__ '_Singleton.method', but the
+        # module-level name _Singleton is an instance, not the class. The
+        # instance is slotted, so it has no __dict__ to look the method up in,
+        # and on_class must fall back to the heap scan to find the class.
         with Replacer() as replace:
             replace.on_class(type(_Singleton).method, lambda self: 'replaced')
             compare(_Singleton.method(), expected='replaced')
         compare(_Singleton.method(), expected='original singleton')
 
     def test_method_on_class_from_before_module_reload(self):
+        # After a reload, __qualname__ 'Sample.method' resolves to the new
+        # Sample, whose method is a different function. on_class must notice
+        # the mismatch and replace on the old class, leaving the new one alone.
         with TempDirectory() as dir:
             dir.write('reloaded_sample.py', b"class Sample:\n"
                                             b"    def method(self):\n"
@@ -1099,6 +1110,7 @@ def _instantiate(cls: type) -> Any:
     return cls()
 
 
+# The module-level name _Singleton ends up bound to an instance, not the class.
 @_instantiate
 class _Singleton:
     __slots__ = ()
