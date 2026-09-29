@@ -19,6 +19,7 @@ from testfixtures import (
 from unittest import TestCase
 
 import os
+import sys
 
 from testfixtures.mock import Mock
 from tests import sample1, sample3
@@ -1028,23 +1029,47 @@ class TestOnClass:
         compare(_QualnameHost.Inner.static(), expected='original static')
         compare(_WrappedHost().method(), expected='original wrapped')
 
-    def test_qualname_resolution_skips_unloaded_module(self):
-        impostor = Mock()
-        impostor.__qualname__ = 'X.y'
-        impostor.__module__ = 'tests.sample1.not_loaded'
-        compare(replace_module._class_from_qualname(impostor, 'y'), expected=None)
+    def test_method_on_class_from_module_no_longer_in_sys_modules(self):
+        with TempDirectory() as dir:
+            dir.write('unloaded_sample.py', b"class Sample:\n"
+                                            b"    def method(self):\n"
+                                            b"        return 'original'\n")
+            with Replacer() as replace:
+                replace('sys.path', [dir.path])
+                Sample = importlib.import_module('unloaded_sample').Sample
+                del sys.modules['unloaded_sample']
 
-    def test_qualname_resolution_requires_class_container(self):
-        impostor = Mock()
-        impostor.__qualname__ = 'some_dict.key'
-        impostor.__module__ = 'tests.sample1'
-        compare(replace_module._class_from_qualname(impostor, 'key'), expected=None)
+                replace.on_class(Sample.method, lambda self: 'replaced')
 
-    def test_qualname_resolution_requires_matching_attribute(self):
-        impostor = Mock()
-        impostor.__qualname__ = 'X.y'
-        impostor.__module__ = 'tests.sample1'
-        compare(replace_module._class_from_qualname(impostor, 'y'), expected=None)
+                compare(Sample().method(), expected='replaced')
+                compare('unloaded_sample' in sys.modules, expected=False)
+            compare(Sample().method(), expected='original')
+
+    def test_method_on_class_whose_name_is_bound_to_an_instance(self):
+        with Replacer() as replace:
+            replace.on_class(type(_Singleton).method, lambda self: 'replaced')
+            compare(_Singleton.method(), expected='replaced')
+        compare(_Singleton.method(), expected='original singleton')
+
+    def test_method_on_class_from_before_module_reload(self):
+        with TempDirectory() as dir:
+            dir.write('reloaded_sample.py', b"class Sample:\n"
+                                            b"    def method(self):\n"
+                                            b"        return 'original'\n")
+            with Replacer() as replace:
+                replace('sys.path', [dir.path])
+                module = importlib.import_module('reloaded_sample')
+                try:
+                    OldSample = module.Sample
+                    importlib.reload(module)
+
+                    replace.on_class(OldSample.method, lambda self: 'replaced')
+
+                    compare(OldSample().method(), expected='replaced')
+                    compare(module.Sample().method(), expected='original')
+                finally:
+                    del sys.modules['reloaded_sample']
+            compare(OldSample().method(), expected='original')
 
 
 def _wrap(fn: Any) -> Any:
@@ -1068,6 +1093,18 @@ class _QualnameHost:
         @staticmethod
         def static() -> str:
             return 'original static'
+
+
+def _instantiate(cls: type) -> Any:
+    return cls()
+
+
+@_instantiate
+class _Singleton:
+    __slots__ = ()
+
+    def method(self) -> str:
+        return 'original singleton'
 
 
 
