@@ -515,7 +515,14 @@ following sections show the feedback given for each supported type.
 
 sets
 ~~~~
- 
+
+:class:`set` and :class:`frozenset` are compared by their contents, regardless of
+iteration order, including when ``ignore_eq=True`` is used:
+
+>>> compare({0, 32}, expected=frozenset([32, 0]), ignore_eq=True)
+
+Use :ref:`strict comparison <strict-comparison>` to require the same type.
+
 Comparing sets that aren't the same will attempt to
 highlight where the differences lie:
 

@@ -640,6 +640,72 @@ class TestCompare(CompareHelper, TestCase):
     def test_set_same(self):
         compare(set([1]), set([1]))
 
+    def test_mixed_set_types_same(self) -> None:
+        # Integer hash collisions give equal sets different iteration orders.
+        mutable = set([0, 32])
+        frozen = frozenset([32, 0])
+        compare(mutable, expected=frozen, ignore_eq=True)
+        compare(frozen, expected=mutable, ignore_eq=True)
+
+    def test_mixed_set_types_ignore_eq_type(self) -> None:
+        mutable = set([0, 32])
+        frozen = frozenset([32, 0])
+        for ignore_eq in (set, frozenset, [set, frozenset]):
+            compare(mutable, expected=frozen, ignore_eq=ignore_eq)
+            compare(frozen, expected=mutable, ignore_eq=ignore_eq)
+
+    def test_mixed_set_types_registered_ignore_eq(self) -> None:
+        with registry():
+            register(Strict, ignore_eq=True)
+            mutable = set([0, 32])
+            frozen = frozenset([32, 0])
+            compare(mutable, expected=frozen)
+            compare(frozen, expected=mutable)
+
+    def test_set_types_same_ignore_eq(self) -> None:
+        for set_type in (set, frozenset):
+            for strict in (False, True):
+                compare(set_type([0, 32]), expected=set_type([32, 0]),
+                        ignore_eq=True, strict=strict)
+
+    def test_mixed_set_types_empty(self) -> None:
+        compare(set(), expected=frozenset(), ignore_eq=True)
+        compare(frozenset(), expected=set(), ignore_eq=True)
+
+    def test_mixed_set_types_different(self) -> None:
+        for first_type, second_type in ((set, frozenset), (frozenset, set)):
+            with ShouldAssert(
+                f'{first_type.__name__} not as expected:\n\n'
+                'in first but not second:\n[1]\n\n'
+                'in second but not first:\n[3]\n\n'
+            ):
+                compare(first_type([1, 2]), second_type([2, 3]), ignore_eq=True)
+
+    def test_mixed_set_types_strict(self) -> None:
+        for ignore_eq in (False, True):
+            with ShouldAssert("{1} (<class 'set'>) != frozenset({1}) (<class 'frozenset'>)"):
+                compare({1}, frozenset({1}), strict=True, ignore_eq=ignore_eq)
+            with ShouldAssert("frozenset({1}) (<class 'frozenset'>) != {1} (<class 'set'>)"):
+                compare(frozenset({1}), {1}, strict=True, ignore_eq=ignore_eq)
+
+    def test_mixed_set_types_subclasses(self) -> None:
+        class Mutable(set):
+            pass
+
+        class Frozen(frozenset):
+            pass
+
+        mutable = Mutable([0, 32])
+        frozen = Frozen([32, 0])
+        compare(mutable, expected=frozen, ignore_eq=True)
+        compare(frozen, expected=mutable, ignore_eq=True)
+
+    def test_mixed_set_types_registered_comparer(self) -> None:
+        comparer = Mock(return_value='custom comparison')
+        with ShouldAssert('custom comparison'):
+            compare({1}, frozenset({1}), ignore_eq=True, comparers={object: comparer})
+        compare(comparer.call_count, expected=1)
+
     def test_set_first_missing_keys(self):
         self.check_raises(
             set(), set([3]),

@@ -87,6 +87,11 @@ class Registry:
             if comparer:
                 return comparer
 
+        # set and frozenset have no shared registered class in their MROs.
+        if (isinstance(x, set) and isinstance(y, frozenset) or
+            isinstance(x, frozenset) and isinstance(y, set)):
+            return compare_set
+
         # fallback for iterables
         if ((isinstance(x, Iterable) and isinstance(y, Iterable)) and not
             (isinstance(x, UNSAFE_ITERABLES) or
