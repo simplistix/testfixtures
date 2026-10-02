@@ -3,6 +3,13 @@
 Changes
 =======
 
+12.4.0 (2 Oct 2026)
+-------------------
+
+- Support Python 3.15
+
+- Speed up the common cases for :meth:`Replacer.on_class`.
+
 12.3.0 (8 Jul 2026)
 --------------------
 
