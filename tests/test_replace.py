@@ -1,4 +1,12 @@
+import importlib
+import inspect
+import os
+import sys
+from contextlib import contextmanager
+from gc import get_referrers
 from operator import getitem
+from typing import Any, Callable, Iterator
+from unittest import TestCase
 
 from testfixtures import (
     Replacer,
@@ -13,18 +21,17 @@ from testfixtures import (
     replace_in_module,
     ShouldWarn,
 )
-from unittest import TestCase
-
-import os
-
+from testfixtures.compat import PY_313_PLUS
 from testfixtures.mock import Mock
 from tests import sample1, sample3
 from tests import sample2
-from .sample1 import z, X
+from .sample1 import z, X, Outer, ClassWithWrappedMethod, Singleton
 from .sample3 import SOME_CONSTANT
-from testfixtures.compat import PY_313_PLUS
+from .temporary_module import temporary_module
 
-from warnings import catch_warnings
+# can't import the replace module simply as replace-the-function is imported into the main
+# testfixtures package :-(
+replace_module = importlib.import_module('testfixtures.replace')
 
 
 class TestReplace(TestCase):
@@ -1423,3 +1430,104 @@ class TestReplaceWithInterestingOriginsNotStrict(TestReplaceWithInterestingOrigi
             # their attributes are not in it, confusing Replace, which deletes
             # the attribute on restore as a result:
             assert my_obj.foo is foo
+
+
+class TestReplaceOnClassUsesQualname:
+    @staticmethod
+    @contextmanager
+    def check(
+        expression: Callable[[], Any], expected_get_referrers_calls: int = 0
+    ) -> Iterator[Replacer]:
+        mock_get_referrers = Mock(side_effect=get_referrers)
+        with replace_in_module(get_referrers, mock_get_referrers, replace_module):
+            before = expression()
+            with Replacer() as replace:
+                yield replace
+            after = expression()
+            compare(expected=before, actual=after)
+        compare(mock_get_referrers.call_count, expected=expected_get_referrers_calls)
+
+    def test_simple_method(self) -> None:
+        expression = lambda: X().y()
+        with self.check(expression) as replace_:
+            replace_.on_class(X.y, lambda self_: 'mock y')
+            compare(expression(), expected='mock y')
+
+    def test_class_method(self) -> None:
+        expression = lambda: X().aMethod()
+        with self.check(expression) as replace_:
+            replace_.on_class(X.aMethod, lambda cls: 'mock aMethod')
+            compare(expression(), expected='mock aMethod')
+
+    def test_static_method(self) -> None:
+        expression = lambda: X().bMethod()
+        with self.check(expression) as replace_:
+            replace_.on_class(X.bMethod, lambda: 3)
+            compare(expression(), expected=3)
+
+    def test_inner_simple_method(self) -> None:
+        expression = lambda: Outer.Inner().method()
+        with self.check(expression) as replace_:
+            replace_.on_class(Outer.Inner.method, lambda self_: 'mock inner simple')
+            compare(expression(), expected='mock inner simple')
+
+    def test_inner_static_method(self) -> None:
+        expression = lambda: Outer.Inner().static()
+        with self.check(expression) as replace_:
+            replace_.on_class(Outer.Inner.static, lambda: 'mock inner static')
+            compare(expression(), expected='mock inner static')
+
+    def test_inner_class_method(self) -> None:
+        expression = lambda: Outer.Inner().class_()
+        with self.check(expression) as replace_:
+            replace_.on_class(Outer.Inner.class_, lambda cls: 'mock inner class')
+            compare(expression(), expected='mock inner class')
+
+    def test_wrapped(self) -> None:
+        expression = lambda: ClassWithWrappedMethod().method()
+        with self.check(expression) as replace_:
+            replace_.on_class(ClassWithWrappedMethod.method, lambda self: 'wrapped')
+            compare(expression(), expected='wrapped')
+
+    def test_wrapped_manually_unwrapped(self) -> None:
+        expression = lambda: ClassWithWrappedMethod().method()
+        with self.check(expression, expected_get_referrers_calls=1) as replace_:
+            t = ClassWithWrappedMethod.method.__wrapped__
+            with ShouldRaise(
+                AttributeError(f"could not find container of {repr(t)} using name 'method'")
+            ):
+                replace_.on_class(t, lambda self: 'wrapped')
+            compare(expression(), expected='original wrapped')
+
+    def test_method_on_class_from_module_no_longer_in_sys_modules(self):
+        with temporary_module('unloaded', inspect.getsource(X)) as module:
+            expression = lambda: UnloadedX().y()
+
+            UnloadedX = module.X
+            del sys.modules['unloaded']
+
+            with self.check(expression, expected_get_referrers_calls=2) as replace_:
+                replace_.on_class(UnloadedX.y, lambda self: 'replaced')
+                compare(expression(), expected='replaced')
+                assert 'unloaded' in sys.modules, 'module was not reloaded'
+
+    def test_method_on_class_whose_name_is_bound_to_an_instance(self):
+        expression = lambda: Singleton.method()
+        with self.check(expression, expected_get_referrers_calls=2) as replace_:
+            replace_.on_class(type(Singleton).method, lambda self: 'replaced')
+            compare(expression(), expected='replaced')
+        compare(expression(), expected='original singleton')
+
+    def test_method_on_class_from_before_module_reload(self):
+        with temporary_module('reloaded', inspect.getsource(X)) as module:
+            expression = lambda: OldX().y()
+
+            OldX = module.X
+            importlib.reload(module)
+
+            with self.check(expression, expected_get_referrers_calls=2) as replace_:
+                replace_.on_class(OldX.y, lambda self: 'replaced')
+                compare(expression(), expected='replaced')
+                compare(module.X().y(), expected='original y')
+
+            compare(module.X().y(), expected='original y')

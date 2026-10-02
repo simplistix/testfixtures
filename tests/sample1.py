@@ -6,6 +6,8 @@ testfixtures helps with testing
 """
 
 from datetime import datetime, date
+from functools import wraps
+from typing import Any
 
 
 def str_now_1():
@@ -77,3 +79,43 @@ class Slotted:
     def __init__(self, x, y):
         self.x = x
         self.y = y
+
+
+def wrap(fn: Any) -> Any:
+    @wraps(fn)
+    def inner(self: Any) -> Any:
+        return fn(self)
+    return inner
+
+
+class ClassWithWrappedMethod:
+    @wrap
+    def method(self) -> str:
+        return 'original wrapped'
+
+
+class Outer:
+    class Inner:
+        def method(self) -> str:
+            return 'original inner'
+
+        @staticmethod
+        def static() -> str:
+            return 'original static'
+
+        @classmethod
+        def class_(cls) -> str:
+            return 'original class'
+
+
+def _instantiate(cls: type) -> Any:
+    return cls()
+
+
+# Module-level name Singleton bound to the instance:
+@_instantiate
+class Singleton:
+    __slots__ = ()
+
+    def method(self) -> str:
+        return 'original singleton'

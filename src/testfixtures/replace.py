@@ -189,8 +189,22 @@ class Replacer:
         if not callable(attribute):
             name_text = f' named {name!r} ' if name else ' '
             raise TypeError(f'attribute{name_text}must be a method')
+
         container = None
-        if isinstance(attribute, classmethod_type):
+
+        qualname = getattr(attribute, '__qualname__', None)
+        if qualname and '<' not in qualname:
+            module_name = getattr(attribute, '__module__', None)
+            if module_name:
+                resolved = resolve(f"{module_name}.{qualname}")
+                if not resolved.found is not_there:
+                    container = resolved.container
+                    if resolved.found is not attribute:
+                        container = None
+
+        if container is not None:
+            pass
+        elif isinstance(attribute, classmethod_type):
             for referred in get_referents(attribute):
                 if isinstance(referred, class_type):
                     container = referred
