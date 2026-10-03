@@ -66,7 +66,7 @@ before
 a_function
 after
 
-The section argument to :func:`wrap` is optional:
+The second argument to :func:`wrap` is optional:
 
 .. code-block:: python
 
