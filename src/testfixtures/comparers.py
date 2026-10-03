@@ -32,6 +32,7 @@ __all__ = [
     'compare_exception',
     'compare_exception_group',
     'compare_generator',
+    'compare_mapping',
     'compare_object',
     'compare_partial',
     'compare_path',
@@ -156,8 +157,8 @@ def compare_simple(
             y_attrs = _extract_attrs(y)
             diff_ = None
             if not (x_attrs is None or y_attrs is None):
-                diff_ = _compare_mapping(x_attrs, y_attrs, context, x,
-                                         'attributes ', '.%s')
+                diff_ = compare_mapping(x_attrs, y_attrs, context, x,
+                                        'attributes ', '.%s')
             if diff_:
                 return diff_
             x_label = context.x_label or 'x'
@@ -272,8 +273,8 @@ def compare_object(
     if x_attrs is None or y_attrs is None or not (x_attrs and y_attrs):
         return compare_simple(x, y, context)
     if not context.qualified_equals(x_attrs, y_attrs):
-        return _compare_mapping(x_attrs, y_attrs, context, x,
-                                'attributes ', '.%s')
+        return compare_mapping(x_attrs, y_attrs, context, x,
+                               'attributes ', '.%s')
     return None
 
 
@@ -366,10 +367,10 @@ def compare_tuple(x: tuple, y: tuple, context: 'CompareContext') -> str | None:
     y_fields = getattr(y, '_fields', None)
     if x_fields and y_fields:
         if x_fields == y_fields:
-            return _compare_mapping(dict(zip(x_fields, x)),
-                                    dict(zip(y_fields, y)),
-                                    context,
-                                    x)
+            return compare_mapping(dict(zip(x_fields, x)),
+                                   dict(zip(y_fields, y)),
+                                   context,
+                                   x)
         else:
             return compare_with_type(x, y, context)
     return compare_sequence(x, y, context)
@@ -380,7 +381,7 @@ def compare_dict(x: dict, y: dict, context: 'CompareContext') -> str | None:
     Returns a textual description of the differences between the two
     supplied dictionaries.
     """
-    return _compare_mapping(x, y, context, x)
+    return compare_mapping(x, y, context, x)
 
 
 Item = TypeVar('Item')
@@ -390,12 +391,34 @@ def sorted_by_repr(sequence: Iterable[Item]) -> List[Item]:
     return sorted(sequence, key=safe_repr)
 
 
-def _compare_mapping(
-        x: Mapping, y: Mapping, context: 'CompareContext', obj_for_class: Any,
+def compare_mapping(
+        x: Mapping, y: Mapping, context: 'CompareContext',
+        obj_for_class: Any = not_there,
         prefix: str = '', breadcrumb: str = '[%r]',
         check_y_not_x: bool = True
 ) -> str | None:
+    """
+    Returns a textual description of the differences between the two
+    supplied mappings, comparing the values of keys present in both with
+    the supplied context.
 
+    This is useful when implementing custom comparers for objects that can
+    be reduced to a mapping, such as their attributes or fields.
+
+    :param obj_for_class:
+      The object whose class name is used in the header of the description.
+      Pass :data:`~testfixtures.not_there` to omit the header.
+
+    :param prefix:
+      Text prepended to each section heading, such as ``'attributes '``.
+
+    :param breadcrumb:
+      The format string used to describe the location of each key when
+      recursing into its value, such as ``'.%s'`` for attributes.
+
+    :param check_y_not_x:
+      If ``False``, keys present in ``y`` but not ``x`` are ignored.
+    """
     x_keys = set(x.keys())
     y_keys = set(y.keys())
     x_not_y = x_keys - y_keys
@@ -580,8 +603,8 @@ def compare_partial(x: partial_type, y: partial_type, context: 'CompareContext')
     x_attrs = dict(func=x.func, args=x.args, keywords=x.keywords)
     y_attrs = dict(func=y.func, args=y.args, keywords=y.keywords)
     if x_attrs != y_attrs:
-        return _compare_mapping(x_attrs, y_attrs, context, x,
-                                'attributes ', '.%s')
+        return compare_mapping(x_attrs, y_attrs, context, x,
+                               'attributes ', '.%s')
     return None
 
 

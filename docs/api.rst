@@ -45,6 +45,8 @@ Comparers
 
 .. autofunction:: testfixtures.comparers.compare_dict
 
+.. autofunction:: testfixtures.comparers.compare_mapping
+
 .. autofunction:: testfixtures.comparers.compare_set
 
 .. autofunction:: testfixtures.comparers.compare_text

@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Any, Iterable, Sequence
 
 from django.db.models import Model, Field
 
-from .comparers import _compare_mapping
+from .comparers import compare_mapping
 
 if TYPE_CHECKING:
     from .comparing import CompareContext
@@ -61,4 +61,4 @@ def compare_model(
         args.append(model_to_dict(obj, ignore_fields, non_editable_fields))
     args.append(context)
     args.append(x)
-    return _compare_mapping(*args)
+    return compare_mapping(*args)
