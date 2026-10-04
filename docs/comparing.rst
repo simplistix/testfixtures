@@ -471,7 +471,18 @@ If an object refers back to itself, directly or via something it
 contains, the recursive comparison used by :func:`compare` would loop forever.
 To avoid this, if an object is seen more than once during a comparison, it is
 wrapped with an :class:`~testfixtures.comparers.AlreadySeen` marker
-rather than being compared again.
+so loops can be stopped.
+
+When both markers were first seen at different paths, their underlying objects
+are compared using the usual equality rules and comparers. If this reaches the
+same pair again, that recursive edge is skipped while other values are still
+checked. Equal objects can therefore be shared differently on each side:
+
+>>> a = {'value': 'same'}
+>>> a['self'] = a
+>>> b = {'value': 'same'}
+>>> b['self'] = b
+>>> compare([a, b, a], [a, b, b], ignore_eq=True)
 
 When that happens *and* a difference is being reported anyway, the
 marker becomes visible in the output:
