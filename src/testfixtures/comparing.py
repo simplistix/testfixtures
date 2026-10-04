@@ -226,6 +226,7 @@ class CompareContext:
         self.message: str = ''
         self.breadcrumbs: List[str] = []
         self._seen: dict[int, str] = {}
+        self._active_pairs: set[tuple[int, int]] = set()
 
     def extract_args(self, args: tuple, x: Any, y: Any, expected: Any, actual: Any) -> List:
 
@@ -330,6 +331,8 @@ class CompareContext:
         existing_message = self.message
         self.message = ''
         current_message = ''
+        markers: tuple[AlreadySeen, AlreadySeen] | None = None
+        active_pair: tuple[int, int] | None = None
         try:
 
             try:
@@ -338,12 +341,31 @@ class CompareContext:
             except RecursionError:
                 pass
 
+            if type(x) is AlreadySeen and type(y) is AlreadySeen:
+                pair = x.id, y.id
+                if pair in self._active_pairs:
+                    return False
+                self._active_pairs.add(pair)
+                active_pair = pair
+                markers = x, y
+                x, y = x.obj, y.obj
+                # Different first-seen paths do not establish a value difference.
+                try:
+                    if self.qualified_equals(x, y):
+                        return False
+                except RecursionError:
+                    pass
+
             comparer: Comparer = self._registry.lookup(x, y, self.strict)
 
             result = self.call(comparer, x, y)
-            specific_comparer = comparer is not compare_simple
+            specific_comparer = comparer is not compare_simple or markers is not None
 
             if result:
+                if markers is not None:
+                    marker_message = compare_simple(markers[0], markers[1], self)
+                    if marker_message:
+                        result = marker_message + '\n\n' + result
 
                 if specific_comparer and recursed:
                     current_message = self._separator()
@@ -357,6 +379,8 @@ class CompareContext:
             return result
 
         finally:
+            if active_pair is not None:
+                self._active_pairs.remove(active_pair)
             self.message = existing_message + current_message
             self.breadcrumbs.pop()
 

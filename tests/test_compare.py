@@ -2527,6 +2527,27 @@ b
             '[]'
         )
 
+    def test_repeated_equal_objects_shared_differently(self):
+        class Opaque:
+            pass
+
+        class Thing:
+            def __init__(self, name):
+                self.name = name
+
+            def __eq__(self, other):
+                return isinstance(other, Thing) and self.name == other.name
+
+            __hash__ = object.__hash__
+
+        with registry():
+            register(Opaque, ignore_eq=True)
+            a1, a2, b = Thing('x'), Thing('x'), Thing('x')
+            compare(
+                [{'p': a1, 'q': a2}, {'p': a1, 'q': a2}],
+                expected=[{'p': b, 'q': b}, {'p': b, 'q': b}],
+            )
+
     def test_repeated_object_on_the_left_side_ignore_eq(self):
         item = [1, 2, 3]
         compare(expected=[item, item], actual=[[1, 2, 3], [1, 2, 3]], ignore_eq=True)
@@ -2578,6 +2599,214 @@ b
     def test_uuid(self):
         uuid = uuid4()
         compare(uuid, uuid)
+
+class TestRepeatedObjects(TestCase):
+
+    class Opaque:
+        pass
+
+    @dataclass(eq=False)
+    class Thing:
+        name: str
+        detail: str = ''
+
+        def __eq__(self, other):
+            return isinstance(other, TestRepeatedObjects.Thing) and self.name == other.name
+
+    class Batch:
+        pass
+
+    def setUp(self):
+        self.enterContext(registry())
+        register(self.Opaque, ignore_eq=True)
+
+    @staticmethod
+    def _cycles(left, right):
+        a, b = {}, {}
+        a['self'], b['self'] = a, b
+        a['leaf'], b['leaf'] = left, right
+        return a, b
+
+    def test_unequal_values_shared_differently(self):
+        a1, a2 = self.Thing('x'), self.Thing('y')
+        b1, b2 = self.Thing('x'), self.Thing('y')
+        with ShouldRaise(AssertionError):
+            compare([a1, a2, a1], [b1, b2, b2])
+
+    def test_equal_values_shared_differently_without_registration(self):
+        with registry():
+            a1, a2, b = self.Thing('x'), self.Thing('x'), self.Thing('x')
+            compare(
+                [{'p': a1, 'q': a2}, {'p': a1, 'q': a2}],
+                expected=[{'p': b, 'q': b}, {'p': b, 'q': b}],
+            )
+
+    def test_cycles_shared_differently_equal(self):
+        for ignore_eq in (False, True):
+            with self.subTest(ignore_eq=ignore_eq), registry():
+                a, b = self._cycles('same', 'same')
+                compare(a, b, ignore_eq=ignore_eq)
+                compare([a, b, a], [a, b, b], ignore_eq=ignore_eq)
+
+    def test_cycles_shared_differently_unequal_details(self):
+        for ignore_eq in (False, True):
+            with self.subTest(ignore_eq=ignore_eq), registry():
+                a, b = self._cycles('left', 'right')
+                direct = compare(expected=b, actual=a, raises=False, ignore_eq=ignore_eq)
+                compare("'leaf': 'right' (expected) != 'left' (actual)" in direct, expected=True)
+                message = compare(
+                    expected=[a, b, b], actual=[a, b, a], raises=False, ignore_eq=ignore_eq,
+                )
+                for detail in (
+                    'While comparing [2]:', 'at [0]', 'at [1]',
+                    "'leaf': 'right' (expected) != 'left' (actual)",
+                    "While comparing [2]['leaf']:",
+                ):
+                    compare(detail in message, expected=True)
+
+    def test_cycles_shared_differently_nonrecursive(self):
+        a, b = self._cycles('left', 'right')
+        message = compare([a, b, a], [a, b, b], raises=False, recursive=False)
+        compare(isinstance(message, str), expected=True)
+        compare('While comparing' in message, expected=False)
+
+    def test_shared_simple_comparer_difference_details(self):
+        a, b = Decimal('1'), Decimal('2')
+        message = compare([a, b, a], [a, b, b], raises=False)
+        for detail in (
+            'While comparing [2]:', 'at [0]', 'at [1]', "Decimal('1')", "Decimal('2')",
+        ):
+            compare(detail in message, expected=True)
+
+    def test_shared_equality_qualifiers(self):
+        class SubThing(self.Thing):
+            pass
+
+        a, b = SubThing('same', 'left'), SubThing('same', 'right')
+        compare(a, b)
+        compare([a, b, a], [a, b, b])
+        for options in ({'strict': True}, {'ignore_eq': True}, {'ignore_eq': self.Thing}):
+            with self.subTest(options=options), ShouldRaise(AssertionError):
+                compare([a, b, a], [a, b, b], **options)
+        register(self.Thing, ignore_eq=True)
+        with ShouldRaise(AssertionError):
+            compare([a, b, a], [a, b, b])
+
+    def test_shared_strict_types(self):
+        class SubThing(self.Thing):
+            pass
+
+        a, b = self.Thing('same'), SubThing('same')
+        compare([a, b, a], [a, b, b])
+        with ShouldRaise(AssertionError):
+            compare([a, b, a], [a, b, b], strict=True)
+
+    def test_shared_registered_comparer_options(self):
+        a, b = self.Thing('same'), self.Thing('same')
+        for result in (None, 'reported difference'):
+            with self.subTest(result=result):
+                calls = []
+
+                def compare_thing(x, y, context, token=None):
+                    calls.append((id(x), id(y), token))
+                    return result
+
+                register(self.Thing, compare_thing, ignore_eq=True)
+                if result is None:
+                    compare([a, b, a], [a, b, b], token='chosen')
+                else:
+                    with ShouldRaise(AssertionError):
+                        compare([a, b, a], [a, b, b], token='chosen')
+                compare(calls, expected=[(id(a), id(b), 'chosen')])
+
+    def test_shared_comparer_keeps_operand_order(self):
+        a, b = self.Thing('same'), self.Thing('same')
+        calls = []
+
+        def compare_thing(x, y, context):
+            calls.append((id(x), id(y)))
+            if x is a:
+                if context.different(y, x, '.reverse'):
+                    return 'forward difference'
+                return None
+            return 'reverse difference'
+
+        register(self.Thing, compare_thing, ignore_eq=True)
+        with ShouldRaise(AssertionError):
+            compare([a, b, a], [a, b, b])
+        compare(calls, expected=[(id(a), id(b)), (id(b), id(a))])
+
+    def test_shared_completed_pair_is_compared_again(self):
+        a, b = self.Thing('same'), self.Thing('same')
+        calls = []
+
+        def compare_thing(x, y, context):
+            calls.append((id(x), id(y)))
+            return None if len(calls) == 1 else 'reported difference'
+
+        def compare_batch(x, y, context):
+            context.different(a, a, '.first')
+            context.different(b, b, '.second')
+            compare(bool(context.different(a, b, '.third')), expected=False)
+            compare(bool(context.different(a, b, '.fourth')), expected=True)
+            return None
+
+        register(self.Thing, compare_thing, ignore_eq=True)
+        compare(self.Batch(), self.Batch(), comparers={self.Batch: compare_batch})
+        compare(calls, expected=[(id(a), id(b)), (id(a), id(b))])
+
+    def test_shared_comparer_exception_cleanup(self):
+        for error in (RuntimeError('comparer failed'), RecursionError('comparer failed')):
+            with self.subTest(error=error):
+                a, b = self.Thing('same'), self.Thing('same')
+                calls = []
+
+                def compare_thing(x, y, context):
+                    calls.append((id(x), id(y)))
+                    if len(calls) == 1:
+                        raise error
+                    return 'difference after exception'
+
+                def compare_batch(x, y, context):
+                    context.different(a, a, '.first')
+                    context.different(b, b, '.second')
+                    with ShouldRaise(error):
+                        context.different(a, b, '.failure')
+                    compare(bool(context.different(a, b, '.retry')), expected=True)
+                    return None
+
+                register(self.Thing, compare_thing, ignore_eq=True)
+                compare(self.Batch(), self.Batch(), comparers={self.Batch: compare_batch})
+                compare(calls, expected=[(id(a), id(b)), (id(a), id(b))])
+
+    def test_shared_equality_exception_cleanup(self):
+        calls = []
+
+        class BrokenEq:
+            def __eq__(self, other):
+                calls.append('equality')
+                if len(calls) == 1:
+                    raise ValueError('equality failed')
+                return False
+
+        a, b = BrokenEq(), BrokenEq()
+
+        def compare_broken(x, y, context):
+            calls.append('comparer')
+            return 'difference after exception'
+
+        def compare_batch(x, y, context):
+            context.different(a, a, '.first')
+            context.different(b, b, '.second')
+            with ShouldRaise(ValueError('equality failed')):
+                context.different(a, b, '.failure')
+            compare(bool(context.different(a, b, '.retry')), expected=True)
+            return None
+
+        register(BrokenEq, compare_broken)
+        compare(self.Batch(), self.Batch(), comparers={self.Batch: compare_batch})
+        compare(calls, expected=['equality', 'equality', 'comparer'])
+
 
 class TestIgnore(CompareHelper):
 
