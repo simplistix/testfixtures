@@ -290,10 +290,14 @@ class CompareContext:
             a, b = (o.id if type(o) is AlreadySeen else id(o) for o in pair)
             if a == b:
                 return True
-        # AlreadySeen.__eq__ delegates to the wrapped object, so let
-        # normal equality run when the wrapper is on the right.
+        # Preserve the original result unless a one-sided marker was
+        # rejected with False. Retry with the normal equality qualifiers.
         if type(y) is AlreadySeen:
-            return x == y
+            result = x == y
+            if result is not False or type(x) is AlreadySeen:
+                return result
+            y = y.obj
+            pair = x, y
         if self.strict or self.ignore_eq_all:
             return False
         # Containers delegate __eq__ to their elements, so when any
