@@ -974,6 +974,15 @@ class TestCompare(CompareHelper, TestCase):
     def test_tuple_and_list(self):
         compare((1, 2, 3), [1, 2, 3])
 
+    def test_list_and_str(self):
+        self.check_raises(['a', 'b'], 'ab', "['a', 'b'] != 'ab'")
+
+    def test_str_and_list(self):
+        self.check_raises('ab', ['a', 'b'], "'ab' != ['a', 'b']")
+
+    def test_list_and_bytes(self):
+        self.check_raises([97, 98], b'ab', "[97, 98] != b'ab'")
+
     def test_tuple_and_list_strict(self):
         expected = ("(1, 2, 3) (<class 'tuple'>) != "
                     "[1, 2, 3] (<class 'list'>)")

@@ -1,4 +1,4 @@
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping, Set
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, time
@@ -23,6 +23,7 @@ from unittest.mock import call as unittest_mock_call
 from testfixtures import not_there, singleton
 from testfixtures.mock import mock_call
 from .comparers import *
+from .comparers import compare_mapping
 
 # Some common types that are immutable, for optimisation purposes within CompareContext
 IMMUTABLE_TYPEs = str, bytes, int, float, tuple, type(None)
@@ -32,8 +33,8 @@ IMMUTABLE_TYPEs = str, bytes, int, float, tuple, type(None)
 # instances of an ignored type would silently leak through.
 CONTAINER_TYPES = list, tuple, dict, set, frozenset
 
-# Things that are iterable, but should not be treated as such.
-UNSAFE_ITERABLES = str, bytes, dict, GenericAlias
+# Things that are iterable, but should not be treated as such:
+UNSAFE_ITERABLES = str, bytes, GenericAlias
 
 
 Comparer = Callable[[Any, Any, 'CompareContext'], str | None]
@@ -87,11 +88,21 @@ class Registry:
             if comparer:
                 return comparer
 
-        # fallback for iterables
-        if ((isinstance(x, Iterable) and isinstance(y, Iterable)) and not
-            (isinstance(x, UNSAFE_ITERABLES) or
-             isinstance(y, UNSAFE_ITERABLES))):
-            return compare_generator
+        if isinstance(x, UNSAFE_ITERABLES) or isinstance(y, UNSAFE_ITERABLES):
+            return compare_object
+
+        for abc, comparer in (
+                (Mapping, compare_mapping),
+                (Set, compare_set),
+                (Iterable, compare_generator)
+        ):
+            if isinstance(x, abc) or isinstance(y, abc):
+                if isinstance(x, abc) and isinstance(y, abc):
+                    return comparer
+                else:
+                    # one of the sides matches the interface, so stop checking to prevent
+                    # mappings being treated like sequences, etc:
+                    break
 
         return compare_object
 
