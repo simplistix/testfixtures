@@ -904,7 +904,7 @@ class TestCompare(CompareHelper, TestCase):
             strict=True,
         )
 
-    def test_bug(self):
+    def test_compare_generator_respects_strict(self):
         self.check_raises(
             generator(1.0),
             generator(1),
