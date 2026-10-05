@@ -112,6 +112,21 @@ class HashableBroken(Broken):
     def __eq__(self, other):
         return isinstance(other, HashableBroken) and self.label == other.label
 
+
+class Colliding:
+    # Every instance hashes the same, so set iteration order follows insertion
+    # order, letting tests build equal sets that iterate differently.
+
+    def __init__(self, value):
+        self.value = value
+
+    def __hash__(self):
+        return 1
+
+    def __eq__(self, other):
+        return isinstance(other, Colliding) and self.value == other.value
+
+
 class TestSampleClasses:
     # Test coverage for the helper objects above, to make sure the things test below rely on
     # behave as expected:
@@ -733,19 +748,6 @@ class TestCompare(CompareHelper, TestCase):
     def test_set_vs_frozenset_equal_different_order(self):
         # A set and a frozenset with equal
         # contents must compare equal regardless of iteration order.
-        class Colliding:
-            def __init__(self, value):
-                self.value = value
-
-            def __hash__(self):
-                return 1  # force every instance into the same hash bucket
-
-            def __eq__(self, other):
-                return isinstance(other, Colliding) and self.value == other.value
-
-            def __repr__(self):
-                return f'Colliding({self.value})'
-
         items = [Colliding(i) for i in range(6)]
         x = set(items)
         y = frozenset(reversed(items))
@@ -776,6 +778,65 @@ class TestCompare(CompareHelper, TestCase):
             ignore_eq=True,
             strict=True,
             )
+
+    def test_set_vs_frozenset_equal_with_ignore_eq_type_registered(self):
+        # Registering any type with ignore_eq=True, as the pandas, polars, numpy
+        # and pydantic support does on import, stops == being trusted for containers:
+        class Opaque:
+            pass
+
+        items = [Colliding(i) for i in range(6)]
+        x = set(items)
+        y = frozenset(reversed(items))
+        assert list(x) != list(y)
+
+        with registry():
+            register(Opaque, ignore_eq=True)
+            compare(x, expected=y)
+            compare(y, expected=x)
+
+    def test_set_vs_dict_keys_equal_different_order(self):
+        items = [Colliding(i) for i in range(6)]
+        x = set(items)
+        y = dict.fromkeys(reversed(items)).keys()
+        assert x == y
+        assert list(x) != list(y)
+
+        compare(x, expected=y, ignore_eq=True)
+        compare(y, expected=x, ignore_eq=True)
+
+    def test_dict_keys_vs_dict_keys_equal_different_order(self):
+        items = [Colliding(i) for i in range(6)]
+        x = dict.fromkeys(items).keys()
+        y = dict.fromkeys(reversed(items)).keys()
+        assert x == y
+        assert list(x) != list(y)
+
+        compare(x, expected=y, ignore_eq=True)
+
+    def test_dict_keys_vs_set_different(self):
+        self.check_raises(
+            dict.fromkeys([1, 2, 4]).keys(), {1, 3, 5},
+            "dict_keys not as expected:\n"
+            "\n"
+            "in first but not second:\n"
+            "[2, 4]\n"
+            '\n'
+            "in second but not first:\n"
+            "[3, 5]\n"
+            '\n',
+            ignore_eq=True,
+            )
+
+    def test_dict_items_vs_set_equal_different_order(self):
+        items = [Colliding(i) for i in range(6)]
+        x = dict.fromkeys(items, 0).items()
+        y = {(item, 0) for item in reversed(items)}
+        assert x == y
+        assert list(x) != list(y)
+
+        compare(x, expected=y, ignore_eq=True)
+        compare(y, expected=x, ignore_eq=True)
 
     def test_unrelated_types_sharing_a_comparer(self):
         # Two types that happen to reuse the same comparer function are not
