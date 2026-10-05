@@ -717,6 +717,52 @@ class TestCompare(CompareHelper, TestCase):
             "[<S.c: 'c'>]\n\n"
             )
 
+    def test_set_vs_frozenset_equal_different_order(self):
+        # A set and a frozenset with equal
+        # contents must compare equal regardless of iteration order.
+        class Colliding:
+            def __init__(self, value):
+                self.value = value
+
+            def __hash__(self):
+                return 1  # force every instance into the same hash bucket
+
+            def __eq__(self, other):
+                return isinstance(other, Colliding) and self.value == other.value
+
+            def __repr__(self):
+                return f'Colliding({self.value})'
+
+        items = [Colliding(i) for i in range(6)]
+        x = set(items)
+        y = frozenset(reversed(items))
+        assert x == y
+        assert list(x) != list(y)
+
+        compare(x, expected=y, ignore_eq=True)
+        compare(y, expected=x, ignore_eq=True)
+
+    def test_set_vs_frozenset_different(self):
+        self.check_raises(
+            {1, 2, 4}, frozenset([1, 3, 5]),
+            "set not as expected:\n"
+            "\n"
+            "in first but not second:\n"
+            "[2, 4]\n"
+            '\n'
+            "in second but not first:\n"
+            "[3, 5]\n"
+            '\n',
+            ignore_eq=True,
+            )
+
+    def test_set_vs_frozenset_equal_but_strict(self):
+        self.check_raises(
+            {1}, frozenset([1]),
+            "{1} (<class 'set'>) != frozenset({1}) (<class 'frozenset'>)",
+            ignore_eq=True,
+            strict=True,
+            )
     def test_tuple_same(self):
         compare((1, 2, 3), (1, 2, 3))
 
