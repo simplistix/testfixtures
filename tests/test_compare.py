@@ -776,6 +776,39 @@ class TestCompare(CompareHelper, TestCase):
             ignore_eq=True,
             strict=True,
             )
+
+    def test_unrelated_types_sharing_a_comparer(self):
+        # Two types that happen to reuse the same comparer function are not
+        # necessarily interchangeable.:
+        def compare_by_value(x, y, context):
+            return None if x.value == y.value else f'{x.value} != {y.value}'
+
+        class Meters:
+            def __init__(self, value):
+                self.value = value
+
+            def __repr__(self):
+                return f'{self.value}m'
+
+        class Seconds:
+            def __init__(self, value):
+                self.value = value
+
+            def __repr__(self):
+                return f'{self.value}s'
+
+        with registry():
+            register(Meters, compare_by_value)
+            register(Seconds, compare_by_value)
+
+            with ShouldAssert('5s (expected) != 5m (actual)'):
+                compare(Meters(5), expected=Seconds(5), ignore_eq=True)
+
+            compare(Meters(5), Meters(5), ignore_eq=True)
+
+            with ShouldAssert('5 != 4'):
+                compare(Seconds(5), Seconds(4), ignore_eq=True)
+
     def test_tuple_same(self):
         compare((1, 2, 3), (1, 2, 3))
 
