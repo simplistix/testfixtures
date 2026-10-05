@@ -9,6 +9,7 @@ from decimal import Decimal
 from enum import StrEnum, auto
 from functools import partial
 from re import compile
+from types import MappingProxyType
 from typing import TypeVar, Generic, Any
 from unittest import TestCase
 from uuid import uuid4
@@ -636,6 +637,18 @@ class TestCompare(CompareHelper, TestCase):
             "6: 2 != 4\n"
             "None: 1 != 3"
             )
+
+    def test_mapping_proxy_different(self):
+        self.check_raises(
+            MappingProxyType({'a': 1, 'b': 2}),
+            MappingProxyType({'a': 1, 'b': 999}),
+            '\n'
+            'same:\n'
+            "['a']\n"
+            '\n'
+            'values differ:\n'
+            "'b': 2 != 999"
+        )
 
     def test_set_same(self):
         compare(set([1]), set([1]))
