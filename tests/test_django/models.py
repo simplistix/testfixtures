@@ -9,3 +9,9 @@ class SampleModel(models.Model):
     value = models.IntegerField()
     not_editable = models.IntegerField(editable=False)
     created = models.DateTimeField(auto_now_add=True)
+
+
+class IdenticalModel(models.Model):
+    value = models.IntegerField()
+    not_editable = models.IntegerField(editable=False)
+    created = models.DateTimeField(auto_now_add=True)
