@@ -4,7 +4,7 @@ import pytest
 from django.contrib.auth.models import User
 from testfixtures import OutputCapture, Replacer
 from testfixtures.comparing import registry
-from .models import SampleModel
+from .models import SampleModel, IdenticalModel
 from tests.test_django.manage import main
 
 from tests.test_compare import CompareHelper
@@ -27,6 +27,16 @@ class CompareTests(CompareHelper, TestCase):
                 '\n'
                 'values differ:\n'
                 "'id': 1 != 2"
+            )
+        )
+
+    def test_different_model_same_fields(self):
+        self.check_raises(
+            SampleModel(id=1), IdenticalModel(id=1),
+            message=(
+                'not equal:\n'
+                '<SampleModel: SampleModel object (1)>\n'
+                '<IdenticalModel: IdenticalModel object (1)>'
             )
         )
 

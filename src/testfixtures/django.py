@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Any, Iterable, Sequence
 
 from django.db.models import Model, Field
 
-from .comparers import compare_mapping
+from .comparers import compare_mapping, compare_simple
 
 if TYPE_CHECKING:
     from .comparing import CompareContext
@@ -56,6 +56,8 @@ def compare_model(
       If `True`, then fields with ``editable=False`` will be included in the
       comparison. By default, these fields are ignored.
     """
+    if type(x) is not type(y):
+        return compare_simple(x, y, context)
     args: Any = []
     for obj in x, y:
         args.append(model_to_dict(obj, ignore_fields, non_editable_fields))
