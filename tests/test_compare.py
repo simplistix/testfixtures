@@ -688,7 +688,7 @@ class TestCompare(CompareHelper, TestCase):
 
     def test_set_labels(self):
         self.check_raises(
-            set([1, 2, 4]), set([1, 3, 5]),
+            {1, 2, 4}, {1, 3, 5},
             "set not as expected:\n"
             "\n"
             "in expected but not actual:\n"
