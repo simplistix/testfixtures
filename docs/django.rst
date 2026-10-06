@@ -38,10 +38,10 @@ Traceback (most recent call last):
  ...
 AssertionError: SampleModel not as expected:
 <BLANKLINE>
-same:
+attributes same:
 ['id']
 <BLANKLINE>
-values differ:
+attributes differ:
 'value': 1 != 2
 
 Ignoring fields
@@ -71,10 +71,10 @@ Traceback (most recent call last):
  ...
 AssertionError: SampleModel not as expected:
 <BLANKLINE>
-same:
+attributes same:
 ['created', 'id', 'value']
 <BLANKLINE>
-values differ:
+attributes differ:
 'not_editable': 1 != 2
 
 

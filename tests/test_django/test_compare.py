@@ -22,10 +22,10 @@ class CompareTests(CompareHelper, TestCase):
             message=(
                 'SampleModel not as expected:\n'
                 '\n'
-                'same:\n'
+                'attributes same:\n'
                 "['value']\n"
                 '\n'
-                'values differ:\n'
+                'attributes differ:\n'
                 "'id': 1 != 2"
             )
         )
@@ -52,10 +52,10 @@ class CompareTests(CompareHelper, TestCase):
             message=(
                 'SampleModel not as expected:\n'
                 '\n'
-                'same:\n'
+                'attributes same:\n'
                 "['created', 'id', 'value']\n"
                 '\n'
-                'values differ:\n'
+                'attributes differ:\n'
                 "'not_editable': 1 != 2"
             ),
             non_editable_fields=True
@@ -72,7 +72,7 @@ class CompareTests(CompareHelper, TestCase):
             message=(
                 'SampleModel not as expected:\n'
                 '\n'
-                'values differ:\n'
+                'attributes differ:\n'
                 "'id': 3 != 4\n"
                 "'value': 1 != 2"
             )

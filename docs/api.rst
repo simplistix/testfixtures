@@ -47,6 +47,8 @@ Comparers
 
 .. autofunction:: testfixtures.comparers.compare_mapping
 
+.. autofunction:: testfixtures.comparers.compare_attribute_mapping
+
 .. autofunction:: testfixtures.comparers.compare_set
 
 .. autofunction:: testfixtures.comparers.compare_text
