@@ -18,7 +18,8 @@ from typing import _GenericAlias as GenericAlias  # type: ignore[attr-defined]
 
 from testfixtures import not_there, safe_pformat
 from testfixtures.comparers import (
-    _extract_attrs, AlreadySeen, compare_mapping, safe_repr, compare_simple
+    _extract_attrs, AlreadySeen, safe_repr, compare_simple,
+    compare_attribute_mapping
 )
 from testfixtures.comparing import CompareContext, compare, register
 from testfixtures.resolve import resolve, type_name
@@ -131,13 +132,13 @@ class Comparison(StatefulComparison):
                 pass
 
         context = CompareContext(x_label='Comparison', y_label='actual')
-        self.failed = compare_mapping(self.expected_attributes,
-                                      actual_attributes,
-                                      context,
-                                      obj_for_class=not_there,
-                                      prefix='attributes ',
-                                      breadcrumb='.%s',
-                                      check_y_not_x=not self.partial)
+        self.failed = compare_attribute_mapping(
+            self.expected_attributes,
+            actual_attributes,
+            context,
+            include_diff_header=False,
+            check_y_not_x=not self.partial
+        )
         return bool(self.failed)
 
     def name(self) -> str:

@@ -657,6 +657,7 @@ class TestCompare(CompareHelper, TestCase):
         self.check_raises(
             MappingProxyType({'a': 1, 'b': 2}),
             MappingProxyType({'a': 1, 'b': 999}),
+            'mappingproxy not as expected:\n'
             '\n'
             'same:\n'
             "['a']\n"
@@ -1724,10 +1725,49 @@ b
         class_b = namedtuple('Bar', 'x y z')
         self.check_raises(
             class_a(1, 2), class_b(1, 2, 3),
-            "Foo(x=1, y=2) (<class 'tests.test_compare.Foo'>) != "
-            "Bar(x=1, y=2, z=3) "
-            "(<class 'tests.test_compare.Bar'>)"
-            )
+            'types differ: Foo (first), Bar (second), and not as expected:\n'
+            '\n'
+            'same:\n'
+            "['x', 'y']\n"
+            '\n'
+            'in second but not first:\n'
+            "'z': 3"
+        )
+
+    def test_namedtuple_different_type_same_fields(self):
+        class_a = namedtuple('Foo', 'x y')
+        class_b = namedtuple('Bar', 'x y')
+        self.check_raises(
+            class_a(1, 2), class_b(1, 3),
+            'types differ: Foo (first), Bar (second), and not as expected:\n'
+            '\n'
+            'same:\n'
+            "['x']\n"
+            '\n'
+            'values differ:\n'
+            "'y': 2 != 3"
+        )
+
+    def test_shared_base_same_same_repr_only_class_different(self):
+        @dataclass
+        class AnnoyingBase:
+            x: int
+            def __repr__(self):
+                return "annoying"
+
+        class LabelA(AnnoyingBase):
+            pass
+
+        class LabelB(AnnoyingBase):
+            pass
+
+        self.check_raises(
+            LabelA(1), LabelB(3),
+            'types differ: LabelA (first), LabelB (second), and not as expected:\n'
+            '\n'
+            'attributes differ:\n'
+            "'x': 1 != 3"
+        )
 
     def test_dict_with_list(self):
         self.check_raises(
