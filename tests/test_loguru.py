@@ -140,6 +140,38 @@ class TestLogCapture:
                 logger.info("task logging")
         log.check(('INFO', 'task logging', {'task': 1234}))
 
+    @pytest.mark.parametrize('original', [{}, {'caller': 'original'}])
+    def test_configured_extra_restored(self, original):
+        previous = dict(getattr(logger, '_core').extra)
+        try:
+            logger.configure(extra=original)
+            with LogCapture(LoguruSource('extra')) as log:
+                logger.info('before configuration')
+                logger.configure(extra={'caller': 'during capture'})
+                logger.info('after configuration')
+            log.check(original, {'caller': 'during capture'})
+            with LogCapture(LoguruSource('extra')) as later:
+                logger.info('later capture')
+            later.check(original)
+        finally:
+            logger.configure(extra=previous)
+
+    def test_configured_extra_restored_after_nested_capture(self):
+        previous = dict(getattr(logger, '_core').extra)
+        try:
+            logger.configure(extra={'caller': 'original'})
+            with LogCapture(LoguruSource('extra')) as outer:
+                logger.configure(extra={'caller': 'outer'})
+                with LogCapture(LoguruSource('extra')) as inner:
+                    logger.configure(extra={'caller': 'inner'})
+                    logger.info('inner capture')
+                logger.info('outer capture')
+            inner.check({'caller': 'inner'})
+            outer.check({'caller': 'outer'})
+            compare(getattr(logger, '_core').extra, expected={'caller': 'original'})
+        finally:
+            logger.configure(extra=previous)
+
     def test_bind(self) -> None:
         with LogCapture(LoguruSource((level_name, 'message', 'extra'))) as log:
             context_logger = logger.bind(ip="192.168.0.1", user="someone")

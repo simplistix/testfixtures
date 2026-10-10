@@ -33,7 +33,8 @@ class LoguruSource:
 
     On :meth:`~testfixtures.logcapture.CaptureSource.install` all existing loguru handlers
     are removed and replaced with a single capture handler.
-    On :meth:`~testfixtures.logcapture.CaptureSource.uninstall`, the original handlers are restored.
+    On :meth:`~testfixtures.logcapture.CaptureSource.uninstall`, the original handlers and
+    extra fields set by :meth:`logger.configure <loguru._logger.Logger.configure>` are restored.
 
     :param attributes:
         The sequence of attributes to return for each :ref:`record <loguru:record>` or a callable
@@ -64,6 +65,7 @@ class LoguruSource:
         self._id: int | None = None
         self._original_handlers: dict | None = None
         self._original_min_level: int | None = None
+        self._original_extra: dict[str, Any] | None = None
         self._compute_actual = build_actual_extractor(attributes, self.extract_field)
 
     def extract_field(self, raw: Record, attribute: str) -> Any:
@@ -96,6 +98,7 @@ class LoguruSource:
         self._collector = collector
         self._original_handlers = dict(core.handlers)
         self._original_min_level = core.min_level
+        self._original_extra = dict(core.extra)
         core.handlers = {}  # hide existing sinks, don't stop them
         self._id = logger.add(self, format="{message}", **self._kw)
 
@@ -107,5 +110,7 @@ class LoguruSource:
                 logger.remove(self._id)  # stop only the capture handler
             core.min_level = self._original_min_level
             core.handlers = self._original_handlers  # restore live sinks
+            core.extra = self._original_extra
             self._original_handlers = None
+            self._original_extra = None
             self._id = None
