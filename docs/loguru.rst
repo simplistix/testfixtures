@@ -86,6 +86,11 @@ logger with fixed extra fields, and :meth:`~loguru._logger.Logger.contextualize`
 temporarily adds context for all logging within a block. Both are exposed through the ``extra``
 key in the record dict.
 
+Extra fields set with :meth:`~loguru._logger.Logger.configure` before capture remain
+available during capture. When capture ends, :class:`~testfixtures.loguru.LoguruSource`
+restores those fields, so configuration changes made inside the capture do not affect
+later tests. Nested captures restore the extra fields of the enclosing capture.
+
 To capture ``extra`` alongside the default level and message, include it in the ``attributes``:
 
 .. code-block:: python
