@@ -780,6 +780,9 @@ class TestCompare(CompareHelper, TestCase):
             strict=True,
             )
 
+    def test_set_vs_list(self):
+        self.check_raises({1, 2}, [1, 2], '{1, 2} != [1, 2]')
+
     def test_set_vs_frozenset_equal_with_ignore_eq_type_registered(self):
         # Registering any type with ignore_eq=True, as the pandas, polars, numpy
         # and pydantic support does on import, stops == being trusted for containers:
@@ -828,6 +831,12 @@ class TestCompare(CompareHelper, TestCase):
             '\n',
             ignore_eq=True,
             )
+
+    def test_dict_keys_vs_list(self):
+        self.check_raises(
+            {'a': 1, 'b': 2}.keys(), ['a', 'b'],
+            "not equal:\ndict_keys(['a', 'b'])\n['a', 'b']"
+        )
 
     def test_dict_items_vs_set_equal_different_order(self):
         items = [Colliding(i) for i in range(6)]
@@ -1032,6 +1041,12 @@ class TestCompare(CompareHelper, TestCase):
 
     def test_generator_and_iterable(self):
         compare(generator(1, 2, 3), range(1, 4))
+
+    def test_generator_vs_set(self):
+        self.check_raises(
+            generator(1, 2), {1, 2},
+            'not equal:\n<generator object generator at ...>\n{1, 2}'
+        )
 
     def test_tuple_and_list(self):
         compare((1, 2, 3), [1, 2, 3])
