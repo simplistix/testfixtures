@@ -423,8 +423,8 @@ def compare_attribute_mapping(
       If not provided, the type of ``x`` is used.
 
     :param y_obj:
-      The object whose class name is used in the labeling of the provided ``x``.
-      If not provided, the type of ``x`` is used.
+      The object whose class name is used in the labeling of the provided ``y``.
+      If not provided, the type of ``y`` is used.
 
     :param prefix:
       Text prepended to each section heading.
@@ -475,7 +475,6 @@ def compare_attribute_mapping(
         except TypeError:
             pass
         lines.extend(('', f'{prefix}same:', safe_repr(same)))
-
 
     if x_not_y:
         lines.extend(('', f'{prefix}in {x_label} but not {y_label}:'))

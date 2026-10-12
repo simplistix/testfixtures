@@ -23,7 +23,6 @@ from unittest.mock import call as unittest_mock_call
 from testfixtures import not_there, singleton
 from testfixtures.mock import mock_call
 from .comparers import *
-from .comparers import compare_mapping
 
 # Some common types that are immutable, for optimisation purposes within CompareContext
 IMMUTABLE_TYPEs = str, bytes, int, float, tuple, type(None)
