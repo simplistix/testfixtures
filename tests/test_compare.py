@@ -2792,6 +2792,48 @@ b
             )
         )
 
+    def test_objects_created_by_comparer_not_mistaken_for_already_seen(self):
+        # The Inner instances are freed once compare_outer returns, so without care,
+        # those made for ['b'] can reuse the ids of those made for ['a'].
+
+        class Inner:
+            def __init__(self, value):
+                self.value = value
+
+        class Outer:
+            def __init__(self, value):
+                self.value = value
+
+            def __repr__(self):
+                return f'Outer({self.value})'
+
+        def compare_outer(x, y, context):
+            if context.different(Inner(x.value), Inner(y.value), '.inner'):
+                return 'Outer not as expected'
+            return None
+
+        self.check_raises(
+            {'a': Outer(1), 'b': Outer(2)},
+            {'a': Outer(1), 'b': Outer(3)},
+            comparers={Outer: compare_outer},
+            message=(
+                "dict not as expected:\n"
+                "\n"
+                "same:\n"
+                "['a']\n"
+                "\n"
+                "values differ:\n"
+                "'b': Outer(2) != Outer(3)\n"
+                "\n"
+                "While comparing ['b']: Outer not as expected\n"
+                "\n"
+                "While comparing ['b'].inner: Inner not as expected:\n"
+                "\n"
+                "attributes differ:\n"
+                "'value': 2 != 3"
+            )
+        )
+
     def test_uuid(self):
         uuid = uuid4()
         compare(uuid, uuid)
