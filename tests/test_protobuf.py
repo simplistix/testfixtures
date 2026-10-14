@@ -2,10 +2,12 @@ import pytest
 
 pytest.importorskip("google.protobuf")
 
+from google.protobuf import descriptor_pool, message_factory
 from google.protobuf.descriptor_pb2 import (
     DescriptorProto,
     FieldDescriptorProto,
     FieldOptions,
+    FileDescriptorProto,
     MessageOptions,
 )
 from google.protobuf.duration_pb2 import Duration
@@ -20,6 +22,37 @@ COMPARE_OPTIONS = pytest.mark.parametrize(
     "options",
     [{}, {"strict": True}, {"ignore_eq": True}, {"strict": True, "ignore_eq": True}],
 )
+
+
+def int32_field(name, number, **kw):
+    return FieldDescriptorProto(
+        name=name,
+        number=number,
+        type=FieldDescriptorProto.TYPE_INT32,
+        label=FieldDescriptorProto.LABEL_OPTIONAL,
+        **kw,
+    )
+
+
+def extendable_with_extension():
+    # A proto2 message with a field and an extension that are both named "value":
+    pool = descriptor_pool.DescriptorPool()
+    pool.AddSerializedFile(FileDescriptorProto(
+        name="testfixtures_extensions.proto",
+        package="testfixtures.test",
+        syntax="proto2",
+        message_type=[DescriptorProto(
+            name="Extendable",
+            field=[int32_field("value", 1)],
+            extension_range=[DescriptorProto.ExtensionRange(start=100, end=200)],
+        )],
+        extension=[int32_field("value", 100, extendee=".testfixtures.test.Extendable")],
+    ).SerializeToString())
+    message_type = pool.FindMessageTypeByName("testfixtures.test.Extendable")
+    return (
+        message_factory.GetMessageClass(message_type),
+        pool.FindExtensionByName("testfixtures.test.value"),
+    )
 
 
 def test_importable():
@@ -242,30 +275,75 @@ def test_repeated_message_field():
 
 
 def test_map_field():
+    # The type of map containers differs between protobuf's implementations:
+    map_type = type(Struct().fields).__name__
     with ShouldAssert(
         "Struct not as expected:\n"
         "\n"
         "attributes differ:\n"
-        "'fields': {'a': number_value: 2\n"
-        "} (expected) != {'a': number_value: 1\n"
+        "'fields': {'a': string_value: \"y\"\n"
+        "} (expected) != {'a': string_value: \"x\"\n"
         "} (actual)\n"
         "\n"
-        "While comparing .fields: MessageMapContainer not as expected:\n"
+        f"While comparing .fields: {map_type} not as expected:\n"
         "\n"
         "values differ:\n"
-        "'a': number_value: 2\n"
-        " (expected) != number_value: 1\n"
+        "'a': string_value: \"y\"\n"
+        " (expected) != string_value: \"x\"\n"
         " (actual)\n"
         "\n"
         "While comparing .fields['a']: Value not as expected:\n"
         "\n"
         "attributes differ:\n"
-        "'number_value': 2.0 (expected) != 1.0 (actual)"
+        "'string_value': 'y' (expected) != 'x' (actual)\n"
+        "\n"
+        "While comparing .fields['a'].string_value: 'y' (expected) != 'x' (actual)"
     ):
         compare(
-            Struct(fields={"a": Value(number_value=1)}),
-            expected=Struct(fields={"a": Value(number_value=2)}),
+            Struct(fields={"a": Value(string_value="x")}),
+            expected=Struct(fields={"a": Value(string_value="y")}),
         )
+
+
+def test_extension_named_like_a_field():
+    Extendable, value_extension = extendable_with_extension()
+    actual = Extendable(value=1)
+    actual.Extensions[value_extension] = 3
+    expected = Extendable(value=2)
+    expected.Extensions[value_extension] = 3
+    with ShouldAssert(
+        "Extendable not as expected:\n"
+        "\n"
+        "attributes same:\n"
+        "['[testfixtures.test.value]']\n"
+        "\n"
+        "attributes differ:\n"
+        "'value': 2 (expected) != 1 (actual)"
+    ):
+        compare(actual, expected=expected)
+
+
+def test_comparer_for_extension_value_is_used():
+    def compare_ignoring_ints(x, y, context):
+        return None
+
+    Extendable, value_extension = extendable_with_extension()
+    actual = Extendable()
+    actual.Extensions[value_extension] = 3
+    expected = Extendable()
+    expected.Extensions[value_extension] = 4
+    compare(actual, expected=expected, comparers={int: compare_ignoring_ints})
+
+
+def test_comparer_for_nested_message_type_is_used():
+    def compare_ignoring_options(x, y, context):
+        return None
+
+    compare(
+        DescriptorProto(name="M", options=MessageOptions(deprecated=True)),
+        expected=DescriptorProto(name="M", options=MessageOptions(deprecated=False)),
+        comparers={MessageOptions: compare_ignoring_options},
+    )
 
 
 @COMPARE_OPTIONS
@@ -298,6 +376,6 @@ def test_only_unknown_fields_differ():
     # Field 3 does not exist on Timestamp, so this is kept as an unknown field:
     actual.ParseFromString(Timestamp(seconds=1).SerializeToString() + b"\x18\x05")
     with ShouldAssert(
-        "Both expected and actual have the same field values, but are not equal!"
+        "Both expected and actual have the same field values, but their unknown fields differ!"
     ):
         compare(actual, expected=Timestamp(seconds=1))

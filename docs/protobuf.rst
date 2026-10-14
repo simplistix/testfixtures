@@ -37,8 +37,9 @@ attributes differ:
 
 Unlike the comparers for many other libraries, this one is registered without
 ``ignore_eq=True``, since the ``__eq__`` of protobuf messages can be relied on.
-Messages that protobuf considers equal are equal for :func:`~testfixtures.compare`
-too, and the comparer is used to explain how unequal messages differ. Messages
+By default, messages that protobuf considers equal are equal for
+:func:`~testfixtures.compare` too, and the comparer is used to explain how
+unequal messages differ. Messages
 of different types are never equal, even when the fields set on them are the same.
 
 Nested messages, repeated fields and map fields are handed off to the comparers
@@ -85,7 +86,5 @@ Where protobuf does not track this, the two are equal:
 
 >>> compare(Timestamp(seconds=0), expected=Timestamp())
 
-If the fields set on two messages match but protobuf still considers the
-messages to be unequal, such as when only their unknown fields differ,
-:func:`~testfixtures.compare` reports that they are not equal rather than
-passing.
+If the fields set on two messages match but their unknown fields differ,
+:func:`~testfixtures.compare` reports that rather than passing.
