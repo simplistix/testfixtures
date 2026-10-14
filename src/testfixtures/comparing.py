@@ -532,3 +532,13 @@ except ImportError:
     pass
 else:
     register(PydanticBaseModel, compare_basemodel, ignore_eq=True)
+
+
+try:
+    from google.protobuf.message import Message as ProtobufMessage
+    from .protobuf import compare_message
+except ImportError:
+    pass
+else:
+    # Unlike the types above, protobuf's __eq__ can be relied on, so it is not ignored:
+    register(ProtobufMessage, compare_message)
