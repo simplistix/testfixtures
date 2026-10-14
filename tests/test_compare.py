@@ -2792,6 +2792,42 @@ b
             )
         )
 
+    def test_repeated_equal_objects_shared_differently(self):
+        class Thing:
+            def __init__(self, name):
+                self.name = name
+
+            def __eq__(self, other):
+                return isinstance(other, Thing) and self.name == other.name
+
+            __hash__ = object.__hash__
+
+        a1, a2, b = Thing('x'), Thing('x'), Thing('x')
+        compare(
+            # the ordering of these calls parameters is important:
+            [{'p': b, 'q': b}, {'p': b, 'q': b}],
+            [{'p': a1, 'q': a2}, {'p': a1, 'q': a2}],
+            ignore_eq=True,
+        )
+
+    def test_repeated_object_with_custom_eq(self):
+        class Thing:
+            def __init__(self, name):
+                self.name = name
+
+            def __eq__(self, other):
+                return isinstance(other, Thing) and self.name == other.name
+
+            __hash__ = object.__hash__
+
+        a1, a2, b = Thing('x'), Thing('x'), Thing('x')
+        compare(
+            # the ordering of these calls parameters is important:
+            {'p': b, 'q': b, 'r': b, 's': b},
+            {'p': a1, 'q': a2, 'r': a1, 's': a2},
+            ignore_eq=True,
+        )
+
     def test_uuid(self):
         uuid = uuid4()
         compare(uuid, uuid)
