@@ -300,6 +300,12 @@ testfixtures.polars
 .. automodule:: testfixtures.polars
    :members:
 
+testfixtures.protobuf
+~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: testfixtures.protobuf
+   :members:
+
 testfixtures.pydantic
 ~~~~~~~~~~~~~~~~~~~~~
 

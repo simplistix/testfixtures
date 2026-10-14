@@ -55,6 +55,9 @@ jobs:
             extra: "--extra pydantic"
           - python-version: "3.14"
             uv-resolution: "highest"
+            extra: "--extra protobuf --group protobuf-dev"
+          - python-version: "3.14"
+            uv-resolution: "highest"
             extra: "--extra twisted --group twisted-dev"
           - python-version: "3.14"
             uv-resolution: "highest"
@@ -116,6 +119,7 @@ jobs:
           - "mock"
           - "structlog"
           - "pydantic"
+          - "protobuf"
           - "twisted"
     steps:
       - uses: cjw296/python-action/check-distributions@v3

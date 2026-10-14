@@ -235,7 +235,7 @@ class CompareContext:
         self.options: dict[str, Any] = options or {}
         self.message: str = ''
         self.breadcrumbs: List[str] = []
-        self._seen: dict[int, str] = {}
+        self._seen: dict[int, tuple[Any, str]] = {}
 
     def extract_args(self, args: tuple, x: Any, y: Any, expected: Any, actual: Any) -> List:
 
@@ -278,11 +278,14 @@ class CompareContext:
             return obj
 
         id_ = id(obj)
-        breadcrumb_ = self._seen.get(id_)
-        if breadcrumb_ is not None:
+        seen = self._seen.get(id_)
+        if seen is not None:
+            _, breadcrumb_ = seen
             return AlreadySeen(id_, obj, breadcrumb_)
         else:
-            self._seen[id_] = breadcrumb
+            # Holding a reference to obj stops its id being reused by an object created
+            # later in this comparison, such as one a comparer makes and hands off:
+            self._seen[id_] = obj, breadcrumb
             return obj
 
     def qualified_equals(self, x: Any, y: Any) -> bool:
@@ -529,3 +532,13 @@ except ImportError:
     pass
 else:
     register(PydanticBaseModel, compare_basemodel, ignore_eq=True)
+
+
+try:
+    from google.protobuf.message import Message as ProtobufMessage
+    from .protobuf import compare_message
+except ImportError:
+    pass
+else:
+    # Unlike the types above, protobuf's __eq__ can be relied on, so it is not ignored:
+    register(ProtobufMessage, compare_message)
