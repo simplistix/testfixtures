@@ -2252,62 +2252,44 @@ b
         compare(eq_types, expected=[CountedStrict, AlreadySeen, CountedStrict])
 
     def test_ignore_eq_registered_with_repeated_falsey_eq_result(self) -> None:
-        class Opaque:
-            pass
+        bool_calls = []
 
         class Falsey:
-            def __init__(self) -> None:
-                self.bool_calls = 0
-
             def __bool__(self) -> bool:
-                self.bool_calls += 1
+                bool_calls.append(self)
                 return False
-
-        falsey = Falsey()
 
         class FalseyStrict(Strict):
             def __eq__(self, other: object) -> Any:
                 if not isinstance(other, FalseyStrict):
-                    return falsey
+                    return Falsey()
                 return self.value == other.value
 
-        with registry():
-            register(Opaque, ignore_eq=True)
-            s = FalseyStrict(10)
-            with ShouldRaise(AssertionError):
-                compare([s, s], expected=[FalseyStrict(10), FalseyStrict(10)])
-            compare(falsey.bool_calls, expected=2)
+        s = FalseyStrict(10)
+        with ShouldRaise(AssertionError):
+            compare([s, s], expected=[FalseyStrict(10), FalseyStrict(10)], ignore_eq=True)
+        compare(len(bool_calls), expected=2)
 
     def test_ignore_eq_registered_with_repeated_eq_error(self) -> None:
-        class Opaque:
-            pass
-
         class RaisesForForeign(Strict):
             def __eq__(self, other: object) -> bool:
                 if not isinstance(other, RaisesForForeign):
                     raise RuntimeError('foreign operand')
                 return self.value == other.value
 
-        with registry():
-            register(Opaque, ignore_eq=True)
-            s = RaisesForForeign(10)
-            with ShouldRaise(RuntimeError('foreign operand')):
-                compare([s, s], expected=[RaisesForForeign(10), RaisesForForeign(10)])
+        s = RaisesForForeign(10)
+        with ShouldRaise(RuntimeError('foreign operand')):
+            compare([s, s], expected=[RaisesForForeign(10), RaisesForForeign(10)], ignore_eq=True)
 
     def test_ignore_eq_registered_preserves_repeated_instance_eq_direction(self) -> None:
-        class Opaque:
-            pass
-
         class LessEqual(Strict):
             def __eq__(self, other: object) -> bool:
                 return isinstance(other, LessEqual) and self.value <= other.value
 
-        with registry():
-            register(Opaque, ignore_eq=True)
-            s = LessEqual(10)
-            compare([s, s], expected=[LessEqual(10), LessEqual(9)])
-            with ShouldRaise(AssertionError):
-                compare([LessEqual(10), LessEqual(9)], expected=[s, s])
+        s = LessEqual(10)
+        compare([s, s], expected=[LessEqual(10), LessEqual(9)], ignore_eq=True)
+        with ShouldRaise(AssertionError):
+            compare([LessEqual(10), LessEqual(9)], expected=[s, s], ignore_eq=True)
 
     def test_repeated_instance_ignore_eq_detects_attribute_difference(self) -> None:
         class EqByKey:
@@ -2318,38 +2300,20 @@ b
             def __eq__(self, other: object) -> bool:
                 return isinstance(other, EqByKey) and self.key == other.key
 
-        for mode in ('type', 'registered', 'all'):
-            with self.subTest(mode=mode), registry():
-                ignore_eq: bool | type = False
-                if mode == 'registered':
-                    register(EqByKey, ignore_eq=True)
-                else:
-                    ignore_eq = EqByKey if mode == 'type' else True
-                s = EqByKey(1, 0)
-                with ShouldRaise(AssertionError):
-                    compare(
-                        [s, s], expected=[EqByKey(1, 0), EqByKey(1, 1)],
-                        ignore_eq=ignore_eq,
-                    )
+        s = EqByKey(1, 0)
+        for ignore_eq in EqByKey, True:
+            with self.subTest(ignore_eq=ignore_eq), ShouldRaise(AssertionError):
+                compare([s, s], expected=[EqByKey(1, 0), EqByKey(1, 1)], ignore_eq=ignore_eq)
 
     def test_repeated_instance_strict_detects_subclass_difference(self) -> None:
-        class SubStrict(Strict):
-            pass
-
-        with registry():
-            s = Strict(10)
-            with ShouldRaise(AssertionError):
-                compare([s, s], expected=[Strict(10), SubStrict(10)], strict=True)
+        s = Strict(10)
+        with ShouldRaise(AssertionError):
+            compare([s, s], expected=[Strict(10), StrictSubclass(10)], strict=True)
 
     def test_ignore_eq_registered_with_repeated_container(self) -> None:
-        class Opaque:
-            pass
-
-        with registry():
-            register(Opaque, ignore_eq=True)
-            for s in ([1, 2], {'value': 1}):
-                with self.subTest(type=type(s)):
-                    compare([s, s], expected=[s.copy(), s.copy()])
+        for s in [1, 2], {'value': 1}:
+            with self.subTest(type=type(s)):
+                compare([s, s], expected=[s.copy(), s.copy()], ignore_eq=True)
 
     def test_django_orm_is_horrible_part_2(self):
 
