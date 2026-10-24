@@ -56,7 +56,7 @@ Float comparisons use pandas' default ``rtol`` and ``atol``, so small
 differences compare equal:
 
 >>> fa = pd.DataFrame({'x': [1.0]})
->>> fb = pd.DataFrame({'x': [1.0 + 1e-9]})
+>>> fb = pd.DataFrame({'x': [1.000001]})
 >>> compare(fa, expected=fb)
 
 Pass ``strict=True`` to require bitwise equality instead:
@@ -68,5 +68,5 @@ AssertionError: DataFrame.iloc[:, 0] (column name="x") are different
 <BLANKLINE>
 DataFrame.iloc[:, 0] (column name="x") values are different (100.0 %)
 [index]: [0]
-[left]:  [1.000000001]
+[left]:  [1.000001]
 [right]: [1.0]

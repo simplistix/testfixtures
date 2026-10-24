@@ -57,19 +57,19 @@ def test_unequal_dataframes_in_dict_breadcrumb():
 
 def test_floats_within_tolerance_compare_equal():
     df1 = pd.DataFrame({"x": [1.0, 2.0]})
-    df2 = pd.DataFrame({"x": [1.0 + 1e-9, 2.0]})
+    df2 = pd.DataFrame({"x": [1.000001, 2.0]})
     compare(df1, expected=df2)
 
 
 def test_strict_requires_exact_floats():
     df1 = pd.DataFrame({"x": [1.0, 2.0]})
-    df2 = pd.DataFrame({"x": [1.0 + 1e-9, 2.0]})
+    df2 = pd.DataFrame({"x": [1.000001, 2.0]})
     with ShouldAssert(
         'DataFrame.iloc[:, 0] (column name="x") are different\n'
         "\n"
         'DataFrame.iloc[:, 0] (column name="x") values are different (50.0 %)\n'
         "[index]: [0, 1]\n"
-        "[left]:  [1.000000001, 2.0]\n"
+        "[left]:  [1.000001, 2.0]\n"
         "[right]: [1.0, 2.0]"
     ):
         compare(df1, expected=df2, strict=True)
