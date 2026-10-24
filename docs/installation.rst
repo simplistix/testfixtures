@@ -77,6 +77,8 @@ with the version of these packages that your project is using:
 
 - ``[pydantic]``: Pydantic model helpers. See :doc:`pydantic`.
 
+- ``[protobuf]``: Protocol Buffers message helpers. See :doc:`protobuf`.
+
 - ``[yaml]``: YAML format support for :class:`~testfixtures.TempDir`. See :ref:`files`.
 
 - ``[toml]``: TOML format writing support for :class:`~testfixtures.TempDir`. See :ref:`files`.
