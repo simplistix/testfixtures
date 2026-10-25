@@ -95,6 +95,15 @@ class AcceptsItem(Strict):
         return isinstance(other, Item) and self.value == other.value
 
 
+class EqByKey:
+    def __init__(self, key: int, detail: int) -> None:
+        self.key = key
+        self.detail = detail
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, EqByKey) and self.key == other.key
+
+
 @dataclass
 class Sample:
     id: Item
@@ -2291,29 +2300,89 @@ b
         with ShouldRaise(AssertionError):
             compare([LessEqual(10), LessEqual(9)], expected=[s, s], ignore_eq=True)
 
-    def test_repeated_instance_ignore_eq_detects_attribute_difference(self) -> None:
-        class EqByKey:
-            def __init__(self, key: int, detail: int) -> None:
-                self.key = key
-                self.detail = detail
-
-            def __eq__(self, other: object) -> bool:
-                return isinstance(other, EqByKey) and self.key == other.key
-
+    def test_repeated_instance_ignore_eq_detects_attribute_difference_per_type(self) -> None:
         s = EqByKey(1, 0)
-        for ignore_eq in EqByKey, True:
-            with self.subTest(ignore_eq=ignore_eq), ShouldRaise(AssertionError):
-                compare([s, s], expected=[EqByKey(1, 0), EqByKey(1, 1)], ignore_eq=ignore_eq)
+        self.check_raises(
+            [s, s],
+            expected=[EqByKey(1, 0), EqByKey(1, 1)],
+            ignore_eq=EqByKey,
+            message=(
+                'sequence not as expected:\n'
+                '\n'
+                'same:\n'
+                '[<tests.test_compare.EqByKey object at ...>]\n'
+                '\n'
+                'expected:\n'
+                '[<tests.test_compare.EqByKey object at ...>]\n'
+                '\n'
+                'actual:\n'
+                '[<tests.test_compare.EqByKey object at ...>]\n'
+                '\n'
+                'While comparing [1]: not equal:\n'
+                '<tests.test_compare.EqByKey object at ...> (expected)\n'
+                f'<AlreadySeen for <tests.test_compare.EqByKey object at ...> at [0] '
+                f'with id {id(s)}> (actual)'
+            )
+        )
+
+    def test_repeated_instance_ignore_eq_detects_attribute_difference_all(self) -> None:
+        s = EqByKey(1, 0)
+        self.check_raises(
+            [s, s],
+            expected=[EqByKey(1, 0), EqByKey(1, 1)],
+            ignore_eq=True,
+            message=(
+                'sequence not as expected:\n'
+                '\n'
+                'same:\n'
+                '[<tests.test_compare.EqByKey object at ...>]\n'
+                '\n'
+                'expected:\n'
+                '[<tests.test_compare.EqByKey object at ...>]\n'
+                '\n'
+                'actual:\n'
+                '[<tests.test_compare.EqByKey object at ...>]\n'
+                '\n'
+                'While comparing [1]: not equal:\n'
+                '<tests.test_compare.EqByKey object at ...> (expected)\n'
+                f'<AlreadySeen for <tests.test_compare.EqByKey object at ...> at [0] '
+                f'with id {id(s)}> (actual)'
+            )
+        )
 
     def test_repeated_instance_strict_detects_subclass_difference(self) -> None:
         s = Strict(10)
-        with ShouldRaise(AssertionError):
-            compare([s, s], expected=[Strict(10), StrictSubclass(10)], strict=True)
+        self.check_raises(
+            [s, s],
+            expected=[Strict(10), StrictSubclass(10)],
+            strict=True,
+            message=(
+                'sequence not as expected:\n'
+                '\n'
+                'same:\n'
+                '[<tests.test_compare.Strict object at ...>]\n'
+                '\n'
+                'expected:\n'
+                '[<tests.test_compare.StrictSubclass object at ...>]\n'
+                '\n'
+                'actual:\n'
+                '[<tests.test_compare.Strict object at ...>]\n'
+                '\n'
+                'While comparing [1]: '
+                "<tests.test_compare.StrictSubc... (<class 'tests.test_compare.StrictSubclass'>) "
+                '(expected) != '
+                "<AlreadySeen for <tests.test_c... (<class 'testfixtures.comparers.AlreadySeen'>) "
+                '(actual)'
+            )
+        )
 
-    def test_ignore_eq_registered_with_repeated_container(self) -> None:
-        for s in [1, 2], {'value': 1}:
-            with self.subTest(type=type(s)):
-                compare([s, s], expected=[s.copy(), s.copy()], ignore_eq=True)
+    def test_ignore_eq_registered_with_repeated_list(self) -> None:
+        s = [1, 2]
+        compare([s, s], expected=[[1, 2], [1, 2]], ignore_eq=True)
+
+    def test_ignore_eq_registered_with_repeated_dict(self) -> None:
+        s = {'value': 1}
+        compare([s, s], expected=[{'value': 1}, {'value': 1}], ignore_eq=True)
 
     def test_django_orm_is_horrible_part_2(self):
 
