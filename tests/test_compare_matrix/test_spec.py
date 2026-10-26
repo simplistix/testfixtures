@@ -2,14 +2,12 @@ import itertools
 
 import pytest
 
-from testfixtures import compare
-
-from .axes import BEHAVIOURS, MODES, RELATIONS, Behaviour, Mode, Relation, run
+from .axes import BEHAVIOURS, MODES, RELATIONS, Behaviour, Mode, Relation, check, run
 from .spec import EXPECTED_KEYS, SPEC, marks_for
 
 
 def test_spec_covers_every_case() -> None:
-    compare(set(SPEC), expected=EXPECTED_KEYS)
+    check(set(SPEC), EXPECTED_KEYS)
 
 
 @pytest.mark.parametrize(('behaviour', 'relation', 'mode'), [
@@ -23,4 +21,4 @@ def test_spec_covers_every_case() -> None:
 def test_bare(behaviour: Behaviour, relation: Relation, mode: Mode) -> None:
     result = run(relation.x(behaviour), relation.y(behaviour), mode, behaviour)
     expected = SPEC[behaviour.name, relation.name, mode.name]
-    compare(result.outcome, expected=expected.outcome, suffix=result.message)
+    check(result.outcome, expected.outcome, result.message)

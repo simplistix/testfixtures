@@ -2,11 +2,9 @@ import itertools
 
 import pytest
 
-from testfixtures import compare
-
 from .axes import (
     BEHAVIOURS, CONTAINERS, MODES, PATTERNS, RELATIONS,
-    Behaviour, Container, Mode, Pattern, Relation, build, run,
+    Behaviour, Container, Mode, Pattern, Relation, build, check, run,
 )
 from .known_bugs import SHARING_BUGS
 from .spec import SPEC, marks_for
@@ -48,7 +46,7 @@ def test_unshared(
 ) -> None:
     result = run(*build(pattern, container, relation, behaviour, shared=False), mode, behaviour)
     expected = SPEC[behaviour.name, relation.name, mode.name]
-    compare(result.outcome, expected=expected.outcome, suffix=result.message)
+    check(result.outcome, expected.outcome, result.message)
 
 
 @pytest.mark.parametrize(AXES, [
@@ -64,4 +62,4 @@ def test_shared(
 ) -> None:
     unshared = run(*build(pattern, container, relation, behaviour, shared=False), mode, behaviour)
     shared = run(*build(pattern, container, relation, behaviour, shared=True), mode, behaviour)
-    compare(shared.outcome, expected=unshared.outcome, suffix=shared.message)
+    check(shared.outcome, unshared.outcome, shared.message)

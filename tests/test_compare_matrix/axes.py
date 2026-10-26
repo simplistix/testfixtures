@@ -211,6 +211,12 @@ NOT_EQUAL = '!='
 RAISES = 'raise'
 
 
+def check(actual: object, expected: object, message: str | None = None) -> None:
+    # compare() is handy for debugging, but can't be relied on for testing itself:
+    compare(actual, expected=expected, suffix=message)
+    assert actual == expected
+
+
 @dataclass(frozen=True)
 class Result:
     outcome: str
