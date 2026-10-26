@@ -2,8 +2,8 @@
 Cases where sharing an object changes what compare() reports, grouped by cause.
 
 Each bug covers every combination of the axis values it lists, with ``None`` meaning
-every value on that axis. The tests mark these cases as strict expected failures, so a bug
-that covers too much, or too little, makes the suite fail.
+every value on that axis. The tests require exactly these cases to fail, so a bug that
+covers too much, or too little, makes the suite fail.
 """
 from dataclasses import dataclass
 
@@ -176,3 +176,16 @@ SHARING_BUGS = [
         containers=KEEPS_GOING,
     ),
 ]
+
+
+def sharing_bug(
+        pattern: Pattern,
+        container: Container,
+        behaviour: Behaviour,
+        relation: Relation,
+        mode: Mode,
+) -> str | None:
+    for bug in SHARING_BUGS:
+        if bug.covers(pattern, container, behaviour, relation, mode):
+            return bug.reason
+    return None

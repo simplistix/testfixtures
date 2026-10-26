@@ -16,8 +16,6 @@ question is answered.
 """
 from dataclasses import dataclass
 
-import pytest
-
 from .axes import BEHAVIOURS, MODES, RELATIONS
 
 # Open questions:
@@ -239,7 +237,5 @@ SPEC = parse()
 EXPECTED_KEYS = {(b.name, r.name, m.name) for b in BEHAVIOURS for r in RELATIONS for m in MODES}
 
 
-def marks_for(expected: Expected) -> list[pytest.MarkDecorator]:
-    if expected.known_bug:
-        return [pytest.mark.xfail(strict=True, reason='known bug, see spec.py')]
-    return []
+def known_bug(expected: Expected) -> str | None:
+    return 'the * from spec.py' if expected.known_bug else None

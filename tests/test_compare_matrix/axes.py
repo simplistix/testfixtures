@@ -230,7 +230,22 @@ def run(x: Any, y: Any, mode: Mode, behaviour: Behaviour) -> Result:
         return Result(NOT_EQUAL, str(e))
     except ForeignOperandError as e:
         return Result(RAISES, str(e))
+    except Exception as e:
+        # Anything else is unexpected, but recording it lets every other case still run:
+        return Result(type(e).__name__, str(e))
     return Result(EQUAL)
+
+
+def problem(result: Result, expected: str, known_bug: str | None) -> str | None:
+    """
+    Describe how a result departs from what is expected, or return None if it does not.
+    A known bug must still fail, so that its entry gets removed once it is fixed.
+    """
+    if known_bug:
+        return f'fixed, so remove {known_bug}' if result.outcome == expected else None
+    if result.outcome != expected:
+        return f'expected {expected}, got {result.outcome}: {result.message}'
+    return None
 
 
 Ref = Callable[[str], Any]

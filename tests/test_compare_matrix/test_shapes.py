@@ -1,65 +1,47 @@
 import itertools
-
-import pytest
+from functools import cache
 
 from .axes import (
     BEHAVIOURS, CONTAINERS, MODES, PATTERNS, RELATIONS,
-    Behaviour, Container, Mode, Pattern, Relation, build, check, run,
+    Behaviour, Container, Mode, Pattern, Relation, Result, build, check, problem, run,
 )
-from .known_bugs import SHARING_BUGS
-from .spec import SPEC, marks_for
+from .known_bugs import sharing_bug
+from .spec import SPEC, known_bug
 
-CASES = list(itertools.product(PATTERNS, CONTAINERS, BEHAVIOURS, RELATIONS, MODES))
-AXES = ('pattern', 'container', 'behaviour', 'relation', 'mode')
+Case = tuple[Pattern, Container, Behaviour, Relation, Mode]
 
-
-def case_id(*axes: Pattern | Container | Behaviour | Relation | Mode) -> str:
-    return '-'.join(axis.name for axis in axes)
+CASES: list[Case] = list(itertools.product(PATTERNS, CONTAINERS, BEHAVIOURS, RELATIONS, MODES))
 
 
-def sharing_marks(
-        pattern: Pattern,
-        container: Container,
-        behaviour: Behaviour,
-        relation: Relation,
-        mode: Mode,
-) -> list[pytest.MarkDecorator]:
-    return [
-        pytest.mark.xfail(strict=True, reason=bug.reason)
-        for bug in SHARING_BUGS
-        if bug.covers(pattern, container, behaviour, relation, mode)
-    ]
+def case_id(case: Case) -> str:
+    return '-'.join(axis.name for axis in case)
 
 
-@pytest.mark.parametrize(AXES, [
-    pytest.param(
-        *case, id=case_id(*case), marks=marks_for(SPEC[case[2].name, case[3].name, case[4].name])
-    )
-    for case in CASES
-])
-def test_unshared(
-        pattern: Pattern,
-        container: Container,
-        behaviour: Behaviour,
-        relation: Relation,
-        mode: Mode,
-) -> None:
-    result = run(*build(pattern, container, relation, behaviour, shared=False), mode, behaviour)
-    expected = SPEC[behaviour.name, relation.name, mode.name]
-    check(result.outcome, expected.outcome, result.message)
+def result(case: Case, shared: bool) -> Result:
+    pattern, container, behaviour, relation, mode = case
+    return run(*build(pattern, container, relation, behaviour, shared), mode, behaviour)
 
 
-@pytest.mark.parametrize(AXES, [
-    pytest.param(*case, id=case_id(*case), marks=sharing_marks(*case))
-    for case in CASES
-])
-def test_shared(
-        pattern: Pattern,
-        container: Container,
-        behaviour: Behaviour,
-        relation: Relation,
-        mode: Mode,
-) -> None:
-    unshared = run(*build(pattern, container, relation, behaviour, shared=False), mode, behaviour)
-    shared = run(*build(pattern, container, relation, behaviour, shared=True), mode, behaviour)
-    check(shared.outcome, unshared.outcome, shared.message)
+@cache
+def unshared(case: Case) -> Result:
+    return result(case, shared=False)
+
+
+def test_unshared() -> None:
+    problems = {}
+    for case in CASES:
+        _, _, behaviour, relation, mode = case
+        expected = SPEC[behaviour.name, relation.name, mode.name]
+        found = problem(unshared(case), expected.outcome, known_bug(expected))
+        if found:
+            problems[case_id(case)] = found
+    check(problems, {})
+
+
+def test_shared() -> None:
+    problems = {}
+    for case in CASES:
+        found = problem(result(case, shared=True), unshared(case).outcome, sharing_bug(*case))
+        if found:
+            problems[case_id(case)] = found
+    check(problems, {})
