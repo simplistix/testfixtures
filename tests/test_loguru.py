@@ -212,6 +212,7 @@ class TestLogCapture:
                         '"message": "MESSAGE", '
                         '"module": "test_loguru", "name": "tests.test_loguru", '
                         '"process": {.+}, '
+                        '(?:"template": "MESSAGE", )?'
                         '"thread": {.+}, '
                         '"time": {"repr": ".+", "timestamp": .+}}}\n'
                   ).replace('MESSAGE', message)
