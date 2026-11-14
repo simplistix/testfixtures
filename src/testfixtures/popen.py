@@ -54,13 +54,16 @@ class PopenBehaviour:
             stderr: bytes = b'',
             returncode: int = 0,
             pid: int = 1234,
-            poll_count: int = 3
+            poll_count: int = 3,
+            *,
+            communicate_exception: Exception | None = None
     ):
         self.stdout = stdout
         self.stderr = stderr
         self.returncode = returncode
         self.pid = pid
         self.poll_count = poll_count
+        self.communicate_exception = communicate_exception
 
 
 class CallableBehaviour(Protocol):
@@ -146,6 +149,7 @@ class MockPopenInstance:
             behaviour = behaviour(command=cmd, stdin=stdin)
 
         self.behaviour: PopenBehaviour = behaviour
+        self.communicate_exception = behaviour.communicate_exception
 
         stdout_value = behaviour.stdout
         stderr_value = behaviour.stderr
@@ -218,6 +222,10 @@ class MockPopenInstance:
             self, input: str | bytes | None = None, timeout: float | None = None
     ) -> Tuple[str | bytes | None, str | bytes | None]:
         "Simulate calls to :meth:`subprocess.Popen.communicate`"
+        if self.communicate_exception is not None:
+            error = self.communicate_exception
+            self.communicate_exception = None
+            raise error
         self.returncode = self.behaviour.returncode
         stdout = None if self.stdout is None else self.stdout.read()
         stderr = None if self.stderr is None else self.stderr.read()

@@ -59,6 +59,29 @@ when you check the calls on the mock as shown in this example:
 .. note:: Accessing ``.stdin`` isn't current supported by this mock.
 
 
+Simulating communication failures
+---------------------------------
+
+Pass ``communicate_exception`` to :class:`PopenBehaviour` to raise an exception
+from the first :meth:`~MockPopenInstance.communicate` call for each process:
+
+.. code-block:: python
+
+    from subprocess import TimeoutExpired
+    from testfixtures.popen import MockPopen, PopenBehaviour
+
+    popen = MockPopen()
+    popen.set_command('command', behaviour=PopenBehaviour(
+        communicate_exception=TimeoutExpired('command', 1)
+    ))
+
+Process creation still succeeds, so this can exercise timeout handling in
+:func:`subprocess.run`. Later ``communicate()`` calls return the configured
+output normally. This permits cleanup code to kill the process and collect
+its output after a timeout. The exception does not set the process return code
+or consume its output. Calls are recorded as usual.
+
+
 Reading from ``stdout`` and ``stderr``
 --------------------------------------
 
