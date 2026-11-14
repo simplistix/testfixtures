@@ -157,6 +157,35 @@ class Tests(TestCase):
                 call.Popen_instance.communicate('foo'),
                 ], Popen.mock.method_calls)
 
+    def test_communicate_raises_once_per_process(self):
+        error = OSError('communication failed')
+        popen = MockPopen()
+        popen.set_command('command', behaviour=PopenBehaviour(
+            stdout=b'output', communicate_exception=error
+        ))
+        for _ in range(2):
+            process = popen('command', stdout=PIPE)
+            with ShouldRaise(error):
+                process.communicate()
+            compare(process.returncode, expected=None)
+            compare(process.communicate(), expected=(b'output', None))
+            compare(process.wait(), expected=0)
+
+    def test_run_timeout_cleanup(self):
+        error = subprocess.TimeoutExpired('command', 1)
+        popen = MockPopen()
+        popen.set_command('command', behaviour=PopenBehaviour(
+            stdout=b'output', communicate_exception=error
+        ))
+        with Replacer() as replace:
+            replace.in_module(subprocess.Popen, popen)
+            with ShouldRaise(error):
+                subprocess.run('command', stdout=PIPE, timeout=1)
+        compare(
+            call.Popen('command', stdout=PIPE).kill() in popen.all_calls,
+            expected=True,
+        )
+
     def test_communicate_with_timeout(self):
         Popen = MockPopen()
         Popen.set_command('a command', returncode=3)
