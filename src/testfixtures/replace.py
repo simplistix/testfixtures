@@ -229,6 +229,14 @@ class Replacer:
         """
         container = module or resolve(target.__module__).found
         name = target.__name__
+        # A stand-in left by an earlier replacement names its own module and name,
+        # not the attribute it replaced, so don't guess where it lives.
+        if module is None and getattr(container, name, None) is not target:
+            raise AttributeError(
+                f"{target!r} is not {target.__module__}.{name}, so cannot be replaced "
+                "there: it may already have been replaced. Use replace() with "
+                "the dotted path of the attribute instead."
+            )
         self(container, name=name, accessor=getattr, replacement=replacement)
 
     def restore(self) -> None:
