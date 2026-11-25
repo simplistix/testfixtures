@@ -3,10 +3,50 @@
 Changes
 =======
 
+12.5.0 (25 Nov 2026)
+--------------------
+
+- Added :class:`~testfixtures.popen.Passthrough`, which can be passed as the ``behaviour`` to
+  :meth:`MockPopen.set_command <testfixtures.popen.MockPopen.set_command>` or
+  :meth:`MockPopen.set_default <testfixtures.popen.MockPopen.set_default>` so that matching commands
+  are run by the real :class:`subprocess.Popen` while still being recorded alongside simulated ones.
+
+- Added :class:`~testfixtures.popen.Raises`, which can be passed to
+  :meth:`MockPopen.set_command <testfixtures.popen.MockPopen.set_command>` or
+  :meth:`MockPopen.set_default <testfixtures.popen.MockPopen.set_default>` to simulate exceptions,
+  such as a :class:`subprocess.TimeoutExpired`, being raised from methods of the mock process.
+
+- Added :func:`~testfixtures.comparers.compare_mapping` and
+  :func:`~testfixtures.comparers.compare_attribute_mapping`, so that custom comparers can reuse
+  testfixtures' mapping diff output.
+
+- Mappings and sets that have no registered comparer are now compared using
+  :func:`~testfixtures.comparers.compare_mapping` and :func:`~testfixtures.comparers.compare_set`
+  respectively, rather than being treated as generic iterables. A set-like object is no longer
+  considered equal to an ordered iterable.
+
+- Comparisons of objects whose types differ but whose attributes match, such as namedtuples with
+  the same fields or Django models, now report the type difference in the same format as other
+  attribute comparisons.
+
+- :class:`LogCapture` now accepts :data:`logging.NOTSET` as ``ensure_checks_above``, which turns
+  checking off for that instance even when :attr:`~LogCapture.default_ensure_checks_above` is set.
+
+- :class:`~testfixtures.loguru.LoguruSource` now restores extra fields set with
+  :meth:`logger.configure <loguru._logger.Logger.configure>` when capture ends.
+
+- Fixed a bug where :class:`LogCapture` did not filter captured records by the level it was
+  given.
+
+- Fixed a bug where :func:`~testfixtures.django.compare_model` could treat two Django models with
+  identical fields but different types as equal.
+
+Thanks to Cheruku Sri Charan Reddy for the loguru fix.
+
 12.4.0 (2 Oct 2026)
 -------------------
 
-- Support Python 3.15
+- Support Python 3.15.
 
 - Speed up the common cases for :meth:`Replacer.on_class`.
 
