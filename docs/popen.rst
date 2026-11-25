@@ -42,7 +42,7 @@ Tests that exercise this code using :class:`~testfixtures.popen.MockPopen`
 could be written as follows:
 
 .. literalinclude:: ../tests/test_popen_docs.py
-   :lines: 16-52
+   :lines: 16-53
 
 
 Passing input to processes
@@ -174,6 +174,23 @@ following example:
 
 .. literalinclude:: ../tests/test_popen_docs.py
    :pyobject: TestMyFunc.test_default_behaviour
+   :dedent: 4
+
+
+Passing some commands through to the real subprocess
+------------------------------------------------------
+
+Sometimes code under test shells out to more than one external tool and you
+only want to simulate the ones you're testing, letting everything else run
+for real. Passing a :class:`~testfixtures.popen.Passthrough` instance as the
+``behaviour`` to :meth:`~MockPopen.set_command` or
+:meth:`~MockPopen.set_default` causes matching commands to be executed by the
+real :class:`subprocess.Popen` instead of being simulated, while still being
+recorded in :attr:`~MockPopen.all_calls` alongside any commands that are
+simulated:
+
+.. literalinclude:: ../tests/test_popen_docs.py
+   :pyobject: TestMyFunc.test_passthrough
    :dedent: 4
 
 

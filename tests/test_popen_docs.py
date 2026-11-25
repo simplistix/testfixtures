@@ -13,11 +13,12 @@ def my_func():
 
 dotted_path = 'tests.test_popen_docs.Popen'
 
+import sys
 from unittest import TestCase
 
 from testfixtures.mock import call
 from testfixtures import Replacer, ShouldRaise, compare, SequenceComparison
-from testfixtures.popen import MockPopen, PopenBehaviour
+from testfixtures.popen import MockPopen, Passthrough, PopenBehaviour
 
 
 class TestMyFunc(TestCase):
@@ -214,6 +215,31 @@ class TestMyFunc(TestCase):
             p1.communicate(),
             ordered=False
         ))
+
+    def test_passthrough(self):
+        # set up: mock the one command we care about testing precisely,
+        # and let anything else run for real
+        self.Popen.set_command('svn ls -R foo', stdout=b'o', stderr=b'e')
+        self.Popen.set_default(behaviour=Passthrough())
+
+        # testing of results: the mocked command behaves as before
+        compare(my_func(), expected=b'o')
+
+        # any other command is passed through to the real subprocess.Popen
+        command = [sys.executable, '-c', 'print("hello")']
+        process = Popen(command, stdout=PIPE, text=True)
+        out, err = process.communicate()
+        compare(out, expected='hello\n')
+
+        # testing calls: both commands are recorded, including the one passed through
+        mocked = call.Popen(['svn', 'ls', '-R', 'foo'], stderr=PIPE, stdout=PIPE)
+        passed_through = call.Popen(command, stdout=PIPE, text=True)
+        compare(Popen.all_calls, expected=[
+            mocked,
+            mocked.communicate(),
+            passed_through,
+            passed_through.communicate(),
+        ])
 
 
 class CustomBehaviour:

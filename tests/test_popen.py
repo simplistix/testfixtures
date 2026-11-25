@@ -1,4 +1,5 @@
 import subprocess
+import sys
 from pathlib import Path
 from subprocess import PIPE, STDOUT
 from unittest import TestCase
@@ -6,7 +7,7 @@ from unittest import TestCase
 from testfixtures.mock import call
 from testfixtures import ShouldRaise, compare, Replacer
 
-from testfixtures.popen import MockPopen, PopenBehaviour
+from testfixtures.popen import MockPopen, Passthrough, PopenBehaviour
 
 import signal
 
@@ -518,8 +519,9 @@ class Tests(TestCase):
     def test_invalid_parameters(self):
         message = "MockPopenInstance.__init__() got an unexpected keyword argument 'foo'"
         Popen = MockPopen()
+        Popen.set_command('a command')
         with ShouldRaise(TypeError(message)):
-            Popen(foo='bar')
+            Popen('a command', foo='bar')
 
     def test_invalid_method_or_attr(self):
         Popen = MockPopen()
@@ -703,3 +705,147 @@ class IntegrationTests(TestCase):
         self.popen.set_command('ls', returncode=1)
         with self.assertRaises(subprocess.CalledProcessError):
             subprocess.check_output(['ls'])
+
+    def test_command_called_with_check_output_passthrough_for_other_commands(self):
+        self.popen.set_command('ls', stdout=b'mocked')
+        self.popen.set_default(behaviour=Passthrough())
+
+        compare(b'mocked', subprocess.check_output(['ls']))
+
+        real_cmd = [sys.executable, '-c', 'import sys; sys.stdout.write("real")']
+        compare('real', subprocess.check_output(real_cmd, text=True))
+
+
+class TestPassthrough:
+
+    def test_command(self):
+        Popen = MockPopen()
+        cmd = [sys.executable, '-c', 'import sys; sys.stdout.write("out"); sys.stderr.write("err")']
+        Popen.set_command(cmd, behaviour=Passthrough())
+        process = Popen(cmd, stdout=PIPE, stderr=PIPE, text=True)
+        out, err = process.communicate()
+        compare(out, expected='out')
+        compare(err, expected='err')
+        compare(process.returncode, expected=0)
+        process_call = call.Popen(cmd, stdout=PIPE, stderr=PIPE, text=True)
+        compare(Popen.all_calls, expected=[
+            process_call,
+            process_call.communicate(),
+        ])
+
+    def test_default(self):
+        Popen = MockPopen()
+        Popen.set_command('mocked command', stdout=b'mocked out')
+        Popen.set_default(behaviour=Passthrough())
+
+        mocked = Popen('mocked command', stdout=PIPE)
+        compare(mocked.communicate()[0], expected=b'mocked out')
+
+        cmd = [sys.executable, '-c', 'import sys; sys.stdout.write("real out")']
+        real = Popen(cmd, stdout=PIPE, text=True)
+        out, _ = real.communicate()
+        compare(out, expected='real out')
+
+        mocked_call = call.Popen('mocked command', stdout=PIPE)
+        real_call = call.Popen(cmd, stdout=PIPE, text=True)
+        compare(Popen.all_calls, expected=[
+            mocked_call,
+            mocked_call.communicate(),
+            real_call,
+            real_call.communicate(),
+        ])
+
+    def test_returncode(self):
+        Popen = MockPopen()
+        cmd = [sys.executable, '-c', 'import sys; sys.exit(3)']
+        Popen.set_command(cmd, behaviour=Passthrough())
+        process = Popen(cmd)
+        process.wait()
+        compare(process.returncode, expected=3)
+        compare(Popen.all_calls, expected=[
+            call.Popen(cmd),
+            call.Popen(cmd).wait(),
+        ])
+
+    def test_stdin(self):
+        Popen = MockPopen()
+        cmd = [sys.executable, '-c', 'import sys; sys.stdout.write(sys.stdin.read().upper())']
+        Popen.set_command(cmd, behaviour=Passthrough())
+        process = Popen(cmd, stdin=PIPE, stdout=PIPE, text=True)
+        out, _ = process.communicate('hello')
+        compare(out, expected='HELLO')
+        process_call = call.Popen(cmd, stdin=PIPE, stdout=PIPE, text=True)
+        compare(Popen.all_calls, expected=[
+            process_call,
+            process_call.communicate('hello'),
+        ])
+
+    def test_terminate(self):
+        Popen = MockPopen()
+        cmd = [sys.executable, '-c', 'import time; time.sleep(10)']
+        Popen.set_command(cmd, behaviour=Passthrough())
+        process = Popen(cmd)
+        process.terminate()
+        process.wait()
+        compare(process.returncode, expected=-signal.SIGTERM)
+        compare(Popen.all_calls, expected=[
+            call.Popen(cmd),
+            call.Popen(cmd).terminate(),
+            call.Popen(cmd).wait(),
+        ])
+
+    def test_kill(self):
+        Popen = MockPopen()
+        cmd = [sys.executable, '-c', 'import time; time.sleep(10)']
+        Popen.set_command(cmd, behaviour=Passthrough())
+        process = Popen(cmd)
+        process.kill()
+        process.wait()
+        compare(process.returncode, expected=-signal.SIGKILL)
+        compare(Popen.all_calls, expected=[
+            call.Popen(cmd),
+            call.Popen(cmd).kill(),
+            call.Popen(cmd).wait(),
+        ])
+
+    def test_send_signal(self):
+        Popen = MockPopen()
+        cmd = [sys.executable, '-c', 'import time; time.sleep(10)']
+        Popen.set_command(cmd, behaviour=Passthrough())
+        process = Popen(cmd)
+        process.send_signal(0)
+        process.kill()
+        process.wait()
+        compare(Popen.all_calls, expected=[
+            call.Popen(cmd),
+            call.Popen(cmd).send_signal(0),
+            call.Popen(cmd).kill(),
+            call.Popen(cmd).wait(),
+        ])
+
+    def test_use_as_context_manager(self):
+        Popen = MockPopen()
+        cmd = [sys.executable, '-c', 'import sys; sys.stdout.write("out")']
+        Popen.set_command(cmd, behaviour=Passthrough())
+        with Popen(cmd, stdout=PIPE, text=True) as process:
+            out = process.stdout.read()
+        compare(out, expected='out')
+        compare(process.stdout.closed, expected=True)
+        process_call = call.Popen(cmd, stdout=PIPE, text=True)
+        compare(Popen.all_calls, expected=[
+            process_call,
+            process_call.wait(),
+        ])
+
+    def test_use_as_context_manager_closes_stdin(self):
+        Popen = MockPopen()
+        cmd = [sys.executable, '-c', 'import sys; sys.exit(0)']
+        Popen.set_command(cmd, behaviour=Passthrough())
+        with Popen(cmd, stdin=PIPE) as process:
+            pass
+        compare(process.stdin.closed, expected=True)
+        process_call = call.Popen(cmd, stdin=PIPE)
+        compare(Popen.all_calls, expected=[
+            process_call,
+            process_call.wait(),
+        ])
