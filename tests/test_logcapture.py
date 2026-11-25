@@ -151,6 +151,22 @@ class TestLogCapture(TestCase):
             "CRITICAL at critical"
         )
 
+    def test_minimum_level_child_logger_sets_lower_level(self):
+        preserve_level(self, one)
+        with LogCapture(level=logging.WARNING) as log:
+            one.setLevel(logging.INFO)
+            one.info('at info')
+            one.error('at error')
+        log.check(('one', 'ERROR', 'at error'))
+
+    def test_minimum_level_logging_source_child_logger_sets_lower_level(self):
+        preserve_level(self, one)
+        with LogCapture(LoggingSource(level=logging.WARNING)) as log:
+            one.setLevel(logging.INFO)
+            one.info('at info')
+            one.error('at error')
+        log.check(('ERROR', 'at error'))
+
     def test_multiple_loggers(self):
         l = LogCapture(('one.child','two'))
         root.info('1')
