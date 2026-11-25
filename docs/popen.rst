@@ -56,8 +56,6 @@ when you check the calls on the mock as shown in this example:
    :pyobject: TestMyFunc.test_communicate_with_input
    :dedent: 4
 
-.. note:: Accessing ``.stdin`` isn't current supported by this mock.
-
 
 Reading from ``stdout`` and ``stderr``
 --------------------------------------
