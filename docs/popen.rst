@@ -42,7 +42,7 @@ Tests that exercise this code using :class:`~testfixtures.popen.MockPopen`
 could be written as follows:
 
 .. literalinclude:: ../tests/test_popen_docs.py
-   :lines: 16-53
+   :lines: 16-54
 
 
 Passing input to processes
@@ -105,6 +105,27 @@ following example:
 .. literalinclude:: ../tests/test_popen_docs.py
    :pyobject: TestMyFunc.test_wait_and_return_code
    :dedent: 4
+
+Simulating exceptions
+----------------------
+
+Some failures, such as a process timing out, only surface as an exception
+raised from :meth:`~subprocess.Popen.communicate` or
+:meth:`~subprocess.Popen.wait` rather than as a return code, so there's no
+way to simulate them by setting ``returncode``. Passing a :class:`Raises`
+to :meth:`~MockPopen.set_command` or
+:meth:`~MockPopen.set_default` causes the named method to raise instead of
+performing its usual simulated behaviour, while leaving every other method
+of the mock process working normally, as shown here for a simulated
+:class:`~subprocess.TimeoutExpired`:
+
+.. literalinclude:: ../tests/test_popen_docs.py
+   :pyobject: TestMyFunc.test_simulating_a_timeout
+   :dedent: 4
+
+:class:`Raises` also has ``send_signal``, ``terminate`` and ``kill``
+fields, for simulating failures such as a :class:`ProcessLookupError` from
+signalling a process that has already exited.
 
 Checking for signal sending
 ---------------------------

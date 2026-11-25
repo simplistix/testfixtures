@@ -7,7 +7,7 @@ from unittest import TestCase
 from testfixtures.mock import call
 from testfixtures import ShouldRaise, compare, Replacer
 
-from testfixtures.popen import MockPopen, Passthrough, PopenBehaviour
+from testfixtures.popen import MockPopen, Passthrough, PopenBehaviour, Raises
 
 import signal
 
@@ -679,6 +679,80 @@ class Tests(TestCase):
         Popen(['a', 'command'], stdout=PIPE, stderr=PIPE)
         compare([call.Popen(['a',  'command'], stderr=-1, stdout=-1)],
                 actual=Popen.all_calls)
+
+
+class TestRaises:
+
+    def test_communicate(self):
+        Popen = MockPopen()
+        exception = subprocess.TimeoutExpired(cmd='a command', timeout=5)
+        Popen.set_command('a command', raises=Raises(communicate=exception))
+        process = Popen('a command')
+        with ShouldRaise(exception):
+            process.communicate()
+
+    def test_wait(self):
+        Popen = MockPopen()
+        exception = subprocess.TimeoutExpired(cmd='a command', timeout=5)
+        Popen.set_command('a command', raises=Raises(wait=exception))
+        process = Popen('a command')
+        with ShouldRaise(exception):
+            process.wait()
+
+    def test_send_signal(self):
+        Popen = MockPopen()
+        exception = ProcessLookupError('no such process')
+        Popen.set_command('a command', raises=Raises(send_signal=exception))
+        process = Popen('a command')
+        with ShouldRaise(exception):
+            process.send_signal(signal.SIGTERM)
+
+    def test_terminate(self):
+        Popen = MockPopen()
+        exception = ProcessLookupError('no such process')
+        Popen.set_command('a command', raises=Raises(terminate=exception))
+        process = Popen('a command')
+        with ShouldRaise(exception):
+            process.terminate()
+
+    def test_kill(self):
+        Popen = MockPopen()
+        exception = ProcessLookupError('no such process')
+        Popen.set_command('a command', raises=Raises(kill=exception))
+        process = Popen('a command')
+        with ShouldRaise(exception):
+            process.kill()
+
+    def test_via_set_default(self):
+        Popen = MockPopen()
+        exception = subprocess.TimeoutExpired(cmd='a command', timeout=5)
+        Popen.set_default(raises=Raises(communicate=exception))
+        process = Popen('a command')
+        with ShouldRaise(exception):
+            process.communicate()
+
+    def test_call_still_recorded(self):
+        Popen = MockPopen()
+        exception = subprocess.TimeoutExpired(cmd='a command', timeout=5)
+        Popen.set_command('a command', raises=Raises(communicate=exception))
+        process = Popen('a command')
+        with ShouldRaise(exception):
+            process.communicate()
+        compare(Popen.all_calls, expected=[
+            call.Popen('a command'),
+            call.Popen('a command').communicate(),
+        ])
+
+    def test_cleanup_after_communicate_raises(self):
+        # mirrors subprocess.run's except TimeoutExpired: process.kill(); process.wait()
+        Popen = MockPopen()
+        exception = subprocess.TimeoutExpired(cmd='a command', timeout=5)
+        Popen.set_command('a command', returncode=-9, raises=Raises(communicate=exception))
+        process = Popen('a command')
+        with ShouldRaise(exception):
+            process.communicate()
+        process.kill()
+        compare(process.wait(), expected=-9)
 
 
 class IntegrationTests(TestCase):

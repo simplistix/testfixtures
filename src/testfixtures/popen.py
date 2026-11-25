@@ -1,4 +1,5 @@
 import shlex
+from dataclasses import dataclass
 from functools import wraps, partial, reduce
 from io import TextIOWrapper
 from itertools import chain, zip_longest
@@ -45,6 +46,26 @@ def shell_join(command: Command) -> str:
     else:
         raise TypeError(f'{command!r} was {type(command)}, must be str')
 
+
+@dataclass
+class Raises:
+    """
+    Specifies exceptions to be raised by particular methods of a
+    :class:`MockPopenInstance`, instead of that method's normal simulated
+    behaviour, when supplied as the ``raises`` of a :class:`PopenBehaviour`.
+    """
+    #: If not ``None``, raised by :meth:`~MockPopenInstance.communicate`.
+    communicate: BaseException | None = None
+    #: If not ``None``, raised by :meth:`~MockPopenInstance.wait`.
+    wait: BaseException | None = None
+    #: If not ``None``, raised by :meth:`~MockPopenInstance.send_signal`.
+    send_signal: BaseException | None = None
+    #: If not ``None``, raised by :meth:`~MockPopenInstance.terminate`.
+    terminate: BaseException | None = None
+    #: If not ``None``, raised by :meth:`~MockPopenInstance.kill`.
+    kill: BaseException | None = None
+
+
 class PopenBehaviour:
     """
     An object representing the behaviour of a :class:`MockPopen` when
@@ -57,13 +78,17 @@ class PopenBehaviour:
             stderr: bytes = b'',
             returncode: int = 0,
             pid: int = 1234,
-            poll_count: int = 3
+            poll_count: int = 3,
+            raises: Raises | None = None,
     ):
         self.stdout = stdout
         self.stderr = stderr
         self.returncode = returncode
         self.pid = pid
         self.poll_count = poll_count
+        #: A :class:`Raises` specifying exceptions to raise instead of
+        #: simulating particular method calls.
+        self.raises: Raises = raises if raises is not None else Raises()
 
 
 class CallableBehaviour(Protocol):
@@ -224,6 +249,8 @@ class MockPopenInstance:
     @record
     def wait(self, timeout: float | None = None) -> int:
         "Simulate calls to :meth:`subprocess.Popen.wait`"
+        if self.behaviour.raises.wait is not None:
+            raise self.behaviour.raises.wait
         self.returncode = self.behaviour.returncode
         return self.returncode
 
@@ -232,6 +259,8 @@ class MockPopenInstance:
             self, input: str | bytes | None = None, timeout: float | None = None
     ) -> Tuple[str | bytes | None, str | bytes | None]:
         "Simulate calls to :meth:`subprocess.Popen.communicate`"
+        if self.behaviour.raises.communicate is not None:
+            raise self.behaviour.raises.communicate
         self.returncode = self.behaviour.returncode
         stdout = None if self.stdout is None else self.stdout.read()
         stderr = None if self.stderr is None else self.stderr.read()
@@ -253,17 +282,20 @@ class MockPopenInstance:
     @record
     def send_signal(self, signal: int) -> None:
         "Simulate calls to :meth:`subprocess.Popen.send_signal`"
-        pass
+        if self.behaviour.raises.send_signal is not None:
+            raise self.behaviour.raises.send_signal
 
     @record
     def terminate(self) -> None:
         "Simulate calls to :meth:`subprocess.Popen.terminate`"
-        pass
+        if self.behaviour.raises.terminate is not None:
+            raise self.behaviour.raises.terminate
 
     @record
     def kill(self) -> None:
         "Simulate calls to :meth:`subprocess.Popen.kill`"
-        pass
+        if self.behaviour.raises.kill is not None:
+            raise self.behaviour.raises.kill
 
 
 class PassthroughPopenInstance(MockPopenInstance):
@@ -363,11 +395,12 @@ class MockPopen:
             returncode: int,
             pid: int,
             poll_count: int,
-            behaviour: PopenBehaviour | CallableBehaviour | Passthrough | None
+            behaviour: PopenBehaviour | CallableBehaviour | Passthrough | None,
+            raises: Raises | None,
     ) -> PopenBehaviour | CallableBehaviour | Passthrough:
         if behaviour is None:
             return PopenBehaviour(
-                stdout, stderr, returncode, pid, poll_count
+                stdout, stderr, returncode, pid, poll_count, raises
             )
         else:
             return behaviour
@@ -380,7 +413,8 @@ class MockPopen:
             returncode: int = 0,
             pid: int = 1234,
             poll_count: int = 3,
-            behaviour: PopenBehaviour | CallableBehaviour | Passthrough | None = None
+            behaviour: PopenBehaviour | CallableBehaviour | Passthrough | None = None,
+            raises: Raises | None = None,
     ) -> None:
         """
         Set the behaviour of this mock when it is used to simulate the
@@ -389,7 +423,7 @@ class MockPopen:
         :param command: A :class:`str` representing the command to be simulated.
         """
         self.commands[shell_join(command)] = self._resolve_behaviour(
-            stdout, stderr, returncode, pid, poll_count, behaviour
+            stdout, stderr, returncode, pid, poll_count, behaviour, raises
         )
 
     def set_default(
@@ -399,7 +433,8 @@ class MockPopen:
             returncode: int =0,
             pid: int = 1234,
             poll_count: int = 3,
-            behaviour: PopenBehaviour | CallableBehaviour | Passthrough | None = None
+            behaviour: PopenBehaviour | CallableBehaviour | Passthrough | None = None,
+            raises: Raises | None = None,
     ) -> None:
         """
         Set the behaviour of this mock when it is used to simulate commands
@@ -407,7 +442,7 @@ class MockPopen:
         :meth:`~MockPopen.set_command`.
         """
         self.default_behaviour = self._resolve_behaviour(
-            stdout, stderr, returncode, pid, poll_count, behaviour
+            stdout, stderr, returncode, pid, poll_count, behaviour, raises
         )
 
     def __call__(self, args: Command, *popenargs: Any, **kw: Any) -> MockPopenInstance:
@@ -440,6 +475,10 @@ set_command_params = """
     Specifies the number of times :meth:`~MockPopenInstance.poll` can be
     called before :attr:`~MockPopenInstance.returncode` is set and returned
     by :meth:`~MockPopenInstance.poll`.
+:param raises:
+    A :class:`Raises` specifying exceptions to be raised by particular
+    methods of the simulated process, instead of their normal simulated
+    behaviour.
 
 If supplied, ``behaviour`` must be one of:
 

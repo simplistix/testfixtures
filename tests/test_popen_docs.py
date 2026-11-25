@@ -14,11 +14,12 @@ def my_func():
 dotted_path = 'tests.test_popen_docs.Popen'
 
 import sys
+from subprocess import TimeoutExpired
 from unittest import TestCase
 
 from testfixtures.mock import call
 from testfixtures import Replacer, ShouldRaise, compare, SequenceComparison
-from testfixtures.popen import MockPopen, Passthrough, PopenBehaviour
+from testfixtures.popen import MockPopen, Passthrough, PopenBehaviour, Raises
 
 
 class TestMyFunc(TestCase):
@@ -104,6 +105,21 @@ class TestMyFunc(TestCase):
             call.Popen('a command'),
             call.Popen('a command').wait(),
         ])
+
+    def test_simulating_a_timeout(self):
+        # set up: simulate communicate() timing out, as it does when the
+        # timeout passed to subprocess.run elapses
+        Popen = MockPopen()
+        exception = TimeoutExpired(cmd='a command', timeout=5)
+        Popen.set_command('a command', returncode=-9, raises=Raises(communicate=exception))
+        # usage
+        process = Popen('a command')
+        with ShouldRaise(exception):
+            process.communicate(timeout=5)
+        # cleanup, as performed by subprocess.run's except TimeoutExpired handler,
+        # still behaves normally:
+        process.kill()
+        compare(process.wait(), expected=-9)
 
     def test_send_signal(self):
         # setup
