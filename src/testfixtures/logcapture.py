@@ -499,7 +499,7 @@ class LoggingHandler(logging.Handler):
     """Minimal handler that forwards records to a :class:`LoggingSource`."""
 
     def __init__(self, source: 'LoggingSource') -> None:
-        super().__init__()
+        super().__init__(source.level)
         self._source = source
 
     def __bool__(self) -> bool:
