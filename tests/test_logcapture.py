@@ -1,6 +1,6 @@
 import atexit
 import logging
-from logging import getLogger, INFO, WARNING, ERROR, Filter, shutdown
+from logging import getLogger, INFO, WARNING, ERROR, Filter, Logger, shutdown
 from textwrap import dedent
 from unittest import TestCase
 
@@ -32,6 +32,10 @@ class LevellessSource:
 
     def log(self, *actual):
         self.collector(Entry(raw=actual, actual=actual, level=None))
+
+
+def preserve_level(case: TestCase, logger: Logger) -> None:
+    case.addCleanup(logger.setLevel, logger.level)
 
 
 class TestLogCapture(TestCase):
@@ -184,10 +188,11 @@ class TestLogCapture(TestCase):
         before_root = root.handlers[:]
         before_child = child.handlers[:]
 
-        # Lets also record the levels for the loggers:
+        # Lets also make sure the levels for the loggers are restored
+        # after the test:
 
-        old_root_level=root.level
-        old_child_level=child.level
+        preserve_level(self, root)
+        preserve_level(self, child)
 
         # Also record the filters:
 
@@ -196,40 +201,36 @@ class TestLogCapture(TestCase):
 
         # Now the test:
 
-        try:
-            root.setLevel(49)
-            child.setLevel(69)
-            l1 = LogCapture()
-            l2 = LogCapture('child')
-            root = getLogger()
-            root.info('1')
-            child = getLogger('child')
-            assert root.level == 1
-            assert child.level == 1
+        root.setLevel(49)
+        child.setLevel(69)
+        l1 = LogCapture()
+        l2 = LogCapture('child')
+        root = getLogger()
+        root.info('1')
+        child = getLogger('child')
+        assert root.level == 1
+        assert child.level == 1
 
-            assert root.filters == []
-            assert child.filters == []
+        assert root.filters == []
+        assert child.filters == []
 
-            child.info('2')
-            assert str(l1) == (
-                "root INFO 1\n"
-                "child INFO 2"
-            )
-            assert str(l2) == (
-                "child INFO 2"
-            )
+        child.info('2')
+        assert str(l1) == (
+            "root INFO 1\n"
+            "child INFO 2"
+        )
+        assert str(l2) == (
+            "child INFO 2"
+        )
 
-            # Add a dummy filter to the child,
-            # which should be removed by `uninstall`.
-            child.addFilter(DummyFilter())
+        # Add a dummy filter to the child,
+        # which should be removed by `uninstall`.
+        child.addFilter(DummyFilter())
 
-            l2.uninstall()
-            l1.uninstall()
-            assert root.level == 49
-            assert child.level == 69
-        finally:
-           root.setLevel(old_root_level)
-           child.setLevel(old_child_level)
+        l2.uninstall()
+        l1.uninstall()
+        assert root.level == 49
+        assert child.level == 69
 
         # Now we check the handlers are as they were before
         # the test:
@@ -290,18 +291,15 @@ class TestLogCapture(TestCase):
         # There's no problem with uninstalling a LogCapture
         # more than once:
 
-        old_level = root.level
-        try:
-           root.setLevel(49)
-           l = LogCapture()
-           assert root.level == 1
-           l.uninstall()
-           assert root.level == 49
-           root.setLevel(69)
-           l.uninstall()
-           assert root.level == 69
-        finally:
-           root.setLevel(old_level)
+        preserve_level(self, root)
+        root.setLevel(49)
+        l = LogCapture()
+        assert root.level == 1
+        l.uninstall()
+        assert root.level == 49
+        root.setLevel(69)
+        l.uninstall()
+        assert root.level == 69
 
         # And even when loggers have been uninstalled, there's
         # no problem having uninstall_all as a backstop:
