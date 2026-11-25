@@ -3,7 +3,7 @@ Testfixtures
 
 |Docs|_ |PyPI|_  |Git|_
 
-.. |Docs| image:: https://readthedocs.org/projects/testfixtures/badge/?version=latest
+.. |Docs| image:: https://img.shields.io/readthedocs/testfixtures
 .. _Docs: http://testfixtures.readthedocs.org/en/latest/
 
 .. |PyPI| image:: https://badge.fury.io/py/testfixtures.svg
