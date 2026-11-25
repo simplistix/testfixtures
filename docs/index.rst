@@ -23,6 +23,7 @@ The sections below describe the use of the various tools included:
    numpy.rst
    structlog.rst
    pydantic.rst
+   protobuf.rst
    twisted.rst
    utilities.rst
 

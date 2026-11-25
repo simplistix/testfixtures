@@ -19,6 +19,7 @@ intersphinx_mapping = {
     'pandas': ('https://pandas.pydata.org/docs/', None),
     'polars': ('https://docs.pola.rs/api/python/stable/', None),
     'pydantic': ('https://docs.pydantic.dev/latest/', None),
+    'protobuf': ('https://googleapis.dev/python/protobuf/latest/', None),
 }
 
 # General

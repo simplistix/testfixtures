@@ -40,6 +40,7 @@ pydantic = [
     "pydantic>=2.12.0; python_version < '3.15'",
     "pydantic>=2.13.0; python_version >= '3.15'",
 ]
+protobuf = ["protobuf>=7.34.0"]
 twisted = ["twisted>=22.1"]
 yaml = ["pyyaml>=6.0.3"]
 toml = ["tomlkit>=0.10.0"]
@@ -57,6 +58,9 @@ django-dev = [
 ]
 pandas-dev = [
     "pandas-stubs>=2.3.0",
+]
+protobuf-dev = [
+    "types-protobuf>=7.34",
 ]
 twisted-dev = [
     "mypy-zope",
