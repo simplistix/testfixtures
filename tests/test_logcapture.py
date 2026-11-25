@@ -56,7 +56,10 @@ class TestLogCapture(TestCase):
             log_capture.ensure_checked()
 
     def test_simple_strict_re_defaulted(self):
-        with Replace('testfixtures.LogCapture.default_ensure_checks_above', ERROR):
+        with Replace(
+            LogCapture.default_ensure_checks_above, ERROR,
+            container=LogCapture, name='default_ensure_checks_above',
+        ):
             LogCapture.default_ensure_checks_above = ERROR
             log_capture = LogCapture()
             root.error('during')
@@ -101,6 +104,22 @@ class TestLogCapture(TestCase):
         assert ("root", "ERROR", "during") in log_capture
         assert ("root", "INFO", "during") not in log_capture
         log_capture.ensure_checked()
+
+    def test_ensure_checks_above_notset_overrides_default(self):
+        with Replace(
+            LogCapture.default_ensure_checks_above, ERROR,
+            container=LogCapture, name='default_ensure_checks_above',
+        ):
+            with LogCapture(ensure_checks_above=logging.NOTSET):
+                root.error('during')
+
+    def test_default_ensure_checks_above_notset(self):
+        with Replace(
+            LogCapture.default_ensure_checks_above, logging.NOTSET,
+            container=LogCapture, name='default_ensure_checks_above',
+        ):
+            with LogCapture():
+                root.error('during')
 
     def test_simple_strict_asserted_by_mark_all_checked(self):
         log_capture = LogCapture(ensure_checks_above=ERROR)
