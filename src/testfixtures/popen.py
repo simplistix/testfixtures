@@ -4,10 +4,13 @@ from io import TextIOWrapper
 from itertools import chain, zip_longest
 from os import PathLike
 from subprocess import STDOUT, PIPE
+# Captured at import time so that Passthrough can delegate to the real
+# Popen even when a test has since patched subprocess.Popen itself.
+from subprocess import Popen as RealPopen
 from tempfile import TemporaryFile
 from types import TracebackType
 from typing import (
-    Callable, List, Sequence, Tuple, Iterable, TextIO, TypeAlias, ParamSpec,
+    Callable, List, Sequence, Tuple, Iterable, TypeAlias, ParamSpec,
     TypeVar, Concatenate, IO, Any, Mapping, Collection, Literal, Self, Protocol
 )
 
@@ -68,15 +71,25 @@ class CallableBehaviour(Protocol):
     def __call__(self, command: str, stdin: File) -> PopenBehaviour: ...
 
 
+class Passthrough:
+    """
+    A sentinel behaviour that, when supplied as the ``behaviour`` of
+    :meth:`~MockPopen.set_command` or :meth:`~MockPopen.set_default`,
+    causes the matching command to be passed through to the real
+    :class:`subprocess.Popen` instead of being simulated.
+    """
+
+
 P = ParamSpec('P')
 R = TypeVar('R')
+Instance = TypeVar('Instance', bound='MockPopenInstance')
 
 
 def record(
-        func: Callable[Concatenate['MockPopenInstance', P], R]
-) -> Callable[Concatenate['MockPopenInstance', P], R]:
+        func: Callable[Concatenate[Instance, P], R]
+) -> Callable[Concatenate[Instance, P], R]:
     @wraps(func)
-    def recorder(self: 'MockPopenInstance', *args: P.args, **kw: P.kwargs) -> R:
+    def recorder(self: Instance, *args: P.args, **kw: P.kwargs) -> R:
         self._record((func.__name__,), *args, **kw)
         return func(self, *args, **kw)
     return recorder
@@ -90,19 +103,28 @@ class MockPopenInstance:
     #: A :class:`~unittest.mock.Mock` representing the pipe into this process.
     #: This is only set if ``stdin=PIPE`` is passed the constructor.
     #: The mock records writes and closes in :attr:`MockPopen.all_calls`.
-    stdin: Mock | None = None
+    stdin: Mock | IO[Any] | None = None
 
     #: A file representing standard output from this process.
-    stdout: TextIO | None = None
+    stdout: IO[Any] | None = None
 
     #: A file representing error output from this process.
-    stderr: TextIO | None = None
+    stderr: IO[Any] | None = None
+
+    #: A :func:`unittest.mock.call` representing the call made to instantiate
+    #: this mock process.
+    root_call: Call
+
+    #: The calls made on this mock process, represented using
+    #: :func:`~unittest.mock.call` instances.
+    calls: List[Call]
 
     # These are not types as instantiation of this class is an internal implementation detail.
     def __init__(
             self,
             mock_class: 'MockPopen',
             root_call: Call,
+            behaviour: PopenBehaviour | CallableBehaviour,
             args: Command,
             bufsize: int = 0,
             executable: StrOrBytesPath | None = None,
@@ -114,7 +136,7 @@ class MockPopenInstance:
             shell: bool = False,
             cwd: StrOrBytesPath | None = None,
             env: Mapping[str, str] | None = None,
-            universal_newlines: bool = False,
+            universal_newlines: bool | None = None,
             startupinfo: Any = None,
             creationflags: int = 0,
             restore_signals: bool = True,
@@ -125,35 +147,20 @@ class MockPopenInstance:
             errors: str | None = None,
             text: bool | None = None,
     ) -> None:
-        self.mock: Mock = Mock()
-        self.class_instance_mock: Mock = mock_class.mock.Popen_instance
-        #: A :func:`unittest.mock.call` representing the call made to instantiate
-        #: this mock process.
-        self.root_call: Call = root_call
-        #: The calls made on this mock process, represented using
-        #: :func:`~unittest.mock.call` instances.
-        self.calls: List[Call] = []
-        self.all_calls: List[Call] = mock_class.all_calls
-
-        cmd = shell_join(args)
-
-        behaviour: Any
-        behaviour = mock_class.commands.get(cmd, mock_class.default_behaviour)
-        if behaviour is None:
-            raise KeyError('Nothing specified for command %r' % cmd)
+        self._setup_recording(mock_class, root_call)
 
         if callable(behaviour):
-            behaviour = behaviour(command=cmd, stdin=stdin)
+            behaviour = behaviour(command=shell_join(args), stdin=stdin)
 
         self.behaviour: PopenBehaviour = behaviour
 
         stdout_value = behaviour.stdout
-        stderr_value = behaviour.stderr
+        stderr_value: bytes | None = behaviour.stderr
 
         if stderr == STDOUT:
             line_iterator = chain.from_iterable(zip_longest(
                 stdout_value.splitlines(True),
-                stderr_value.splitlines(True)
+                behaviour.stderr.splitlines(True)
             ))
             stdout_value = b''.join(l for l in line_iterator if l)
             stderr_value = None
@@ -183,6 +190,13 @@ class MockPopenInstance:
         #: The return code of this mock process.
         self.returncode: int | None = None
         self.args: Command = args
+
+    def _setup_recording(self, mock_class: 'MockPopen', root_call: Call) -> None:
+        self.mock: Mock = Mock()
+        self.class_instance_mock: Mock = mock_class.mock.Popen_instance
+        self.root_call = root_call
+        self.calls = []
+        self.all_calls: List[Call] = mock_class.all_calls
 
     def _record(self, names: Sequence[str], *args: Any, **kw: Any) -> None:
         for mock in self.class_instance_mock, self.mock:
@@ -252,6 +266,79 @@ class MockPopenInstance:
         pass
 
 
+class PassthroughPopenInstance(MockPopenInstance):
+    """
+    A process as returned by :class:`MockPopen` for a command whose behaviour
+    is :class:`Passthrough`. Calls are recorded just as for a
+    :class:`MockPopenInstance`, but are delegated to a real
+    :class:`subprocess.Popen`, whose :attr:`~subprocess.Popen.stdin`,
+    :attr:`~subprocess.Popen.stdout` and :attr:`~subprocess.Popen.stderr`
+    are used directly.
+    """
+
+    # These are not types as instantiation of this class is an internal implementation detail.
+    def __init__(
+            self, mock_class: 'MockPopen', root_call: Call, *args: Any, **kw: Any
+    ) -> None:
+        self._setup_recording(mock_class, root_call)
+        #: The real :class:`subprocess.Popen` this process delegates to.
+        self.real: RealPopen[Any] = RealPopen(*args, **kw)
+        self.args = self.real.args
+        self.pid = self.real.pid
+        self.stdin = self.real.stdin
+        self.stdout = self.real.stdout
+        self.stderr = self.real.stderr
+        self.returncode = self.real.returncode
+
+    def __exit__(
+            self,
+            exc_type: type[BaseException] | None,
+            value: BaseException | None,
+            traceback: TracebackType | None,
+    ) -> None:
+        # As with the real Popen, stdin must be closed before waiting, or a
+        # process reading it until EOF would never exit.
+        if self.stdin:
+            self.stdin.close()
+        super().__exit__(exc_type, value, traceback)
+
+    @record
+    def wait(self, timeout: float | None = None) -> int:
+        "Delegate to :meth:`subprocess.Popen.wait`"
+        self.returncode = self.real.wait(timeout=timeout)
+        return self.returncode
+
+    @record
+    def communicate(
+            self, input: str | bytes | None = None, timeout: float | None = None
+    ) -> Tuple[str | bytes | None, str | bytes | None]:
+        "Delegate to :meth:`subprocess.Popen.communicate`"
+        stdout, stderr = self.real.communicate(input=input, timeout=timeout)
+        self.returncode = self.real.returncode
+        return stdout, stderr
+
+    @record
+    def poll(self) -> int | None:
+        "Delegate to :meth:`subprocess.Popen.poll`"
+        self.returncode = self.real.poll()
+        return self.returncode
+
+    @record
+    def send_signal(self, signal: int) -> None:
+        "Delegate to :meth:`subprocess.Popen.send_signal`"
+        self.real.send_signal(signal)
+
+    @record
+    def terminate(self) -> None:
+        "Delegate to :meth:`subprocess.Popen.terminate`"
+        self.real.terminate()
+
+    @record
+    def kill(self) -> None:
+        "Delegate to :meth:`subprocess.Popen.kill`"
+        self.real.kill()
+
+
 class MockPopen:
     """
     A specialised mock for testing use of :class:`subprocess.Popen`.
@@ -260,10 +347,10 @@ class MockPopen:
     :func:`unittest.mock.patch` or a :class:`~testfixtures.Replacer`.
     """
 
-    default_behaviour: PopenBehaviour | CallableBehaviour | None = None
+    default_behaviour: PopenBehaviour | CallableBehaviour | Passthrough | None = None
 
     def __init__(self) -> None:
-        self.commands: dict[str, PopenBehaviour | CallableBehaviour] = {}
+        self.commands: dict[str, PopenBehaviour | CallableBehaviour | Passthrough] = {}
         self.mock: Mock = Mock()
         #: All calls made using this mock and the objects it returns, represented using
         #: :func:`~unittest.mock.call` instances.
@@ -276,8 +363,8 @@ class MockPopen:
             returncode: int,
             pid: int,
             poll_count: int,
-            behaviour: PopenBehaviour | CallableBehaviour | None
-    ) -> PopenBehaviour | CallableBehaviour:
+            behaviour: PopenBehaviour | CallableBehaviour | Passthrough | None
+    ) -> PopenBehaviour | CallableBehaviour | Passthrough:
         if behaviour is None:
             return PopenBehaviour(
                 stdout, stderr, returncode, pid, poll_count
@@ -293,7 +380,7 @@ class MockPopen:
             returncode: int = 0,
             pid: int = 1234,
             poll_count: int = 3,
-            behaviour: PopenBehaviour | CallableBehaviour | None = None
+            behaviour: PopenBehaviour | CallableBehaviour | Passthrough | None = None
     ) -> None:
         """
         Set the behaviour of this mock when it is used to simulate the
@@ -312,7 +399,7 @@ class MockPopen:
             returncode: int =0,
             pid: int = 1234,
             poll_count: int = 3,
-            behaviour: PopenBehaviour | CallableBehaviour | None = None
+            behaviour: PopenBehaviour | CallableBehaviour | Passthrough | None = None
     ) -> None:
         """
         Set the behaviour of this mock when it is used to simulate commands
@@ -323,11 +410,17 @@ class MockPopen:
             stdout, stderr, returncode, pid, poll_count, behaviour
         )
 
-    def __call__(self, *args: Any, **kw: Any) -> MockPopenInstance:
-        self.mock.Popen(*args, **kw)
-        root_call = call.Popen(*args, **kw)
+    def __call__(self, args: Command, *popenargs: Any, **kw: Any) -> MockPopenInstance:
+        self.mock.Popen(args, *popenargs, **kw)
+        root_call = call.Popen(args, *popenargs, **kw)
         self.all_calls.append(root_call)
-        return MockPopenInstance(self, root_call, *args, **kw)
+        cmd = shell_join(args)
+        behaviour = self.commands.get(cmd, self.default_behaviour)
+        if behaviour is None:
+            raise KeyError('Nothing specified for command %r' % cmd)
+        if isinstance(behaviour, Passthrough):
+            return PassthroughPopenInstance(self, root_call, args, *popenargs, **kw)
+        return MockPopenInstance(self, root_call, behaviour, args, *popenargs, **kw)
 
 
 set_command_params = """
@@ -348,11 +441,16 @@ set_command_params = """
     called before :attr:`~MockPopenInstance.returncode` is set and returned
     by :meth:`~MockPopenInstance.poll`.
 
-If supplied, ``behaviour`` must be either a :class:`PopenBehaviour`
-instance or a callable that takes the ``command`` string representing
-the command to be simulated and the ``stdin`` supplied when instantiating
-the :class:`subprocess.Popen` with that command and should
-return a :class:`PopenBehaviour` instance.
+If supplied, ``behaviour`` must be one of:
+
+- A :class:`PopenBehaviour` instance.
+- A callable that takes the ``command`` string representing the command to
+  be simulated and the ``stdin`` supplied when instantiating the
+  :class:`subprocess.Popen` with that command and should return a
+  :class:`PopenBehaviour` instance.
+- A :class:`Passthrough` instance, causing the command to be passed
+  through to the real :class:`subprocess.Popen` instead of being
+  simulated.
 """
 
 
