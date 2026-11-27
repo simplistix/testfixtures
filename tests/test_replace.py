@@ -1036,6 +1036,25 @@ class TestInModule:
         from .sample3 import SOME_CONSTANT as sample3_some_constant
         compare(sample3_some_constant, expected=42)
 
+    def test_target_already_replaced(self):
+        def stand_in() -> str:
+            return 'stand in'
+
+        with Replacer() as outer:
+            outer.in_module(z, stand_in)
+            from .sample1 import z as replaced
+            with Replacer() as inner:
+                with ShouldRaise(AttributeError(
+                    f"{replaced!r} is not {__name__}.stand_in, so cannot be replaced "
+                    "there: it may already have been replaced. Use replace() with "
+                    "the dotted path of the attribute instead."
+                )):
+                    inner.in_module(replaced, lambda: 'all new z')
+            from .sample1 import z as sample1_z
+            compare(sample1_z(), expected='stand in')
+        from .sample1 import z as sample1_z
+        compare(sample1_z(), expected='original z')
+
 
 class TestConvenience:
 
